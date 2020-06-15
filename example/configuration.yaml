@@ -1,0 +1,111 @@
+homeassistant:
+  auth_providers:
+     - type: homeassistant
+     - type: legacy_api_password
+       api_password: itcommander
+       
+# Configure a default setup of Home Assistant (frontend, api, etc)
+default_config:
+ios:
+system_health:
+api:
+websocket_api:
+
+# Uncomment this if you are using SSL/TLS, running in Docker container, etc.
+http:
+  base_url: http://itcommander.local:8123
+
+# Text to speech
+tts:
+  - platform: google_translate
+  - platform: baidu
+    #app_id，api_key，secret_key从百度云上注册得到
+    app_id: xxxxxxxxxx 
+    api_key: xxxxxxxxxx
+    secret_key: xxxxxxxxxx
+    #speed：语速0-9（缺省5）
+    #pitch：语调0-9（缺省5）
+    #volume：音量0-15（缺省5）
+    #person：声音（0：女，1：男，3：百度合成，4：百度合成，缺省0）
+    speed: 5
+    pitch: 5
+    volume: 15
+    person: 0
+
+group: !include groups.yaml
+automation: !include automations.yaml
+script: !include scripts.yaml
+
+homekit:
+  entity_config:
+    media_player.mpd:
+      feature_list:
+        - feature: on_off
+        - feature: play_pause
+        - feature: play_stop
+        - feature: toggle_mute
+
+media_player:
+  - platform: mpd
+    host: 127.0.0.1
+
+recorder:
+  purge_keep_days: 30
+
+panel_iframe:
+  configurator:
+    title: Configurator
+    icon: mdi:wrench
+    url: http://itcommander.local:3218/
+  nodered:  
+    title: 'NodeRed'  
+    icon: 'mdi:sitemap'  
+    url: http://itcommander.local:1880
+  motioneye:  
+    title: 'MotionEye'  
+    icon: 'mdi:camera-wireless'  
+    url: http://itcommander.local:8765
+  esphome:  
+    title: 'ESPHome'  
+    icon: 'mdi:chip'  
+    url: http://itcommander.local:6052
+  mopidy:  
+    title: 'Music'  
+    icon: 'mdi:music-box-outline'  
+    url: http://itcommander.local:6680/iris
+  iobroker:  
+    title: 'IOBroker'  
+    icon: 'mdi:directions-fork'  
+    url: http://itcommander.local:8181
+
+camera:
+  - platform: generic
+    name: 摄像头  
+    still_image_url: http://127.0.0.1:8765/picture/1/current/
+    stream_source: http://127.0.0.1:8081
+
+binary_sensor:
+  - platform: ffmpeg_motion
+    input: http://127.0.0.1:8081
+    #changes: 3 //这个参数调整移动侦测灵敏度，值越小越灵敏。
+    name: 移动侦测
+
+sensor:
+  #- platform: time_date
+    #display_options:
+      #- 'time'
+      #- 'date'
+      #- 'date_time'
+      #- 'date_time_iso'
+      #- 'time_date'
+      #- 'time_utc'
+      #- 'beat'
+  - platform: worldclock
+    time_zone: Asia/Shanghai
+    name: 北京时间
+
+switch:
+  - platform: xiaomi_miio
+    name: "饮水机"
+    host: 192.168.1.222
+    token: 775db4196bcccf5fdb41f5a75efaf835
