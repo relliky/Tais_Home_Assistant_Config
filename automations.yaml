@@ -55,11 +55,15 @@
   alias: Kitchen Heating Off If No Person for 10 Min
   description: ''
   trigger:
-  - entity_id: binary_sensor.kitchen_table_motion_sensor
-    for: 00:10:00
-    from: 'on'
-    platform: state
-    to: 'off'
+  - device_id: 1794069246894179bac02432834a74e9
+    domain: binary_sensor
+    entity_id: binary_sensor.kitchen_table_motion_sensor
+    for:
+      hours: 0
+      minutes: 10
+      seconds: 0
+    platform: device
+    type: no_motion
   - minutes: /10
     platform: time_pattern
   condition:
@@ -158,7 +162,7 @@
     service: automation.turn_on
   mode: single
 - id: '1599611696918'
-  alias: Ground Corridor Heating Off If No Person For 30 Min
+  alias: Ground Corridor Heating Off If No Person For 20 Min
   description: ''
   trigger:
   - device_id: 21bd5084a8c14eeeb6534e855a51c041
@@ -166,11 +170,11 @@
     entity_id: binary_sensor.ground_corridor_motion_sensor
     for:
       hours: 0
-      minutes: 30
+      minutes: 20
       seconds: 0
     platform: device
     type: no_motion
-  - hours: /1
+  - minutes: /30
     platform: time_pattern
   condition:
   - condition: and
@@ -924,4 +928,50 @@
         '
     entity_id: climate.en_suite_room
     service: climate.set_temperature
+  mode: single
+- id: '1602117522624'
+  alias: Turn Off All TVs at 2.3.4.5am
+  description: ''
+  trigger:
+  - at: 02:00:00
+    platform: time
+  - at: 03:00:00
+    platform: time
+  - at: 04:00:00
+    platform: time
+  - at: 05:00:00
+    platform: time
+  condition: []
+  action:
+  - data:
+      entity_id: media_player.living_room_tv
+    service: media_player.turn_off
+  mode: single
+- id: '1602118134986'
+  alias: turn on tv - DOES NOT WORK - NEED WAKE-ON-LAN
+  description: ''
+  trigger:
+  - at: '12:00:00'
+    platform: time
+  condition: []
+  action:
+  - data: {}
+    entity_id: media_player.living_room_tv
+    service: media_player.turn_on
+  mode: single
+- id: '1602118737375'
+  alias: Living Room TV Off If No Person For 20 Min
+  description: ''
+  trigger:
+  - minutes: /10
+    platform: time_pattern
+  condition:
+  - condition: state
+    entity_id: binary_sensor.living_room_sofa_motion_sensor
+    for: 00:20:00
+    state: 'off'
+  action:
+  - data:
+      entity_id: media_player.living_room_tv
+    service: media_player.turn_off
   mode: single
