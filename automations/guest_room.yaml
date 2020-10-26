@@ -1,0 +1,82 @@
+# Guest Room
+# Guest Toilet
+# - Heating automation
+# - Lighting automation based on motion sensors
+# - Lighting automation based on buttons
+#
+# N.B. No Guest Toilet heating automation set yet.
+#
+#
+
+- alias: H-GR Guest Room Heating Set to 22 If Person Present
+  id: '1599909943222'
+  description: 'automation.guest_room_heating_on_if_person_present'
+  trigger:
+  - entity_id: binary_sensor.guest_room_radiator_motion_sensor_motion
+    platform: state
+    from: 'off'
+    to: 'on'
+  - entity_id: binary_sensor.guest_room_bed_motion_sensor_motion
+    platform: state
+    from: 'off'
+    to: 'on'
+  condition: []
+  action:
+  - data:
+      hvac_mode: heat
+    entity_id: climate.guest_room
+    service: climate.set_hvac_mode
+  - data:
+      temperature: 22
+    entity_id: climate.guest_room
+    service: climate.set_temperature
+  - data: {}
+    entity_id: automation.guest_room_heating_on_if_person_present
+    service: automation.turn_off
+  mode: single
+
+
+
+
+- alias: H-GR Guest Room Heating Off If No Person For 10 Min (Not living people for now)
+  id: '1599910386222'
+  description: 'automation.guest_room_heating_off_if_no_person_in_daytime'
+  trigger:
+  - entity_id: binary_sensor.guest_room_radiator_motion_sensor_motion
+    platform: state
+    from: 'on'
+    to: 'off'
+    for: 00:10:00
+  - entity_id: binary_sensor.guest_room_bed_motion_sensor_motion
+    platform: state
+    from: 'on'
+    to: 'off'
+    for: 00:10:00
+  - minutes: /10
+    platform: time_pattern
+  condition:
+  - condition: and
+    conditions:
+    - condition: state
+      entity_id: binary_sensor.guest_room_radiator_motion_sensor_motion
+      for: 00:10:00
+      state: 'off'
+    - condition: state
+      entity_id: binary_sensor.guest_room_bed_motion_sensor_motion
+      for: 00:10:00
+      state: 'off'
+    - after: 00:00:00
+      before: '23:59:00'
+      condition: time
+  action:
+  - service: climate.set_hvac_mode
+    entity_id: climate.guest_room
+    data:
+      hvac_mode: auto
+  - data: {}
+    entity_id: automation.guest_room_heating_on_if_person_present
+    service: automation.turn_on
+  mode: single
+
+
+

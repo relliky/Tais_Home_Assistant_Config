@@ -1,0 +1,184 @@
+# Kitchen
+# - Heating automation
+# - Lighting automation based on motion sensors
+# - Lighting automation based on buttons
+#
+
+##############################
+#
+# Heating Automation
+#
+##############################
+
+
+- alias: H-KC Kitchen Heating Set to 20 If Person Present
+  id: '1599609685194'
+  description: 'automation.kitchen_heating_on_if_people_present'
+  trigger:
+  - entity_id: binary_sensor.kitchen_table_motion_sensor_motion
+    platform: state
+    from: 'off'
+    to: 'on'
+  condition: []
+  action:
+  - data:
+      hvac_mode: heat
+    entity_id: climate.kitchen
+    service: climate.set_hvac_mode
+  - data:
+      temperature: 20
+    entity_id: climate.kitchen
+    service: climate.set_temperature
+  - data: {}
+    entity_id: automation.kitchen_heating_on_if_people_present
+    service: automation.turn_off
+  mode: single
+
+
+
+
+
+- alias: H-KC Kitchen Heating Off If No Person for 10 Min
+  id: '1599609374841'
+  description: 'automation.kitchen_heating_off_when_no_person'
+  trigger:
+  - entity_id: binary_sensor.kitchen_table_motion_sensor_motion
+    platform: state
+    from: 'on'
+    to: 'off'
+    for: 00:10:00
+  - minutes: /10
+    platform: time_pattern
+  condition:
+  - condition: state
+    entity_id: binary_sensor.kitchen_table_motion_sensor_motion
+    for: 00:10:00
+    state: 'off'
+  action:
+  - service: climate.set_hvac_mode
+    entity_id: climate.kitchen
+    data:
+      hvac_mode: auto
+  - data: {}
+    entity_id: automation.kitchen_heating_on_if_people_present
+    service: automation.turn_on
+  mode: single
+
+
+
+
+
+###############################################
+#
+# Lighting Automation based on motion sensors
+#
+###############################################
+
+
+- alias: L-KC Kitchen Lights On If Person Present and Dark In Daytime
+  id: '1603640029617'
+  description: 'automation.kitchen_lights_on_if_person_present_and_dark_in_daytime'
+  trigger:
+  - entity_id: binary_sensor.kitchen_table_motion_sensor_motion
+    platform: state
+    from: 'off'
+    to: 'on'
+  - entity_id: binary_sensor.kitchen_worktop_motion_sensor_motion
+    platform: state
+    from: 'off'
+    to: 'on'
+  condition:
+  - condition: and
+    conditions:
+    - condition: and
+      conditions:
+      - entity_id: binary_sensor.kitchen_table_motion_sensor_motion
+        condition: state
+        state: 'on'
+      - entity_id: sensor.kitchen_table_motion_sensor_light
+        condition: numeric_state
+        below: '50'
+    - after: '06:00:00'
+      before: '00:00:00'
+      condition: time
+  action:
+  - data: {}
+    service: script.kitchen_all_lights_turn_on
+  mode: single
+
+
+
+
+
+- alias: L-KC Kitchen All Lights and Appliances Off If No Person For 10 Min
+  id: '1593556938732'
+  description: 'automation.kitchen_all_lights_and_appliances_off_if_no_person'
+  trigger:
+  - minutes: /10
+    platform: time_pattern
+  - entity_id: binary_sensor.kitchen_table_motion_sensor_motion
+    platform: state
+    from: 'on'
+    to: 'off'
+    for: 00:10:00
+  - entity_id: binary_sensor.kitchen_worktop_motion_sensor_motion
+    platform: state
+    from: 'on'
+    to: 'off'
+    for: 00:10:00
+  condition:
+  - condition: and
+    conditions:
+    - condition: state
+      entity_id: binary_sensor.kitchen_table_motion_sensor_motion
+      state: 'off'
+      for: 00:10:00
+    - condition: state
+      entity_id: binary_sensor.kitchen_worktop_motion_sensor_motion
+      state: 'off'
+      for: 00:10:00
+  action:
+  - data: {}
+    service: script.kitchen_all_lights_and_appliances_turn_off
+  mode: single
+
+
+
+
+
+- alias: L-KC Kitchen Worktop Lights On If Person Present
+  id: '1603640020001'
+  description: ''
+  trigger:
+  - entity_id: binary_sensor.kitchen_worktop_motion_sensor_motion
+    platform: state
+    from: 'off'
+    to: 'on'
+  condition: []
+  action:
+  - data: {}
+    service: script.kitchen_worktop_lights_turn_on
+  mode: single
+
+
+
+- alias: L-KC Kitchen WorkTop Lights Off If No Person
+  id: '1603640020002'
+  description: ''
+  trigger:
+  - entity_id: binary_sensor.kitchen_worktop_motion_sensor_motion
+    platform: state
+    from: 'on'
+    to: 'off'
+    for: 00:05:00
+  - minutes: /5
+    platform: time_pattern
+  condition:
+  - condition: state
+    entity_id: sensor_motion.kitchen_worktop_motion_sensor_motion
+    for: 00:05:00
+    state: 'off'
+  action:
+  - data: {}
+    service: script.kitchen_worktop_lights_turn_off
+  mode: single

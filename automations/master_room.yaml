@@ -1,0 +1,261 @@
+# Master Room
+# Master Toilet
+# - Heating automation
+# - Lighting automation based on motion sensors
+# - Lighting automation based on buttons
+#
+
+
+
+
+- alias: H-MR Master Room Heating Set to 22 If Person Present
+  id: '1599909943770'
+  description: 'automation.master_room_heating_on_if_person_present'
+  trigger:
+  - entity_id: binary_sensor.master_room_bed_motion_sensor_motion
+    platform: state
+    from: 'off'
+    to: 'on'
+  condition: []
+  action:
+  - data:
+      hvac_mode: heat
+    entity_id: climate.master_room
+    service: climate.set_hvac_mode
+  - data:
+      temperature: 22
+    entity_id: climate.master_room
+    service: climate.set_temperature
+  - data: {}
+    entity_id: automation.master_room_heating_on_if_person_present
+    service: automation.turn_off
+  mode: single
+
+
+
+- alias: H-MR Master Room Heating Off If No Person For 10 Min In Daytime
+  id: '1599910386760'
+  description: 'automation.master_room_heating_off_if_no_person_in_daytime'
+  trigger:
+  - entity_id: binary_sensor.master_room_bed_motion_sensor_motion
+    platform: state
+    from: 'on'
+    to: 'off'
+    for: 00:10:00
+  - minutes: /10
+    platform: time_pattern
+  condition:
+  - condition: and
+    conditions:
+    - after: '9:00:00'
+      before: '21:00:00'
+      condition: time
+    - condition: state
+      entity_id: binary_sensor.master_room_bed_motion_sensor_motion
+      for: 00:10:00
+      state: 'off'
+  action:
+  - service: climate.set_hvac_mode
+    entity_id: climate.master_room
+    data:
+      hvac_mode: auto
+  - data: {}
+    entity_id: automation.master_room_heating_on_if_person_present
+    service: automation.turn_on
+  mode: single
+
+
+
+- alias: H-MT Master Toilet Heating Set to 20 If Person Present
+  id: '1600014380137'
+  description: 'automation.master_toilet_heating_on_if_person_present'
+  trigger:
+  - entity_id: binary_sensor.master_toilet_basin_motion_sensor_motion
+    platform: state
+    from: 'off'
+    to: 'on'
+  - entity_id: binary_sensor.master_toilet_shower_motion_sensor_motion
+    platform: state
+    from: 'off'
+    to: 'on'
+  condition: []
+  action:
+  - data:
+      hvac_mode: heat
+    entity_id: climate.master_toilet
+    service: climate.set_hvac_mode
+  - data:
+      temperature: 20
+    entity_id: climate.master_toilet
+    service: climate.set_temperature
+  - data: {}
+    entity_id: automation.master_toilet_heating_on_if_person_present
+    service: automation.turn_off
+  mode: single
+
+
+
+- alias: H-MT Master Toilet Heating Off If No Person For 10 Min
+  id: '1600015749043'
+  description: 'automation.master_toilet_heating_off_if_no_person'
+  trigger:
+  - minutes: /30
+    platform: time_pattern
+  - entity_id: binary_sensor.master_toilet_basin_motion_sensor_motion
+    platform: state
+    from: 'on'
+    to: 'off'
+    for: 00:10:00
+  - entity_id: binary_sensor.master_toilet_shower_motion_sensor_motion
+    platform: state
+    from: 'on'
+    to: 'off'
+    for: 00:10:00
+  condition:
+  - condition: state
+    entity_id: binary_sensor.master_toilet_basin_motion_sensor_motion
+    for: 00:10:00
+    state: 'off'
+  - condition: state
+    entity_id: binary_sensor.master_toilet_shower_motion_sensor_motion
+    for: 00:10:00
+    state: 'off'
+  action:
+  - service: climate.set_hvac_mode
+    entity_id: climate.master_toilet
+    data:
+      hvac_mode: auto
+  - data: {}
+    entity_id: automation.master_toilet_heating_on_if_person_present
+    service: automation.turn_on
+  mode: single
+
+
+###############################################
+#
+# Lighting Automation based on motion sensors
+#
+###############################################
+
+
+- alias: L-MT Master Toilet Lights On If Person Present and Dark
+  id: '1603640020003'
+  description: ''
+  trigger:
+  - entity_id: binary_sensor.master_toilet_basin_motion_sensor_motion
+    platform: state
+    from: 'off'
+    to: 'on'
+  - entity_id: binary_sensor.master_toilet_shower_motion_sensor_motion
+    platform: state
+    from: 'off'
+    to: 'on'
+  condition:
+  - condition: and
+    conditions:
+    - after: '00:00:01'
+      before: '00:00:00'
+      condition: time
+    - condition: or
+      conditions:
+      - condition: and
+        conditions:
+        - entity_id: binary_sensor.master_toilet_basin_motion_sensor_motion
+          condition: state
+          state: 'on'
+        - entity_id: sensor.master_toilet_basin_motion_sensor_light
+          condition: numeric_state
+          below: '50'
+      - condition: and
+        conditions:
+        - entity_id: binary_sensor.master_toilet_shower_motion_sensor_motion
+          condition: state
+          state: 'on'
+        - entity_id: sensor.master_toilet_shower_motion_sensor_light
+          condition: numeric_state
+          below: '50'
+  action:
+  - data: {}
+    entity_id: switch.master_toilet_light
+    service: switch.turn_on
+  mode: single
+
+
+
+
+- alias: L-MT Master Toilet Lights Off If No Person For 10 Min And Door Closed
+  id: '1603640020004'
+  description: ''
+  trigger:
+  - entity_id: binary_sensor.master_toilet_basin_motion_sensor_motion
+    platform: state
+    from: 'on'
+    to: 'off'
+    for: 00:10:00
+  - entity_id: binary_sensor.master_toilet_shower_motion_sensor_motion
+    platform: state
+    from: 'on'
+    to: 'off'
+    for: 00:10:00
+  condition:
+  - condition: and
+    conditions:
+    - after: '00:00:01'
+      before: '00:00:00'
+      condition: time
+    - entity_id: binary_sensor.master_toilet_door
+      condition: state
+      state: 'off'
+    - entity_id: binary_sensor.master_toilet_basin_motion_sensor_motion
+      condition: state
+      state: 'off'
+      for: 00:10:00
+    - entity_id: binary_sensor.master_toilet_basin_motion_sensor_motion
+      condition: state
+      state: 'off'
+      for: 00:10:00
+  action:
+  - data: {}
+    entity_id: switch.master_toilet_light
+    service: switch.turn_off
+  mode: single
+
+
+- alias: Master Toilet Lights Off If No Person For 2 Min And Door Closed
+  id: '1603640020005'
+  description: ''
+  trigger:
+  - entity_id: binary_sensor.master_toilet_basin_motion_sensor_motion
+    platform: state
+    from: 'on'
+    to: 'off'
+    for: 00:02:00
+  - entity_id: binary_sensor.master_toilet_shower_motion_sensor_motion
+    platform: state
+    from: 'on'
+    to: 'off'
+    for: 00:02:00
+  condition:
+  - condition: and
+    conditions:
+    - after: '00:00:01'
+      before: '00:00:00'
+      condition: time
+    - entity_id: binary_sensor.master_toilet_door
+      condition: state
+      state: 'off'
+    - entity_id: binary_sensor.master_toilet_basin_motion_sensor_motion
+      condition: state
+      state: 'off'
+      for: 00:02:00
+    - entity_id: binary_sensor.master_toilet_basin_motion_sensor_motion
+      condition: state
+      state: 'off'
+      for: 00:02:00
+  action:
+  - data: {}
+    entity_id: switch.master_toilet_light
+    service: switch.turn_off
+  mode: single
+
+

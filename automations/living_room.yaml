@@ -1,0 +1,60 @@
+# Living Room
+# - Heating automation
+# - Lighting automation based on motion sensors
+# - Lighting automation based on buttons
+#
+
+
+
+- alias: H-LR Living Room Heating Set to 22 If Person Present
+  id: '1599611100701'
+  description: 'automation.living_room_heating_on_if_people_present'
+  trigger:
+  - entity_id: binary_sensor.living_room_sofa_motion_sensor_motion
+    platform: state
+    from: 'off'
+    to: 'on'
+  condition: []
+  action:
+  - data:
+      hvac_mode: heat
+    entity_id: climate.living_room
+    service: climate.set_hvac_mode
+  - data:
+      temperature: 22
+    entity_id: climate.living_room
+    service: climate.set_temperature
+  - data: {}
+    entity_id: automation.living_room_heating_on_if_people_present
+    service: automation.turn_off
+  mode: single
+
+
+
+
+- alias: H-LR Living Room Heating Off If No Person For 10 Min
+  id: '1599611453836'
+  description: 'automation.living_room_heating_off_if_no_people'
+  trigger:
+  - entity_id: binary_sensor.living_room_sofa_motion_sensor_motion
+    platform: state
+    from: 'on'
+    to: 'off'
+    for: 00:10:00
+  - minutes: /10
+    platform: time_pattern
+  condition:
+  - condition: state
+    entity_id: binary_sensor.living_room_sofa_motion_sensor_motion
+    for: 00:10:00
+    state: 'off'
+  action:
+  - service: climate.set_hvac_mode
+    entity_id: climate.living_room
+    data:
+      hvac_mode: auto
+  - data: {}
+    entity_id: automation.living_room_heating_on_if_people_present
+    service: automation.turn_on
+  mode: single
+

@@ -1,0 +1,60 @@
+# Study
+# - Heating automation
+# - Lighting automation based on motion sensors
+# - Lighting automation based on buttons
+#
+
+- alias: H-ST Study Heating Set to 21 If Person Present
+  id: '1600014380444'
+  description: 'automation.study_heating_on_if_person_present'
+  trigger:
+  - entity_id: binary_sensor.study_motion_sensor_motion
+    platform: state
+    from: 'off'
+    to: 'on'
+  condition: []
+  action:
+  - data:
+      hvac_mode: heat
+    entity_id: climate.study
+    service: climate.set_hvac_mode
+  - data:
+      temperature: 21
+    entity_id: climate.study
+    service: climate.set_temperature
+  - data: {}
+    entity_id: automation.study_heating_on_if_person_present
+    service: automation.turn_off
+  mode: single
+
+
+
+
+- alias: H-ST Study Heating Off If No Person For 10 Min
+  id: '1600015749444'
+  description: 'automation.study_heating_off_if_no_person'
+  trigger:
+  - entity_id: binary_sensor.study_motion_sensor_motion
+    for: 00:10:00
+    from: 'on'
+    platform: state
+    to: 'off'
+  - minutes: /10
+    platform: time_pattern
+  condition:
+  - condition: state
+    entity_id: binary_sensor.study_motion_sensor_motion
+    for: 00:10:00
+    state: 'off'
+  action:
+  - service: climate.set_hvac_mode
+    entity_id: climate.study
+    data:
+      hvac_mode: auto
+  - data: {}
+    entity_id: automation.study_heating_on_if_person_present
+    service: automation.turn_on
+  mode: single
+
+
+
