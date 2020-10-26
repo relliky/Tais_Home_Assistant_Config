@@ -8,6 +8,12 @@
 #
 #
 
+###############################################
+#
+# Heating Automation based on motion sensors
+#
+###############################################
+
 - alias: H-GR Guest Room Heating Set to 22 If Person Present
   id: '1599909943222'
   description: 'automation.guest_room_heating_on_if_person_present'
@@ -38,7 +44,7 @@
 
 
 
-- alias: H-GR Guest Room Heating Off If No Person For 10 Min (Not living people for now)
+- alias: HL-GR Guest Room Heating Off If No Person For 10 Min (Not living people for now)
   id: '1599910386222'
   description: 'automation.guest_room_heating_off_if_no_person_in_daytime'
   trigger:
@@ -79,4 +85,203 @@
   mode: single
 
 
+###############################################
+#
+# Lighting Automation based on motion sensors
+#
+###############################################
 
+# Guest Toilet Lights
+
+- alias: L-GT Guest Toilet Lights On Daytime If Person Present and Dark
+  id: '1603640020023'
+  description: ''
+  trigger:
+  - entity_id: binary_sensor.guest_toilet_motion_sensor_motion
+    platform: state
+    from: 'off'
+    to: 'on'
+  condition:
+  - condition: and
+    conditions:
+    - after: '05:00:00'
+      before: '00:00:00'
+      condition: time
+    - condition: and
+      conditions:
+      - entity_id: binary_sensor.guest_toilet_motion_sensor_motion
+        condition: state
+        state: 'on'
+      - entity_id: sensor.guest_toilet_motion_sensor_light
+        condition: numeric_state
+        below: '50'
+  action:
+  - data: {}
+    service: script.guest_toilet_ceiling_light_turn_on
+  mode: single
+
+
+- alias: L-GT Guest Toilet Lights On Nighttime If Person Present and Dark
+  id: '1603640020024'
+  description: ''
+  trigger:
+  - entity_id: binary_sensor.guest_toilet_motion_sensor_motion
+    platform: state
+    from: 'off'
+    to: 'on'
+  condition:
+  - condition: and
+    conditions:
+    - after: '00:00:00'
+      before: '05:00:00'
+      condition: time
+    - condition: and
+      conditions:
+      - entity_id: binary_sensor.guest_toilet_motion_sensor_motion
+        condition: state
+        state: 'on'
+      - entity_id: sensor.guest_toilet_motion_sensor_light
+        condition: numeric_state
+        below: '50'
+  action:
+  - data: {}
+    service: script.guest_toilet_floor_led_light_turn_on
+  mode: single
+
+
+- alias: L-GT Guest Toilet Lights Off If No Person For 10 Min And Door Closed
+  id: '1603640020025'
+  description: ''
+  trigger:
+  - entity_id: binary_sensor.guest_toilet_motion_sensor_motion
+    platform: state
+    from: 'on'
+    to: 'off'
+    for: 00:10:00
+  condition:
+  - condition: and
+    conditions:
+    - after: '00:00:01'
+      before: '00:00:00'
+      condition: time
+    - entity_id: binary_sensor.guest_toilet_door
+      condition: state
+      state: 'off'
+    - entity_id: binary_sensor.guest_toilet_motion_sensor_motion
+      condition: state
+      state: 'off'
+      for: 00:10:00
+  action:
+  - data: {}
+    service: script.guest_toilet_all_lights_turn_off
+  mode: single
+
+
+- alias: L-GT Guest Toilet Lights Off If No Person For 2 Min And Door Open
+  id: '1603640020026'
+  description: ''
+  trigger:
+  - entity_id: binary_sensor.guest_toilet_motion_sensor_motion
+    platform: state
+    from: 'on'
+    to: 'off'
+    for: 00:02:00
+  condition:
+  - condition: and
+    conditions:
+    - after: '00:00:01'
+      before: '00:00:00'
+      condition: time
+    - entity_id: binary_sensor.guest_toilet_door
+      condition: state
+      state: 'on'
+    - entity_id: binary_sensor.guest_toilet_motion_sensor_motion
+      condition: state
+      state: 'off'
+      for: 00:02:00
+  action:
+  - data: {}
+    service: script.guest_toilet_all_lights_turn_off
+  mode: single
+
+
+# Guest Room Lights
+
+- alias: L-GR Guest Room Lights On If Person Present and Dark In Daytime (Not living people for now)
+  id: '1603640029640'
+  description: 'automation.guest_room_lights_on_if_person_present_and_dark_in_daytime'
+  trigger:
+  - entity_id: binary_sensor.guest_room_radiator_motion_sensor_motion
+    platform: state
+    from: 'off'
+    to: 'on'
+  - entity_id: binary_sensor.guest_room_bed_motion_sensor_motion
+    platform: state
+    from: 'off'
+    to: 'on'
+  condition:
+  - condition: and
+    conditions:
+    #- after: '00:00:01'
+    #  before: '00:00:00'
+    #  condition: time
+    - condition: or
+      conditions:
+      - condition: and
+        conditions:
+        - entity_id: binary_sensor.guest_room_radiator_motion_sensor_motion
+          condition: state
+          state: 'on'
+        - entity_id: sensor.guest_room_radiator_motion_sensor_light
+          condition: numeric_state
+          below: '50'
+      - condition: and
+        conditions:
+        - entity_id: binary_sensor.guest_room_bed_motion_sensor_motion
+          condition: state
+          state: 'on'
+        - entity_id: sensor.guest_room_bed_motion_sensor_light
+          condition: numeric_state
+          below: '50'
+  action:
+  - data: {}
+    service: script.guest_room_all_lights_turn_on
+  #- data: {}
+  #  entity_id: automation.guest_room_lights_on_if_person_present_and_dark_in_daytime
+  #  service: automation.turn_off
+  mode: single
+
+
+- alias: L-GR Guest Room Lights Off If No Person For 10 Min (Not living people for now)
+  id: '1603640029641'
+  description: ''
+  trigger:
+  - entity_id: binary_sensor.guest_room_radiator_motion_sensor_motion
+    platform: state
+    from: 'on'
+    to: 'off'
+    for: 00:10:00
+  - entity_id: binary_sensor.guest_room_bed_motion_sensor_motion
+    platform: state
+    from: 'on'
+    to: 'off'
+    for: 00:10:00
+  condition:
+  #- after: '00:00:01'
+  #  before: '00:00:00'
+  #  condition: time
+  - condition: state
+    entity_id: binary_sensor.guest_room_radiator_motion_sensor_motion
+    for: 00:10:00
+    state: 'off'
+  - condition: state
+    entity_id: binary_sensor.guest_room_bed_motion_sensor_motion
+    for: 00:10:00
+    state: 'off'
+  action:
+  - data: {}
+    service: script.guest_room_all_lights_turn_off
+  #- data: {}
+  #  entity_id: automation.guest_room_lights_on_if_person_present_and_dark_in_daytime
+  #  service: automation.turn_on
+  mode: single

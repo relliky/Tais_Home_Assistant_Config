@@ -4,11 +4,11 @@
 # - Lighting automation based on buttons
 #
 
-##############################
+###############################################
 #
-# Heating Automation
+# Heating Automation based on motion sensors
 #
-##############################
+###############################################
 
 
 - alias: H-KC Kitchen Heating Set to 20 If Person Present
@@ -108,6 +108,36 @@
 
 
 
+- alias: L-KC Kitchen Night Lights On If Person Present and Dark In Nighttime
+  id: '1603640029618'
+  description: ''
+  trigger:
+  - entity_id: binary_sensor.kitchen_table_motion_sensor_motion
+    platform: state
+    from: 'off'
+    to: 'on'
+  - entity_id: binary_sensor.kitchen_worktop_motion_sensor_motion
+    platform: state
+    from: 'off'
+    to: 'on'
+  condition:
+  - condition: and
+    conditions:
+    - condition: and
+      conditions:
+      - entity_id: binary_sensor.kitchen_table_motion_sensor_motion
+        condition: state
+        state: 'on'
+      - entity_id: sensor.kitchen_table_motion_sensor_light
+        condition: numeric_state
+        below: '50'
+    - after: '00:00:00'
+      before: '06:00:00'
+      condition: time
+  action:
+  - data: {}
+    service: script.kitchen_dining_lights_and_floor_led_turn_on
+  mode: single
 
 
 - alias: L-KC Kitchen All Lights and Appliances Off If No Person For 10 Min
@@ -144,26 +174,30 @@
 
 
 
-
-
-- alias: L-KC Kitchen Worktop Lights On If Person Present
-  id: '1603640020001'
+- alias: L-KC Kitchen Worktop And Ceiling Lights On If Person Present In Worktop In Daytime
+  id: '1603640020051'
   description: ''
   trigger:
   - entity_id: binary_sensor.kitchen_worktop_motion_sensor_motion
     platform: state
     from: 'off'
     to: 'on'
-  condition: []
+  condition:
+    - after: '06:00:00'
+      before: '00:00:00'
+      condition: time
   action:
   - data: {}
     service: script.kitchen_worktop_lights_turn_on
+  - data: {}
+    entity_id: switch.kitchen_ceiling_light
+    service: switch.turn_off
   mode: single
 
 
 
-- alias: L-KC Kitchen WorkTop Lights Off If No Person
-  id: '1603640020002'
+- alias: L-KC Kitchen WorkTop Lights Off If No Person Present In Worktop For 5 Min
+  id: '1603640020052'
   description: ''
   trigger:
   - entity_id: binary_sensor.kitchen_worktop_motion_sensor_motion
@@ -171,8 +205,6 @@
     from: 'on'
     to: 'off'
     for: 00:05:00
-  - minutes: /5
-    platform: time_pattern
   condition:
   - condition: state
     entity_id: sensor_motion.kitchen_worktop_motion_sensor_motion
@@ -181,4 +213,28 @@
   action:
   - data: {}
     service: script.kitchen_worktop_lights_turn_off
+  mode: single
+
+
+
+
+###############################################
+#
+# Lighting Automation based on buttons
+#
+###############################################
+
+- id: '1603132703022'
+  alias: Kitchen Turn Off Worktop LED When Turning Off Kitchen Ceiling Lights
+  description: ''
+  trigger:
+  - entity_id: switch.kitchen_ceiling_light
+    platform: state
+    from: 'on'
+    to: 'off'
+  condition: []
+  action:
+  - data: {}
+    entity_id: script.kitchen_worktop_lights_turn_off
+    service: script.turn_on
   mode: single

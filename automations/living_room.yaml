@@ -5,6 +5,12 @@
 #
 
 
+###############################################
+#
+# Heating Automation based on motion sensors
+#
+###############################################
+
 
 - alias: H-LR Living Room Heating Set to 22 If Person Present
   id: '1599611100701'
@@ -58,3 +64,49 @@
     service: automation.turn_on
   mode: single
 
+###############################################
+#
+# Lighting Automation based on motion sensors
+#
+###############################################
+
+- alias: L-LR Garden Lights On If Person Present
+  id: '1603640040051'
+  description: ''
+  trigger:
+  - entity_id: binary_sensor.garden_motion_sensor_motion
+    platform: state
+    from: 'off'
+    to: 'on'
+  condition:
+    - condition: and
+      conditions:
+      - entity_id: binary_sensor.garden_motion_sensor_motion
+        condition: state
+        state: 'on'
+      - entity_id: sensor.garden_motion_sensor_light
+        condition: numeric_state
+        below: '50'
+  action:
+  - data: {}
+    entity_id: switch.garden_light
+    service: switch.turn_on
+  mode: single
+
+
+
+- alias: L-LR Garden Lights Off If No Person Present In Worktop For 5 Min
+  id: '1603640040052'
+  description: ''
+  trigger:
+  - entity_id: binary_sensor.garden_motion_sensor_motion
+    platform: state
+    from: 'on'
+    to: 'off'
+    for: 00:05:00
+  condition: []
+  action:
+  - data: {}
+    entity_id: switch.garden_light
+    service: switch.turn_off
+  mode: single

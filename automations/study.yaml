@@ -4,6 +4,12 @@
 # - Lighting automation based on buttons
 #
 
+###############################################
+#
+# Heating Automation based on motion sensors
+#
+###############################################
+
 - alias: H-ST Study Heating Set to 21 If Person Present
   id: '1600014380444'
   description: 'automation.study_heating_on_if_person_present'
@@ -57,4 +63,51 @@
   mode: single
 
 
+
+###############################################
+#
+# Lighting Automation based on motion sensors
+#
+###############################################
+
+- alias: L-ST Study Lights On If Person Present
+  id: '1603640030051'
+  description: ''
+  trigger:
+  - entity_id: binary_sensor.study_motion_sensor_motion
+    platform: state
+    from: 'off'
+    to: 'on'
+  condition:
+    - condition: and
+      conditions:
+      - entity_id: binary_sensor.study_motion_sensor_motion
+        condition: state
+        state: 'on'
+      - entity_id: sensor.study_motion_sensor_light
+        condition: numeric_state
+        below: '50'
+  action:
+  - data: {}
+    entity_id: switch.study_light
+    service: switch.turn_on
+  mode: single
+
+
+
+- alias: L-ST Study Lights Off If No Person Present For 5 Min
+  id: '1603640030052'
+  description: ''
+  trigger:
+  - entity_id: binary_sensor.study_motion_sensor_motion
+    platform: state
+    from: 'on'
+    to: 'off'
+    for: 00:05:00
+  condition: []
+  action:
+  - data: {}
+    entity_id: switch.study_light
+    service: switch.turn_off
+  mode: single
 
