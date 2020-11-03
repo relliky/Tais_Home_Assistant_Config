@@ -29,7 +29,8 @@
       temperature: 20
     entity_id: climate.kitchen
     service: climate.set_temperature
-  - data: {}
+  - data:
+      stop_actions: false
     entity_id: automation.kitchen_heating_on_if_people_present
     service: automation.turn_off
   mode: single
@@ -63,8 +64,6 @@
     entity_id: automation.kitchen_heating_on_if_people_present
     service: automation.turn_on
   mode: single
-
-
 
 
 
@@ -103,7 +102,7 @@
       condition: time
   action:
   - data: {}
-    service: script.kitchen_all_lights_turn_on
+    service: script.kitchen_all_wall_lights_turn_on
   mode: single
 
 
@@ -191,13 +190,13 @@
     service: script.kitchen_worktop_lights_turn_on
   - data: {}
     entity_id: switch.kitchen_ceiling_light
-    service: switch.turn_off
+    service: switch.turn_on
   mode: single
 
 
 
 - alias: L-KC Kitchen WorkTop Lights Off If No Person Present In Worktop For 5 Min
-  id: '1603640020052'
+  id: '1603640020061'
   description: ''
   trigger:
   - entity_id: binary_sensor.kitchen_worktop_motion_sensor_motion
@@ -205,6 +204,8 @@
     from: 'on'
     to: 'off'
     for: 00:05:00
+  - minutes: /10
+    platform: time_pattern
   condition:
   - condition: state
     entity_id: sensor_motion.kitchen_worktop_motion_sensor_motion
@@ -216,16 +217,14 @@
   mode: single
 
 
-
-
 ###############################################
 #
 # Lighting Automation based on buttons
 #
 ###############################################
 
-- id: '1603132703022'
-  alias: Kitchen Turn Off Worktop LED When Turning Off Kitchen Ceiling Lights
+- alias: B-KC Kitchen Turn Off Worktop LED When Turning Off Kitchen Ceiling Lights
+  id: '1603132703022'
   description: ''
   trigger:
   - entity_id: switch.kitchen_ceiling_light
@@ -238,3 +237,23 @@
     entity_id: script.kitchen_worktop_lights_turn_off
     service: script.turn_on
   mode: single
+
+
+- alias: B-KC Kitchen Single Press - Toggle Extractor
+  trigger:
+    platform: state
+    entity_id: sensor.kitchen_worktop_button
+    to: single
+  action:
+  - entity_id: switch.kitchen_extractor
+    service: switch.toggle
+
+
+- alias: B-KC Kitchen Double Press - Toggle Worktop light And Ceiling Light
+  trigger:
+    platform: state
+    entity_id: sensor.kitchen_worktop_button
+    to: double
+  action:
+    service: script.kitchen_worktop_and_ceiling_lights_toggle
+

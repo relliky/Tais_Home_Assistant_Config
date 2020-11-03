@@ -28,10 +28,16 @@
     entity_id: climate.master_room
     service: climate.set_hvac_mode
   - data:
-      temperature: 22
+      temperature: >
+        {% if now().hour >= 18 or now().hour < 9 %}
+          23
+        {% else %}
+          21
+        {% endif %}
     entity_id: climate.master_room
     service: climate.set_temperature
-  - data: {}
+  - data:
+      stop_actions: false
     entity_id: automation.master_room_heating_on_if_person_present
     service: automation.turn_off
   mode: single
@@ -93,7 +99,8 @@
       temperature: 20
     entity_id: climate.master_toilet
     service: climate.set_temperature
-  - data: {}
+  - data:
+      stop_actions: false
     entity_id: automation.master_toilet_heating_on_if_person_present
     service: automation.turn_off
   mode: single
@@ -104,7 +111,7 @@
   id: '1600015749043'
   description: 'automation.master_toilet_heating_off_if_no_person'
   trigger:
-  - minutes: /30
+  - minutes: /10
     platform: time_pattern
   - entity_id: binary_sensor.master_toilet_basin_motion_sensor_motion
     platform: state
@@ -116,6 +123,8 @@
     from: 'on'
     to: 'off'
     for: 00:10:00
+  - minutes: /10
+    platform: time_pattern
   condition:
   - condition: state
     entity_id: binary_sensor.master_toilet_basin_motion_sensor_motion
@@ -142,9 +151,52 @@
 #
 ###############################################
 
+# Master Room Dressing Table Light
+- alias: L-MT Master Room Dressing Table On If Person Present
+  id: '1603640027683'
+  description: ''
+  trigger:
+  - entity_id: binary_sensor.master_room_dressing_table_motion_sensor_motion
+    #platform: event
+    #event_type: motion
+    platform: state
+    from: 'off'
+    to: 'on'
+  condition: []
+  action:
+  - data: {}
+    entity_id: switch.master_room_dressing_table_light
+    service: switch.turn_on
+  mode: single
+
+
+- alias: L-MT Master Room Dressing Table Off If No Person For 2 Min
+  id: '1603640027689'
+  description: ''
+  trigger:
+  - entity_id: binary_sensor.master_room_dressing_table_motion_sensor_motion
+    platform: state
+    from: 'on'
+    to: 'off'
+    for: 00:02:00
+  - minutes: /10
+    platform: time_pattern
+  condition:
+  - entity_id: binary_sensor.master_room_dressing_table_motion_sensor_motion
+    condition: state
+    state: 'off'
+    for: 00:02:00
+  action:
+  - data: {}
+    entity_id: switch.master_room_dressing_table_light
+    service: switch.turn_off
+  mode: single
+
+
+
 # Master Toilet
 - alias: L-MT Master Toilet Lights On If Person Present and Dark
-  id: '1603640020003'
+  id: '1603640027457'
   description: ''
   trigger:
   - entity_id: binary_sensor.master_toilet_basin_motion_sensor_motion
@@ -156,29 +208,9 @@
     from: 'off'
     to: 'on'
   condition:
-  - condition: and
-    conditions:
-    - after: '00:00:01'
-      before: '00:00:00'
-      condition: time
-    - condition: or
-      conditions:
-      - condition: and
-        conditions:
-        - entity_id: binary_sensor.master_toilet_basin_motion_sensor_motion
-          condition: state
-          state: 'on'
-        - entity_id: sensor.master_toilet_basin_motion_sensor_light
-          condition: numeric_state
-          below: '50'
-      - condition: and
-        conditions:
-        - entity_id: binary_sensor.master_toilet_shower_motion_sensor_motion
-          condition: state
-          state: 'on'
-        - entity_id: sensor.master_toilet_shower_motion_sensor_light
-          condition: numeric_state
-          below: '50'
+  - entity_id: sensor.master_toilet_basin_motion_sensor_light
+    condition: numeric_state
+    below: '50'
   action:
   - data: {}
     entity_id: switch.master_toilet_light
@@ -187,9 +219,8 @@
 
 
 
-
-- alias: L-MT Master Toilet Lights Off If No Person For 10 Min And Door Closed
-  id: '1603640020004'
+- alias: L-MT Master Toilet Lights Off If No Person For 10 Min
+  id: '1603640029094'
   description: ''
   trigger:
   - entity_id: binary_sensor.master_toilet_basin_motion_sensor_motion
@@ -202,23 +233,17 @@
     from: 'on'
     to: 'off'
     for: 00:10:00
+  - minutes: /10
+    platform: time_pattern
   condition:
-  - condition: and
-    conditions:
-    - after: '00:00:01'
-      before: '00:00:00'
-      condition: time
-    - entity_id: binary_sensor.master_toilet_door
-      condition: state
-      state: 'off'
-    - entity_id: binary_sensor.master_toilet_basin_motion_sensor_motion
-      condition: state
-      state: 'off'
-      for: 00:10:00
-    - entity_id: binary_sensor.master_toilet_basin_motion_sensor_motion
-      condition: state
-      state: 'off'
-      for: 00:10:00
+  - entity_id: binary_sensor.master_toilet_basin_motion_sensor_motion
+    condition: state
+    state: 'off'
+    for: 00:10:00
+  - entity_id: binary_sensor.master_toilet_shower_motion_sensor_motion
+    condition: state
+    state: 'off'
+    for: 00:10:00
   action:
   - data: {}
     entity_id: switch.master_toilet_light
@@ -226,8 +251,8 @@
   mode: single
 
 
-- alias: Master Toilet Lights Off If No Person For 2 Min And Door Closed
-  id: '1603640020005'
+- alias: L-MT Master Toilet Lights Off If No Person For 2 Min And Door Open
+  id: '1603640027495'
   description: ''
   trigger:
   - entity_id: binary_sensor.master_toilet_basin_motion_sensor_motion
@@ -240,27 +265,214 @@
     from: 'on'
     to: 'off'
     for: 00:02:00
+  - minutes: /10
+    platform: time_pattern
   condition:
-  - condition: and
-    conditions:
-    - after: '00:00:01'
-      before: '00:00:00'
-      condition: time
-    - entity_id: binary_sensor.master_toilet_door
-      condition: state
-      state: 'off'
-    - entity_id: binary_sensor.master_toilet_basin_motion_sensor_motion
-      condition: state
-      state: 'off'
-      for: 00:02:00
-    - entity_id: binary_sensor.master_toilet_basin_motion_sensor_motion
-      condition: state
-      state: 'off'
-      for: 00:02:00
+  - entity_id: binary_sensor.master_toilet_door
+    condition: state
+    state: 'on'
+  - entity_id: binary_sensor.master_toilet_basin_motion_sensor_motion
+    condition: state
+    state: 'off'
+    for: 00:02:00
+  - entity_id: binary_sensor.master_toilet_shower_motion_sensor_motion
+    condition: state
+    state: 'off'
+    for: 00:02:00
   action:
   - data: {}
     entity_id: switch.master_toilet_light
     service: switch.turn_off
   mode: single
+
+
+- alias: L-MT Master Toilet Dressing Lights On If Person Present
+  id: '1603640030651'
+  description: ''
+  trigger:
+  - entity_id: binary_sensor.master_toilet_dressing_motion_sensor_motion
+    platform: state
+    from: 'off'
+    to: 'on'
+  condition:
+    - condition: and
+      conditions:
+      - entity_id: binary_sensor.master_toilet_dressing_motion_sensor_motion
+        condition: state
+        state: 'on'
+      - entity_id: sensor.master_toilet_dressing_motion_sensor_light
+        condition: numeric_state
+        below: '50'
+  action:
+  - data: {}
+    entity_id: switch.master_toilet_dressing_light
+    service: switch.turn_on
+  mode: single
+
+
+
+- alias: L-MT Master Toilet Dressing Lights Off If No Person Present For 2 Min
+  id: '1603640030652'
+  description: ''
+  trigger:
+  - entity_id: binary_sensor.master_toilet_dressing_motion_sensor_motion
+    platform: state
+    from: 'on'
+    to: 'off'
+    for: 00:02:00
+  - minutes: /10
+    platform: time_pattern
+  condition:
+    - entity_id: binary_sensor.master_toilet_dressing_motion_sensor_motion
+      condition: state
+      state: 'off'
+      for: 00:02:00
+  action:
+  - data: {}
+    entity_id: switch.master_toilet_dressing_light
+    service: switch.turn_off
+  mode: single
+
+
+
+
+
+###############################################
+#
+# Lighting Automation based on buttons
+#
+###############################################
+
+- alias: B-MR Master Room Six Key - Middle Keys Double Press - Toggle Bedside Lights
+  id: '1603640020890'
+  trigger:
+  - platform: state
+    entity_id: sensor.master_room_six_key_button
+    to: button_4_double
+  - platform: state
+    entity_id: sensor.master_room_six_key_button
+    to: button_3_double
+  action:
+  - service: script.master_room_bedside_lights_toggle
+
+- alias: B-MR Master Room Six Key - Middle Key 3 Single Press - Toggle Each Bedside Light Door
+  id: '1603640020891'
+  trigger:
+  - platform: state
+    entity_id: sensor.master_room_six_key_button
+    to: button_3_single
+  action:
+  - entity_id: light.master_room_lamp_near_door
+    service: light.toggle
+
+- alias: B-MR Master Room Six Key - Middle Key 4 Single Press - Toggle Each Bedside Light Wall
+  id: '1603640020892'
+  trigger:
+  - platform: state
+    entity_id: sensor.master_room_six_key_button
+    to: button_4_single
+  action:
+  - entity_id: light.master_room_lamp_near_wall
+    service: light.toggle
+
+
+- alias: B-MR Master Room Six Key - Left Keys Long Press - Toggle Blind Right
+  id: '1603640020893'
+  # This automation needs to restart to interrupt the previous run
+  mode: restart
+  trigger:
+  - platform: state
+    entity_id: sensor.master_room_six_key_button
+    to: button_5_hold
+  - platform: state
+    entity_id: sensor.master_room_six_key_button
+    to: button_6_hold
+  action:
+  - service: var.update
+    entity_id: var.master_room_right_blind_moving_in_progress
+  - choose:
+    # IF
+    - conditions:
+      - condition: state
+        entity_id: var.master_room_right_blind_moving_in_progress
+        state: '0'
+      sequence:
+        # Mark the curtain as moving in progress and toggle the curtain
+        - service: var.set
+          data:
+            entity_id: var.master_room_right_blind_moving_in_progress
+            value: '1'
+        - service: script.master_room_right_blind_toggle
+        # Wait for curtain motor to finish and mark it as completed
+        - delay: '00:01:30'
+        - service: var.set
+          data:
+            entity_id: var.master_room_right_blind_moving_in_progress
+            value: 'off'
+    # ELSE IF
+    - conditions:
+      - condition: state
+        entity_id: var.master_room_right_blind_moving_in_progress
+        state: '1'
+      sequence:
+        # Stop the motor and mark it as stopped
+        - service: cover.stop_cover
+          entity_id: cover.master_room_blind_right
+        - service: var.set
+          data:
+            entity_id: var.master_room_right_blind_moving_in_progress
+            value: '0'
+    # ELSE
+    #default:
+    #- service: xxxx
+
+- alias: B-MR Master Room Six Key - Middle Keys Long Press - Toggle Curtain
+  id: '1603640020894'
+  # This automation needs to restart to interrupt the previous run
+  mode: restart
+  trigger:
+  - platform: state
+    entity_id: sensor.master_room_six_key_button
+    to: button_3_hold
+  - platform: state
+    entity_id: sensor.master_room_six_key_button
+    to: button_4_hold
+  action:
+  - service: var.update
+    entity_id: var.master_room_curtain_moving_in_progress
+  - choose:
+    # IF
+    # REVISIT: this variable checking can be replaced by checking the position of the curtain
+    - conditions:
+      - condition: state
+        entity_id: var.master_room_curtain_moving_in_progress
+        state: '0'
+      sequence:
+        # Mark the curtain as moving in progress and toggle the curtain
+        - service: var.set
+          data:
+            entity_id: var.master_room_curtain_moving_in_progress
+            value: '1'
+        - service: script.master_room_right_blind_toggle
+        # Wait for curtain motor to finish and mark it as completed
+        - delay: '00:00:10'
+        - service: var.set
+          data:
+            entity_id: var.master_room_curtain_moving_in_progress
+            value: 'off'
+    # ELSE IF
+    - conditions:
+      - condition: state
+        entity_id: var.master_room_curtain_moving_in_progress
+        state: '1'
+      sequence:
+        # Stop the motor and mark it as stopped
+        - service: cover.stop_cover
+          entity_id: cover.master_room_curtain
+        - service: var.set
+          data:
+            entity_id: var.master_room_curtain_moving_in_progress
+            value: '0'
+
 
 

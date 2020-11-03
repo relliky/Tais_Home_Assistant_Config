@@ -30,7 +30,8 @@
       temperature: 22
     entity_id: climate.living_room
     service: climate.set_temperature
-  - data: {}
+  - data:
+      stop_actions: false
     entity_id: automation.living_room_heating_on_if_people_present
     service: automation.turn_off
   mode: single
@@ -70,6 +71,7 @@
 #
 ###############################################
 
+# Gardens
 - alias: L-LR Garden Lights On If Person Present
   id: '1603640040051'
   description: ''
@@ -104,9 +106,132 @@
     from: 'on'
     to: 'off'
     for: 00:05:00
-  condition: []
+  - minutes: /10
+    platform: time_pattern
+  condition:
+  - entity_id: binary_sensor.garden_motion_sensor_motion
+    condition: state
+    state: 'off'
+    for: 00:05:00
   action:
   - data: {}
     entity_id: switch.garden_light
     service: switch.turn_off
   mode: single
+
+
+# Living Room
+- alias: L-LR Living Room Lights On If Person Present
+  id: '1603640031661'
+  description: 'automation.l_lr_living_room_lights_on_if_person_present'
+  trigger:
+  - entity_id: binary_sensor.living_room_sofa_motion_sensor_motion
+    platform: state
+    from: 'off'
+    to: 'on'
+  - entity_id: binary_sensor.living_room_tv_motion_sensor_motion
+    platform: state
+    from: 'off'
+    to: 'on'
+  condition:
+  - condition: or
+    conditions:
+    - condition: and
+      conditions:
+      - entity_id: binary_sensor.living_room_sofa_motion_sensor_motion
+        condition: state
+        state: 'on'
+      - entity_id: sensor.living_room_sofa_motion_sensor_light
+        condition: numeric_state
+        below: '50'
+    - condition: and
+      conditions:
+      - entity_id: binary_sensor.living_room_tv_motion_sensor_motion
+        condition: state
+        state: 'on'
+      - entity_id: sensor.living_room_tv_motion_sensor_light
+        condition: numeric_state
+        below: '50'
+  action:
+  - service: script.living_room_landing_lights_turn_on
+  mode: single
+
+
+- alias: L-LR Living Room Lights Off If No Person For 10 Min
+  id: '1603640031662'
+  description: ''
+  trigger:
+  - entity_id: binary_sensor.living_room_sofa_motion_sensor_motion
+    platform: state
+    from: 'on'
+    to: 'off'
+    for: 00:10:00
+  - entity_id: binary_sensor.living_room_tv_motion_sensor_motion
+    platform: state
+    from: 'on'
+    to: 'off'
+    for: 00:10:00
+  - minutes: /10
+    platform: time_pattern
+  condition:
+  - condition: state
+    entity_id: binary_sensor.living_room_sofa_motion_sensor_motion
+    for: 00:10:00
+    state: 'off'
+  - condition: state
+    entity_id: binary_sensor.living_room_tv_motion_sensor_motion
+    for: 00:10:00
+    state: 'off'
+  action:
+  - service: script.living_room_landing_lights_turn_off
+  - service: swithc.turn_off
+    entity_id: switch.living_room_ceiling_light
+  mode: single
+
+
+###############################################
+#
+# Lighting Automation based on buttons
+#
+###############################################
+
+- alias: B-LR Living Room Single Press - Toggle Landing Lights
+  id: '1603641040070'
+  trigger:
+  - platform: state
+    entity_id: sensor.living_room_sofa_button
+    to: single
+  - platform: state
+    entity_id: sensor.living_room_ceiling_light_button
+    to: '1'
+  action:
+  - service: script.living_room_landing_lights_toggle
+  mode: single
+
+
+- alias: B-LR Living Room Double Press - Toggle Ceiling Lights
+  id: '1603641040071'
+  trigger:
+  - platform: state
+    entity_id: sensor.living_room_sofa_button
+    to: double
+  action:
+  - entity_id: switch.living_room_ceiling_light
+    service: switch.toggle
+  mode: single
+
+
+- alias: B-LR Living Room Tripple Press - Stop Auto Lights Up For 30 Min
+  id: '1603641040072'
+  trigger:
+  - platform: state
+    entity_id: sensor.living_room_sofa_button
+    to: triple
+  action:
+  - service:  >
+      {% if is_state('automation.l_lr_living_room_lights_on_if_person_present', 'on') %}
+         script.living_room_disable_auto_lights_up_for_a_period
+      {% else %}
+         script.living_room_enable_auto_lights_up
+      {% endif %}
+  mode: restart

@@ -1,20 +1,26 @@
 # Configure a default setup of Home Assistant (frontend, api, etc)
 default_config:
 
-discovery:
-  ignore:
-    - yeelight
-yeelight:
-  devices:
-    192.168.1.23:
-      name: Master Room Lamp Near Wall
-    192.168.1.26:
-      name: Master Room Lamp Near Door
-    192.168.1.22:
-      name: Living Room LED strip
-    192.168.1.25:
-      name: Master Room LED strip
-      
+#xiaomi_aqara:
+#  discovery_retry: 5
+#  gateways: # XiaoMi Gateway
+#    - key: 153EEFE707B24CFB
+#      mac: 34CE008D7558
+
+#discovery:
+#  ignore:
+#    - yeelight
+#yeelight:
+#  devices:
+#    192.168.1.23:
+#      name: Master Room Lamp Near Wall
+#    192.168.1.26:
+#      name: Master Room Lamp Near Door
+#    192.168.1.22:
+#      name: Living Room LED strip
+#    192.168.1.25:
+#      name: Master Room LED strip
+
 tado:
   username: !secret tado_user
   password: !secret tado_pass
@@ -22,19 +28,19 @@ tado:
 hive:
   username: !secret hive_user
   password: !secret hive_pass
-  scan_interval: 2 
-  
+  scan_interval: 2
+
 sensor:
   # Time
   - platform: time_date
     display_options:
       - 'time'
       - 'date'
-  # XiaoMi BLE Temperature Sensor      
+  # XiaoMi BLE Temperature Sensor
   - platform: mitemp_bt
     rounding: True
     decimals: 1
-    period: 60
+    period: 20
     log_spikes: False
     use_median: False
     active_scan: False
@@ -50,9 +56,13 @@ sensor:
                # Master Room Temperature Sensor
                #'A4:C1:38:CF:C7:01': ''
                # Kitchen Temperature Sensor
-               'A4:C1:38:0E:91:A7': 'f9696fa47ac23090eea383b520ff9a10'
+               #'A4:C1:38:0E:91:A7': 'f9696fa47ac23090eea383b520ff9a10'
                # Living Room Temperature Sensor
                'A4:C1:38:EC:DB:BA': '1b535cbb3e68651bd67157ee0775e5cb'
+               # Kitchen Worktop Temperature Sensor
+               #'58:2d:34:3b:6a:27'
+    sensor_names:
+               '58:2d:34:3b:6a:27': 'Kitchen Worktop BLE Temperature Sensor'
     report_unknown: False
     whitelist: False
 
@@ -67,7 +77,7 @@ samsungtv:
 #    port: 8002
 #    mac: D0:03:DF:DB:89:AC
 #    #name: Master Room TV
-    
+
 #device_tracker:
 # - platform: tado
 #   username: !secret tado_user
@@ -76,7 +86,7 @@ samsungtv:
 #    host: 192.168.1.11
 #    password: !secret xiaomi_admin_pass
 #    interval_seconds: 10
-#    consider_home: 180    
+#    consider_home: 180
 #    new_device_defaults:
 #      track_new_devices: false
 
@@ -102,4 +112,30 @@ automation: !include_dir_merge_list automations
 
 #automation: !include automations.yaml
 script: !include scripts.yaml
+
+# Custom Variables
+var:
+  master_room_left_blind_moving_in_progress:
+    friendly_name: 'Master Room Left Blind Moving In Progress'
+    initial_value: 0
+
+  master_room_left_blind_is_open:
+    friendly_name: 'Master Room Left Blind Is Open'
+    initial_value: 0
+
+  master_room_right_blind_moving_in_progress:
+    friendly_name: 'Master Room Right Blind Moving In Progress'
+    initial_value: 0
+
+  master_room_right_blind_is_open:
+    friendly_name: 'Master Room Right Blind Is Open'
+    initial_value: 0
+
+  master_room_curtain_moving_in_progress:
+    friendly_name: 'Master Room Curtain Moving In Progress'
+    initial_value: 0
+
+  master_room_curtain_is_open:
+    friendly_name: 'Master Room Curtain Is Open'
+    initial_value: 0
 

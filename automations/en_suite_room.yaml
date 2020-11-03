@@ -32,7 +32,8 @@
   - data: {}
     entity_id: automation.en_suite_room_heating_based_on_temerature_sensor
     service: automation.turn_on
-  - data: {}
+  - data:
+      stop_actions: false
     entity_id: automation.en_suite_room_heating_on_if_person_present
     service: automation.turn_off
   mode: single
@@ -53,11 +54,14 @@
       hvac_mode: heat
     entity_id: climate.en_suite_room
     service: climate.set_hvac_mode
-  - data_template:
-      temperature: '{% set temp = states(''sensor.temp_of_en_suite_room'')|float %}  {%
-        if temp < 22.5 %} 25 {% else %} 5 {% endif %}
-
-        '
+  - data:
+      temperature: >
+        {% set temp = states('sensor.temp_of_en_suite_room')|float %}
+        {% if temp < 22.5 %}
+          25
+        {% else %}
+          5
+        {% endif %}
     entity_id: climate.en_suite_room
     service: climate.set_temperature
   mode: single
@@ -77,6 +81,8 @@
     from: 'on'
     to: 'off'
     for: 00:10:00
+  - minutes: /10
+    platform: time_pattern
   condition:
   - condition: state
     entity_id: binary_sensor.en_suite_room_motion_sensor_motion
@@ -190,7 +196,7 @@
 
 
 
-- alias: L-GT En-suite Toilet Lights Off If No Person For 10 Min And Door Closed
+- alias: L-GT En-suite Toilet Lights Off If No Person For 10 Min
   id: '1603640030014'
   description: ''
   trigger:
@@ -199,15 +205,14 @@
     from: 'on'
     to: 'off'
     for: 00:10:00
+  - minutes: /10
+    platform: time_pattern
   condition:
   - condition: and
     conditions:
     - after: '00:00:01'
       before: '00:00:00'
       condition: time
-    - entity_id: binary_sensor.en_suite_toilet_door
-      condition: state
-      state: 'off'
     - entity_id: binary_sensor.en_suite_toilet_motion_sensor_motion
       condition: state
       state: 'off'
@@ -219,7 +224,7 @@
   mode: single
 
 
-- alias: L-GT En-suite Toilet Lights Off If No Person For 2 Min And Door Closed
+- alias: L-GT En-suite Toilet Lights Off If No Person For 2 Min And Door Open
   id: '1603640030015'
   description: ''
   trigger:
@@ -228,6 +233,8 @@
     from: 'on'
     to: 'off'
     for: 00:02:00
+  - minutes: /10
+    platform: time_pattern
   condition:
   - condition: and
     conditions:
@@ -287,6 +294,8 @@
     from: 'on'
     to: 'off'
     for: 00:15:00
+  - minutes: /10
+    platform: time_pattern
   condition:
   - after: '15:30:00'
     before: '23:30:00'
@@ -297,7 +306,7 @@
     state: 'off'
   action:
   - data: {}
-    service: script.guest_room_all_lights_turn_off
+    service: script.en_suite_room_all_lights_turn_off
   - data: {}
     entity_id: automation.en_suite_room_lights_on_if_person_present_and_dark_in_daytime
     service: automation.turn_on
