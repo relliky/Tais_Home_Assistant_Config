@@ -2,8 +2,8 @@
 # Master Toilet
 # - Heating automation
 # - Lighting automation based on motion sensors
-# - Lighting automation based on buttons
-#
+# - Lighting/Curtain automation based on buttons
+# - Lighting/Curtain autmation based on time
 
 
 ###############################################
@@ -157,8 +157,6 @@
   description: ''
   trigger:
   - entity_id: binary_sensor.master_room_dressing_table_motion_sensor_motion
-    #platform: event
-    #event_type: motion
     platform: state
     from: 'off'
     to: 'on'
@@ -193,6 +191,52 @@
   mode: single
 
 
+- alias: L-MT Master Room LED Strip On For Some Time If People Are Walking In the Dark
+  id: '1603640027693'
+  description: ''
+  mode: restart
+  trigger:
+  - entity_id: binary_sensor.master_room_tv_motion_sensor_motion
+    platform: state
+    from: 'off'
+    to: 'on'
+  - entity_id: binary_sensor.master_room_drawer_motion_sensor_motion
+    platform: state
+    from: 'off'
+    to: 'on'
+  condition:
+  # In the night
+  - entity_id: sensor.master_room_light_meter
+    condition: numeric_state
+    below: 5
+  # When all lights off
+  - entity_id: light.master_room_lamp_near_door
+    condition: state
+    state: 'off'
+  - entity_id: light.master_room_lamp_near_wall
+    condition: state
+    state: 'off'
+  - entity_id: light.master_room_bed_led_strip
+    condition: state
+    state: 'off'
+  - entity_id: switch.master_room_bed_ceiling_light
+    condition: state
+    state: 'off'
+  - entity_id: switch.master_room_landing_ceiling_light
+    condition: state
+    state: 'off'
+  - entity_id: switch.master_room_dressing_table_light
+    condition: state
+    state: 'off'
+  action:
+  # Turn On LED Strip For An Hour (it can be manually turned off)
+  - service: light.turn_on
+    entity_id: light.master_room_bed_led_strip
+  - delay: '01:00:00'
+  - service: light.turn_off
+    entity_id: light.master_room_bed_led_strip
+
+
 
 # Master Toilet
 - alias: L-MT Master Toilet Lights On If Person Present and Dark
@@ -208,15 +252,29 @@
     from: 'off'
     to: 'on'
   condition:
-  - entity_id: sensor.master_toilet_basin_motion_sensor_light
-    condition: numeric_state
-    below: '50'
+  - condition: or
+    conditions:
+    - condition: and
+      conditions:
+      - entity_id: binary_sensor.master_toilet_basin_motion_sensor_motion
+        condition: state
+        state: 'on'
+      - entity_id: sensor.master_toilet_basin_motion_sensor_light
+        condition: numeric_state
+        below: '50'
+    - condition: and
+      conditions:
+      - entity_id: binary_sensor.master_toilet_shower_motion_sensor_motion
+        condition: state
+        state: 'on'
+      - entity_id: sensor.master_toilet_shower_motion_sensor_light
+        condition: numeric_state
+        below: '10'
   action:
   - data: {}
     entity_id: switch.master_toilet_light
     service: switch.turn_on
   mode: single
-
 
 
 - alias: L-MT Master Toilet Lights Off If No Person For 10 Min
@@ -339,7 +397,7 @@
 
 ###############################################
 #
-# Lighting Automation based on buttons
+# Lighting/Curatin Automation based on buttons
 #
 ###############################################
 
@@ -376,7 +434,7 @@
     service: light.toggle
 
 
-- alias: B-MR Master Room Six Key - Left Keys Long Press - Toggle Blind Right
+- alias: B-MR Master Room Six Key - Right Keys Long Press - Toggle Blind Right
   id: '1603640020893'
   # This automation needs to restart to interrupt the previous run
   mode: restart
@@ -388,43 +446,74 @@
     entity_id: sensor.master_room_six_key_button
     to: button_6_hold
   action:
-  - service: var.update
-    entity_id: var.master_room_right_blind_moving_in_progress
   - choose:
     # IF
     - conditions:
       - condition: state
-        entity_id: var.master_room_right_blind_moving_in_progress
-        state: '0'
+        entity_id: input_boolean.master_room_right_blind_moving_in_progress
+        state: 'off'
       sequence:
         # Mark the curtain as moving in progress and toggle the curtain
-        - service: var.set
-          data:
-            entity_id: var.master_room_right_blind_moving_in_progress
-            value: '1'
+        - service: input_boolean.turn_on
+          entity_id: input_boolean.master_room_right_blind_moving_in_progress
         - service: script.master_room_right_blind_toggle
         # Wait for curtain motor to finish and mark it as completed
         - delay: '00:01:30'
-        - service: var.set
-          data:
-            entity_id: var.master_room_right_blind_moving_in_progress
-            value: 'off'
+        - service: input_boolean.turn_off
+          entity_id: input_boolean.master_room_right_blind_moving_in_progress
     # ELSE IF
     - conditions:
       - condition: state
-        entity_id: var.master_room_right_blind_moving_in_progress
-        state: '1'
+        entity_id: input_boolean.master_room_right_blind_moving_in_progress
+        state: 'on'
       sequence:
         # Stop the motor and mark it as stopped
         - service: cover.stop_cover
           entity_id: cover.master_room_blind_right
-        - service: var.set
-          data:
-            entity_id: var.master_room_right_blind_moving_in_progress
-            value: '0'
-    # ELSE
-    #default:
-    #- service: xxxx
+        - service: input_boolean.turn_off
+          entity_id: input_boolean.master_room_right_blind_moving_in_progress
+
+
+- alias: B-MR Master Room Six Key - Left Keys Long Press - Toggle Blind Left
+  id: '1603640020897'
+  # This automation needs to restart to interrupt the previous run
+  mode: restart
+  trigger:
+  - platform: state
+    entity_id: sensor.master_room_six_key_button
+    to: button_1_hold
+  - platform: state
+    entity_id: sensor.master_room_six_key_button
+    to: button_2_hold
+  action:
+  - choose:
+    # IF
+    - conditions:
+      - condition: state
+        entity_id: input_boolean.master_room_left_blind_moving_in_progress
+        state: 'off'
+      sequence:
+        # Mark the curtain as moving in progress and toggle the curtain
+        - service: input_boolean.turn_on
+          entity_id: input_boolean.master_room_left_blind_moving_in_progress
+        - service: script.master_room_left_blind_toggle
+        # Wait for curtain motor to finish and mark it as completed
+        - delay: '00:01:30'
+        - service: input_boolean.turn_off
+          entity_id: input_boolean.master_room_left_blind_moving_in_progress
+    # ELSE IF
+    - conditions:
+      - condition: state
+        entity_id: input_boolean.master_room_left_blind_moving_in_progress
+        state: 'on'
+      sequence:
+        # Stop the motor and mark it as stopped
+        - service: cover.stop_cover
+          entity_id: cover.master_room_blind_left
+        - service: input_boolean.turn_off
+          entity_id: input_boolean.master_room_left_blind_moving_in_progress
+
+
 
 - alias: B-MR Master Room Six Key - Middle Keys Long Press - Toggle Curtain
   id: '1603640020894'
@@ -438,41 +527,65 @@
     entity_id: sensor.master_room_six_key_button
     to: button_4_hold
   action:
-  - service: var.update
-    entity_id: var.master_room_curtain_moving_in_progress
   - choose:
     # IF
     # REVISIT: this variable checking can be replaced by checking the position of the curtain
     - conditions:
       - condition: state
-        entity_id: var.master_room_curtain_moving_in_progress
-        state: '0'
+        entity_id: input_boolean.master_room_curtain_moving_in_progress
+        state: 'off'
       sequence:
         # Mark the curtain as moving in progress and toggle the curtain
-        - service: var.set
-          data:
-            entity_id: var.master_room_curtain_moving_in_progress
-            value: '1'
-        - service: script.master_room_right_blind_toggle
+        - service: input_boolean.turn_on
+          entity_id: input_boolean.master_room_curtain_moving_in_progress
+        - service: script.master_room_curtain_toggle
         # Wait for curtain motor to finish and mark it as completed
         - delay: '00:00:10'
-        - service: var.set
-          data:
-            entity_id: var.master_room_curtain_moving_in_progress
-            value: 'off'
+        - service: input_boolean.turn_off
+          entity_id: input_boolean.master_room_curtain_moving_in_progress
     # ELSE IF
     - conditions:
       - condition: state
-        entity_id: var.master_room_curtain_moving_in_progress
-        state: '1'
+        entity_id: input_boolean.master_room_curtain_moving_in_progress
+        state: 'on'
       sequence:
         # Stop the motor and mark it as stopped
         - service: cover.stop_cover
           entity_id: cover.master_room_curtain
-        - service: var.set
-          data:
-            entity_id: var.master_room_curtain_moving_in_progress
-            value: '0'
+        - service: input_boolean.turn_off
+          entity_id: input_boolean.master_room_curtain_moving_in_progress
 
 
+
+
+###############################################
+#
+# Lighting/Curtain autmation based on time
+#
+###############################################
+
+- alias: T-MR Master Room Turn Off all Lights/Curtains at 2/3/4/5am
+  id: '1602117522999'
+  description: ''
+  trigger:
+  - at: 02:00:00
+    platform: time
+  - at: 03:00:00
+    platform: time
+  - at: 04:00:00
+    platform: time
+  - at: 05:00:00
+    platform: time
+  condition: []
+  action:
+  - service: script.master_room_close_all_curtains
+  - service: script.master_room_lights_turn_off
+  # Tuya Blind Sometimes is not online - make sure it is properly executed
+  - delay: '00:00:05'
+  - service: script.master_room_close_all_curtains
+  - delay: '00:00:05'
+  - service: script.master_room_close_all_curtains
+  - delay: '00:00:05'
+  - service: script.master_room_close_all_curtains
+  mode: single
 

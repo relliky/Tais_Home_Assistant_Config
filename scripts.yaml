@@ -200,7 +200,7 @@ en_suite_room_ceiling_light_turn_on:
   max: 100
   sequence:
   - data: {}
-    entity_id: switch.en_suite_ceiling_light
+    entity_id: switch.en_suite_room_ceiling_light
     service: switch.turn_on
 
 en_suite_room_ceiling_light_turn_off:
@@ -336,61 +336,88 @@ master_room_bedside_lights_toggle:
       {% endif %}
 
 
+master_room_lights_turn_off:
+  alias: Master Room Lights Turn Off
+  max: 100
+  mode: parallel
+  sequence:
+  - service: light.turn_off
+    entity_id: light.master_room_bed_led_strip
+  - service: switch.turn_off
+    entity_id:
+      - switch.master_room_bed_ceiling_light
+      - switch.master_room_landing_ceiling_light
+      - switch.master_room_dressing_table_light
+  - service: script.master_room_bedside_lights_turn_off
+
+
 master_room_right_blind_toggle:
   alias: Master Room Right Blind Toggle
-  max: 100
   mode: restart
   sequence:
   # Toggle Curtain Open State and Actual Motor
-  - service: var.update
-    entity_id: var.master_room_left_blind_is_open
-  - service: var.set
-    data:
-      entity_id: var.master_room_left_blind_is_open
-      value: >
-        {% if is_state('var.master_room_left_blind_is_open', '1') %}
-           0
-        {% else %}
-           1
-        {% endif %}
-  - service: var.update
-    entity_id: var.master_room_left_blind_is_open
   - service: >
-      {% if is_state('var.master_room_left_blind_is_open', '0') %}
+      {% if is_state('input_boolean.master_room_right_blind_is_open', 'on') %}
          cover.close_cover
       {% else %}
          cover.open_cover
       {% endif %}
     entity_id: cover.master_room_blind_right
+  - service: input_boolean.toggle
+    entity_id: input_boolean.master_room_right_blind_is_open
+
+
+master_room_left_blind_toggle:
+  alias: Master Room Left Blind Toggle
+  mode: restart
+  sequence:
+  # Toggle Curtain Open State and Actual Motor
+  - service: >
+      {% if is_state('input_boolean.master_room_left_blind_is_open', 'on') %}
+         cover.close_cover
+      {% else %}
+         cover.open_cover
+      {% endif %}
+    entity_id: cover.master_room_blind_left
+  - service: input_boolean.toggle
+    entity_id: input_boolean.master_room_left_blind_is_open
+
 
 
 master_room_curtain_toggle:
   alias: Master Room Curtain Toggle
-  max: 100
   mode: restart
   sequence:
   # Toggle Curtain Open State and Actual Motor
-  - service: var.update
-    entity_id: var.master_room_curtain_is_open
-  - service: var.set
-    data:
-      entity_id: var.master_room_curtain_is_open
-      value: >
-        {% if is_state('var.master_room_curtain_is_open', '1') %}
-           0
-        {% else %}
-           1
-        {% endif %}
-  - service: var.update
-    entity_id: var.master_room_curtain_is_open
   - service: >
-      {% if is_state('var.master_room_curtain_is_open', '0') %}
+      {% if is_state('input_boolean.master_room_curtain_is_open', 'on') %}
          cover.close_cover
       {% else %}
          cover.open_cover
       {% endif %}
     entity_id: cover.master_room_curtain
+  - service: input_boolean.toggle
+    entity_id: input_boolean.master_room_curtain_is_open
 
+master_room_close_all_curtains:
+  alias: Master Room Close All Curtains
+  mode: single
+  sequence:
+  - service:   cover.close_cover
+    entity_id:
+     - cover.master_room_curtain
+     - cover.master_room_blind_left
+     - cover.master_room_blind_right
+
+master_room_open_all_curtains:
+  alias: Master Room Open All Curtains
+  mode: single
+  sequence:
+  - service:   cover.open_cover
+    entity_id:
+      - cover.master_room_curtain
+      - cover.master_room_blind_left
+      - cover.master_room_blind_right
 
 corridor_nighttime_lights_turn_on:
   alias: Corridor Nighttime Lights Turn On
