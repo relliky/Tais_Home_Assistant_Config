@@ -95,7 +95,6 @@
 # Guest Toilet Lights
 
 - alias: L-GT Guest Toilet Lights On Daytime If Person Present and Dark
-  id: '1603640020023'
   description: ''
   trigger:
   - entity_id: binary_sensor.guest_toilet_motion_sensor_motion
@@ -123,7 +122,6 @@
 
 
 - alias: L-GT Guest Toilet Lights On Nighttime If Person Present and Dark
-  id: '1603640020024'
   description: ''
   trigger:
   - entity_id: binary_sensor.guest_toilet_motion_sensor_motion
@@ -151,7 +149,6 @@
 
 
 - alias: L-GT Guest Toilet Lights Off If No Person For 10 Min
-  id: '1603640020025'
   description: ''
   trigger:
   - entity_id: binary_sensor.guest_toilet_motion_sensor_motion
@@ -178,7 +175,6 @@
 
 
 - alias: L-GT Guest Toilet Lights Off If No Person For 2 Min And Door Open
-  id: '1603640020026'
   description: ''
   trigger:
   - entity_id: binary_sensor.guest_toilet_motion_sensor_motion
@@ -210,7 +206,6 @@
 # Guest Room Lights
 
 - alias: L-GR Guest Room Lights On If Person Present and Dark In Daytime (Not living people for now)
-  id: '1603640029640'
   description: 'automation.guest_room_lights_on_if_person_present_and_dark_in_daytime'
   trigger:
   - entity_id: binary_sensor.guest_room_radiator_motion_sensor_motion
@@ -222,29 +217,24 @@
     from: 'off'
     to: 'on'
   condition:
-  - condition: and
+  - condition: or
     conditions:
-    #- after: '00:00:01'
-    #  before: '00:00:00'
-    #  condition: time
-    - condition: or
+    - condition: and
       conditions:
-      - condition: and
-        conditions:
-        - entity_id: binary_sensor.guest_room_radiator_motion_sensor_motion
-          condition: state
-          state: 'on'
-        - entity_id: sensor.guest_room_radiator_motion_sensor_light
-          condition: numeric_state
-          below: '50'
-      - condition: and
-        conditions:
-        - entity_id: binary_sensor.guest_room_bed_motion_sensor_motion
-          condition: state
-          state: 'on'
-        - entity_id: sensor.guest_room_bed_motion_sensor_light
-          condition: numeric_state
-          below: '50'
+      - entity_id: binary_sensor.guest_room_radiator_motion_sensor_motion
+        condition: state
+        state: 'on'
+      - entity_id: sensor.guest_room_radiator_motion_sensor_light
+        condition: numeric_state
+        below: '50'
+    - condition: and
+      conditions:
+      - entity_id: binary_sensor.guest_room_bed_motion_sensor_motion
+        condition: state
+        state: 'on'
+      - entity_id: sensor.guest_room_bed_motion_sensor_light
+        condition: numeric_state
+        below: '50'
   action:
   - data: {}
     service: script.guest_room_all_lights_turn_on
@@ -254,8 +244,19 @@
   mode: single
 
 
+- alias: L-GR Guest Room Screen LED On If Person Present In the Table (using Bed Motion Sensor For Now)
+  description: ''
+  trigger:
+  - entity_id: binary_sensor.guest_room_bed_motion_sensor_motion
+    platform: state
+    from: 'off'
+    to: 'on'
+  action:
+  - service: switch.turn_on
+    entity_id: switch.guest_room_screen_led
+  mode: single
+
 - alias: L-GR Guest Room Lights Off If No Person For 10 Min (Not living people for now)
-  id: '1603640029641'
   description: ''
   trigger:
   - entity_id: binary_sensor.guest_room_radiator_motion_sensor_motion
@@ -297,12 +298,21 @@
 #
 ###############################################
 
-- alias: B-GR Guest Room Single Press - Toggle Ceiling Lights
-  id: '1603641040840'
+- alias: B-GR Guest Room Single Press - Toggle Screen LED
   trigger:
   - platform: state
     entity_id: sensor.guest_room_button
     to: single
+  action:
+  - service: switch.toggle
+    entity_id: switch.guest_room_screen_led
+  mode: single
+
+- alias: B-GR Guest Room Double Press - Toggle Ceiling Lights On/Off
+  trigger:
+  - platform: state
+    entity_id: sensor.guest_room_button
+    to: double
   action:
   - service: switch.toggle
     entity_id: switch.guest_room_ceiling_light

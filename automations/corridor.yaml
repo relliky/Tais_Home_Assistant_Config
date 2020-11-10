@@ -472,44 +472,45 @@
   mode: single
 
 # Corridors
-- alias: L-GC Ground Corridor Lights On If Person Present
-  id: '1603640030661'
+- alias: L-GC Ground Corridor Lights On From Ground Floor If Person Present
   description: ''
   trigger:
   - entity_id: binary_sensor.ground_corridor_motion_sensor_motion
     platform: state
     from: 'off'
     to: 'on'
+  condition:
+  - entity_id: binary_sensor.ground_corridor_motion_sensor_motion
+    condition: state
+    state: 'on'
+  - entity_id: sensor.ground_corridor_motion_sensor_light
+    condition: numeric_state
+    below: '50'
+  action:
+  - service: script.corridor_lights_turn_on_from_ground_floor
+  mode: single
+
+
+- alias: L-GC Ground Corridor Lights On From First Floor If Person Present
+  description: ''
+  trigger:
   - entity_id: binary_sensor.first_corridor_motion_sensor_motion
     platform: state
     from: 'off'
     to: 'on'
   condition:
-  - condition: or
-    conditions:
-    - condition: and
-      conditions:
-      - entity_id: binary_sensor.ground_corridor_motion_sensor_motion
-        condition: state
-        state: 'on'
-      - entity_id: sensor.ground_corridor_motion_sensor_light
-        condition: numeric_state
-        below: '50'
-    - condition: and
-      conditions:
-      - entity_id: binary_sensor.first_corridor_motion_sensor_motion
-        condition: state
-        state: 'on'
-      - entity_id: sensor.first_corridor_motion_sensor_light
-        condition: numeric_state
-        below: '50'
+  - entity_id: binary_sensor.first_corridor_motion_sensor_motion
+    condition: state
+    state: 'on'
+  - entity_id: sensor.first_corridor_motion_sensor_light
+    condition: numeric_state
+    below: '50'
   action:
-  - service: script.corridor_lights_turn_on
+  - service: script.corridor_lights_turn_on_from_first_floor
   mode: single
 
 
 - alias: L-GC Ground Corridor Lights Off If No Person For 2 Min
-  id: '1603640030662'
   description: ''
   trigger:
   - entity_id: binary_sensor.ground_corridor_motion_sensor_motion

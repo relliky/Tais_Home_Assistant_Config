@@ -286,18 +286,20 @@ guest_room_all_lights_turn_on:
   mode: parallel
   max: 100
   sequence:
-  - data: {}
-    entity_id: switch.guest_room_ceiling_light
-    service: switch.turn_on
+  - service: switch.turn_on
+    entity_id:
+      - switch.guest_room_ceiling_light
+      - switch.guest_room_screen_led
 
 guest_room_all_lights_turn_off:
   alias: Guest Room All Lights Turn Off
   mode: parallel
   max: 100
   sequence:
-  - data: {}
-    entity_id: switch.guest_room_ceiling_light
-    service: switch.turn_off
+  - service: switch.turn_off
+    entity_id:
+      - switch.guest_room_ceiling_light
+      - switch.guest_room_screen_led
 
 master_room_bedside_lights_turn_off:
   alias: Master Room Bedside Lights Turn Off
@@ -419,6 +421,35 @@ master_room_open_all_curtains:
       - cover.master_room_blind_left
       - cover.master_room_blind_right
 
+master_toilet_all_lights_turn_on:
+  alias: Master Toilet All Lights Turn On
+  mode: single
+  sequence:
+  - service: switch.turn_on
+    entity_id: 
+     - switch.master_toilet_light
+     - switch.master_toilet_floor_led
+
+master_toilet_all_lights_turn_off:
+  alias: Master Toilet All Lights Turn Off
+  mode: single
+  sequence:
+  - service: switch.turn_off
+    entity_id: 
+     - switch.master_toilet_light
+     - switch.master_toilet_floor_led
+
+master_toilet_all_lights_toggle:
+  alias: Master Toilet All Lights Turn Off
+  mode: single
+  sequence:
+  - service: >
+      {% if is_state('switch.master_toilet_light', 'on') %}
+         script.master_toilet_all_lights_turn_off
+      {% else %}
+         script.master_toilet_all_lights_turn_on
+      {% endif %}
+
 corridor_nighttime_lights_turn_on:
   alias: Corridor Nighttime Lights Turn On
   max: 100
@@ -479,9 +510,9 @@ living_room_landing_lights_turn_off:
   max: 100
   mode: parallel
   sequence:
-  - entity_id: light.living_room_ble_light_near_door
-    service: light.turn_off
   - entity_id: light.living_room_ble_light_near_wall
+    service: light.turn_off
+  - entity_id: light.living_room_ble_light_near_door
     service: light.turn_off
 
 living_room_landing_lights_turn_on:

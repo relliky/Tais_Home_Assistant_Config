@@ -56,15 +56,13 @@
   - minutes: /10
     platform: time_pattern
   condition:
-  - condition: and
-    conditions:
-    - after: '9:00:00'
-      before: '21:00:00'
-      condition: time
-    - condition: state
-      entity_id: binary_sensor.master_room_bed_motion_sensor_motion
-      for: 00:10:00
-      state: 'off'
+  - after: '9:00:00'
+    before: '21:00:00'
+    condition: time
+  - condition: state
+    entity_id: binary_sensor.master_room_bed_motion_sensor_motion
+    for: 00:10:00
+    state: 'off'
   action:
   - service: climate.set_hvac_mode
     entity_id: climate.master_room
@@ -152,7 +150,7 @@
 ###############################################
 
 # Master Room Dressing Table Light
-- alias: L-MT Master Room Dressing Table On If Person Present
+- alias: L-MR Master Room Dressing Table On If Person Present
   id: '1603640027683'
   description: ''
   trigger:
@@ -168,7 +166,7 @@
   mode: single
 
 
-- alias: L-MT Master Room Dressing Table Off If No Person For 2 Min
+- alias: L-MR Master Room Dressing Table Off If No Person For 2 Min
   id: '1603640027689'
   description: ''
   trigger:
@@ -191,7 +189,7 @@
   mode: single
 
 
-- alias: L-MT Master Room LED Strip On For Some Time If People Are Walking In the Dark
+- alias: L-MR Master Room LED Strip On For Some Time If People Are Walking In the Dark
   id: '1603640027693'
   description: ''
   mode: restart
@@ -239,7 +237,7 @@
 
 
 # Master Toilet
-- alias: L-MT Master Toilet Lights On If Person Present and Dark
+- alias: L-MT Master Toilet Lights On If Person Present and Dark In Daytime
   id: '1603640027457'
   description: ''
   trigger:
@@ -252,6 +250,9 @@
     from: 'off'
     to: 'on'
   condition:
+  - after: '7:00:00'
+    before: '23:30:00'
+    condition: time
   - condition: or
     conditions:
     - condition: and
@@ -271,10 +272,49 @@
         condition: numeric_state
         below: '10'
   action:
-  - data: {}
-    entity_id: switch.master_toilet_light
-    service: switch.turn_on
+  - service: script.master_toilet_all_lights_turn_on
   mode: single
+
+- alias: L-MT Master Toilet Lights On If Person Present and Dark In Daytime
+  id: '1603640027457'
+  description: ''
+  trigger:
+  - entity_id: binary_sensor.master_toilet_basin_motion_sensor_motion
+    platform: state
+    from: 'off'
+    to: 'on'
+  - entity_id: binary_sensor.master_toilet_shower_motion_sensor_motion
+    platform: state
+    from: 'off'
+    to: 'on'
+  condition:
+  - after: '23:30:00'
+    before: '00:07:00'
+    condition: time
+  - condition: or
+    conditions:
+    - condition: and
+      conditions:
+      - entity_id: binary_sensor.master_toilet_basin_motion_sensor_motion
+        condition: state
+        state: 'on'
+      - entity_id: sensor.master_toilet_basin_motion_sensor_light
+        condition: numeric_state
+        below: '50'
+    - condition: and
+      conditions:
+      - entity_id: binary_sensor.master_toilet_shower_motion_sensor_motion
+        condition: state
+        state: 'on'
+      - entity_id: sensor.master_toilet_shower_motion_sensor_light
+        condition: numeric_state
+        below: '10'
+  action:
+  - service: switch.turn_on
+    entity_id: 
+     - switch.master_toilet_floor_led
+  mode: single
+
 
 
 - alias: L-MT Master Toilet Lights Off If No Person For 10 Min
@@ -303,9 +343,7 @@
     state: 'off'
     for: 00:10:00
   action:
-  - data: {}
-    entity_id: switch.master_toilet_light
-    service: switch.turn_off
+  - service: script.master_toilet_all_lights_turn_off
   mode: single
 
 
@@ -338,14 +376,11 @@
     state: 'off'
     for: 00:02:00
   action:
-  - data: {}
-    entity_id: switch.master_toilet_light
-    service: switch.turn_off
+  - service: script.master_toilet_all_lights_turn_off
   mode: single
 
 
-- alias: L-MT Master Toilet Dressing Lights On If Person Present
-  id: '1603640030651'
+- alias: L-MT Master Toilet Dressing Lights On If Person Present In Daytime
   description: ''
   trigger:
   - entity_id: binary_sensor.master_toilet_dressing_motion_sensor_motion
@@ -353,14 +388,15 @@
     from: 'off'
     to: 'on'
   condition:
-    - condition: and
-      conditions:
-      - entity_id: binary_sensor.master_toilet_dressing_motion_sensor_motion
-        condition: state
-        state: 'on'
-      - entity_id: sensor.master_toilet_dressing_motion_sensor_light
-        condition: numeric_state
-        below: '50'
+  - after: '7:00:00'
+    before: '23:30:00'      
+    condition: time
+  - entity_id: binary_sensor.master_toilet_dressing_motion_sensor_motion
+    condition: state
+    state: 'on'
+  - entity_id: sensor.master_toilet_dressing_motion_sensor_light
+    condition: numeric_state
+    below: '50'
   action:
   - data: {}
     entity_id: switch.master_toilet_dressing_light
@@ -370,7 +406,6 @@
 
 
 - alias: L-MT Master Toilet Dressing Lights Off If No Person Present For 2 Min
-  id: '1603640030652'
   description: ''
   trigger:
   - entity_id: binary_sensor.master_toilet_dressing_motion_sensor_motion
@@ -401,6 +436,7 @@
 #
 ###############################################
 
+# Master Room
 - alias: B-MR Master Room Six Key - Middle Keys Double Press - Toggle Bedside Lights
   id: '1603640020890'
   trigger:
@@ -555,8 +591,46 @@
         - service: input_boolean.turn_off
           entity_id: input_boolean.master_room_curtain_moving_in_progress
 
+# Master Toilet
+- alias: B-MT Master Toilet Wall Switch Single Press - Toggle Toilet Lights
+  trigger:
+  - platform: state
+    entity_id: sensor.master_toilet_light_wall_button
+    to: '1'
+  action:
+  - service: script.master_toilet_all_lights_toggle
+  mode: single
 
-
+- alias: B-MT Master Toilet Dressing Room Wall Switch Single Press - Turn On Dressing Room Lights/Turn Off All Toilet Lights
+  mode: single
+  trigger:
+  - platform: state
+    entity_id: sensor.master_toilet_dressing_light_wall_button
+    to: '1'
+  action:
+  - choose:
+    # IF - all lights off - turn on dressing room light
+    - conditions:
+      - condition: and
+        conditions:
+        - condition: state
+          entity_id: switch.master_toilet_floor_led
+          state: 'off'
+        - condition: state
+          entity_id: switch.master_toilet_light
+          state: 'off'
+        - condition: state
+          entity_id: switch.master_toilet_dressing_light
+          state: 'off'          
+      sequence:
+        - service: switch.turn_on
+          entity_id: switch.master_toilet_dressing_light
+    # ELSE - some lights on - turn off all toilet lights and dressing room lights
+    default:
+      - service: script.master_toilet_all_lights_turn_off
+      - service: switch.turn_off
+        entity_id: switch.master_toilet_dressing_light
+        
 
 ###############################################
 #
