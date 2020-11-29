@@ -34,7 +34,7 @@
       stop_actions: false
     entity_id: automation.living_room_heating_on_if_people_present
     service: automation.turn_off
-  mode: single
+
 
 
 
@@ -48,7 +48,7 @@
     from: 'on'
     to: 'off'
     for: 00:10:00
-  - minutes: /10
+  - minutes: /5
     platform: time_pattern
   condition:
   - condition: state
@@ -63,7 +63,7 @@
   - data: {}
     entity_id: automation.living_room_heating_on_if_people_present
     service: automation.turn_on
-  mode: single
+
 
 ###############################################
 #
@@ -72,8 +72,7 @@
 ###############################################
 
 # Gardens
-- alias: L-LR Garden Lights On If Person Present
-  id: '1603640040051'
+- alias: L-LR Garden Lights On If Person Present also turning on Living Room and Cooridor Lights
   description: ''
   trigger:
   - entity_id: binary_sensor.garden_motion_sensor_motion
@@ -88,16 +87,19 @@
         state: 'on'
       - entity_id: sensor.garden_motion_sensor_light
         condition: numeric_state
-        below: '50'
+        below: '30'
   action:
-  - data: {}
-    entity_id: switch.garden_light
-    service: switch.turn_on
-  mode: single
+  - service: switch.turn_on
+    entity_id:
+      - switch.garden_light
+      - switch.living_room_tree_light
+  - service: script.living_room_landing_lights_turn_on
+  - service: script.corridor_lights_turn_on_from_ground_floor
 
 
 
-- alias: L-LR Garden Lights Off If No Person Present In Worktop For 5 Min
+
+- alias: L-LR Garden Lights Off If No Person Present For 5 Min
   id: '1603640040052'
   description: ''
   trigger:
@@ -106,7 +108,7 @@
     from: 'on'
     to: 'off'
     for: 00:05:00
-  - minutes: /10
+  - minutes: /5
     platform: time_pattern
   condition:
   - entity_id: binary_sensor.garden_motion_sensor_motion
@@ -117,7 +119,8 @@
   - data: {}
     entity_id: switch.garden_light
     service: switch.turn_off
-  mode: single
+
+
 
 
 # Living Room
@@ -129,18 +132,38 @@
     platform: state
     from: 'off'
     to: 'on'
+  - entity_id: binary_sensor.living_room_tv_motion_sensor_motion
+    platform: state
+    from: 'off'
+    to: 'on'
   condition:
-    - condition: and
+    - condition: or
       conditions:
-      - entity_id: binary_sensor.living_room_sofa_motion_sensor_motion
-        condition: state
-        state: 'on'
-      - entity_id: sensor.living_room_sofa_motion_sensor_light
-        condition: numeric_state
-        below: '40'
+      # Sofa Motion Sensor with Dark Room
+      - condition: and
+        conditions:
+        - entity_id: binary_sensor.living_room_sofa_motion_sensor_motion
+          condition: state
+          state: 'on'
+        - entity_id: sensor.living_room_sofa_motion_sensor_light
+          condition: numeric_state
+          below: '40'
+      # TV Motion Sensor with Dark Outside
+      - condition: and
+        conditions:
+        - entity_id: binary_sensor.living_room_tv_motion_sensor_motion
+          condition: state
+          state: 'on'
+        - entity_id: sensor.master_room_light_meter
+          condition: numeric_state
+          below: '30'
   action:
   - service: script.living_room_landing_lights_turn_on
-  mode: single
+  - service: switch.turn_on
+    entity_id:
+      - switch.living_room_tree_light
+
+
 
 
 - alias: L-LR Living Room Lights Off If No Person For 10 Min
@@ -157,7 +180,7 @@
     from: 'on'
     to: 'off'
     for: 00:10:00
-  - minutes: /10
+  - minutes: /5
     platform: time_pattern
   condition:
   - condition: state
@@ -169,10 +192,8 @@
     for: 00:10:00
     state: 'off'
   action:
-  - service: script.living_room_landing_lights_turn_off
-  - service: switch.turn_off
-    entity_id: switch.living_room_ceiling_light
-  mode: single
+  - service: script.living_room_all_lights_turn_off
+
 
 
 ###############################################
@@ -181,7 +202,7 @@
 #
 ###############################################
 
-- alias: B-LR Living Room Single Press - Toggle Landing Lights
+- alias: B-LR Living Room Wall/Sofa - Single Press - Toggle Landing Lights
   id: '1603641040070'
   trigger:
   - platform: state
@@ -192,10 +213,20 @@
     to: '1'
   action:
   - service: script.living_room_landing_lights_toggle
-  mode: single
 
 
-- alias: B-LR Living Room Double Press - Toggle Ceiling Lights
+
+- alias: B-LR Living Room Wall Switch - Double Press - Turn Off All Lights
+  trigger:
+  - platform: state
+    entity_id: sensor.living_room_ceiling_light_button
+    to: '2'
+  action:
+  - service: script.living_room_all_lights_turn_off
+
+
+
+- alias: B-LR Living Room Sofa - Double Press - Toggle Ceiling Lights
   id: '1603641040071'
   trigger:
   - platform: state
@@ -204,20 +235,37 @@
   action:
   - entity_id: switch.living_room_ceiling_light
     service: switch.toggle
-  mode: single
 
 
-- alias: B-LR Living Room Tripple Press - Stop Auto Lights Up For 30 Min
+
+- alias: B-LR Living Room Sofa - Tripple Press - Turn off lights - Movie Scene For 2 Hours
   id: '1603641040072'
   trigger:
   - platform: state
     entity_id: sensor.living_room_sofa_button
     to: triple
   action:
-  - service:  >
-      {% if is_state('automation.l_lr_living_room_lights_on_if_person_present', 'on') %}
-         script.living_room_disable_auto_lights_up_for_a_period
-      {% else %}
-         script.living_room_enable_auto_lights_up
-      {% endif %}
+  - choose:
+    # IF movie scene is off, turn off lights and its automation for 2 hours for movie scene
+    - conditions:
+      - condition: state
+        entity_id: automation.l_lr_living_room_lights_on_if_person_present
+        state: 'on'
+      sequence:
+        # Turn off auto light automation and lights
+        - service: automation.turn_off
+          entity_id: automation.l_lr_living_room_lights_on_if_person_present
+        - service: script.living_room_landing_lights_turn_off
+        - entity_id: switch.living_room_ceiling_light
+          service: switch.turn_off
+        # Delay of some time and turn on back auto lights up
+        - delay: '02:00:00'
+        - service: automation.turn_on
+          entity_id: automation.l_lr_living_room_lights_on_if_person_present
+
+    # ELSE - if movie scene is on, turn off movie scene and turn on lights and its automation
+    default:
+      - service: script.living_room_landing_lights_turn_on
+      - service: automation.turn_on
+        entity_id: automation.l_lr_living_room_lights_on_if_person_present
   mode: restart

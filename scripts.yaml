@@ -16,23 +16,6 @@ ground_toilet_light_turn_off:
     entity_id: switch.ground_toilet_light
     service: switch.turn_off
 
-living_room_light_turn_on:
-  alias: Living Room Ceiling Light Turn On
-  mode: parallel
-  max: 100
-  sequence:
-  - data: {}
-    entity_id: switch.living_room_ceiling_light
-    service: switch.turn_on
-living_room_ceiling_light_turn_off:
-  alias: Living Room Ceiling Light Turn Off
-  mode: parallel
-  max: 100
-  sequence:
-  - data: {}
-    entity_id: switch.living_room_ceiling_light
-    service: switch.turn_off
-
 kitchen_all_wall_lights_turn_on:
   alias: Kitchen All Lights Turn On
   max: 100
@@ -75,6 +58,19 @@ kitchen_all_lights_turn_off:
     service: switch.turn_off
   - data: {}
     entity_id: script.kitchen_worktop_lights_turn_off
+    service: script.turn_on
+
+# Turn Off All Kitchen Lights and Also Reset Extractor Automation
+kitchen_all_lights_and_appliances_turn_off:
+  alias: Kitchen All Lights And Appliances Turn Off
+  max: 100
+  mode: parallel
+  sequence:
+  - data: {}
+    entity_id: script.kitchen_extractor_turn_off
+    service: script.turn_on
+  - data: {}
+    entity_id: script.kitchen_all_lights_turn_off
     service: script.turn_on
 
 
@@ -142,18 +138,6 @@ kitchen_worktop_and_ceiling_lights_toggle:
       {% endif %}
 
 
-kitchen_all_lights_and_appliances_turn_off:
-  alias: Kitchen All Lights And Appliances Turn Off
-  max: 100
-  mode: parallel
-  sequence:
-  - data: {}
-    entity_id: script.kitchen_extractor_turn_off
-    service: script.turn_on
-  - data: {}
-    entity_id: script.kitchen_all_lights_turn_off
-    service: script.turn_on
-
 
 kitchen_extractor_turn_off:
   alias: Kitchen Extractor Turn Off
@@ -180,40 +164,24 @@ en_suite_room_all_lights_turn_on:
   mode: parallel
   max: 100
   sequence:
-  - data: {}
-    entity_id: switch.en_suite_ceiling_light
-    service: switch.turn_on
-
+  - service: switch.turn_on
+    entity_id: 
+     - switch.en_suite_room_ceiling_light
+     - switch.en_suite_room_bedside_lamp
+     
 en_suite_room_all_lights_turn_off:
   alias: En-suite Room All Light Turn Off
   mode: parallel
   max: 100
   sequence:
-  - data: {}
-    entity_id: switch.en_suite_room_ceiling_light
-    service: switch.turn_off
+  - service: switch.turn_off
+    entity_id: 
+     - switch.en_suite_room_ceiling_light
+     - switch.en_suite_room_bedside_lamp
+   
 
-
-en_suite_room_ceiling_light_turn_on:
-  alias: En-suite Room Ceiling Light Turn On
-  mode: parallel
-  max: 100
-  sequence:
-  - data: {}
-    entity_id: switch.en_suite_room_ceiling_light
-    service: switch.turn_on
-
-en_suite_room_ceiling_light_turn_off:
-  alias: En-suite Room Ceiling Light Turn Off
-  mode: parallel
-  max: 100
-  sequence:
-  - data: {}
-    entity_id: switch.en_suite_room_ceiling_light
-    service: switch.turn_off
-
-en_suite_toilet_light_turn_on:
-  alias: En-suite Toilet Ceiling Light Turn On
+en_suite_toilet_all_lights_turn_on:
+  alias: En-suite Toilet All Lights Turn On
   mode: parallel
   max: 100
   sequence:
@@ -221,8 +189,8 @@ en_suite_toilet_light_turn_on:
     entity_id: switch.en_suite_toilet_light
     service: switch.turn_on
 
-en_suite_toilet_light_turn_off:
-  alias: En-suite Toilet Ceiling Light Turn Off
+en_suite_toilet_all_lights_turn_off:
+  alias: En-suite Toilet All Lights Turn Off
   mode: parallel
   max: 100
   sequence:
@@ -289,7 +257,6 @@ guest_room_all_lights_turn_on:
   - service: switch.turn_on
     entity_id:
       - switch.guest_room_ceiling_light
-      - switch.guest_room_screen_led
 
 guest_room_all_lights_turn_off:
   alias: Guest Room All Lights Turn Off
@@ -306,24 +273,20 @@ master_room_bedside_lights_turn_off:
   max: 100
   mode: parallel
   sequence:
-  - data: {}
-    entity_id: light.master_room_lamp_near_door
-    service: light.turn_off
-  - data: {}
-    entity_id: light.master_room_lamp_near_wall
-    service: light.turn_off
+  - service: light.turn_off
+    entity_id:
+      - light.master_room_lamp_near_door
+      - light.master_room_lamp_near_wall
 
 master_room_bedside_lights_turn_on:
   alias: Master Room Bedside Lights Turn On
   max: 100
   mode: parallel
   sequence:
-  - data: {}
-    entity_id: light.master_room_lamp_near_door
-    service: light.turn_on
-  - data: {}
-    entity_id: light.master_room_lamp_near_wall
-    service: light.turn_on
+  - service: light.turn_on
+    entity_id:
+      - light.master_room_lamp_near_door
+      - light.master_room_lamp_near_wall
 
 master_room_bedside_lights_toggle:
   alias: Master Room Bedside Lights Toggle
@@ -338,6 +301,70 @@ master_room_bedside_lights_toggle:
       {% endif %}
 
 
+master_room_ceiling_lights_turn_on:
+  alias: Master Room Ceiling Lights Turn On
+  max: 100
+  mode: parallel
+  sequence:
+  - service: switch.turn_on
+    entity_id:
+      - switch.master_room_bed_ceiling_light
+      - switch.master_room_landing_ceiling_light
+
+master_room_ceiling_lights_turn_off:
+  alias: Master Room Ceiling Lights Turn Off
+  max: 100
+  mode: parallel
+  sequence:
+  - service: switch.turn_off
+    entity_id:
+      - switch.master_room_bed_ceiling_light
+      - switch.master_room_landing_ceiling_light
+
+
+master_room_bed_led_strip_set_dark_yellow:
+  alias: Master Room Bed LED Strip Set Dark Yellow
+  max: 100
+  mode: parallel
+  sequence:
+  - service: light.turn_on
+    entity_id: light.master_room_bed_led_strip
+    data:
+      brightness: 1
+      rgb_color: [255, 190, 0]
+
+
+master_room_bed_led_strip_set_movie_blue:
+  alias: Master Room Bed LED Strip Set Dark Yellow
+  max: 100
+  mode: parallel
+  sequence:
+  - service: light.turn_on
+    entity_id: light.master_room_bed_led_strip
+    data:
+      brightness:
+      rgb_color: [102, 102, 255]
+
+
+master_room_bedside_lights_set_4000k:
+  alias: Master Room Bedside Lights Set To 4000k
+  max: 100
+  mode: parallel
+  sequence:
+  - service: light.turn_on
+    entity_id:
+      - light.master_room_lamp_near_wall
+      - light.master_room_lamp_near_door
+    data:
+      brightness: 255
+      kelvin: 4000
+  - service: light.turn_on
+    entity_id:
+      - light.master_room_bed_led_strip
+    data:
+      brightness: 255
+      kelvin: 6500
+
 master_room_lights_turn_off:
   alias: Master Room Lights Turn Off
   max: 100
@@ -351,6 +378,7 @@ master_room_lights_turn_off:
       - switch.master_room_landing_ceiling_light
       - switch.master_room_dressing_table_light
   - service: script.master_room_bedside_lights_turn_off
+
 
 
 master_room_right_blind_toggle:
@@ -426,7 +454,7 @@ master_toilet_all_lights_turn_on:
   mode: single
   sequence:
   - service: switch.turn_on
-    entity_id: 
+    entity_id:
      - switch.master_toilet_light
      - switch.master_toilet_floor_led
 
@@ -435,7 +463,7 @@ master_toilet_all_lights_turn_off:
   mode: single
   sequence:
   - service: switch.turn_off
-    entity_id: 
+    entity_id:
      - switch.master_toilet_light
      - switch.master_toilet_floor_led
 
@@ -444,13 +472,13 @@ master_toilet_all_lights_toggle:
   mode: single
   sequence:
   - service: >
-      {% if is_state('switch.master_toilet_light', 'on') %}
+      {% if is_state('switch.master_toilet_floor_led', 'on') %}
          script.master_toilet_all_lights_turn_off
       {% else %}
          script.master_toilet_all_lights_turn_on
       {% endif %}
 
-corridor_nighttime_lights_turn_on:
+corridor_nighttime_lights_turn_on_from_ground_floor:
   alias: Corridor Nighttime Lights Turn On
   max: 100
   mode: parallel
@@ -466,7 +494,8 @@ corridor_nighttime_lights_turn_on:
       brightness: 3
       color_temp: 250
 
-corridor_daytime_lights_turn_on:
+
+corridor_daytime_lights_turn_on_from_ground_floor:
   alias: Corridor Daytime Lights Turn On
   max: 100
   mode: parallel
@@ -483,17 +512,65 @@ corridor_daytime_lights_turn_on:
       color_temp: 153
 
 
-corridor_lights_turn_on:
+
+corridor_nighttime_lights_turn_on_from_first_floor:
+  alias: Corridor Nighttime Lights Turn On
+  max: 100
+  mode: parallel
+  sequence:
+  - entity_id: light.first_corridor_ble_light
+    service: light.turn_on
+    data:
+      brightness: 3
+      color_temp: 250
+  - entity_id: light.ground_corridor_ble_light
+    service: light.turn_on
+    data:
+      brightness: 76
+      color_temp: 370
+
+
+corridor_daytime_lights_turn_on_from_first_floor:
+  alias: Corridor Daytime Lights Turn On
+  max: 100
+  mode: parallel
+  sequence:
+  - entity_id: light.first_corridor_ble_light
+    service: light.turn_on
+    data:
+      brightness: 255
+      color_temp: 153
+  - entity_id: light.ground_corridor_ble_light
+    service: light.turn_on
+    data:
+      brightness: 255
+      color_temp: 153
+
+
+corridor_lights_turn_on_from_first_floor:
   alias: Corridor Lights Turn On
   max: 100
   mode: parallel
   sequence:
   - service:  >
       {% if now().hour >= 23 or now().hour < 7 %}
-        script.corridor_nighttime_lights_turn_on
+        script.corridor_nighttime_lights_turn_on_from_first_floor
       {% else %}
-        script.corridor_daytime_lights_turn_on
+        script.corridor_daytime_lights_turn_on_from_first_floor
       {% endif %}
+
+corridor_lights_turn_on_from_ground_floor:
+  alias: Corridor Lights Turn On
+  max: 100
+  mode: parallel
+  sequence:
+  - service:  >
+      {% if now().hour >= 23 or now().hour < 7 %}
+        script.corridor_nighttime_lights_turn_on_from_ground_floor
+      {% else %}
+        script.corridor_daytime_lights_turn_on_from_ground_floor
+      {% endif %}
+
 
 corridor_lights_turn_off:
   alias: Corridor Lights Turn Off
@@ -505,6 +582,7 @@ corridor_lights_turn_off:
   - entity_id: light.first_corridor_ble_light
     service: light.turn_off
 
+
 living_room_landing_lights_turn_off:
   alias: Living Room Landing Lights Turn Off
   max: 100
@@ -514,6 +592,7 @@ living_room_landing_lights_turn_off:
     service: light.turn_off
   - entity_id: light.living_room_ble_light_near_door
     service: light.turn_off
+
 
 living_room_landing_lights_turn_on:
   alias: Living Room Landing Lights Turn On
@@ -525,10 +604,12 @@ living_room_landing_lights_turn_on:
   - entity_id: light.living_room_ble_light_near_wall
     service: light.turn_on
 
+
+
 living_room_landing_lights_toggle:
   alias: Living Room Landing Lights Toggle
-  max: 100
   mode: parallel
+  max: 100
   sequence:
   - service: >
       {% if is_state('light.living_room_ble_light_near_door', 'on') %}
@@ -537,34 +618,30 @@ living_room_landing_lights_toggle:
          script.living_room_landing_lights_turn_on
       {% endif %}
 
-living_room_disable_auto_lights_up_for_a_period:
-  alias: Living Room Disable Auto Lights Up For a Period
-  max: 100
+
+living_room_all_lights_turn_on:
+  alias: Living Room Ceiling All Lights Turn On
   mode: parallel
-  sequence:
-  # Turn off auto light automation and lights
-  - service: automation.turn_off
-    entity_id: automation.l_lr_living_room_lights_on_if_person_present
-  - service: script.living_room_landing_lights_turn_off
-  - entity_id: switch.living_room_ceiling_light
-    service: switch.turn_off
-  # Delay of some time and turn on back auto lights up
-  - delay: '00:30:00'
-  - service: automation.turn_on
-    entity_id: automation.l_lr_living_room_lights_on_if_person_present
-
-
-
-living_room_enable_auto_lights_up:
-  alias: Living Room Enable Auto Lights Up
   max: 100
-  mode: parallel
   sequence:
+  - service: switch.turn_on
+    entity_id: 
+      - switch.living_room_ceiling_light
+      - switch.living_room_tree_light      
   - service: script.living_room_landing_lights_turn_on
-  - service: automation.turn_on
-    entity_id: automation.l_lr_living_room_lights_on_if_person_present
 
 
+living_room_all_lights_turn_off:
+  alias: Living Room All Lights Turn Off
+  mode: parallel
+  max: 100
+  sequence:
+  - service: switch.turn_off
+    entity_id:
+      - switch.living_room_ceiling_light
+      - switch.garden_light
+      - switch.living_room_tree_light      
+  - service: script.living_room_landing_lights_turn_off
 
 
 

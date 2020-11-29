@@ -7,9 +7,6 @@ default_config:
 #    - key: 153EEFE707B24CFB
 #      mac: 34CE008D7558
 
-#discovery:
-#  ignore:
-#    - yeelight
 #yeelight:
 #  devices:
 #    192.168.1.23:
@@ -43,14 +40,7 @@ sensor:
       - 'date'
   # XiaoMi BLE Temperature Sensor
   - platform: mitemp_bt
-    rounding: True
-    decimals: 1
-    period: 20
-    log_spikes: False
-    use_median: False
-    active_scan: False
-    hci_interface: 0
-    batt_entities: False
+    period: 60
     encryptors:
                # En-suite Room Temperature Sensor
                'A4:C1:38:B0:EB:53': '71d88c34719d0708221d348fd14873dd'
@@ -66,10 +56,11 @@ sensor:
                'A4:C1:38:EC:DB:BA': '1b535cbb3e68651bd67157ee0775e5cb'
                # Kitchen Worktop Temperature Sensor
                #'58:2d:34:3b:6a:27'
-#    sensor_names:
-               #'58:2d:34:3b:6a:27': 'Kitchen Worktop BLE Temperature Sensor'
-    report_unknown: False
-    whitelist: False
+  # Xiaomi BLE Round Fast Update Temperature Sensor
+  - platform: mitemp_bt
+    period: 5 # seconds for refresh interval
+    sensor_names:
+      '58:2d:34:3b:6a:27': 'Kitchen Hob Temperature Sensor'
 
 # TVs
 samsungtv:
@@ -103,6 +94,13 @@ samsungtv:
 #tts:
 #  - platform: google_translate
 
+# Database logging config
+recorder:
+  purge_keep_days: 10
+  auto_purge: true
+  commit_interval: 10 # updates log every 10s 
+
+
 group:      !include groups.yaml
 automation: !include_dir_merge_list automations
 script:     !include scripts.yaml
@@ -130,11 +128,20 @@ input_boolean:
   master_room_curtain_is_open:
     name: 'Master Room Curtain Is Open'
 
+  en_suite_room_people_lives_in:
+    name: 'En-suite Room People Lives In'
+
+  guest_room_people_lives_in:
+    name: 'Guest Room People Lives In'
+
 # Port some thrid party products to Homekit for easy UI control
 homekit:
 - filter:
     include_entities:
     # Master Room
+      - sensor.master_room_light_meter
+      - climate.master_room
+      - climate.master_toilet
       - cover.master_room_curtain
       - cover.master_room_blind_left
       - cover.master_room_blind_right
@@ -148,11 +155,17 @@ homekit:
       - switch.master_toilet_light
       - switch.master_toilet_floor_led
     # Living Room
+      #- media_player.living_room
+      - climate.living_room
       - light.living_room_ble_light_near_door
       - light.living_room_ble_light_near_wall
       - switch.garden_light
       - switch.living_room_ceiling_light
+      - switch.living_room_tree_light
     # Kitchen
+      #- media_player.kitchen
+      - climate.kitchen
+      - sensor.mi_temperature_kitchen_hob_temperature_sensor
       - switch.kitchen_led_left_13815882
       - switch.kitchen_led_right_97186274
       - switch.kitchen_ceiling_light
@@ -160,34 +173,28 @@ homekit:
       - switch.kitchen_floor_led
       - switch.kitchen_extractor
     # Guest Room
+      - input_boolean.guest_room_people_lives_in
+      - climate.guest_room
+      - climate.guest_toilet
       - switch.guest_room_ceiling_light
       - switch.guest_room_screen_led
       - switch.guest_toilet_ceiling_light
       - switch.guest_toilet_floor_led
     # En-suite Room
+      - input_boolean.en_suite_room_people_lives_in
+      - climate.en_suite_room
+      - climate.en_suite_toilet
+      - sensor.temp_of_en_suite_room
       - switch.en_suite_room_ceiling_light
       - switch.en_suite_toilet_light
+      - switch.en_suite_bedside_lamp
     # Corridor/Ground Toilet
+      #- media_player.first_corridor
+      - climate.ground_toilet
+      - climate.ground_floor_corridor
       - light.first_corridor_ble_light
       - light.ground_corridor_ble_light
       - switch.ground_toilet_light
     # Study
-      - switch.study_light
-    # All Rooms Tado Valve
-      - climate.en_suite_room
-      - climate.en_suite_toilet
-      - climate.master_room
-      - climate.master_toilet
-      - climate.guest_room
-      - climate.guest_toilet
-      - climate.kitchen
-      - climate.ground_toilet
-      - climate.ground_floor_corridor
-      - climate.living_room
       - climate.study
-
-
-
-
-
-
+      - switch.study_light

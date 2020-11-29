@@ -1,8 +1,8 @@
 # Kitchen
 # - Heating automation
 # - Lighting automation based on motion sensors
-# - Lighting automation based on buttons
-#
+# - Lighting/Extractor control based on buttons
+# - Extractor auotmation based on temperature
 
 ###############################################
 #
@@ -33,7 +33,7 @@
       stop_actions: false
     entity_id: automation.kitchen_heating_on_if_people_present
     service: automation.turn_off
-  mode: single
+
 
 
 
@@ -48,7 +48,7 @@
     from: 'on'
     to: 'off'
     for: 00:10:00
-  - minutes: /10
+  - minutes: /5
     platform: time_pattern
   condition:
   - condition: state
@@ -63,7 +63,7 @@
   - data: {}
     entity_id: automation.kitchen_heating_on_if_people_present
     service: automation.turn_on
-  mode: single
+
 
 
 
@@ -96,14 +96,14 @@
         state: 'on'
       - entity_id: sensor.kitchen_table_motion_sensor_light
         condition: numeric_state
-        below: '50'
+        below: '30'
     - after: '06:00:00'
       before: '00:00:00'
       condition: time
   action:
   - data: {}
     service: script.kitchen_all_wall_lights_turn_on
-  mode: single
+
 
 
 
@@ -129,21 +129,21 @@
         state: 'on'
       - entity_id: sensor.kitchen_table_motion_sensor_light
         condition: numeric_state
-        below: '50'
+        below: '30'
     - after: '00:00:00'
       before: '06:00:00'
       condition: time
   action:
   - data: {}
     service: script.kitchen_dining_lights_and_floor_led_turn_on
-  mode: single
+
 
 
 - alias: L-KC Kitchen All Lights and Appliances Off If No Person For 10 Min
   id: '1593556938732'
   description: 'automation.kitchen_all_lights_and_appliances_off_if_no_person'
   trigger:
-  - minutes: /10
+  - minutes: /5
     platform: time_pattern
   - entity_id: binary_sensor.kitchen_table_motion_sensor_motion
     platform: state
@@ -169,7 +169,7 @@
   action:
   - data: {}
     service: script.kitchen_all_lights_and_appliances_turn_off
-  mode: single
+
 
 
 
@@ -191,12 +191,11 @@
   - data: {}
     entity_id: switch.kitchen_ceiling_light
     service: switch.turn_on
-  mode: single
+
 
 
 
 - alias: L-KC Kitchen WorkTop Lights Off If No Person Present In Worktop For 5 Min
-  id: '1603640020061'
   description: ''
   trigger:
   - entity_id: binary_sensor.kitchen_worktop_motion_sensor_motion
@@ -204,24 +203,25 @@
     from: 'on'
     to: 'off'
     for: 00:05:00
-  - minutes: /10
+  - minutes: /5
     platform: time_pattern
   condition:
   - condition: state
-    entity_id: sensor_motion.kitchen_worktop_motion_sensor_motion
+    entity_id: binary_sensor.kitchen_worktop_motion_sensor_motion
     for: 00:05:00
     state: 'off'
   action:
   - data: {}
     service: script.kitchen_worktop_lights_turn_off
-  mode: single
+
 
 
 ###############################################
 #
-# Lighting Automation based on buttons
+# Lighting/Extractor control based on buttons
 #
 ###############################################
+
 
 - alias: B-KC Kitchen Turn Off Worktop LED When Turning Off Kitchen Ceiling Lights
   id: '1603132703022'
@@ -236,41 +236,69 @@
   - data: {}
     entity_id: script.kitchen_worktop_lights_turn_off
     service: script.turn_on
-  mode: single
 
 
-- alias: B-KC Kitchen Single Press - Toggle Extractor
+
+- alias: B-KC Kitchen Single Press - Toggle Extractor and Disable Turn On AUtomation For Some Time
   id: '1603132703122'
   trigger:
-    platform: state
+  - platform: state
     entity_id: sensor.kitchen_worktop_button
     to: single
   action:
   - entity_id: switch.kitchen_extractor
     service: switch.toggle
-
+  mode: restart
 
 - alias: B-KC Kitchen Double Press - Toggle Worktop light And Ceiling Light
   id: '1603132703222'
   trigger:
-    platform: state
+  - platform: state
     entity_id: sensor.kitchen_worktop_button
     to: double
   action:
     service: script.kitchen_worktop_and_ceiling_lights_toggle
 
 
-- alias: B-KC Kitchen Light Right Press - Turn off all kitchen lights
+- alias: B-KC Kitchen Light - Right/Double Press - Turn off all kitchen lights
   id: '1603132703322'
   trigger:
-    platform: state
+  - platform: state
     entity_id: sensor.kitchen_light_wall_button
     to: button_3_single
+  - platform: state
+    entity_id: sensor.kitchen_light_wall_button
+    to: button_1_double
+  - platform: state
+    entity_id: sensor.kitchen_light_wall_button
+    to: button_2_double
+  - platform: state
+    entity_id: sensor.kitchen_light_wall_button
+    to: button_3_double
   action:
     service: script.kitchen_all_lights_and_appliances_turn_off
 
 
 
+###############################################
+#
+# Extractor auotmation based on temperature
+#
+###############################################
 
+- alias: E-KC Kitchen Extractor On If Temperature Is High
+  id: '1603640029718'
+  description: 'automation.kitchen_extractor_on_if_temperature_is_high'
+  trigger:
+  - entity_id: sensor.mi_temperature_kitchen_hob_temperature_sensor
+    platform: numeric_state
+    above: 25
+  condition:
+  action:
+  - service: switch.turn_on
+    entity_id: switch.kitchen_extractor
+  # Ignore any trigger within 1 hour as the mode is single
+  # the second action will be ignored until this action is finished.
+  - delay: 02:00:00
 
 

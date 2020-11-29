@@ -1,15 +1,83 @@
 # En-suite Room
 # En-suite Toilet
-# - Heating automation
+# - Lighting/Heating automation
 # - Lighting automation based on motion sensors
 # - Lighting automation based on buttons
-#
+# - Maintaince on bedroom automation based on presence
 
 ###############################################
 #
 # Heating Automation based on motion sensors
 #
 ###############################################
+
+# En-suite Room
+- alias: HL-ER En-suite Room Lights/Heating Off If No Person
+  id: '1603640029651'
+  description: ''
+  trigger:
+  - entity_id: binary_sensor.en_suite_room_motion_sensor_motion
+    platform: state
+    from: 'on'
+    to: 'off'
+    for: 00:15:00
+  - minutes: /5
+    platform: time_pattern
+  condition:
+  - condition: or
+    conditions:
+    # IF - in daytime, turn off lighting/heating if no person for 15 min
+    - condition: and
+      conditions:
+      - after:  '10:00:00'
+        before: '22:00:00'
+        condition: time
+      - condition: state
+        entity_id: binary_sensor.en_suite_room_motion_sensor_motion
+        for: 00:15:00
+        state: 'off'
+    # ELSEIF - in nighttime, if no people live in the room,
+    #          turn off lighting/heating if no person for 15 min
+    - condition: and
+      conditions:
+      - after:  '22:00:00'
+        before: '10:00:00'
+        condition: time
+      - condition: state
+        entity_id: binary_sensor.en_suite_room_motion_sensor_motion
+        state: 'off'
+        for: 00:15:00
+      - condition: state
+        entity_id: input_boolean.en_suite_room_people_lives_in
+        state: 'off'
+    # ELSEIF - in nighttime, if people live in the room
+    #          turn off lighting/heating if no person for 2 hours
+    - condition: and
+      conditions:
+      - after:  '22:00:00'
+        before: '10:00:00'
+        condition: time
+      - condition: state
+        entity_id: binary_sensor.en_suite_room_motion_sensor_motion
+        state: 'off'
+        for: 02:00:00
+      - condition: state
+        entity_id: input_boolean.en_suite_room_people_lives_in
+        state: 'on'
+  action:
+  # Turn Off Lights and Turn On Auto Lights-up
+  - service: script.en_suite_room_all_lights_turn_off
+  - service: automation.turn_on
+    entity_id: automation.en_suite_room_lights_on_if_person_present
+  # Turn Off Heating and Turn On Auto Heating
+  - service: automation.turn_off
+    entity_id: automation.en_suite_room_heating_based_on_temerature_sensor
+  - service: automation.turn_on
+    entity_id: automation.en_suite_room_heating_on_if_person_present
+  - service: climate.set_hvac_mode
+    entity_id: climate.en_suite_room
+    data:
+      hvac_mode: auto
 
 - alias: H-ER En-suite Room Heating Automation On If Person Present
   id: '1599909943111'
@@ -21,23 +89,20 @@
     to: 'on'
   condition: []
   action:
-  - entity_id: climate.en_suite_room
-    service: climate.set_hvac_mode
+  - service: climate.set_hvac_mode
+    entity_id: climate.en_suite_room
     data:
       hvac_mode: heat
-  - service: climate.en_suite_room
-    entity_id: climate.ground_toilet
+  - service: climate.set_temperature
+    entity_id: climate.en_suite_room
     data:
       temperature: 20
-  - data: {}
-    entity_id: automation.en_suite_room_heating_based_on_temerature_sensor
+  - entity_id: automation.en_suite_room_heating_based_on_temerature_sensor
     service: automation.turn_on
   - data:
       stop_actions: false
     entity_id: automation.en_suite_room_heating_on_if_person_present
     service: automation.turn_off
-  mode: single
-
 
 
 
@@ -64,8 +129,6 @@
         {% endif %}
     entity_id: climate.en_suite_room
     service: climate.set_temperature
-  mode: single
-
 
 
 
@@ -74,14 +137,14 @@
   id: '1599910386111'
   description: 'automation.en_suite_room_heating_off_if_no_person_in_daytime'
   trigger:
-  - minutes: /10
+  - minutes: /5
     platform: time_pattern
   - entity_id: binary_sensor.en_suite_room_motion_sensor_motion
     platform: state
     from: 'on'
     to: 'off'
     for: 00:10:00
-  - minutes: /10
+  - minutes: /5
     platform: time_pattern
   condition:
   - condition: state
@@ -99,12 +162,10 @@
     entity_id: climate.en_suite_room
     data:
       hvac_mode: auto
-  mode: single
 
 
 
-
-
+# En-suite Toilet
 - alias: H-ET En-suite Toilet Heating Set to 22 If Person Present
   id: '1600014380333'
   description: 'automation.en_suite_toilet_heating_on_if_person_present'
@@ -126,8 +187,6 @@
   - data: {}
     entity_id: automation.en_suite_toilet_heating_on_if_person_present
     service: automation.turn_off
-  mode: single
-
 
 
 
@@ -141,7 +200,7 @@
     from: 'on'
     to: 'off'
     for: 00:10:00
-  - minutes: /10
+  - minutes: /5
     platform: time_pattern
   condition:
   - condition: state
@@ -156,13 +215,39 @@
   - data: {}
     entity_id: automation.en_suite_toilet_heating_on_if_person_present
     service: automation.turn_on
-  mode: single
+
 
 ###############################################
 #
 # Lighting Automation based on motion sensors
 #
 ###############################################
+
+
+# En-suite Room Lights
+- alias: L-ER En-suite Room Lights On If Person Present
+  id: '1603640029650'
+  description: 'automation.en_suite_room_lights_on_if_person_present'
+  trigger:
+  - entity_id: binary_sensor.en_suite_room_motion_sensor_motion
+    platform: state
+    from: 'off'
+    to: 'on'
+  condition:
+  - entity_id: binary_sensor.en_suite_room_motion_sensor_motion
+    condition: state
+    state: 'on'
+  - entity_id: sensor.en_suite_room_motion_sensor_light
+    condition: numeric_state
+    below: '30'
+  action:
+  - data: {}
+    service: script.en_suite_room_all_lights_turn_on
+  - data: {}
+    entity_id: automation.en_suite_room_lights_on_if_person_present
+    service: automation.turn_off
+
+
 
 
 # En-suite Toilet Lights
@@ -175,24 +260,17 @@
     from: 'off'
     to: 'on'
   condition:
-  - condition: and
-    conditions:
-    - after: '00:00:01'
-      before: '00:00:00'
-      condition: time
-    - condition: and
-      conditions:
-      - entity_id: binary_sensor.en_suite_toilet_motion_sensor_motion
-        condition: state
-        state: 'on'
-      - entity_id: sensor.en_suite_toilet_motion_sensor_light
-        condition: numeric_state
-        below: '50'
+  - entity_id: binary_sensor.en_suite_toilet_motion_sensor_motion
+    condition: state
+    state: 'on'
+  - entity_id: sensor.en_suite_toilet_motion_sensor_light
+    condition: numeric_state
+    below: '30'
   action:
   - data: {}
     entity_id: switch.en_suite_toilet_light
     service: switch.turn_on
-  mode: single
+
 
 
 
@@ -205,23 +283,18 @@
     from: 'on'
     to: 'off'
     for: 00:10:00
-  - minutes: /10
+  - minutes: /5
     platform: time_pattern
   condition:
-  - condition: and
-    conditions:
-    - after: '00:00:01'
-      before: '00:00:00'
-      condition: time
-    - entity_id: binary_sensor.en_suite_toilet_motion_sensor_motion
-      condition: state
-      state: 'off'
-      for: 00:10:00
+  - condition: state
+    entity_id: binary_sensor.en_suite_toilet_motion_sensor_motion
+    state: 'off'
+    for: 00:10:00
   action:
   - data: {}
     entity_id: switch.en_suite_toilet_light
     service: switch.turn_off
-  mode: single
+
 
 
 - alias: L-GT En-suite Toilet Lights Off If No Person For 2 Min And Door Open
@@ -233,14 +306,11 @@
     from: 'on'
     to: 'off'
     for: 00:02:00
-  - minutes: /10
+  - minutes: /5
     platform: time_pattern
   condition:
   - condition: and
     conditions:
-    - after: '00:00:01'
-      before: '00:00:00'
-      condition: time
     - entity_id: binary_sensor.en_suite_toilet_door
       condition: state
       state: 'on'
@@ -252,63 +322,70 @@
   - data: {}
     entity_id: switch.en_suite_toilet_light
     service: switch.turn_off
-  mode: single
 
 
-# En-suite Room Lights
 
-- alias: L-ER En-suite Room Lights On If Person Present and Dark In Daytime
-  id: '1603640029650'
-  description: 'automation.en_suite_room_lights_on_if_person_present_and_dark_in_daytime'
+
+###############################################
+#
+# Lighting Automation based on buttons
+#
+###############################################
+
+# En-suite Room
+- alias: B-MR En-suite Room Wall Switch - Single Press - Toggle Ceiling Light
+  trigger:
+  - platform: state
+    entity_id: sensor.en_suite_room_ceiling_light_wall_button
+    to: '1'
+  - platform: state
+    entity_id: sensor.en_suite_room_bedside_button
+    to: single
+  action:
+  - service:   switch.toggle
+    entity_id: switch.en_suite_room_ceiling_light
+
+
+
+- alias: B-MR En-suite Room Wall Switch - Double Press - Turn Off All Lights
+  trigger:
+  - platform: state
+    entity_id: sensor.en_suite_room_ceiling_light_wall_button
+    to: '2'
+  action:
+  - service: script.en_suite_room_all_lights_turn_off
+  - service: script.en_suite_toilet_all_lights_turn_off
+
+
+
+- alias: B-MR En-suite Room Bed Button - Double Press - Toggle Bedside Lamp
+  trigger:
+  - platform: state
+    entity_id: sensor.en_suite_room_bedside_button
+    to: double
+  action:
+  - service:   switch.toggle
+    entity_id: switch.en_suite_room_bedside_lamp
+
+
+######################################################
+#
+# Maintaince on bedroom automation based on presence
+#
+######################################################
+
+- alias: P-ER En-suite Room Disable The Entering Room Automation If People Present
   trigger:
   - entity_id: binary_sensor.en_suite_room_motion_sensor_motion
     platform: state
     from: 'off'
     to: 'on'
-  condition:
-  - after: '16:00:00'
-    before: '23:00:00'
-    condition: time
-  - entity_id: binary_sensor.en_suite_room_motion_sensor_motion
-    condition: state
-    state: 'on'
-  - entity_id: sensor.en_suite_room_motion_sensor_light
-    condition: numeric_state
-    below: '50'
+  condition: []
   action:
-  - data: {}
-    service: script.en_suite_room_all_lights_turn_on
-  - data: {}
-    entity_id: automation.en_suite_room_lights_on_if_person_present_and_dark_in_daytime
-    service: automation.turn_off
-  mode: single
+  - delay: 00:30:00
+  - service: automation.turn_off
+    entity_id:
+     - automation.en_suite_room_lights_on_if_person_present
+     - automation.en_suite_room_heating_on_if_person_present
 
-
-
-- alias: L-ER En-suite Room Lights Off If No Person For 15 Min
-  id: '1603640029651'
-  description: ''
-  trigger:
-  - entity_id: binary_sensor.en_suite_room_motion_sensor_motion
-    platform: state
-    from: 'on'
-    to: 'off'
-    for: 00:15:00
-  - minutes: /10
-    platform: time_pattern
-  condition:
-  - after: '15:30:00'
-    before: '23:30:00'
-    condition: time
-  - condition: state
-    entity_id: binary_sensor.en_suite_room_motion_sensor_motion
-    for: 00:15:00
-    state: 'off'
-  action:
-  - data: {}
-    service: script.en_suite_room_all_lights_turn_off
-  - data: {}
-    entity_id: automation.en_suite_room_lights_on_if_person_present_and_dark_in_daytime
-    service: automation.turn_on
-  mode: single
 
