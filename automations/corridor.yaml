@@ -5,7 +5,6 @@
 # - Heating automation
 # - Lighting automation based on motion sensors
 # - Lighting automation based on buttons
-#
 
 
 ###############################################
@@ -142,14 +141,8 @@
     to: 'on'
   condition: []
   action:
-  - data:
-      hvac_mode: heat
-    entity_id: climate.downstairs_heating
-    service: climate.set_hvac_mode
-  - data:
-      temperature: 24
-    entity_id: climate.downstairs_heating
-    service: climate.set_temperature
+  - service: switch.turn_on
+    entity_id: switch.downstairs_heating
 
 
 
@@ -188,10 +181,8 @@
       state: 'off'
       for: 00:10:00
   action:
-  - data:
-      hvac_mode: auto
-    entity_id: climate.downstairs_heating
-    service: climate.set_hvac_mode
+  - service: switch.turn_off
+    entity_id: switch.downstairs_heating
 
 
 
@@ -238,21 +229,14 @@
     to: 'on'
   condition: []
   action:
-  - data:
-      hvac_mode: heat
-    entity_id: climate.upstairs_heating
-    service: climate.set_hvac_mode
-  - data:
-      temperature: 24
-    entity_id: climate.upstairs_heating
-    service: climate.set_temperature
+  - service: switch.turn_on
+    entity_id: switch.upstairs_heating
 
 
 
 - alias: H-US Upstairs Zone Heating Off If No Person For 20 Min In Daytime
   id: '1600017150562'
   description: 'automation.upstairs_zone_heating_off_if_no_person_in_daytime'
-
   trigger:
   - minutes: /5
     platform: time_pattern
@@ -297,10 +281,8 @@
         state: 'off'
         for: 00:20:00
       sequence:
-      - data:
-          hvac_mode: auto
-        entity_id: climate.upstairs_heating
-        service: climate.set_hvac_mode
+      - service: switch.turn_off
+        entity_id: switch.upstairs_heating
     # ELSE IF - in nighttime, turn off in 2 hours
     - conditions:
       - after: '21:00:00'
@@ -339,11 +321,8 @@
         state: 'off'
         for: 02:00:00
       sequence:
-      - data:
-          hvac_mode: auto
-        entity_id: climate.upstairs_heating
-        service: climate.set_hvac_mode
-
+      - service: switch.turn_off
+        entity_id: switch.upstairs_heating
 
 
 ###############################################
@@ -364,17 +343,12 @@
   condition:
   - condition: and
     conditions:
-    - after: '00:00:01'
-      before: '00:00:00'
-      condition: time
-    - condition: and
-      conditions:
-      - entity_id: binary_sensor.ground_toilet_motion_sensor_motion
-        condition: state
-        state: 'on'
-      - entity_id: sensor.ground_toilet_motion_sensor_light
-        condition: numeric_state
-        below: '30'
+    - entity_id: binary_sensor.ground_toilet_motion_sensor_motion
+      condition: state
+      state: 'on'
+    - entity_id: sensor.ground_toilet_motion_sensor_light
+      condition: numeric_state
+      below: '30'
   action:
   - data: {}
     entity_id: switch.ground_toilet_light
@@ -502,4 +476,51 @@
   action:
   - data: {}
     service: script.corridor_lights_turn_off
+
+################################################
+#
+# Lighting automation based on buttons
+#
+################################################
+
+# Ground Toilet Lights
+- alias: B-0T Ground Toilet Wall Switch - Single Press - Toggle Lights
+  trigger:
+  - entity_id: sensor.ground_toilet_light_wall_button
+    platform: state
+    to: button_2_single
+  condition: []
+  action:
+  - service: switch.toggle
+    entity_id: switch.ground_toilet_light
+
+
+- alias: B-0T Ground Toilet Wall Switch - Single Press - Toggle Lights
+  trigger:
+  - entity_id: sensor.ground_toilet_light_wall_button
+    platform: state
+    to:
+    - button_1_double
+    - button_2_double
+  condition: []
+  action:
+  - service: switch.turn_off
+    entity_id: switch.ground_toilet_light
+
+- alias: B-GC Ground Corridor Wall Switch - Doulbe Press - Turn Off Ground Floor Lights
+  trigger:
+  - entity_id: sensor.ground_corrdior_switch_wall_button
+    platform: state
+    to:
+    - button_1_double
+    - button_2_double
+  condition: []
+  action:
+  - service: script.living_room_all_lights_turn_off
+  - service: script.kitchen_all_lights_and_appliances_turn_off
+  - service: switch.turn_off
+    entity_id: switch.ground_toilet_light
+
+
+
 

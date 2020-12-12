@@ -18,6 +18,15 @@ default_config:
 #    192.168.1.25:
 #      name: Master Room LED strip
 
+
+# Added MagicHome LEDs
+light:
+  - platform: flux_led
+    devices:
+      192.168.1.29:
+        name: master_room_bed_led
+        mode: "rgb"
+
 tado:
   username: !secret tado_user
   password: !secret tado_pass
@@ -25,7 +34,7 @@ tado:
 hive:
   username: !secret hive_user
   password: !secret hive_pass
-  scan_interval: 2
+#  scan_interval: 2
 
 # SwitchBot
 switch:
@@ -98,7 +107,7 @@ samsungtv:
 recorder:
   purge_keep_days: 10
   auto_purge: true
-  commit_interval: 10 # updates log every 10s 
+  commit_interval: 10 # updates log every 10s
 
 
 group:      !include groups.yaml
@@ -128,16 +137,18 @@ input_boolean:
   master_room_curtain_is_open:
     name: 'Master Room Curtain Is Open'
 
-  en_suite_room_people_lives_in:
-    name: 'En-suite Room People Lives In'
+  en_suite_room_guests_use_this_room:
+    name: 'En-suite Room Guests Use This Room'
 
-  guest_room_people_lives_in:
-    name: 'Guest Room People Lives In'
+  guest_room_guests_use_this_room:
+    name: 'Guest Room Guests Use This Room'
 
 # Port some thrid party products to Homekit for easy UI control
 homekit:
 - filter:
     include_entities:
+    # Misc
+      - light.meross_10m_led
     # Master Room
       - sensor.master_room_light_meter
       - climate.master_room
@@ -147,7 +158,8 @@ homekit:
       - cover.master_room_blind_right
       - light.master_room_lamp_near_door
       - light.master_room_lamp_near_wall
-      - switch.master_room_entrance_light
+      - light.master_room_bed_led
+      - light.master_room_entrance_led_light
       - switch.master_room_dressing_table_light
       - switch.master_room_bed_ceiling_light
       - switch.master_room_landing_ceiling_light
@@ -173,7 +185,7 @@ homekit:
       - switch.kitchen_floor_led
       - switch.kitchen_extractor
     # Guest Room
-      - input_boolean.guest_room_people_lives_in
+      - input_boolean.guest_room_guests_use_this_room
       - climate.guest_room
       - climate.guest_toilet
       - switch.guest_room_ceiling_light
@@ -181,20 +193,30 @@ homekit:
       - switch.guest_toilet_ceiling_light
       - switch.guest_toilet_floor_led
     # En-suite Room
-      - input_boolean.en_suite_room_people_lives_in
+      - input_boolean.en_suite_room_guests_use_this_room
       - climate.en_suite_room
       - climate.en_suite_toilet
       - sensor.temp_of_en_suite_room
       - switch.en_suite_room_ceiling_light
       - switch.en_suite_toilet_light
-      - switch.en_suite_bedside_lamp
-    # Corridor/Ground Toilet
-      #- media_player.first_corridor
+      - switch.en_suite_room_bedside_lamp
+    # Ground Toilet
       - climate.ground_toilet
+      - switch.ground_toilet_light
+    # Corridor
+      #- media_player.first_corridor
       - climate.ground_floor_corridor
       - light.first_corridor_ble_light
       - light.ground_corridor_ble_light
-      - switch.ground_toilet_light
+      # Always ON Switch
+      - switch.front_door_light_switch
+      - switch.ground_corridor_light_switch
+      - switch.first_corridor_light_switch
+      - switch.master_room_entrance_light_switch
+      # Zone Heating
+      - switch.downstairs_heating
+      - switch.upstairs_heating
+      - switch.water_heater
     # Study
       - climate.study
       - switch.study_light
