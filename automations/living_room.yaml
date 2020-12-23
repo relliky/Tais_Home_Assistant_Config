@@ -69,90 +69,65 @@
 #
 ###############################################
 
-# Christmas Tree Light
-- alias: L-LR Living Room Christmas Tree Lights On If People Are Around
-  description: ''
-  trigger:
-  # Living Room
-  - entity_id: binary_sensor.living_room_sofa_motion_sensor_motion
-    platform: state
-    from: 'off'
-    to: 'on'
-  - entity_id: binary_sensor.living_room_tv_motion_sensor_motion
-    platform: state
-    from: 'off'
-    to: 'on'
-  # Garden    
-  - entity_id: binary_sensor.garden_motion_sensor_motion
-    platform: state
-    from: 'off'
-    to: 'on'
-  # Corridor
-  - entity_id: binary_sensor.ground_corridor_motion_sensor_motion
-    platform: state
-    from: 'off'
-    to: 'on'
-  - entity_id: binary_sensor.first_corridor_motion_sensor_motion
-    platform: state
-    from: 'off'
-    to: 'on'    
-  condition: []
-  action:
-  - service: switch.turn_on
-    entity_id:
-      - switch.living_room_tree_light
-
-
-- alias: L-LR Living Room Christmas Tree Lights Off If People Are Not Around
-  description: ''
-  trigger:
-  - minutes: /5
-    platform: time_pattern
-  condition: 
-  - condition: state
-    entity_id: 
-      - binary_sensor.living_room_sofa_motion_sensor_motion
-      - binary_sensor.living_room_tv_motion_sensor_motion
-      - binary_sensor.garden_motion_sensor_motion
-      - binary_sensor.ground_corridor_motion_sensor_motion
-      - binary_sensor.first_corridor_motion_sensor_motion
-    state: 'off'
-    for: 00:10:00  
-  action:    
-  - service: switch.turn_off
-    entity_id:
-      - switch.living_room_tree_light
-
 # Gardens
-- alias: L-LR Garden Lights On If Person Present also turning on Living Room and Cooridor Lights
+- alias: L-LR Garden and Corridor Lights On If Person Present Around Door
   description: ''
   trigger:
-  - entity_id: binary_sensor.garden_motion_sensor_motion
+  - entity_id: 
+      - binary_sensor.garden_sliding_door_motion_sensor_motion
     platform: state
     from: 'off'
     to: 'on'
   condition:
     - condition: and
       conditions:
-      - entity_id: binary_sensor.garden_motion_sensor_motion
+      - entity_id: binary_sensor.garden_sliding_door_motion_sensor_motion
         condition: state
         state: 'on'
-      - entity_id: sensor.garden_motion_sensor_light
+      - entity_id: sensor.garden_sliding_door_motion_sensor_light
         condition: numeric_state
         below: '30'
   action:
   - service: switch.turn_on
-    entity_id:
+    entity_id: 
       - switch.garden_light
+      - switch.garden_extension_lead_switch_1
   - service: script.living_room_landing_lights_turn_on
   - service: script.corridor_lights_turn_on_from_ground_floor
 
 
-- alias: L-LR Garden Lights Off If No Person Present For 5 Min
-  id: '1603640040052'
+# Gardens
+- alias: L-LR Garden and Corridor Lights On If Person Present Around Garden
   description: ''
   trigger:
-  - entity_id: binary_sensor.garden_motion_sensor_motion
+  - entity_id: 
+      - binary_sensor.garden_bike_shed_motion_sensor_motion
+    platform: state
+    from: 'off'
+    to: 'on'
+  condition:
+    - condition: and
+      conditions:
+      - entity_id: binary_sensor.garden_bike_shed_motion_sensor_motion
+        condition: state
+        state: 'on'
+      - entity_id: sensor.garden_bike_shed_motion_sensor_light
+        condition: numeric_state
+        below: '30'
+  action:
+  - service: switch.turn_on
+    entity_id: 
+      - switch.garden_light
+      - switch.garden_extension_lead_switch_1
+
+
+
+- alias: L-LR Garden Lights Off If No Person Present For 5 Min
+  description: ''
+  trigger:
+  - entity_id: 
+    - binary_sensor.garden_sliding_door_motion_sensor_motion
+    - binary_sensor.garden_bike_shed_motion_sensor_motion
     platform: state
     from: 'on'
     to: 'off'
@@ -160,14 +135,17 @@
   - minutes: /5
     platform: time_pattern
   condition:
-  - entity_id: binary_sensor.garden_motion_sensor_motion
+  - entity_id: 
+    - binary_sensor.garden_sliding_door_motion_sensor_motion
+    - binary_sensor.garden_bike_shed_motion_sensor_motion
     condition: state
     state: 'off'
     for: 00:05:00
   action:
-  - data: {}
-    entity_id: switch.garden_light
-    service: switch.turn_off
+  - service: switch.turn_off
+    entity_id: 
+      - switch.garden_light
+      - switch.garden_extension_lead_switch_1
 
 
 

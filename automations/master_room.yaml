@@ -17,11 +17,17 @@
   id: '1599910386760'
   description: ''
   trigger:
-  - entity_id: binary_sensor.master_room_bed_motion_sensor_motion
-    platform: state
+  - platform: state
     from: 'on'
     to: 'off'
     for: 00:15:00
+    entity_id:
+      - binary_sensor.master_room_bed_motion_sensor_motion
+      - binary_sensor.master_room_entrance_motion_sensor
+      - binary_sensor.master_room_stair_motion_sensor_motion
+      - binary_sensor.master_room_dressing_table_motion_sensor_motion
+      - binary_sensor.master_room_tv_motion_sensor_motion
+      - binary_sensor.master_room_drawer_motion_sensor_motion
   - minutes: /5
     platform: time_pattern
   condition:
@@ -34,7 +40,13 @@
         before: '22:00:00'
         condition: time
       - condition: state
-        entity_id: binary_sensor.master_room_bed_motion_sensor_motion
+        entity_id:
+          - binary_sensor.master_room_bed_motion_sensor_motion
+          - binary_sensor.master_room_entrance_motion_sensor
+          - binary_sensor.master_room_stair_motion_sensor_motion
+          - binary_sensor.master_room_dressing_table_motion_sensor_motion
+          - binary_sensor.master_room_tv_motion_sensor_motion
+          - binary_sensor.master_room_drawer_motion_sensor_motion
         for: 00:15:00
         state: 'off'
     # in nighttime, turn off and re-eable automation
@@ -45,7 +57,13 @@
         before: '10:00:00'
         condition: time
       - condition: state
-        entity_id: binary_sensor.master_room_bed_motion_sensor_motion
+        entity_id:
+          - binary_sensor.master_room_bed_motion_sensor_motion
+          - binary_sensor.master_room_entrance_motion_sensor
+          - binary_sensor.master_room_stair_motion_sensor_motion
+          - binary_sensor.master_room_dressing_table_motion_sensor_motion
+          - binary_sensor.master_room_tv_motion_sensor_motion
+          - binary_sensor.master_room_drawer_motion_sensor_motion
         for: 02:00:00
         state: 'off'
   action:
@@ -196,6 +214,9 @@
     default:
         - service: script.master_room_ceiling_lights_turn_on
         - service: script.master_room_bedside_lights_set_4000k
+        # Open Curtains To see Christmas Lights
+        - service: script.master_room_open_all_curtains
+        - service: script.master_room_ceiling_lights_turn_on
 
 
 
@@ -301,11 +322,10 @@
   description: ''
   mode: restart
   trigger:
-  - entity_id: binary_sensor.master_room_tv_motion_sensor_motion
-    platform: state
-    from: 'off'
-    to: 'on'
-  - entity_id: binary_sensor.master_room_drawer_motion_sensor_motion
+  - entity_id: 
+      - binary_sensor.master_room_tv_motion_sensor_motion
+      - binary_sensor.master_room_drawer_motion_sensor_motion
+      - binary_sensor.master_toilet_dressing_motion_sensor_motion
     platform: state
     from: 'off'
     to: 'on'
@@ -379,7 +399,7 @@
     - conditions:
       - condition: time
         after: '10:00:00'
-        before: '23:30:00'
+        before: '22:30:00'
       sequence:
         - service: script.master_toilet_all_lights_turn_on
     # ELSE - in nighttime, turn on toilet floor LED
@@ -454,7 +474,6 @@
 
 - alias: L-MT Master Toilet Dressing Lights On If Person Present
   description: ''
-
   trigger:
   - entity_id: binary_sensor.master_toilet_dressing_motion_sensor_motion
     platform: state
@@ -747,7 +766,6 @@
 
 
 - alias: B-MT Master Toilet Dressing Room Wall Switch Single Press - Turn On Dressing Room Lights/Turn Off All Toilet Lights
-
   trigger:
   - platform: state
     entity_id: sensor.master_toilet_dressing_light_wall_button
@@ -816,10 +834,16 @@
 
 - alias: P-MR Master Room Disable The Entering Room Automation If People Present
   trigger:
-  - entity_id: binary_sensor.master_room_bed_motion_sensor_motion
-    platform: state
+  - platform: state
     from: 'off'
     to: 'on'
+    entity_id:
+      - binary_sensor.master_room_bed_motion_sensor_motion
+      - binary_sensor.master_room_entrance_motion_sensor
+      - binary_sensor.master_room_stair_motion_sensor_motion
+      - binary_sensor.master_room_dressing_table_motion_sensor_motion
+      - binary_sensor.master_room_tv_motion_sensor_motion
+      - binary_sensor.master_room_drawer_motion_sensor_motion
   condition: []
   action:
   - delay: 00:00:30

@@ -1,6 +1,19 @@
 # Configure a default setup of Home Assistant (frontend, api, etc)
 default_config:
 
+
+# TODO:
+# 1. use single press instead of double press to turn off lights
+# 2. [DONE] use homekit led for bed led to remove noise - however noise is still there
+# 3. adapt the entrance light colour to yellow in the night
+# 4. bedside lights colour control by button
+# 5. bed lights colour control by day in the week/mode:sleep etc
+# 6. Sleeping in the day time in the master room can stop heating and never turn back on
+#    this is because turn on heating requires entering to the room. Change this using bed motion.
+#    Also it is worth to solve sleeping in the day time for the other room - maybe uses a switch instead.
+#    or using same method but having one more extra sensor per room for the door entrance logics.
+# 7. Fixed the living room light switches.
+#
 #xiaomi_aqara:
 #  discovery_retry: 5
 #  gateways: # XiaoMi Gateway
@@ -24,7 +37,7 @@ light:
   - platform: flux_led
     devices:
       192.168.1.29:
-        name: master_room_bed_led
+        name: spare_wifi_led
         mode: "rgb"
 
 tado:
@@ -110,9 +123,11 @@ recorder:
   commit_interval: 10 # updates log every 10s
 
 
-group:      !include groups.yaml
-automation: !include_dir_merge_list automations
-script:     !include scripts.yaml
+group:          !include groups.yaml
+automation:     !include_dir_merge_list automations/
+automation gui: !include automations.yaml
+script:         !include scripts.yaml
+
 
 # Custom Variables
 input_boolean:
@@ -148,8 +163,15 @@ homekit:
 - filter:
     include_entities:
     # Misc
-      - light.meross_10m_led
     # Master Room
+      - binary_sensor.master_room_tv_motion_sensor_motion
+      - binary_sensor.master_room_stair_motion_sensor_motion
+      - binary_sensor.master_room_dressing_table_motion_sensor_motion
+      - binary_sensor.master_room_drawer_motion_sensor_motion
+      - binary_sensor.master_room_bed_motion_sensor_motion
+      - binary_sensor.master_toilet_basin_motion_sensor_motion
+      - binary_sensor.master_toilet_shower_motion_sensor_motion
+      - binary_sensor.master_toilet_dressing_motion_sensor_motion
       - sensor.master_room_light_meter
       - climate.master_room
       - climate.master_toilet
@@ -163,27 +185,35 @@ homekit:
       - switch.master_room_dressing_table_light
       - switch.master_room_bed_ceiling_light
       - switch.master_room_landing_ceiling_light
+      - switch.master_room_balcony_decro_light
       - switch.master_toilet_dressing_light
       - switch.master_toilet_light
       - switch.master_toilet_floor_led
     # Living Room
-      #- media_player.living_room
+      - media_player.living_room # Sonos
       - climate.living_room
       - light.living_room_ble_light_near_door
       - light.living_room_ble_light_near_wall
-      - switch.garden_light
       - switch.living_room_ceiling_light
       - switch.living_room_tree_light
+      - switch.garden_light
+      - switch.garden_extension_lead_switch_1      
+      - switch.garden_extension_lead_switch_2
+      - switch.garden_extension_lead_switch_3      
     # Kitchen
-      #- media_player.kitchen
+      - binary_sensor.kitchen_table_motion_sensor_motion
+      - binary_sensor.kitchen_worktop_motion_sensor_motion
+      - media_player.kitchen # Sonos
       - climate.kitchen
       - sensor.mi_temperature_kitchen_hob_temperature_sensor
+      - switch.kitchen_drinking_hot_water
       - switch.kitchen_led_left_13815882
       - switch.kitchen_led_right_97186274
       - switch.kitchen_ceiling_light
       - switch.kitchen_dining_light
       - switch.kitchen_floor_led
       - switch.kitchen_extractor
+      - switch.kitchen_decro_light
     # Guest Room
       - input_boolean.guest_room_guests_use_this_room
       - climate.guest_room
@@ -204,7 +234,9 @@ homekit:
       - climate.ground_toilet
       - switch.ground_toilet_light
     # Corridor
-      #- media_player.first_corridor
+      - binary_sensor.first_corridor_motion_sensor_motion
+      - binary_sensor.ground_corridor_motion_sensor_motion    
+      - media_player.first_corridor # Sonos
       - climate.ground_floor_corridor
       - light.first_corridor_ble_light
       - light.ground_corridor_ble_light
@@ -217,6 +249,8 @@ homekit:
       - switch.downstairs_heating
       - switch.upstairs_heating
       - switch.water_heater
+      # Water Heater Scheudle
+      - automation.water_heater_on_schedule
     # Study
       - climate.study
       - switch.study_light
