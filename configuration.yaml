@@ -4,15 +4,15 @@ default_config:
 
 # TODO:
 # 1. use single press instead of double press to turn off lights
-# 2. [DONE] use homekit led for bed led to remove noise - however noise is still there
-# 3. adapt the entrance light colour to yellow in the night
-# 4. bedside lights colour control by button
-# 5. bed lights colour control by day in the week/mode:sleep etc
-# 6. Sleeping in the day time in the master room can stop heating and never turn back on
+# 2. adapt the entrance light colour to yellow in the night
+# 3. bedside lights colour control by button
+# 4. bed lights colour control by day in the week/mode/sleep etc
+# 5. [Done in master room] Sleeping in the day time in the master room can stop heating and never turn back on
 #    this is because turn on heating requires entering to the room. Change this using bed motion.
 #    Also it is worth to solve sleeping in the day time for the other room - maybe uses a switch instead.
 #    or using same method but having one more extra sensor per room for the door entrance logics.
-# 7. Fixed the living room light switches.
+# 6. Fixed the living room light switches.
+
 #
 #xiaomi_aqara:
 #  discovery_retry: 5
@@ -33,6 +33,8 @@ default_config:
 
 
 # Added MagicHome LEDs
+# This is a third-party custom component on flux_led 
+# instead of the official one from HA
 light:
   - platform: flux_led
     devices:
@@ -44,15 +46,15 @@ tado:
   username: !secret tado_user
   password: !secret tado_pass
 
-hive:
-  username: !secret hive_user
-  password: !secret hive_pass
+#hive:
+#  username: !secret hive_user
+#  password: !secret hive_pass
 #  scan_interval: 2
 
 # SwitchBot
-switch:
-  - platform: switchbot
-    mac: 'CA:5F:F8:B5:68:EA'
+#switch:
+#  - platform: switchbot
+#    mac: 'CA:5F:F8:B5:68:EA'
 
 sensor:
   # Time
@@ -60,24 +62,24 @@ sensor:
     display_options:
       - 'time'
       - 'date'
-  # XiaoMi BLE Temperature Sensor
-  - platform: mitemp_bt
-    period: 60
-    encryptors:
-               # En-suite Room Temperature Sensor
-               'A4:C1:38:B0:EB:53': '71d88c34719d0708221d348fd14873dd'
-               # En-suite Toilet Temperature Sensor
-               'A4:C1:38:C2:C8:7A': '46244a59383e1183953324aed271cc32'
-               # Guest Room Temperature Sensor
-               'A4:C1:38:8C:F9:84': '996b9535497ced8bc997d5b6e209e74c'
-               # Master Room Temperature Sensor
-               #'A4:C1:38:CF:C7:01': ''
-               # Kitchen Temperature Sensor
-               #'A4:C1:38:0E:91:A7': 'f9696fa47ac23090eea383b520ff9a10'
-               # Living Room Temperature Sensor
-               'A4:C1:38:EC:DB:BA': '1b535cbb3e68651bd67157ee0775e5cb'
-               # Kitchen Worktop Temperature Sensor
-               #'58:2d:34:3b:6a:27'
+#  # XiaoMi BLE Temperature Sensor
+#  - platform: mitemp_bt
+#    period: 60
+#    encryptors:
+#               # En-suite Room Temperature Sensor
+#               'A4:C1:38:B0:EB:53': '71d88c34719d0708221d348fd14873dd'
+#               # En-suite Toilet Temperature Sensor
+#               'A4:C1:38:C2:C8:7A': '46244a59383e1183953324aed271cc32'
+#               # Guest Room Temperature Sensor
+#               'A4:C1:38:8C:F9:84': '996b9535497ced8bc997d5b6e209e74c'
+#               # Master Room Temperature Sensor
+#               #'A4:C1:38:CF:C7:01': ''
+#               # Kitchen Temperature Sensor
+#               #'A4:C1:38:0E:91:A7': 'f9696fa47ac23090eea383b520ff9a10'
+#               # Living Room Temperature Sensor
+#               'A4:C1:38:EC:DB:BA': '1b535cbb3e68651bd67157ee0775e5cb'
+#               # Kitchen Worktop Temperature Sensor
+#               #'58:2d:34:3b:6a:27'
   # Xiaomi BLE Round Fast Update Temperature Sensor
   - platform: mitemp_bt
     period: 5 # seconds for refresh interval
@@ -85,9 +87,9 @@ sensor:
       '58:2d:34:3b:6a:27': 'Kitchen Hob Temperature Sensor'
 
 # TVs
-samsungtv:
-  - host: 192.168.1.31
-    name: Living Room TV
+#samsungtv:
+#  - host: 192.168.1.31
+#    name: Living Room TV
 
 #media_player:
 #  - platform: samsungtv_tizen
@@ -118,7 +120,7 @@ samsungtv:
 
 # Database logging config
 recorder:
-  purge_keep_days: 10
+  purge_keep_days: 3
   auto_purge: true
   commit_interval: 10 # updates log every 10s
 
@@ -204,6 +206,10 @@ homekit:
       - switch.master_toilet_light
       - switch.master_toilet_floor_led
     # Living Room
+      - binary_sensor.living_room_tv_motion_sensor_motion
+      - binary_sensor.living_room_sofa_motion_sensor_motion
+      - binary_sensor.garden_sliding_door_motion_sensor_motion
+      - binary_sensor.garden_bike_shed_motion_sensor_motion
       - media_player.living_room # Sonos
       - climate.living_room
       - light.living_room_ble_light_near_door
