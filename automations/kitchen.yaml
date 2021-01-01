@@ -383,3 +383,68 @@
   - delay: 02:00:00
 
 
+#################################################################
+#
+# Sonos Speakers Grouping/Ungrouping Based On Motion Sensor
+#
+#################################################################
+
+- alias: S-KC Kitchen Group Its Speaker If People Present
+  trigger:
+  - platform: state
+    from: 'off'
+    to: 'on'
+    entity_id:
+      - binary_sensor.kitchen_table_motion_sensor_motion
+      - binary_sensor.kitchen_worktop_motion_sensor_motion
+  condition: 
+  - condition: state
+    entity_id: input_boolean.follow_music
+    state: 'on'  
+  # The controller player must be playing music (not paused)  
+  - condition: template
+    value_template: >
+      {% if states('media_player.' + states('input_select.music_controller')) == 'playing' %}
+        true
+      {% else %}
+        false
+      {% endif %}    
+  action:
+  # Add this room speaker into the group
+  - service: script.add_sonos_into_speaker_group
+    data: 
+      target_player: media_player.kitchen_sonos
+
+
+- alias: S-KC Kitchen Ungroup/Pause Its Speaker If No People
+  trigger:
+  - platform: state
+    from: 'on'
+    to: 'off'
+    for: 00:10:00
+    entity_id:
+      - binary_sensor.kitchen_table_motion_sensor_motion
+      - binary_sensor.kitchen_worktop_motion_sensor_motion
+  - minutes: /5
+    platform: time_pattern      
+  condition: 
+  - condition: state
+    entity_id: input_boolean.follow_music
+    state: 'on'  
+  - condition: state
+    entity_id:
+      - binary_sensor.kitchen_table_motion_sensor_motion
+      - binary_sensor.kitchen_worktop_motion_sensor_motion
+    for: 00:10:00
+    state: 'off'    
+  action:
+  # Remove this room speaker from the group
+  - service: script.remove_sonos_from_speaker_group
+    data: 
+      target_player: media_player.kitchen_sonos
+  # Pause this room speaker in case it is the last item in the group 
+  - service: media_player.media_pause
+    entity_id: media_player.kitchen_sonos
+    
+    
+

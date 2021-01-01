@@ -5,6 +5,7 @@
 # - Lighting automation based on buttons
 # - Lighting automation based on time
 # - Disable the entering automation if people present in the bedroom
+# - Sonos Speakers Grouping/Ungrouping Based On Motion Sensor
 
 ###############################################
 #
@@ -81,12 +82,12 @@
   - service: script.master_room_close_all_curtains
 
 
+
+
 - alias: H-MR Master Room Heating Set to 22 If Person Present
   id: '1599909943770'
   description: 'automation.master_room_heating_on_if_person_present'
   trigger:
-  #- minutes: /1
-  #  platform: time_pattern
   - entity_id: binary_sensor.master_room_bed_motion_sensor_motion
     platform: state
     from: 'off'
@@ -132,7 +133,12 @@
     entity_id: climate.master_toilet
     service: climate.set_hvac_mode
   - data:
-      temperature: 22
+      temperature: >
+        {% if now().hour >= 18 or now().hour < 9 %}
+          22
+        {% else %}
+          20
+        {% endif %}
     entity_id: climate.master_toilet
     service: climate.set_temperature
   - data:
@@ -220,6 +226,7 @@
 
 
 
+
 - alias: L-MR Master Room Entrance LED Light On If Person Present
   description: ''
   trigger:
@@ -236,6 +243,7 @@
   - service:   light.turn_on
     entity_id: light.master_room_entrance_led_light
   mode: single
+
 
 
 - alias: L-MR Master Room Entrance Lights Off If No Person
@@ -802,7 +810,6 @@
 ###############################################
 
 - alias: T-MR Master Room Turn Off all Lights/Curtains at 2/3/4/5am
-  id: '1602117522999'
   description: ''
   trigger:
   - at: 02:00:00
@@ -813,7 +820,14 @@
     platform: time
   - at: 05:00:00
     platform: time
-  condition: []
+  condition: 
+  - condition: state
+    entity_id:
+      - binary_sensor.master_room_dressing_table_motion_sensor_motion
+      - binary_sensor.master_room_tv_motion_sensor_motion
+      - binary_sensor.master_room_drawer_motion_sensor_motion
+    for: 00:10:00
+    state: 'off'  
   action:
   - service: script.master_room_close_all_curtains
   - service: script.master_room_lights_turn_off
@@ -847,7 +861,7 @@
   condition: []
   action:
   - delay: 00:00:30
-  # IF sleeping in the daytime caused the issue, turn back the heating on
+  # IF sleeping in the daytime caused the issue, turn the heating back on
   - choose:
     - conditions:
       - condition: state
@@ -860,3 +874,85 @@
     entity_id:
      - automation.master_room_heating_on_if_person_present
      - automation.master_room_ceiling_lights_on_or_open_curtain_if_entering_room
+ 
+
+#################################################################
+#
+# Sonos Speakers Grouping/Ungrouping Based On Motion Sensor
+#
+#################################################################
+
+- alias: S-MR Master Room Group Its Speaker If People Present
+  trigger:
+  - platform: state
+    from: 'off'
+    to: 'on'
+    entity_id:
+      - binary_sensor.master_room_bed_motion_sensor_motion
+      - binary_sensor.master_room_entrance_motion_sensor
+      - binary_sensor.master_room_stair_motion_sensor_motion
+      - binary_sensor.master_room_dressing_table_motion_sensor_motion
+      - binary_sensor.master_room_tv_motion_sensor_motion
+      - binary_sensor.master_room_drawer_motion_sensor_motion
+  condition: 
+  - condition: state
+    entity_id: input_boolean.follow_music
+    state: 'on'  
+  # The controller player must be playing music (not paused)  
+  - condition: template
+    value_template: >
+      {% if states('media_player.' + states('input_select.music_controller')) == 'playing' %}
+        true
+      {% else %}
+        false
+      {% endif %}    
+  action:
+  # Add this room speaker into the group
+  - service: script.add_sonos_into_speaker_group
+    data: 
+      target_player: media_player.master_room_sonos
+
+
+- alias: S-MR Master Room Ungroup/Pause Its Speaker If No People
+  trigger:
+  - platform: state
+    from: 'on'
+    to: 'off'
+    for: 00:15:00
+    entity_id:
+      - binary_sensor.master_room_bed_motion_sensor_motion
+      - binary_sensor.master_room_entrance_motion_sensor
+      - binary_sensor.master_room_stair_motion_sensor_motion
+      - binary_sensor.master_room_dressing_table_motion_sensor_motion
+      - binary_sensor.master_room_tv_motion_sensor_motion
+      - binary_sensor.master_room_drawer_motion_sensor_motion
+  - minutes: /5
+    platform: time_pattern      
+  condition: 
+  - condition: state
+    entity_id: input_boolean.follow_music
+    state: 'on'  
+  - condition: state
+    entity_id:
+      - binary_sensor.master_room_bed_motion_sensor_motion
+      - binary_sensor.master_room_entrance_motion_sensor
+      - binary_sensor.master_room_stair_motion_sensor_motion
+      - binary_sensor.master_room_dressing_table_motion_sensor_motion
+      - binary_sensor.master_room_tv_motion_sensor_motion
+      - binary_sensor.master_room_drawer_motion_sensor_motion
+    for: 00:15:00
+    state: 'off'    
+  action:
+  # Remove this room speaker from the group
+  - service: script.remove_sonos_from_speaker_group
+    data: 
+      target_player: media_player.master_room_sonos
+  # Pause this room speaker in case it is the last item in the group 
+  - service: media_player.media_pause
+    entity_id: media_player.master_room_sonos
+    
+    
+    
+    
+    
+    

@@ -8,7 +8,7 @@
 ###############################################
 
 # Master Room Balcony
-- alias: L-MR Master Room Balcony And Indoor Light On If Curtain Open
+- alias: L-MR Master Room Balcony Light On If People Are Around
   description: ''
   trigger:
   - platform: state
@@ -22,18 +22,20 @@
     from: 'off'
     to: 'on'
     entity_id:
-      - binary_sensor.ground_corridor_motion_sensor_motion
-      - binary_sensor.first_corridor_motion_sensor_motion
+      - binary_sensor.front_door_motion_sensor_motion
       - binary_sensor.master_room_entrance_motion_sensor
       - binary_sensor.master_room_stair_motion_sensor_motion
-  condition: []
+  condition: 
+  - condition: numeric_state
+    entity_id: sensor.master_room_light_meter
+    below: '50'    
   action:
   - service: switch.turn_on
     entity_id: switch.master_room_balcony_decro_light
 
 
 
-- alias: L-MR Master Room Balcony Light Off If Curtain Closed
+- alias: L-MR Master Room Balcony Light Off If Curtain Closed and No People
   description: ''
   trigger:
   - minutes: /3
@@ -51,13 +53,58 @@
       state: 'off'
       for: 00:03:00
       entity_id:
-        - binary_sensor.ground_corridor_motion_sensor_motion
-        - binary_sensor.first_corridor_motion_sensor_motion
+        - binary_sensor.front_door_motion_sensor_motion
         - binary_sensor.master_room_entrance_motion_sensor
         - binary_sensor.master_room_stair_motion_sensor_motion
   action:
   - service: switch.turn_off
     entity_id: switch.master_room_balcony_decro_light
+
+
+# Corridor
+- alias: L-FC Corridor Decro Lights On If People Are Around
+  description: ''
+  trigger:
+  - platform: state
+    from: 'off'
+    to: 'on'
+    entity_id:
+      - binary_sensor.ground_corridor_motion_sensor_motion
+      - binary_sensor.first_corridor_motion_sensor_motion
+      - binary_sensor.master_room_entrance_motion_sensor
+      - binary_sensor.master_room_stair_motion_sensor_motion      
+  condition: []
+  action:
+  - service: switch.turn_on
+    entity_id: switch.corridor_decro_light
+
+
+- alias: L-FC Corridor Decro Lights Off If People Are Not Around
+  description: ''
+  trigger:
+  - platform: state
+    from: 'on'
+    to: 'off'
+    for: 00:02:00
+    entity_id:
+      - binary_sensor.ground_corridor_motion_sensor_motion
+      - binary_sensor.first_corridor_motion_sensor_motion
+      - binary_sensor.master_room_entrance_motion_sensor
+      - binary_sensor.master_room_stair_motion_sensor_motion     
+  - minutes: /3
+    platform: time_pattern
+  condition:
+  - condition: state
+    state: 'off'
+    for: 00:02:00
+    entity_id:
+      - binary_sensor.ground_corridor_motion_sensor_motion
+      - binary_sensor.first_corridor_motion_sensor_motion
+      - binary_sensor.master_room_entrance_motion_sensor
+      - binary_sensor.master_room_stair_motion_sensor_motion   
+  action:
+  - service: switch.turn_off
+    entity_id: switch.corridor_decro_light
 
 
 
@@ -69,11 +116,15 @@
     from: 'off'
     to: 'on'
     entity_id:
+      - binary_sensor.front_door_motion_sensor_motion
       - binary_sensor.ground_corridor_motion_sensor_motion
       - binary_sensor.first_corridor_motion_sensor_motion
       - binary_sensor.kitchen_table_motion_sensor_motion
       - binary_sensor.kitchen_worktop_motion_sensor_motion
-  condition: []
+  condition: 
+  - condition: numeric_state
+    entity_id: sensor.master_room_light_meter
+    below: '50'  
   action:
   - service: switch.turn_on
     entity_id: switch.kitchen_decro_light
@@ -89,7 +140,9 @@
     state: 'off'
     for: 00:05:00
     entity_id:
+      - binary_sensor.front_door_motion_sensor_motion
       - binary_sensor.ground_corridor_motion_sensor_motion
+      - binary_sensor.first_corridor_motion_sensor_motion
       - binary_sensor.kitchen_table_motion_sensor_motion
       - binary_sensor.kitchen_worktop_motion_sensor_motion
   action:
@@ -163,7 +216,7 @@
   condition:
   - condition: numeric_state
     entity_id: sensor.master_room_light_meter
-    below: '30'
+    below: '50'
   action:
   - service: switch.turn_on
     entity_id:
@@ -195,3 +248,37 @@
     entity_id:
       - switch.garden_extension_lead_switch_2
       - switch.garden_extension_lead_switch_3
+      
+      
+###############################################
+#
+# Lighting autmation based on time
+#
+###############################################
+
+- alias: T- Christmas Decro Lights Off at 2/3/4/5am
+  description: ''
+  trigger:
+  - at: 02:00:00
+    platform: time
+  - at: 03:00:00
+    platform: time
+  - at: 04:00:00
+    platform: time
+  - at: 05:00:00
+    platform: time
+  condition: []
+  action:
+  - service: switch.turn_off
+    entity_id:
+      - switch.garden_extension_lead_switch_2
+      - switch.garden_extension_lead_switch_3
+      - switch.living_room_tree_light
+      - switch.master_room_balcony_decro_light
+      - switch.kitchen_decro_light
+
+
+
+
+
+      

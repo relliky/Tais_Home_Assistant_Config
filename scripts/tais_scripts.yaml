@@ -1,3 +1,124 @@
+test1:
+  alias: test 1
+  sequence:
+  - service: input_select.select_option
+    entity_id: input_select.music_controller
+    data:
+      option:  kitchen_sonos
+      
+add_sonos_into_speaker_group:    
+  alias: Add Sonos Speaker Into the Speaker Group
+  fields:
+    target_player:
+      description: 'Sonos player name that need to be added into the group'
+      example: 'media_player.master_room_sonos'
+  sequence:
+    - condition: template
+      value_template: >
+        {% if target_player is not none and target_player != false and target_player != '' %}
+          true
+        {% else %}
+          false
+        {% endif %}
+        
+    # The target player must not be playing anything
+    - condition: template
+      value_template: >
+        {% if states(target_player) != 'playing' %}
+          true
+        {% else %}
+          false
+        {% endif %}
+    
+    # First set the target player to the same volume as the controller
+    - service: media_player.volume_set
+      data_template:
+        entity_id: >
+          {% if target_player is not none %}
+            {{ target_player }}
+          {% endif %}
+        volume_level: >
+          {% for state in states.media_player if state.entity_id == 'media_player.' + states('input_select.music_controller') %}
+            {{ state.attributes.volume_level }}
+          {% endfor %}
+  
+    # Now join the player into the group
+    - service: sonos.join
+      data_template:
+        master: media_player.{{ states('input_select.music_controller') }}
+        entity_id: >
+          {% if target_player is not none %}
+            {{ target_player }}
+          {% endif %}
+
+
+
+remove_sonos_from_speaker_group:
+  alias: Remove Sonos Speaker From the Speaker Group and Update the Master Speaker
+  fields:
+    target_player:
+      description: 'Sonos player that need to be removed from the group'
+      example: 'media_player.master_room_sonos'  
+  sequence:
+    - condition: template
+      value_template: >
+        {% if target_player is not none and target_player != false and target_player != '' %}
+          true
+        {% else %}
+          false
+        {% endif %}
+  
+    # The target player must be playing
+    - condition: template
+      value_template: >
+        {% if states(target_player) == 'playing' %}
+          true
+        {% else %}
+          false
+        {% endif %}
+  
+    # Update the master speaker to the second speaker in the group if possible
+    # Set master speaker to the second speaker in the group 
+    # However set master speaker to itself if this is only one speaker  
+    - service: input_select.select_option
+      entity_id: input_select.music_controller
+      data:
+        option: >
+          {% for speaker in state_attr(target_player, "sonos_group") %}
+            {% if loop.length == 1 %} 
+                {{ speaker|regex_replace(find='media_player.', replace='', ignorecase=False) }} 
+            {% elif loop.length > 1 %} 
+              {% if loop.index == 2 %} 
+                {{ speaker|regex_replace(find='media_player.', replace='', ignorecase=False) }} 
+              {% endif %}
+            {% endif %}
+          {% endfor %}
+
+    # The target must be the co-ordinator
+    - condition: template
+      value_template: >
+        {% if target_player != 'media_player.' + states('input_select.music_controller') %}
+          true
+        {% else %}
+          false
+        {% endif %}
+    
+    # Need to unjoin twice in order to make it ungroup - also will pause the music
+    - service: sonos.unjoin
+      data_template:
+        entity_id: >
+          {% if target_player is not none %}
+            {{ target_player }}
+          {% endif %}
+    - service: sonos.unjoin
+      data_template:
+        entity_id: >
+          {% if target_player is not none %}
+            {{ target_player }}
+          {% endif %}
+    
+
+
 ground_toilet_light_turn_on:
   alias: Ground Toilet Light Turn On
   mode: parallel

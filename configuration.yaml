@@ -12,7 +12,7 @@ default_config:
 #    Also it is worth to solve sleeping in the day time for the other room - maybe uses a switch instead.
 #    or using same method but having one more extra sensor per room for the door entrance logics.
 # 6. Fixed the living room light switches.
-
+# 7. auto on AON lights if they are accidentally closed
 #
 #xiaomi_aqara:
 #  discovery_retry: 5
@@ -124,12 +124,19 @@ recorder:
   auto_purge: true
   commit_interval: 10 # updates log every 10s
 
+# Install Mini Media Player
+#resources:
+#  - url: /local/mini-media-player-bundle.js?v=1.11.0
+#    type: module
 
 group:          !include groups.yaml
 automation:     !include_dir_merge_list automations/
 automation gui: !include automations.yaml
 script:         !include scripts/tais_scripts.yaml
 #script gui:     !include scripts.yaml
+
+
+#automation test: 
 
 
 # Custom Variables
@@ -168,11 +175,11 @@ input_boolean:
     
 input_select:
   music_controller:
-    name: Sonos Music Controller
+    name: Sonos Music Master Speaker
     options:
-      - first_corridor
-      - kitchen
-      - living_room
+      - master_room_sonos
+      - kitchen_sonos
+      - living_room_sonos
       
 # Port some thrid party products to Homekit for easy UI control
 homekit:
@@ -188,7 +195,11 @@ homekit:
       - binary_sensor.master_toilet_basin_motion_sensor_motion
       - binary_sensor.master_toilet_shower_motion_sensor_motion
       - binary_sensor.master_toilet_dressing_motion_sensor_motion
+      - binary_sensor.master_toilet_door
       - sensor.master_room_light_meter
+      #- sensor.master_room_bedside_button
+      #- sensor.master_room_six_key_button
+      #- sensor.master_room_spare_button
       - climate.master_room
       - climate.master_toilet
       - cover.master_room_curtain
@@ -210,7 +221,9 @@ homekit:
       - binary_sensor.living_room_sofa_motion_sensor_motion
       - binary_sensor.garden_sliding_door_motion_sensor_motion
       - binary_sensor.garden_bike_shed_motion_sensor_motion
-      - media_player.living_room # Sonos
+      - binary_sensor.garden_door
+      - media_player.living_room_sonos 
+      #- sensor.living_room_sofa_button
       - climate.living_room
       - light.living_room_ble_light_near_door
       - light.living_room_ble_light_near_wall
@@ -223,7 +236,8 @@ homekit:
     # Kitchen
       - binary_sensor.kitchen_table_motion_sensor_motion
       - binary_sensor.kitchen_worktop_motion_sensor_motion
-      - media_player.kitchen # Sonos
+      #- sensor.kitchen_worktop_button
+      - media_player.kitchen_sonos
       - climate.kitchen
       - sensor.mi_temperature_kitchen_hob_temperature_sensor
       - switch.kitchen_drinking_hot_water
@@ -238,7 +252,9 @@ homekit:
       - binary_sensor.guest_room_radiator_motion_sensor_motion
       - binary_sensor.guest_room_bed_motion_sensor_motion
       - binary_sensor.guest_toilet_motion_sensor_motion
+      - binary_sensor.guest_toilet_door
       - input_boolean.guest_room_guests_use_this_room
+      #- sensor.guest_room_button
       - climate.guest_room
       - climate.guest_toilet
       - switch.guest_room_ceiling_light
@@ -248,7 +264,9 @@ homekit:
     # En-suite Room
       - binary_sensor.en_suite_room_motion_sensor_motion
       - binary_sensor.en_suite_toilet_motion_sensor_motion
+      - binary_sensor.en_suite_toilet_door
       - input_boolean.en_suite_room_guests_use_this_room
+      #- sensor.en_suite_room_bedside_button
       - climate.en_suite_room
       - climate.en_suite_toilet
       - sensor.temp_of_en_suite_room
@@ -257,16 +275,18 @@ homekit:
       - switch.en_suite_room_bedside_lamp
     # Ground Toilet
       - binary_sensor.ground_toilet_motion_sensor_motion
+      - binary_sensor.ground_toilet_door
       - climate.ground_toilet
       - switch.ground_toilet_light
     # Corridor
       - binary_sensor.front_door_motion_sensor_motion
       - binary_sensor.first_corridor_motion_sensor_motion
       - binary_sensor.ground_corridor_motion_sensor_motion    
-      - media_player.first_corridor # Sonos
+      - media_player.first_corridor_sonos
       - climate.ground_floor_corridor
       - light.first_corridor_ble_light
       - light.ground_corridor_ble_light
+      - switch.corridor_decro_light
       # Always ON Switch
       - switch.front_door_light_switch
       - switch.ground_corridor_light_switch
@@ -280,5 +300,6 @@ homekit:
       - automation.water_heater_on_schedule
     # Study
       - binary_sensor.study_motion_sensor_motion
+      #- sensor.study_button
       - climate.study
       - switch.study_light
