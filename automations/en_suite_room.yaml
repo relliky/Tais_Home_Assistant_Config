@@ -164,6 +164,33 @@
       hvac_mode: auto
 
 
+# En-suite Room with Custom Thermostat
+- alias: H-ER En-suite Room Thermostat Switch Turns On/Off The Tado Valve
+  trigger:
+  - platform:  state
+    entity_id: input_boolean.en_suite_room_valve_switch
+    to: 
+      - 'off'
+      - 'on'
+  - minutes:  /5
+    platform: time_pattern
+  condition: []
+  action:
+  - data:
+      hvac_mode: heat
+    entity_id: climate.en_suite_room
+    service: climate.set_hvac_mode
+  - data:
+      temperature: >
+        {% if states('input_boolean.en_suite_room_valve_switch') == 'off' %}
+          5
+        {% else %}
+          25
+        {% endif %}
+    entity_id: climate.en_suite_room
+    service: climate.set_temperature
+
+
 
 # En-suite Toilet
 - alias: H-ET En-suite Toilet Heating Set to 22 If Person Present

@@ -329,6 +329,7 @@
       target_player: media_player.living_room_sonos
 
 
+
 - alias: S-LR Living Room Ungroup/Pause Its Speaker If No People
   trigger:
   - platform: state
@@ -356,121 +357,8 @@
     data: 
       target_player: media_player.living_room_sonos
   # Pause this room speaker in case it is the last item in the group 
-  - service: media_player.media_pause
-    entity_id: media_player.master_room_sonos
+  - service: script.pause_sonos_if_sole_speaker_group
+    data: 
+      target_player: media_player.living_room_sonos
     
-    
-
-- alias: S- Maintain Music Follower State 
-  trigger:
-  - platform: state
-    entity_id:
-      - media_player.living_room_sonos
-      - media_player.master_room_sonos
-      - media_player.kitchen_sonos
-    to:
-      - "idle"
-      - "playing"
-      - "paused"
-      - "off"
-  - minutes: /5
-    platform: time_pattern      
-  condition: []
-  action:
-  - choose:
-    - conditions:
-    # IF any Sonos is playing, turn on music follower
-      - condition: or
-        conditions:
-        - condition: state
-          state:     "playing"
-          entity_id: media_player.living_room_sonos
-        - condition: state
-          state:     "playing"
-          entity_id: media_player.master_room_sonos
-        - condition: state
-          state:     "playing"
-          entity_id: media_player.kitchen_sonos
-      sequence:
-        - service: input_boolean.turn_on
-          entity_id: input_boolean.follow_music      
-    # ELSE - turn off music follower
-    default:
-      - service: input_boolean.turn_off
-        entity_id: input_boolean.follow_music      
-
-
-- alias: S- Set Music Master Speaker When The Only One Is Playing
-  trigger:
-  - platform: state
-    entity_id:
-      - media_player.living_room_sonos
-      - media_player.master_room_sonos
-      - media_player.kitchen_sonos
-    to:
-      - "idle"
-      - "playing"
-      - "paused"
-      - "off"
-  - minutes: /5
-    platform: time_pattern      
-  condition: []
-  action:
-  - choose:
-    # IF - only kitchen sonos is playing - set it as master speaker
-    - conditions:
-      - condition: state
-        state:     "playing"
-        entity_id: media_player.kitchen_sonos
-      - condition: not
-        conditions:
-        - condition: state
-          state:     "playing"
-          entity_id: media_player.living_room_sonos
-        - condition: state
-          state:     "playing"
-          entity_id: media_player.master_room_sonos
-      sequence:
-        - service: input_select.select_option
-          entity_id: input_select.music_controller
-          data:
-            option:  kitchen_sonos
-    # ELIF only living room sonos is playing - set it as master speaker
-    - conditions:
-      - condition: state
-        state:     "playing"
-        entity_id: media_player.living_room_sonos
-      - condition: not
-        conditions:
-        - condition: state
-          state:     "playing"
-          entity_id: media_player.kitchen_sonos
-        - condition: state
-          state:     "playing"
-          entity_id: media_player.master_room_sonos
-      sequence:
-        - service: input_select.select_option
-          entity_id: input_select.music_controller
-          data:
-            option:  living_room_sonos
-    # IF only kitchen sonos is playing - set it as master speaker
-    - conditions:
-      - condition: state
-        state:     "playing"
-        entity_id: media_player.master_room_sonos
-      - condition: not
-        conditions:
-        - condition: state
-          state:     "playing"
-          entity_id: media_player.living_room_sonos
-        - condition: state
-          state:     "playing"
-          entity_id: media_player.kitchen_sonos
-      sequence:
-        - service: input_select.select_option
-          entity_id: input_select.music_controller
-          data:
-            option:  master_room_sonos
-  
-
     

@@ -1,4 +1,7 @@
-
+# Misc Automations
+# - TV controls
+# - Sonos Music state mantainance
+# - Restart HA
 
 - alias: Turn Off All TVs at 2.3.4.5am
   id: '1602117522624'
@@ -17,8 +20,6 @@
   - data:
       entity_id: media_player.living_room_tv
     service: media_player.turn_off
-
-
 
 - alias: turn on tv - DOES NOT WORK - NEED WAKE-ON-LAN
   id: '1602118134986'
@@ -66,6 +67,219 @@
 
 
 
+###############################################
+#
+# Sonos Music state mantainance
+#
+###############################################
 
+- alias: S- Turn On Music Follower - Kitchen/Master room/First corridor
+  trigger:
+  - platform: state
+    entity_id:
+      - media_player.master_room_sonos
+      - media_player.kitchen_sonos
+    to:
+      - "idle"
+      - "playing"
+      - "paused"
+      - "off"
+  - minutes: /5
+    platform: time_pattern      
+  condition: 
+  # IF any Sonos is playing music, turn on music follower
+  - condition: or
+    conditions:
+    - condition: state
+      state:     "playing"
+      entity_id: media_player.master_room_sonos
+    - condition: state
+      state:     "playing"
+      entity_id: media_player.kitchen_sonos
+  action:
+  - service: input_boolean.turn_on
+    entity_id: input_boolean.follow_music   
+
+
+
+
+- alias: S- Turn On Music Follower - living room
+  trigger:
+  - platform: state
+    entity_id:
+      - media_player.living_room_sonos
+    to:
+      - "idle"
+      - "playing"
+      - "paused"
+      - "off"
+  - minutes: /5
+    platform: time_pattern      
+  condition: 
+  # IF living room Sonos is playing music, turn on music follower
+    - condition: template
+      value_template: >
+        {% if state_attr('media_player.living_room_sonos', 'media_title') != 'TV' %}
+          true
+        {% else %}
+          false
+        {% endif %}    
+    - condition: state
+      state:     "playing"
+      entity_id: media_player.living_room_sonos  
+  action:
+  - service: input_boolean.turn_on
+    entity_id: input_boolean.follow_music   
+
+
+
+
+- alias: S- Turn Off Music Follower  
+  trigger:
+  - platform: state
+    entity_id:
+      - media_player.living_room_sonos
+      - media_player.master_room_sonos
+      - media_player.kitchen_sonos
+      - media_player.first_corridor_sonos
+    to:
+      - "idle"
+      - "playing"
+      - "paused"
+      - "off"
+  - minutes: /5
+    platform: time_pattern      
+  condition: 
+  # IF any Sonos is playing music, turn on music follower
+  - condition: not
+    conditions:
+    - condition: state
+      state:     "playing"
+      entity_id: media_player.master_room_sonos
+    - condition: state
+      state:     "playing"
+      entity_id: media_player.kitchen_sonos
+    - condition: state
+      state:     "playing"
+      entity_id: media_player.living_room_sonos  
+    - condition: state
+      state:     "playing"
+      entity_id: media_player.first_corridor_sonos
+  action:
+  - service: input_boolean.turn_off
+    entity_id: input_boolean.follow_music   
+
+
+
+
+- alias: S- Set Music Master Speaker and Mantain Follow Music When The Only One Is Playing
+  trigger:
+  - platform: state
+    entity_id:
+      - media_player.living_room_sonos
+      - media_player.master_room_sonos
+      - media_player.kitchen_sonos
+      - media_player.first_corridor_sonos
+    to:
+      - "idle"
+      - "playing"
+      - "paused"
+      - "off"
+  - minutes: /5
+    platform: time_pattern      
+  condition: []
+  action:
+  - choose:
+    # IF - only kitchen sonos is playing - set it as master speaker
+    - conditions:
+      - condition: state
+        state:     "playing"
+        entity_id: media_player.kitchen_sonos
+      - condition: not
+        conditions:
+        - condition: state
+          state:     "playing"
+          entity_id: media_player.living_room_sonos
+        - condition: state
+          state:     "playing"
+          entity_id: media_player.master_room_sonos
+        - condition: state
+          state:     "playing"
+          entity_id: media_player.first_corridor_sonos          
+      sequence:
+        - service: input_select.select_option
+          entity_id: input_select.music_controller
+          data:
+            option:  kitchen_sonos
+    # ELIF only living room sonos is playing music instead of TV - set it as master speaker
+    - conditions:
+      - condition: template
+        value_template: >
+          {% if state_attr('media_player.living_room_sonos', 'media_title') != 'TV' %}
+            true
+          {% else %}
+            false
+          {% endif %}
+      - condition: state
+        state:     "playing"
+        entity_id: media_player.living_room_sonos
+      - condition: not
+        conditions:
+        - condition: state
+          state:     "playing"
+          entity_id: media_player.kitchen_sonos
+        - condition: state
+          state:     "playing"
+          entity_id: media_player.master_room_sonos
+        - condition: state
+          state:     "playing"
+          entity_id: media_player.first_corridor_sonos                 
+      sequence:
+        - service: input_select.select_option
+          entity_id: input_select.music_controller
+          data:
+            option:  living_room_sonos
+    # ELIF only master room sonos is playing - set it as master speaker
+    - conditions:
+      - condition: state
+        state:     "playing"
+        entity_id: media_player.master_room_sonos
+      - condition: not
+        conditions:
+        - condition: state
+          state:     "playing"
+          entity_id: media_player.living_room_sonos
+        - condition: state
+          state:     "playing"
+          entity_id: media_player.kitchen_sonos
+        - condition: state
+          state:     "playing"
+          entity_id: media_player.first_corridor_sonos                 
+      sequence:
+        - service: input_select.select_option
+          entity_id: input_select.music_controller
+          data:
+            option:  master_room_sonos
+    # ELIF only first corridor sonos is playing - set it as master speaker
+    - conditions:
+      - condition: state
+        state:     "playing"
+        entity_id: media_player.first_corridor_sonos
+      - condition: not
+        conditions:
+        - condition: state
+          state:     "playing"
+          entity_id: media_player.living_room_sonos
+        - condition: state
+          state:     "playing"
+          entity_id: media_player.kitchen_sonos
+        - condition: state
+          state:     "playing"
+          entity_id: media_player.master_room_sonos                 
+      sequence:
+        - service: input_select.select_option
+          entity_id: input_select.music_controller
+          data:
+            option:  first_corridor_sonos
 
 

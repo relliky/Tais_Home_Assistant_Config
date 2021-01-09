@@ -12,7 +12,6 @@ default_config:
 #    Also it is worth to solve sleeping in the day time for the other room - maybe uses a switch instead.
 #    or using same method but having one more extra sensor per room for the door entrance logics.
 # 6. Fixed the living room light switches.
-# 7. auto on AON lights if they are accidentally closed
 #
 #xiaomi_aqara:
 #  discovery_retry: 5
@@ -46,15 +45,6 @@ tado:
   username: !secret tado_user
   password: !secret tado_pass
 
-#hive:
-#  username: !secret hive_user
-#  password: !secret hive_pass
-#  scan_interval: 2
-
-# SwitchBot
-#switch:
-#  - platform: switchbot
-#    mac: 'CA:5F:F8:B5:68:EA'
 
 sensor:
   # Time
@@ -110,17 +100,10 @@ sensor:
 #    new_device_defaults:
 #      track_new_devices: false
 
-# Apple HomeKit
-#homekit:
-#  auto_start: true
-
-# Text to speech
-#tts:
-#  - platform: google_translate
 
 # Database logging config
 recorder:
-  purge_keep_days: 3
+  purge_keep_days: 1
   auto_purge: true
   commit_interval: 10 # updates log every 10s
 
@@ -136,7 +119,26 @@ script:         !include scripts/tais_scripts.yaml
 #script gui:     !include scripts.yaml
 
 
-#automation test: 
+# Custom Thermostat 
+climate:
+  - platform: generic_thermostat
+    name: En-suite Room Thermostat
+    heater: input_boolean.en_suite_room_valve_switch
+    target_sensor: sensor.en_suite_room_temperature_sensor
+    precision: 0.1
+    
+  - platform: generic_thermostat
+    name: Master Room Thermostat
+    heater: input_boolean.master_room_valve_switch
+    target_sensor: sensor.master_room_temperature_sensor
+    precision: 0.1
+
+  - platform: generic_thermostat
+    name: Guest Room Thermostat
+    heater: input_boolean.guest_room_valve_switch
+    target_sensor: sensor.guest_room_temperature_sensor
+    precision: 0.1
+
 
 
 # Custom Variables
@@ -172,6 +174,15 @@ input_boolean:
     name: Follow Music
     initial: 'off'
     
+  en_suite_room_valve_switch:
+    name: 'En-suite Room Valve Switch'
+
+  master_room_valve_switch:
+    name: 'Master Room Valve Switch'
+
+  guest_room_valve_switch:
+    name: 'Guest Room Valve Switch'
+
     
 input_select:
   music_controller:
@@ -180,6 +191,7 @@ input_select:
       - master_room_sonos
       - kitchen_sonos
       - living_room_sonos
+      - first_corridor_sonos
       
 # Port some thrid party products to Homekit for easy UI control
 homekit:
@@ -201,6 +213,7 @@ homekit:
       #- sensor.master_room_six_key_button
       #- sensor.master_room_spare_button
       - climate.master_room
+      - climate.master_room_thermostat
       - climate.master_toilet
       - cover.master_room_curtain
       - cover.master_room_blind_left
@@ -256,6 +269,7 @@ homekit:
       - input_boolean.guest_room_guests_use_this_room
       #- sensor.guest_room_button
       - climate.guest_room
+      - climate.guest_room_thermostat
       - climate.guest_toilet
       - switch.guest_room_ceiling_light
       - switch.guest_room_screen_led
@@ -268,6 +282,7 @@ homekit:
       - input_boolean.en_suite_room_guests_use_this_room
       #- sensor.en_suite_room_bedside_button
       - climate.en_suite_room
+      - climate.en_suite_room_thermostat
       - climate.en_suite_toilet
       - sensor.temp_of_en_suite_room
       - switch.en_suite_room_ceiling_light
