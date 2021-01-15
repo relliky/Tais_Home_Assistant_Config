@@ -68,13 +68,15 @@
         for: 02:00:00
         state: 'off'
   action:
-  # Heating off
-  - service: climate.set_hvac_mode
-    entity_id: climate.master_room
-    data:
-      hvac_mode: auto
-  - service: automation.turn_on
-    entity_id: automation.master_room_heating_on_if_person_present
+  # Heating scheduler off and turn on entering automation  
+  - service:   automation.turn_off    
+    entity_id: automation.master_room_heating_scheduler
+  - service:   automation.turn_on
+    entity_id: automation.master_room_turn_on_heating_schedule_if_person_present
+  - data:
+      temperature: 10
+    entity_id: climate.master_room_thermostat
+    service: climate.set_temperature
   # Lighting/Curtain Off
   - service: script.master_room_lights_turn_off
   - service: automation.turn_on
@@ -84,9 +86,9 @@
 
 
 
-- alias: H-MR Master Room Heating Set to 22 If Person Present
+- alias: H-MR Master Room Turn On Schedule If Person Present
   id: '1599909943770'
-  description: 'automation.master_room_heating_on_if_person_present'
+  description: 'automation.master_room_turn_on_heating_schedule_if_person_present'
   trigger:
   - entity_id: binary_sensor.master_room_bed_motion_sensor_motion
     platform: state
@@ -94,27 +96,79 @@
     to: 'on'
   condition: []
   action:
-  - data:
-      hvac_mode: 'heat'
-    entity_id: climate.master_room
-    service: climate.set_hvac_mode
-  - data:
-      temperature: >
-        {% if now().hour >= 18 or now().hour < 9 %}
-          23
-        {% else %}
-          21
-        {% endif %}
-    entity_id: climate.master_room
-    service: climate.set_temperature
+  - service:   automation.turn_on
+    entity_id: automation.master_room_heating_scheduler
+  - service:   automation.trigger    
+    entity_id: automation.master_room_heating_scheduler
   - data:
       stop_actions: false
-    entity_id: automation.master_room_heating_on_if_person_present
+    entity_id: automation.master_room_turn_on_heating_schedule_if_person_present
     service: automation.turn_off
 
 
 
-- alias: H-MT Master Toilet Heating Set to 22 If Person Present
+- alias: H-MR Master Room Heating Scheduler
+  id: '1599909948789'
+  description: 'automation.master_room_heating_scheduler'
+  trigger:
+  - platform: time
+    at: "18:00:00"
+  - platform: time
+    at: "01:00:00"
+  - platform: time
+    at: "09:00:00"
+  condition: []
+  action:
+  - data:
+      hvac_mode: 'heat'
+    entity_id: climate.master_room_thermostat
+    service: climate.set_hvac_mode
+  - data:
+      temperature: >
+        {% if now().hour >= 18 or now().hour < 1 %}
+        {# 18:00 - 1:00 #}
+          23
+        {% elif now().hour >= 1 and now().hour < 9 %}
+        {# 1:00 - 9:00 #}
+          24
+        {% else %}
+        {# 9:00 - 18:00 #}
+          21
+        {% endif %}
+    entity_id: climate.master_room_thermostat
+    service: climate.set_temperature
+
+
+
+
+# Master Room with Custom Thermostat
+- alias: H-MR Master Room Thermostat Switch Turns On/Off The Tado Valve
+  trigger:
+  - platform:  state
+    entity_id: input_boolean.master_room_valve_switch
+    to: 
+      - 'off'
+      - 'on'
+  - minutes:  /5
+    platform: time_pattern
+  condition: []
+  action:
+  - data:
+      hvac_mode: heat
+    entity_id: climate.master_room
+    service: climate.set_hvac_mode
+  - data:
+      temperature: >
+        {% if states('input_boolean.master_room_valve_switch') == 'off' %}
+          5
+        {% else %}
+          25
+        {% endif %}
+    entity_id: climate.master_room
+    service: climate.set_temperature
+
+
+- alias: H-MT Master Toilet Heating On If Person Present
   id: '1600014380137'
   description: 'automation.master_toilet_heating_on_if_person_present'
   trigger:
@@ -134,9 +188,14 @@
     service: climate.set_hvac_mode
   - data:
       temperature: >
-        {% if now().hour >= 18 or now().hour < 9 %}
+        {% if now().hour >= 18 and now().hour < 23 %}
+        {# 18:00 - 23:00 #}
           22
+        {% elif now().hour >= 23 or now().hour < 9 %}
+        {# 23:00 - 9:00 #}
+          25
         {% else %}
+        {# 9:00 - 18:00 #}
           20
         {% endif %}
     entity_id: climate.master_toilet
@@ -865,14 +924,20 @@
   - choose:
     - conditions:
       - condition: state
-        entity_id: automation.master_room_heating_on_if_person_present
+        entity_id: automation.master_room_turn_on_heating_schedule_if_person_present
         state: 'off'
       sequence:
       - service: automation.trigger
-        entity_id: automation.master_room_heating_on_if_person_present
+        entity_id: automation.master_room_turn_on_heating_schedule_if_person_present
+      # make it warmer if sleeping in daytime    
+      - data:
+          temperature: 23
+        entity_id: climate.master_room_thermostat
+        service: climate.set_temperature      
+  # Turn off all entering automations        
   - service: automation.turn_off
     entity_id:
-     - automation.master_room_heating_on_if_person_present
+     - automation.master_room_turn_on_heating_schedule_if_person_present
      - automation.master_room_ceiling_lights_on_or_open_curtain_if_entering_room
  
 
@@ -918,7 +983,7 @@
   - platform: state
     from: 'on'
     to: 'off'
-    for: 00:15:00
+    for: 00:10:00
     entity_id:
       - binary_sensor.master_room_bed_motion_sensor_motion
       - binary_sensor.master_room_entrance_motion_sensor
@@ -940,7 +1005,7 @@
       - binary_sensor.master_room_dressing_table_motion_sensor_motion
       - binary_sensor.master_room_tv_motion_sensor_motion
       - binary_sensor.master_room_drawer_motion_sensor_motion
-    for: 00:15:00
+    for: 00:10:00
     state: 'off'    
   action:
   # Remove this room speaker from the group

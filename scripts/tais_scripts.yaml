@@ -1,30 +1,14 @@
 test1:
   alias: test 1
+  fields:
+    target_player:
+      description: 'Sonos player name that need to be added into the group'
+      example: 'media_player.master_room_sonos'  
   sequence:
-    - service: input_select.select_option
-      entity_id: input_select.music_controller
+    - service: sonos.unjoin
       data:
-        option: >
-         {% set target_player = 'media_player.living_room_sonos'%}
-        
-         {% set ns = namespace() %}
-         {% set ns.primary_speaker   = 'none' %}
-         {% set ns.secondary_speaker = 'none' %}
-         {# set the pri_speaker and sec_speaker #}
-         {% for speaker in state_attr(target_player, "sonos_group") %}
-           {% if loop.index == 1 %} 
-             {% set ns.primary_speaker    = speaker|regex_replace(find='media_player.', replace='', ignorecase=False) %}
-           {% elif loop.index == 2 %} 
-              {% set ns.secondary_speaker = speaker|regex_replace(find='media_player.', replace='', ignorecase=False) %}
-           {% endif %}
-         {% endfor %}
-
-         {# use the second speaker as master speaker if target speaker is currently the master #}
-         {% if target_player == ('media_player.' + ns.primary_speaker) and ns.secondary_speaker != 'none' %}
-           {{ ns.secondary_speaker }}
-         {% else %}
-           {{ ns.primary_speaker }}
-         {% endif %} 
+        entity_id: >
+          {{ target_player }}
 
       
 add_sonos_into_speaker_group:    
@@ -61,18 +45,35 @@ add_sonos_into_speaker_group:
           {% endif %}
         volume_level: >
           {% for state in states.media_player if state.entity_id == 'media_player.' + states('input_select.music_controller') %}
-            {{ state.attributes.volume_level }}
+            {% if   states('input_select.music_controller') != 'kitchen_sonos' and target_player == 'media_player.kitchen_sonos' %}
+              {{ state.attributes.volume_level + 0.1 }}
+            {% elif states('input_select.music_controller') == 'kitchen_sonos' and target_player != 'media_player.kitchen_sonos' %}
+              {{ state.attributes.volume_level - 0.1 }}
+            {% else %}  
+              {{ state.attributes.volume_level }}
+            {% endif %}
           {% endfor %}
   
-    # Now join the player into the group
+    # Now join the player into the group in case sometimes it didn't manage to join in for certain cases
     - service: sonos.join
       data_template:
         master: media_player.{{ states('input_select.music_controller') }}
         entity_id: >
           {% if target_player is not none %}
             {{ target_player }}
+          {% else %}
+            media_player.living_room_sonos
           {% endif %}
 
+    - service: sonos.join
+      data_template:
+        master: media_player.{{ states('input_select.music_controller') }}
+        entity_id: >
+          {% if target_player is not none %}
+            {{ target_player }}
+          {% else %}
+            media_player.living_room_sonos
+          {% endif %}
 
 
 remove_sonos_from_speaker_group:
@@ -103,12 +104,12 @@ remove_sonos_from_speaker_group:
     # The target is not the soundbar that is playing TV sound
     - condition: template
       value_template: >
-        {% if state_attr('media_player.living_room_sonos', 'media_title') != 'TV' %}
+        {% if target_player is not none and state_attr(target_player, 'media_title') != 'TV' %}
           true
         {% else %}
           false
         {% endif %}
-    
+
     # Update the master speaker in the group 
     - service: input_select.select_option
       entity_id: input_select.music_controller
@@ -141,22 +142,16 @@ remove_sonos_from_speaker_group:
         {% else %}
           false
         {% endif %}
-    
-    # Need to unjoin twice in order to make it ungroup - also will pause the music
+        
     - service: sonos.unjoin
-      data_template:
+      data:
         entity_id: >
-          {% if target_player is not none %}
+          {% if target_player is not none and target_player != false and target_player != '' and target_player != 'None'%}
             {{ target_player }}
+          {% else %}
+            media_player.living_room_sonos
           {% endif %}
-    - service: sonos.unjoin
-      data_template:
-        entity_id: >
-          {% if target_player is not none %}
-            {{ target_player }}
-          {% endif %}
-    
-    
+
     
 pause_sonos_if_sole_speaker_group:
   alias: Pause the Sonos Speaker if it is a Sole Speaker Group
@@ -187,11 +182,14 @@ pause_sonos_if_sole_speaker_group:
         {% endfor %}
         
     - service: media_player.media_pause
-      entity_id: >
-        {% if target_player is not none %}
-          {{ target_player }}
-        {% endif %}
-    
+      data:
+        entity_id: >
+          {% if target_player is not none and target_player != false and target_player != '' and target_player != 'None'%}
+            {{ target_player }}
+          {% else %}
+            media_player.living_room_sonos
+          {% endif %}
+
 
     
 ground_toilet_light_turn_on:
