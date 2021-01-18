@@ -168,6 +168,8 @@
     service: climate.set_temperature
 
 
+
+# Master Toilet
 - alias: H-MT Master Toilet Heating On If Person Present
   id: '1600014380137'
   description: 'automation.master_toilet_heating_on_if_person_present'
@@ -208,7 +210,7 @@
 
 
 
-- alias: H-MT Master Toilet Heating Off If No Person For 10 Min
+- alias: H-MT Master Toilet Heating Off If No Person
   id: '1600015749043'
   description: 'automation.master_toilet_heating_off_if_no_person'
   trigger:
@@ -218,22 +220,22 @@
     platform: state
     from: 'on'
     to: 'off'
-    for: 00:10:00
+    for: 00:05:00
   - entity_id: binary_sensor.master_toilet_shower_motion_sensor_motion
     platform: state
     from: 'on'
     to: 'off'
-    for: 00:10:00
+    for: 00:05:00
   - minutes: /5
     platform: time_pattern
   condition:
   - condition: state
     entity_id: binary_sensor.master_toilet_basin_motion_sensor_motion
-    for: 00:10:00
+    for: 00:05:00
     state: 'off'
   - condition: state
     entity_id: binary_sensor.master_toilet_shower_motion_sensor_motion
-    for: 00:10:00
+    for: 00:05:00
     state: 'off'
   action:
   - service: climate.set_hvac_mode
@@ -286,7 +288,7 @@
 
 
 
-- alias: L-MR Master Room Entrance LED Light On If Person Present
+- alias: L-MR Master Room Entrance/Corridor LED Light On If Person Present
   description: ''
   trigger:
   - entity_id: binary_sensor.master_room_entrance_motion_sensor
@@ -301,6 +303,14 @@
   action:
   - service:   light.turn_on
     entity_id: light.master_room_entrance_led_light
+  - choose:
+    # IF - in the nighttime, also turn on corridor lights
+    - conditions:
+      - condition: numeric_state
+        entity_id: sensor.master_room_light_meter
+        below: '50'
+      sequence:
+      - service: script.corridor_lights_turn_on_from_first_floor
   mode: single
 
 
@@ -920,12 +930,13 @@
   condition: []
   action:
   - delay: 00:00:30
-  # IF sleeping in the daytime caused the issue, turn the heating back on
+  # IF sleeping in the daytime caused the issue, i.e. entering automation is on,
+  # turn the heating back on and turn off the entering automations
   - choose:
     - conditions:
       - condition: state
         entity_id: automation.master_room_turn_on_heating_schedule_if_person_present
-        state: 'off'
+        state: 'on'
       sequence:
       - service: automation.trigger
         entity_id: automation.master_room_turn_on_heating_schedule_if_person_present

@@ -219,21 +219,21 @@
 
 
 
-- alias: H-ET En-suite Toilet Heating Off If No Person For 10 Min
+- alias: H-ET En-suite Toilet Heating Off If No Person
   id: '1600015749333'
-  description: 'automation.en_suite_toilet_heating_off_if_no_person_for_15_min'
+  description: ''
   trigger:
   - entity_id: binary_sensor.en_suite_toilet_motion_sensor_motion
     platform: state
     from: 'on'
     to: 'off'
-    for: 00:10:00
+    for: 00:05:00
   - minutes: /5
     platform: time_pattern
   condition:
   - condition: state
     entity_id: binary_sensor.en_suite_toilet_motion_sensor_motion
-    for: 00:10:00
+    for: 00:05:00
     state: 'off'
   action:
   - service: climate.set_hvac_mode
@@ -279,7 +279,7 @@
 
 
 # En-suite Toilet Lights
-- alias: L-GT En-suite Toilet Lights On If Person Present and Dark
+- alias: L-ET En-suite Toilet Lights On If Person Present and Dark
   id: '1603640030013'
   description: ''
   trigger:
@@ -302,7 +302,7 @@
 
 
 
-- alias: L-GT En-suite Toilet Lights Off If No Person For 10 Min
+- alias: L-ET En-suite Toilet Lights Off If No Person For 10 Min
   id: '1603640030014'
   description: ''
   trigger:
@@ -325,7 +325,7 @@
 
 
 
-- alias: L-GT En-suite Toilet Lights Off If No Person For 2 Min And Door Open
+- alias: L-ET En-suite Toilet Lights Off If No Person For 2 Min And Door Open
   id: '1603640030015'
   description: ''
   trigger:
@@ -361,29 +361,46 @@
 ###############################################
 
 # En-suite Room
-- alias: B-MR En-suite Room Wall Switch - Single Press - Toggle Ceiling Light
+- alias: B-MR En-suite Room Wall Switch - Single Press - Turn On En-suite Room Lights/Turn Off All Lights
   trigger:
   - platform: state
     entity_id: sensor.en_suite_room_ceiling_light_wall_button
-    to: '1'
+    to: single
+  action:
+  - choose:
+    # IF - all lights off - turn on ceiling light
+    - conditions:
+      - condition: and
+        conditions:
+        - condition: state
+          entity_id: switch.en_suite_room_ceiling_light
+          state: 'off'
+        - condition: state
+          entity_id: switch.en_suite_room_bedside_lamp
+          state: 'off'
+        - condition: state
+          entity_id: switch.en_suite_toilet_light
+          state: 'off'
+      sequence:
+        - service: switch.turn_on
+          entity_id: switch.en_suite_room_ceiling_light
+    # ELSE - some lights on - turn off all lights
+    default:
+      - service: switch.turn_off
+        entity_id: 
+        - switch.en_suite_room_ceiling_light
+        - switch.en_suite_room_bedside_lamp
+        - switch.en_suite_toilet_light
+
+
+- alias: B-MR En-suite Room Bed Button  - Single Press - Toggle Ceiling Lights
+  trigger:
   - platform: state
     entity_id: sensor.en_suite_room_bedside_button
     to: single
   action:
   - service:   switch.toggle
     entity_id: switch.en_suite_room_ceiling_light
-
-
-
-- alias: B-MR En-suite Room Wall Switch - Double Press - Turn Off All Lights
-  trigger:
-  - platform: state
-    entity_id: sensor.en_suite_room_ceiling_light_wall_button
-    to: '2'
-  action:
-  - service: script.en_suite_room_all_lights_turn_off
-  - service: script.en_suite_toilet_all_lights_turn_off
-
 
 
 - alias: B-MR En-suite Room Bed Button - Double Press - Toggle Bedside Lamp
