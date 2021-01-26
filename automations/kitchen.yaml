@@ -3,7 +3,8 @@
 # - Lighting automation based on motion sensors
 # - Lighting/Extractor control based on buttons
 # - Extractor auotmation based on temperature
-
+# - TV auto turn-off based on motion sensors
+#
 ###############################################
 #
 # Heating Automation based on motion sensors
@@ -61,6 +62,7 @@
   - data: {}
     entity_id: automation.kitchen_heating_on_if_people_present
     service: automation.turn_on
+
 
 
 - alias: W-KC Kitchen Drinking Hot Water On If Person Persent
@@ -312,15 +314,13 @@
     platform: state
     from: 'on'
     to: 'off'
-  condition: []
   action:
   - data: {}
     entity_id: script.kitchen_worktop_lights_turn_off
     service: script.turn_on
 
 
-
-- alias: B-KC Kitchen Single Press - Toggle Extractor and Disable Turn On AUtomation For Some Time
+- alias: B-KC Kitchen Button Single Press - Toggle Extractor and Disable Turn On Automation For Some Time
   id: '1603132703122'
   trigger:
   - platform: state
@@ -330,15 +330,6 @@
   - entity_id: switch.kitchen_extractor
     service: switch.toggle
   mode: restart
-
-- alias: B-KC Kitchen Double Press - Toggle Worktop light And Ceiling Light
-  id: '1603132703222'
-  trigger:
-  - platform: state
-    entity_id: sensor.kitchen_worktop_button
-    to: double
-  action:
-    service: script.kitchen_worktop_and_ceiling_lights_toggle
 
 
 - alias: B-KC Kitchen Light - Right/Double Press - Turn off all kitchen lights
@@ -446,5 +437,33 @@
   - service: script.pause_sonos_if_sole_speaker_group
     data: 
       target_player: media_player.kitchen_sonos
-    
+
+
+#################################################################
+#
+# TV auto turn-off based on motion sensors
+#
+#################################################################
+- alias: TV-KC Kitchen Turn Off TV If No Person
+  trigger:
+  - platform: state
+    from: 'on'
+    to: 'off'
+    for: 00:10:00
+    entity_id:
+      - binary_sensor.kitchen_table_motion_sensor_motion
+      - binary_sensor.kitchen_worktop_motion_sensor_motion
+  - minutes: /5
+    platform: time_pattern      
+  condition: 
+  - condition: state
+    entity_id:
+      - binary_sensor.kitchen_table_motion_sensor_motion
+      - binary_sensor.kitchen_worktop_motion_sensor_motion
+    for: 00:10:00
+    state: 'off'    
+  action:
+  # Switch Off TV
+  - service:   switch.turn_off
+    entity_id: switch.kitchen_tv    
 

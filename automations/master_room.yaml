@@ -71,17 +71,21 @@
   # Heating scheduler off and turn on entering automation  
   - service:   automation.turn_off    
     entity_id: automation.master_room_heating_scheduler
+  - service:   climate.set_temperature
+    entity_id: climate.master_room_thermostat
+    data:
+      temperature: 10
   - service:   automation.turn_on
     entity_id: automation.master_room_turn_on_heating_schedule_if_person_present
-  - data:
-      temperature: 10
-    entity_id: climate.master_room_thermostat
-    service: climate.set_temperature
   # Lighting/Curtain Off
-  - service: script.master_room_lights_turn_off
-  - service: automation.turn_on
+  - service:   script.master_room_lights_turn_off
+  - service:   script.master_room_close_all_curtains
+  - service:   automation.turn_on
     entity_id: automation.master_room_ceiling_lights_on_or_open_curtain_if_entering_room
-  - service: script.master_room_close_all_curtains
+  # Switch Off TV
+  - service:   switch.turn_off
+    entity_id: switch.master_room_tv
+
 
 
 
@@ -96,14 +100,47 @@
     to: 'on'
   condition: []
   action:
-  - service:   automation.turn_on
-    entity_id: automation.master_room_heating_scheduler
+  # Do not turn on heating in the first 1.5 min entering the room 
+  # to save energy for short stay
+  # If people stay longer, turn on heating
+  - choose:
+    # IF - first time entering (flag is cleared)
+    #      wait 1.5 min to check if people are still there
+    #    - in the meantime, set flag prepared for next entrance 
+    #      when motion is cleared after 1.5 min
+    - conditions:
+      - condition: state
+        entity_id: input_boolean.master_room_first_time_presence
+        state:     'off'
+      sequence:
+      # set the first time presence flag
+      - service:   input_boolean.turn_on
+        entity_id: input_boolean.master_room_first_time_presence
+      # Delay 1.5 min and test if the motion sensor is still on
+      - delay:     00:01:35
+      - condition: state
+        entity_id: binary_sensor.master_room_bed_motion_sensor_motion
+        state:     'on'
+  # 1. Second presence if motion is clear
+  #    (after 1.5 min due to motion sensor occupancy timeout)
+  # OR 
+  # 2. The presence is on for more than 1.5 min
+  #
+  # Clear flags
+  - service:   input_boolean.turn_off
+    entity_id: input_boolean.master_room_first_time_presence  
+  # Turn on Heating     
   - service:   automation.trigger    
     entity_id: automation.master_room_heating_scheduler
-  - data:
-      stop_actions: false
+  - service:   automation.turn_on
+    entity_id: automation.master_room_heating_scheduler
+  - service:   automation.turn_off
     entity_id: automation.master_room_turn_on_heating_schedule_if_person_present
-    service: automation.turn_off
+    data:
+      stop_actions: false      
+  # Restart mode guarentees entrance of 'ELSE' block
+  mode: restart
+
 
 
 
@@ -125,11 +162,11 @@
     service: climate.set_hvac_mode
   - data:
       temperature: >
-        {% if now().hour >= 18 or now().hour < 1 %}
-        {# 18:00 - 1:00 #}
+        {% if now().hour >= 18 %}
+        {# 18:00 - 0:00 #}
           23
-        {% elif now().hour >= 1 and now().hour < 9 %}
-        {# 1:00 - 9:00 #}
+        {% elif now().hour < 9 %}
+        {# 0:00 - 9:00 #}
           24
         {% else %}
         {# 9:00 - 18:00 #}
@@ -184,6 +221,41 @@
     to: 'on'
   condition: []
   action:
+  # Do not turn on heating in the first 1.5 min entering the room 
+  # to save energy for short stay
+  # If people stay longer, turn on heating
+  - choose:
+    # IF - first time entering (flag is cleared)
+    #      wait 1.5 min to check if people are still there
+    #    - in the meantime, set flag prepared for next entrance 
+    #      when motion is cleared after 1.5 min
+    - conditions:
+      - condition: state
+        entity_id: input_boolean.master_toilet_first_time_presence
+        state:     'off'
+      sequence:
+      # set the first time presence flag
+      - service:   input_boolean.turn_on
+        entity_id: input_boolean.master_toilet_first_time_presence
+      # Delay 1.5 min and test if the motion sensor is still on
+      - delay:     00:01:35
+      - condition: or
+        conditions:
+        - condition: state
+          entity_id: binary_sensor.master_toilet_basin_motion_sensor_motion
+          state:     'on'
+        - condition: state
+          entity_id: binary_sensor.master_toilet_shower_motion_sensor_motion
+          state:     'on'
+  # 1. Second presence if motion is clear
+  #    (after 1.5 min due to motion sensor occupancy timeout)
+  # OR 
+  # 2. The presence is on for more than 1.5 min
+  #
+  # Clear flags
+  - service:   input_boolean.turn_off
+    entity_id: input_boolean.master_toilet_first_time_presence  
+  # Turn on Heating     
   - data:
       hvac_mode: heat
     entity_id: climate.master_toilet
@@ -281,9 +353,8 @@
     default:
         - service: script.master_room_ceiling_lights_turn_on
         - service: script.master_room_bedside_lights_set_4000k
-        # Open Curtains To see Christmas Lights
-        - service: script.master_room_open_all_curtains
-        - service: script.master_room_ceiling_lights_turn_on
+        # Open Curtains To see decro Lights if it is a festival 
+        #- service: script.master_room_open_all_curtains
 
 
 
@@ -929,7 +1000,11 @@
       - binary_sensor.master_room_drawer_motion_sensor_motion
   condition: []
   action:
-  - delay: 00:00:30
+  - delay: 00:00:05
+  - service: automation.turn_off
+    entity_id:
+     - automation.master_room_ceiling_lights_on_or_open_curtain_if_entering_room
+  - delay: 00:03:00
   # IF sleeping in the daytime caused the issue, i.e. entering automation is on,
   # turn the heating back on and turn off the entering automations
   - choose:
@@ -948,8 +1023,8 @@
   # Turn off all entering automations        
   - service: automation.turn_off
     entity_id:
-     - automation.master_room_turn_on_heating_schedule_if_person_present
      - automation.master_room_ceiling_lights_on_or_open_curtain_if_entering_room
+     - automation.master_room_turn_on_heating_schedule_if_person_present
  
 
 #################################################################

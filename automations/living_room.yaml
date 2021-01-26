@@ -3,6 +3,7 @@
 # - Lighting automation based on motion sensors
 # - Lighting automation based on buttons
 # - Sonos Speakers Grouping/Ungrouping Based On Motion Sensor
+# - TV auto turn-off based on motion sensors
 #
 ###############################################
 #
@@ -97,8 +98,7 @@
   - service: script.corridor_lights_turn_on_from_ground_floor
 
 
-# Gardens
-- alias: L-LR Garden and Corridor Lights On If Person Present Around Garden
+- alias: L-LR Garden and Corridor Lights On If Person Present Around Bike Shed
   description: ''
   trigger:
   - entity_id: 
@@ -361,4 +361,32 @@
     data: 
       target_player: media_player.living_room_sonos
     
+#################################################################
+#
+# TV auto turn-off based on motion sensors
+#
+#################################################################
+- alias: TV-LR Living Room Turn Off TV If No Person
+  trigger:
+  - platform: state
+    from: 'on'
+    to: 'off'
+    for: 00:10:00
+    entity_id:
+      - binary_sensor.living_room_sofa_motion_sensor_motion
+      - binary_sensor.living_room_tv_motion_sensor_motion
+  - minutes: /5
+    platform: time_pattern      
+  condition: 
+  - condition: state
+    entity_id:
+      - binary_sensor.living_room_sofa_motion_sensor_motion
+      - binary_sensor.living_room_tv_motion_sensor_motion
+    for: 00:10:00
+    state: 'off'    
+  action:
+  # Switch Off TV
+  - service:   switch.turn_off
+    entity_id: switch.living_room_tv
+
     

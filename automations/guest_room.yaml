@@ -340,24 +340,39 @@
 - alias: B-GR Guest Room Wall Switch/Button - Single Press - Toggle Ceiling Light
   trigger:
   - platform: state
-    entity_id: sensor.guest_room_button
-    to: single
-  - platform: state
     entity_id: sensor.guest_room_ceiling_light_wall_switch
+    to: single
+  action:
+  - choose:
+    # IF - all lights off - turn on ceiling light
+    - conditions:
+      - condition: and
+        conditions:
+        - condition: state
+          entity_id: switch.guest_room_ceiling_light
+          state: 'off'
+        - condition: state
+          entity_id: switch.guest_room_screen_led
+          state: 'off'
+      sequence:
+        - service: switch.turn_on
+          entity_id: switch.guest_room_ceiling_light
+    # ELSE - some lights on - turn off all lights
+    default:
+      - service: switch.turn_off
+        entity_id: 
+        - switch.guest_room_ceiling_light
+        - switch.guest_room_screen_led
+
+
+- alias: B-GR Guest Room Button Single Press - Toggle Ceiling Lights
+  trigger:
+  - platform: state
+    entity_id: sensor.guest_room_button
     to: single
   action:
   - service: switch.toggle
     entity_id: switch.guest_room_ceiling_light
-
-
-
-- alias: B-GR Guest Room Wall Switch - Double Press - Turn off All Lights
-  trigger:
-  - platform: state
-    entity_id: sensor.guest_room_ceiling_light_wall_switch
-    to: double
-  action:
-  - service: script.guest_room_all_lights_turn_off
 
 
 
@@ -396,4 +411,5 @@
     entity_id:
      - automation.guest_room_heating_on_if_person_present
      - automation.guest_room_lights_on_if_person_present
+
 
