@@ -83,6 +83,9 @@
       hvac_mode: auto
   - service: automation.turn_on
     entity_id: automation.guest_room_heating_on_if_person_present
+  # Clear flags
+  - service:   input_boolean.turn_off
+    entity_id: input_boolean.guest_room_short_presence      
   # Turn Off Lighting
   - service: script.guest_room_all_lights_turn_off
   - service: automation.turn_on
@@ -102,20 +105,42 @@
     platform: state
     from: 'off'
     to: 'on'
-  condition: []
+  # Queued mode guarentees race condition are in series
+  mode: queued    
   action:
-  - data:
-      hvac_mode: heat
-    entity_id: climate.guest_room
-    service: climate.set_hvac_mode
-  - data:
-      temperature: 22
-    entity_id: climate.guest_room
-    service: climate.set_temperature
-  - data:
-      stop_actions: false
+  # Resolve race on multiple triggers - only execute instances that 
+  # turned on heating and turned off the automation.
+  - condition: state
     entity_id: automation.guest_room_heating_on_if_person_present
-    service: automation.turn_off
+    state:     'on'  
+  # Turn on heating on repeated short presence or longer presence
+  - choose:
+    # IF - first time entering, set the flag
+    #      Longer presence will turn on heating       
+    - conditions:
+      # Wait for 1.5 min if it is the first time of presence
+      - condition: state
+        entity_id: input_boolean.guest_room_short_presence
+        state:     'off'
+      sequence:
+      # set the short presence flag
+      - service:   input_boolean.turn_on
+        entity_id: input_boolean.guest_room_short_presence
+      # Delay 1.5 min and test motion sensor 
+      - delay:     00:01:45
+      - condition: or
+        conditions:
+        - condition: state
+          entity_id: binary_sensor.guest_room_radiator_motion_sensor_motion
+          state:     'on'
+        - condition: state
+          entity_id: binary_sensor.guest_room_bed_motion_sensor_motion
+          state:     'on'
+      # Longer presence will turn on heating       
+      - service: script.guest_room_set_heating_temp_with_state_maintaince
+    # ELSE - Repeated short presence will turn on heating
+    default:    
+      - service: script.guest_room_set_heating_temp_with_state_maintaince
 
 
 
@@ -129,19 +154,37 @@
     platform: state
     from: 'off'
     to: 'on'
-  condition: []
+  # Queued mode guarentees race condition are in series
+  mode: queued    
   action:
-  - data:
-      hvac_mode: heat
-    entity_id: climate.guest_toilet
-    service: climate.set_hvac_mode
-  - data:
-      temperature: 22
-    entity_id: climate.guest_toilet
-    service: climate.set_temperature
-  - data: {}
+  # Resolve race on multiple triggers - only execute instances that 
+  # turned on heating and turned off the automation.
+  - condition: state
     entity_id: automation.guest_toilet_heating_on_if_person_present
-    service: automation.turn_off
+    state:     'on'  
+  # Turn on heating on repeated short presence or longer presence
+  - choose:
+    # IF - first time entering, set the flag
+    #      Longer presence will turn on heating       
+    - conditions:
+      # Wait for 1.5 min if it is the first time of presence
+      - condition: state
+        entity_id: input_boolean.guest_toilet_short_presence
+        state:     'off'
+      sequence:
+      # set the short presence flag
+      - service:   input_boolean.turn_on
+        entity_id: input_boolean.guest_toilet_short_presence
+      # Delay 1.5 min and test motion sensor 
+      - delay:     00:01:45
+      - condition: state
+        entity_id: binary_sensor.guest_toilet_motion_sensor_motion
+        state:     'on'
+      # Longer presence will turn on heating       
+      - service: script.guest_toilet_set_heating_temp_with_state_maintaince
+    # ELSE - Repeated short presence will turn on heating
+    default:    
+      - service: script.guest_toilet_set_heating_temp_with_state_maintaince
 
 
 
@@ -163,6 +206,7 @@
     for: 00:10:00
     state: 'off'
   action:
+  # turn off heating
   - service: climate.set_hvac_mode
     entity_id: climate.guest_toilet
     data:
@@ -170,7 +214,9 @@
   - data: {}
     entity_id: automation.guest_toilet_heating_on_if_person_present
     service: automation.turn_on
-
+  # clear the short presence flag
+  - service:   input_boolean.turn_off
+    entity_id: input_boolean.guest_toilet_short_presence
 
 
 ###############################################

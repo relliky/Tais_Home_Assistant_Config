@@ -1,12 +1,12 @@
 # Master Room
 # Master Toilet
-# - Heating/Lighting automation based on motion sensors
+# - Heating/Lighting/TV automation based on motion sensors
 # - Lighting automation based on motion sensors
 # - Lighting automation based on buttons
-# - Lighting automation based on time
+# - Lighting/TV automation based on time
 # - Disable the entering automation if people present in the bedroom
 # - Sonos Speakers Grouping/Ungrouping Based On Motion Sensor
-
+#
 ###############################################
 #
 # Heating/Lighting Automation based on motion sensors
@@ -14,7 +14,7 @@
 ###############################################
 
 # Master Room
-- alias: HL-MR Master Room Heating/Lighting Off If No Person
+- alias: HLTV-MR Master Room Heating/Lighting Off If No Person
   id: '1599910386760'
   description: ''
   trigger:
@@ -77,6 +77,9 @@
       temperature: 10
   - service:   automation.turn_on
     entity_id: automation.master_room_turn_on_heating_schedule_if_person_present
+  # Clear flags
+  - service:   input_boolean.turn_off
+    entity_id: input_boolean.master_room_short_presence      
   # Lighting/Curtain Off
   - service:   script.master_room_lights_turn_off
   - service:   script.master_room_close_all_curtains
@@ -98,48 +101,37 @@
     platform: state
     from: 'off'
     to: 'on'
-  condition: []
+  # Queued mode guarentees race condition are in series
+  mode: queued    
   action:
-  # Do not turn on heating in the first 1.5 min entering the room 
-  # to save energy for short stay
-  # If people stay longer, turn on heating
+  # Resolve race on multiple triggers - only execute instances that 
+  # turned on heating and turned off the automation.
+  - condition: state
+    entity_id: automation.master_room_turn_on_heating_schedule_if_person_present
+    state:     'on'  
+  # Turn on heating on repeated short presence or longer presence
   - choose:
-    # IF - first time entering (flag is cleared)
-    #      wait 1.5 min to check if people are still there
-    #    - in the meantime, set flag prepared for next entrance 
-    #      when motion is cleared after 1.5 min
+    # IF - first time entering, set the flag
+    #      Longer presence will turn on heating       
     - conditions:
+      # Wait for 1.5 min if it is the first time of presence
       - condition: state
-        entity_id: input_boolean.master_room_first_time_presence
+        entity_id: input_boolean.master_room_short_presence
         state:     'off'
       sequence:
-      # set the first time presence flag
+      # set the short presence flag
       - service:   input_boolean.turn_on
-        entity_id: input_boolean.master_room_first_time_presence
-      # Delay 1.5 min and test if the motion sensor is still on
-      - delay:     00:01:35
+        entity_id: input_boolean.master_room_short_presence
+      # Delay 1.5 min and test motion sensor 
+      - delay:     00:01:45
       - condition: state
         entity_id: binary_sensor.master_room_bed_motion_sensor_motion
         state:     'on'
-  # 1. Second presence if motion is clear
-  #    (after 1.5 min due to motion sensor occupancy timeout)
-  # OR 
-  # 2. The presence is on for more than 1.5 min
-  #
-  # Clear flags
-  - service:   input_boolean.turn_off
-    entity_id: input_boolean.master_room_first_time_presence  
-  # Turn on Heating     
-  - service:   automation.trigger    
-    entity_id: automation.master_room_heating_scheduler
-  - service:   automation.turn_on
-    entity_id: automation.master_room_heating_scheduler
-  - service:   automation.turn_off
-    entity_id: automation.master_room_turn_on_heating_schedule_if_person_present
-    data:
-      stop_actions: false      
-  # Restart mode guarentees entrance of 'ELSE' block
-  mode: restart
+      # Longer presence will turn on heating       
+      - service: script.master_room_set_heating_temp_with_state_maintaince
+    # ELSE - Repeated short presence will turn on heating
+    default:    
+      - service: script.master_room_set_heating_temp_with_state_maintaince
 
 
 
@@ -151,7 +143,7 @@
   - platform: time
     at: "18:00:00"
   - platform: time
-    at: "01:00:00"
+    at: "00:00:00"
   - platform: time
     at: "09:00:00"
   condition: []
@@ -219,26 +211,29 @@
     platform: state
     from: 'off'
     to: 'on'
-  condition: []
+  # Queued mode guarentees race condition are in series
+  mode: queued    
   action:
-  # Do not turn on heating in the first 1.5 min entering the room 
-  # to save energy for short stay
-  # If people stay longer, turn on heating
+  # Resolve race on multiple triggers - only execute instances that 
+  # turned on heating and turned off the automation.
+  - condition: state
+    entity_id: automation.master_toilet_heating_on_if_person_present
+    state:     'on'  
+  # Turn on heating on repeated short presence or longer presence
   - choose:
-    # IF - first time entering (flag is cleared)
-    #      wait 1.5 min to check if people are still there
-    #    - in the meantime, set flag prepared for next entrance 
-    #      when motion is cleared after 1.5 min
+    # IF - first time entering, set the flag
+    #      Longer presence will turn on heating       
     - conditions:
+      # Wait for 1.5 min if it is the first time of presence
       - condition: state
-        entity_id: input_boolean.master_toilet_first_time_presence
+        entity_id: input_boolean.master_toilet_short_presence
         state:     'off'
       sequence:
-      # set the first time presence flag
+      # set the short presence flag
       - service:   input_boolean.turn_on
-        entity_id: input_boolean.master_toilet_first_time_presence
-      # Delay 1.5 min and test if the motion sensor is still on
-      - delay:     00:01:35
+        entity_id: input_boolean.master_toilet_short_presence
+      # Delay 1.5 min and test motion sensor 
+      - delay:     00:01:45
       - condition: or
         conditions:
         - condition: state
@@ -247,38 +242,14 @@
         - condition: state
           entity_id: binary_sensor.master_toilet_shower_motion_sensor_motion
           state:     'on'
-  # 1. Second presence if motion is clear
-  #    (after 1.5 min due to motion sensor occupancy timeout)
-  # OR 
-  # 2. The presence is on for more than 1.5 min
-  #
-  # Clear flags
-  - service:   input_boolean.turn_off
-    entity_id: input_boolean.master_toilet_first_time_presence  
-  # Turn on Heating     
-  - data:
-      hvac_mode: heat
-    entity_id: climate.master_toilet
-    service: climate.set_hvac_mode
-  - data:
-      temperature: >
-        {% if now().hour >= 18 and now().hour < 23 %}
-        {# 18:00 - 23:00 #}
-          22
-        {% elif now().hour >= 23 or now().hour < 9 %}
-        {# 23:00 - 9:00 #}
-          25
-        {% else %}
-        {# 9:00 - 18:00 #}
-          20
-        {% endif %}
-    entity_id: climate.master_toilet
-    service: climate.set_temperature
-  - data:
-      stop_actions: false
-    entity_id: automation.master_toilet_heating_on_if_person_present
-    service: automation.turn_off
+      # Longer presence will turn on heating       
+      - service: script.master_toilet_set_heating_temp_with_state_maintaince
+    # ELSE - Repeated short presence will turn on heating
+    default:    
+      - service: script.master_toilet_set_heating_temp_with_state_maintaince
 
+  
+  
 
 
 
@@ -310,6 +281,7 @@
     for: 00:05:00
     state: 'off'
   action:
+  # Turn off heating
   - service: climate.set_hvac_mode
     entity_id: climate.master_toilet
     data:
@@ -317,8 +289,9 @@
   - data: {}
     entity_id: automation.master_toilet_heating_on_if_person_present
     service: automation.turn_on
-
-
+  # Clear flags
+  - service:   input_boolean.turn_off
+    entity_id: input_boolean.master_toilet_short_presence
 
 ###############################################
 #
@@ -945,15 +918,13 @@
 
 ###############################################
 #
-# Lighting/Curtain autmation based on time
+# Lighting/Curtain/TV autmation based on time
 #
 ###############################################
 
-- alias: T-MR Master Room Turn Off all Lights/Curtains at 2/3/4/5am
+- alias: T-MR Master Room Turn Off all Lights/Curtains/TV at 3/4/5am
   description: ''
   trigger:
-  - at: 02:00:00
-    platform: time
   - at: 03:00:00
     platform: time
   - at: 04:00:00
@@ -978,7 +949,9 @@
   - service: script.master_room_close_all_curtains
   - delay: '00:00:05'
   - service: script.master_room_close_all_curtains
-
+  # Turn Off TV
+  - service:   switch.turn_off
+    entity_id: switch.master_room_tv
 
 #################################################################
 #
@@ -1064,6 +1037,8 @@
       target_player: media_player.master_room_sonos
 
 
+
+
 - alias: S-MR Master Room Ungroup/Pause Its Speaker If No People
   trigger:
   - platform: state
@@ -1081,9 +1056,6 @@
     platform: time_pattern      
   condition: 
   - condition: state
-    entity_id: input_boolean.follow_music
-    state: 'on'  
-  - condition: state
     entity_id:
       - binary_sensor.master_room_bed_motion_sensor_motion
       - binary_sensor.master_room_entrance_motion_sensor
@@ -1094,11 +1066,19 @@
     for: 00:10:00
     state: 'off'    
   action:
-  # Remove this room speaker from the group
-  - service: script.remove_sonos_from_speaker_group
-    data: 
-      target_player: media_player.master_room_sonos
+  - choose:
+    # IF - music follower is on
+    - conditions:
+      - condition: state
+        entity_id: input_boolean.follow_music
+        state: 'on'      
+      sequence:
+      # Remove this room speaker from the group
+      - service: script.remove_sonos_from_speaker_group
+        data: 
+          target_player: media_player.master_room_sonos
   # Pause this room speaker in case it is the last item in the group 
+  # or music follower is off  
   - service: script.pause_sonos_if_sole_speaker_group
     data: 
       target_player: media_player.master_room_sonos

@@ -15,28 +15,48 @@
   id: '1599609685194'
   description: 'automation.kitchen_heating_on_if_people_present'
   trigger:
-  - entity_id: binary_sensor.kitchen_table_motion_sensor_motion
+  - entity_id: 
+      - binary_sensor.kitchen_table_motion_sensor_motion
+      - binary_sensor.kitchen_worktop_motion_sensor_motion
     platform: state
     from: 'off'
     to: 'on'
-  condition: []
+  # Queued mode guarentees no race
+  mode: queued    
   action:
-  - data:
-      hvac_mode: heat
-    entity_id: climate.kitchen
-    service: climate.set_hvac_mode
-  - data:
-      temperature: 20
-    entity_id: climate.kitchen
-    service: climate.set_temperature
-  - data:
-      stop_actions: false
+  # Remove instances due to race conditions
+  - condition: state
     entity_id: automation.kitchen_heating_on_if_people_present
-    service: automation.turn_off
+    state:     'on'  
+  # Turn on heating on repeated short presence or longer presence
+  - choose:
+    # IF - first time entering, set the flag
+    #      Longer presence will turn on heating       
+    - conditions:
+      - condition: state
+        entity_id: input_boolean.kitchen_short_presence
+        state:     'off'
+      sequence:
+      # set the short presence flag
+      - service:   input_boolean.turn_on
+        entity_id: input_boolean.kitchen_short_presence
+      # Delay 1.5 min and test motion sensor 
+      - delay:     00:01:45
+      - condition: or
+        conditions:
+        - condition: state
+          entity_id: binary_sensor.kitchen_table_motion_sensor_motion
+          state:     'on'
+        - condition: state
+          entity_id: binary_sensor.kitchen_worktop_motion_sensor_motion
+          state:     'on'
+      # Longer presence will turn on heating       
+      - service: script.kitchen_set_heating_temp_with_state_maintaince
+    # ELSE - Repeated short presence will turn on heating
+    default:    
+      - service: script.kitchen_set_heating_temp_with_state_maintaince
 
-
-
-
+  
 
 - alias: H-KC Kitchen Heating Off If No Person
   id: '1599609374841'
@@ -55,6 +75,7 @@
     for: 00:05:00
     state: 'off'
   action:
+  # turn off heating
   - service: climate.set_hvac_mode
     entity_id: climate.kitchen
     data:
@@ -62,7 +83,9 @@
   - data: {}
     entity_id: automation.kitchen_heating_on_if_people_present
     service: automation.turn_on
-
+  # Clear flags
+  - service:   input_boolean.turn_off
+    entity_id: input_boolean.kitchen_short_presence  
 
 
 - alias: W-KC Kitchen Drinking Hot Water On If Person Persent
@@ -420,20 +443,25 @@
     platform: time_pattern      
   condition: 
   - condition: state
-    entity_id: input_boolean.follow_music
-    state: 'on'  
-  - condition: state
     entity_id:
       - binary_sensor.kitchen_table_motion_sensor_motion
       - binary_sensor.kitchen_worktop_motion_sensor_motion
     for: 00:10:00
     state: 'off'    
   action:
-  # Remove this room speaker from the group
-  - service: script.remove_sonos_from_speaker_group
-    data: 
-      target_player: media_player.kitchen_sonos
+  - choose:
+    # IF - music follower is on
+    - conditions:
+      - condition: state
+        entity_id: input_boolean.follow_music
+        state: 'on'      
+      sequence:
+      # Remove this room speaker from the group
+      - service: script.remove_sonos_from_speaker_group
+        data: 
+          target_player: media_player.kitchen_sonos
   # Pause this room speaker in case it is the last item in the group 
+  # or music follower is off
   - service: script.pause_sonos_if_sole_speaker_group
     data: 
       target_player: media_player.kitchen_sonos

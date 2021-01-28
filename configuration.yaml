@@ -3,16 +3,13 @@ default_config:
 
 
 # TODO:
-# 1. use single press instead of double press to turn off lights
-# 2. adapt the entrance light colour to yellow in the night
-# 3. bedside lights colour control by button
-# 4. bed lights colour control by day in the week/mode/sleep etc
-# 5. [Done in master room] Sleeping in the day time in the master room can stop heating and never turn back on
-#    this is because turn on heating requires entering to the room. Change this using bed motion.
-#    Also it is worth to solve sleeping in the day time for the other room - maybe uses a switch instead.
-#    or using same method but having one more extra sensor per room for the door entrance logics.
-# 6. Fixed the living room light switches.
-#
+# * adapt the entrance light colour to yellow in the night
+# * bedside lights colour control by button/homekit
+# * bed lights colour control by day in the week/mode/sleep etc
+# * Fixed the living room light switches.
+# * move automation to be package based - check if we can use a shared package for shared code
+# * delay heating on en-suite room and moved that to thermostat based control like master room
+# * 
 #xiaomi_aqara:
 #  discovery_retry: 5
 #  gateways: # XiaoMi Gateway
@@ -155,10 +152,13 @@ climate:
     hot_tolerance:  0.1
     initial_hvac_mode: 'heat'
 
-
+###########################################
 # Custom Variables
+###########################################
 input_boolean:
+  ####################################
   # Tuya Curtains Variables 
+  ####################################
   master_room_left_blind_moving_in_progress:
     name: 'Master Room Left Blind Moving In Progress'
     initial: 'off'
@@ -179,19 +179,25 @@ input_boolean:
 
   master_room_curtain_is_open:
     name: 'Master Room Curtain Is Open'
-  
+
+  ####################################
   # Spare Room Usage
+  ####################################
   en_suite_room_guests_use_this_room:
     name: 'En-suite Room Guests Use This Room'
 
   guest_room_guests_use_this_room:
     name: 'Guest Room Guests Use This Room'
 
+  ####################################
   # Music Followers
+  ####################################
   follow_music:
     name: 'Follow Music'
 
+  ####################################
   # Custom Thermostat Switch
+  ####################################
   en_suite_room_valve_switch:
     name: 'En-suite Room Valve Switch'
 
@@ -201,13 +207,37 @@ input_boolean:
   guest_room_valve_switch:
     name: 'Guest Room Valve Switch'
 
+  ####################################
   # First Time Presence in a Room
-  master_room_first_time_presence:
-    name: 'Master Room First Time Presence'
+  ####################################
+  master_room_short_presence: # done
+    name: 'Master Room Short Presence'
 
-  master_toilet_first_time_presence:
-    name: 'Master Toilet First Time Presence'
+  master_toilet_short_presence: # done
+    name: 'Master Toilet Short Presence'
+
+  kitchen_short_presence: # done
+    name: 'Kitchen Short Presence'
+
+  living_room_short_presence: # done
+    name: 'Living Room Short Presence'
+
+  ground_toilet_short_presence: # done
+    name: 'Ground Toilet Short Presence'
+
+  guest_room_short_presence: # done
+    name: 'Guest Room Short Presence'
     
+  guest_toilet_short_presence: # done
+    name: 'Ground Toilet Short Presence'
+    
+  en_suite_room_short_presence: 
+    name: 'En-suite Room Short Presence'
+    
+  en_suite_toilet_short_presence: 
+    name: 'En-suite Toilet Short Presence'
+        
+        
 input_select:
   music_controller:
     name: Sonos Music Master Speaker
@@ -236,7 +266,7 @@ homekit:
       #- sensor.master_room_bedside_button
       #- sensor.master_room_six_key_button
       #- sensor.master_room_spare_button
-      - climate.master_room
+      #- climate.master_room  # tado
       - climate.master_room_thermostat
       - climate.master_toilet
       - switch.master_room_tv
@@ -295,7 +325,7 @@ homekit:
       - binary_sensor.guest_toilet_door
       - input_boolean.guest_room_guests_use_this_room
       #- sensor.guest_room_button
-      - climate.guest_room
+      #- climate.guest_room  # tado
       - climate.guest_room_thermostat
       - climate.guest_toilet
       - switch.guest_room_ceiling_light
@@ -308,7 +338,7 @@ homekit:
       - binary_sensor.en_suite_toilet_door
       - input_boolean.en_suite_room_guests_use_this_room
       #- sensor.en_suite_room_bedside_button
-      - climate.en_suite_room
+      #- climate.en_suite_room # tado
       - climate.en_suite_room_thermostat
       - climate.en_suite_toilet
       - sensor.temp_of_en_suite_room

@@ -21,19 +21,41 @@
     platform: state
     from: 'off'
     to: 'on'
-  condition: []
+  # Queued mode guarentees race condition are in series
+  mode: queued    
   action:
-  - entity_id: climate.ground_toilet
-    service: climate.set_hvac_mode
-    data:
-      hvac_mode: heat
-  - service: climate.set_temperature
-    entity_id: climate.ground_toilet
-    data:
-      temperature: 20
+  # Resolve race on multiple triggers - only execute instances that 
+  # turned on heating and turned off the automation.
+  - condition: state
+    entity_id: automation.ground_toilet_heating_on_if_people_present
+    state:     'on'  
+  # Turn on heating on repeated short presence or longer presence
+  - choose:
+    # IF - first time entering, set the flag
+    #      Longer presence will turn on heating       
+    - conditions:
+      # Wait for 1.5 min if it is the first time of presence
+      - condition: state
+        entity_id: input_boolean.ground_toilet_short_presence
+        state:     'off'
+      sequence:
+      # set the short presence flag
+      - service:   input_boolean.turn_on
+        entity_id: input_boolean.ground_toilet_short_presence
+      # Delay 1.5 min and test motion sensor 
+      - delay:     00:01:45
+      - condition: state
+        entity_id: binary_sensor.ground_toilet_motion_sensor_motion
+        state:     'on'
+      # Longer presence will turn on heating       
+      - service: script.ground_toilet_set_heating_temp_with_state_maintaince
+    # ELSE - Repeated short presence will turn on heating
+    default:    
+      - service: script.ground_toilet_set_heating_temp_with_state_maintaince
 
 
-
+  
+  
 
 - alias: H-0T Ground Toilet Heating Off If No Person
   id: '1599605792677'
@@ -59,7 +81,9 @@
   - data: {}
     entity_id: automation.ground_toilet_heating_on_if_people_present
     service: automation.turn_on
-
+  # set the short presence flag
+  - service:   input_boolean.turn_off
+    entity_id: input_boolean.ground_toilet_short_presence  
 
 
 
@@ -618,9 +642,6 @@
     platform: time_pattern      
   condition: 
   - condition: state
-    entity_id: input_boolean.follow_music
-    state: 'on'  
-  - condition: state
     entity_id:
       - binary_sensor.ground_corridor_motion_sensor_motion
       - binary_sensor.first_corridor_motion_sensor_motion
@@ -631,11 +652,19 @@
     for: 00:10:00
     state: 'off'    
   action:
-  # Remove this room speaker from the group
-  - service: script.remove_sonos_from_speaker_group
-    data: 
-      target_player: media_player.first_corridor_sonos
+  - choose:
+    # IF - music follower is on
+    - conditions:
+      - condition: state
+        entity_id: input_boolean.follow_music
+        state: 'on'      
+      sequence:
+      # Remove this room speaker from the group
+      - service: script.remove_sonos_from_speaker_group
+        data: 
+          target_player: media_player.first_corridor_sonos
   # Pause this room speaker in case it is the last item in the group 
+  # or music follower is off  
   - service: script.pause_sonos_if_sole_speaker_group
     data: 
       target_player: media_player.first_corridor_sonos
