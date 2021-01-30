@@ -144,8 +144,14 @@
     at: "18:00:00"
   - platform: time
     at: "00:00:00"
-  - platform: time
-    at: "09:00:00"
+  # Do not change temperature based on trigger 9am
+  # this means people are still in a contineous presence 
+  # and could be still sleeping so a high sleeping temperature 
+  # is required
+  # TODO: could use motion sensor light to tell if people
+  # is up but still stay at the room
+  #- platform: time
+  #  at: "09:00:00"
   condition: []
   action:
   - data:
@@ -528,6 +534,49 @@
       - service: script.master_toilet_set_dark_warm_light
 
 
+
+- alias: L-MT Master Toilet Mirror Light On/Off Changes The Colour Of Ceilight Light
+  trigger:
+  - entity_id: binary_sensor.master_toilet_mirror_light
+    platform: state
+    from: 'on'
+    to: 'off'
+  - entity_id: binary_sensor.master_toilet_mirror_light
+    platform: state
+    from: 'off'
+    to: 'on'
+  condition:
+  - entity_id: light.master_toilet_ceiling_light
+    condition: state
+    state: 'on'
+  action:
+  - choose:
+    # IF mirror light on, change the ceiling light to cool 5000k
+    #.                    turn off warm floor led
+    - conditions:
+      - entity_id: binary_sensor.master_toilet_mirror_light
+        condition: state
+        state: 'on'    
+      sequence:
+      - service:   light.turn_on
+        entity_id: light.master_toilet_ceiling_light
+        data:
+          kelvin: 5000
+      - service:   switch.turn_off
+        entity_id: switch.master_toilet_floor_led
+      
+    # ELSE - change the ceiling light to warm 3000k
+    #        turn on warm floor led
+    default:
+      - service:   light.turn_on
+        entity_id: light.master_toilet_ceiling_light
+        data:
+          kelvin: 3000      
+      - service:   switch.turn_on
+        entity_id: switch.master_toilet_floor_led
+
+
+
 - alias: L-MT Master Toilet Lights Off If No Person For 10 Min
   id: '1603640029094'
   description: ''
@@ -589,7 +638,7 @@
   action:
   - service: script.master_toilet_all_lights_turn_off
 
-
+# Master Toilet Dressing Room
 - alias: L-MT Master Toilet Dressing Lights On If Person Present
   description: ''
   trigger:

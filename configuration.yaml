@@ -13,6 +13,7 @@ default_config:
 #.  - dim version in the night
 #.  - color change depends on mirror on/off 
 #.  - if color is white, turn off floor warm led
+# * use motion sensor light to tell if people is up but still stay at the room to adjust temp in the morning
 #
 #xiaomi_aqara:
 #  discovery_retry: 5
@@ -32,6 +33,14 @@ default_config:
 #    192.168.1.25:
 #      name: Master Room LED strip
 
+# Customize binary sensor
+binary_sensor:
+  - platform: template
+    sensors:
+      master_toilet_mirror_light:
+        friendly_name: "Master Toilet Mirror Light"
+        value_template: >-
+          {{ states('sensor.master_toilet_mirror_light_meter')|int > 1000 }}
 
 # Added MagicHome LEDs
 # This is a third-party custom component on flux_led 
@@ -304,6 +313,7 @@ homekit:
       - switch.master_room_balcony_decro_light
       - switch.master_toilet_dressing_light
       - switch.master_toilet_floor_led
+      - switch.master_toilet_light
     # Living Room
       - binary_sensor.living_room_tv_motion_sensor_motion
       - binary_sensor.living_room_sofa_motion_sensor_motion
