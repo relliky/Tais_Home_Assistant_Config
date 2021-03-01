@@ -246,8 +246,7 @@
         condition: numeric_state
         below: '30'
   action:
-  - data: {}
-    service: script.guest_toilet_ceiling_light_turn_on
+  - service: script.guest_toilet_ceiling_light_turn_on
 
 
 
@@ -273,8 +272,7 @@
         condition: numeric_state
         below: '30'
   action:
-  - data: {}
-    service: script.guest_toilet_floor_led_light_turn_on
+  - service: script.guest_toilet_floor_led_light_turn_on
 
 
 
@@ -324,7 +322,7 @@
 
 
 # Guest Room Lights
-- alias: L-GR Guest Room Lights On If Person Present
+- alias: L-GR Guest Room Ceiling Lights On If Person Present
   id: '1599910376296'
   description: 'automation.guest_room_lights_on_if_person_present'
   trigger:
@@ -356,22 +354,48 @@
         condition: numeric_state
         below: '30'
   action:
-  - service: script.guest_room_all_lights_turn_on
+  - service:   light.turn_on
+    entity_id: light.guest_room_ceiling_light
   - service: automation.turn_off
     entity_id: automation.guest_room_lights_on_if_person_present
 
 
 
-- alias: L-GR Guest Room Screen LED On If Person Present In the Table (using Bed Motion Sensor For Now)
+- alias: L-GR Guest Room Desk light On If Person Present Sits In the Chair
   description: ''
   trigger:
-  - entity_id: binary_sensor.guest_room_bed_motion_sensor_motion
+  - entity_id: sensor.guest_room_chair_movement_sensor
     platform: state
-    from: 'off'
-    to: 'on'
+    to: 'vibration'
+  - entity_id: sensor.guest_room_chair_movement_sensor
+    platform: state
+    to: 'tilt'
   action:
-  - service: switch.turn_on
+  - service:   switch.turn_on
     entity_id: switch.guest_room_screen_led
+  - service:    light.turn_on
+    entity_id:  light.guest_room_lamps
+
+
+- alias: L-GR Guest Room Desk light Off If Person Left the Chair
+  description: ''
+  trigger:
+  - entity_id: sensor.guest_room_chair_movement_sensor
+    platform: state
+    to: 'off'
+    for: 00:10:00
+  - minutes: /5
+    platform: time_pattern
+  condition:
+  - entity_id: sensor.guest_room_chair_movement_sensor
+    condition: state
+    state: 'off'
+    for: 00:10:00    
+  action:
+  - service:   switch.turn_off
+    entity_id: switch.guest_room_screen_led
+  - service:    light.turn_off
+    entity_id:  light.guest_room_lamps
 
 
 
@@ -381,7 +405,7 @@
 #
 ###############################################
 
-- alias: B-GR Guest Room Wall Switch/Button - Single Press - Toggle Ceiling Light
+- alias: B-GR Guest Room Wall Switch - Single Press - Toggle Ceiling Light
   trigger:
   - platform: state
     entity_id: sensor.guest_room_ceiling_light_wall_switch
@@ -393,20 +417,27 @@
       - condition: and
         conditions:
         - condition: state
-          entity_id: switch.guest_room_ceiling_light
+          entity_id: light.guest_room_ceiling_light
           state: 'off'
         - condition: state
           entity_id: switch.guest_room_screen_led
           state: 'off'
+        - condition: state
+          entity_id: light.guest_room_lamps
+          state: 'off'
       sequence:
-        - service: switch.turn_on
-          entity_id: switch.guest_room_ceiling_light
+        - service: light.turn_on
+          entity_id: light.guest_room_ceiling_light
     # ELSE - some lights on - turn off all lights
     default:
       - service: switch.turn_off
         entity_id: 
-        - switch.guest_room_ceiling_light
         - switch.guest_room_screen_led
+      - service: light.turn_off
+        entity_id: 
+        - light.guest_room_ceiling_light
+        - light.guest_room_lamps
+
 
 
 - alias: B-GR Guest Room Button Single Press - Toggle Ceiling Lights
@@ -415,8 +446,8 @@
     entity_id: sensor.guest_room_button
     to: single
   action:
-  - service: switch.toggle
-    entity_id: switch.guest_room_ceiling_light
+  - service:   light.toggle
+    entity_id: light.guest_room_ceiling_light
 
 
 
@@ -428,7 +459,8 @@
   action:
   - service: switch.toggle
     entity_id: switch.guest_room_screen_led
-
+  - service:   light.toggle
+    entity_id: light.guest_room_lamps
 
 
 

@@ -357,11 +357,11 @@
     - conditions:
       - condition: or
         conditions:
-        - after:  '04:00:00'
+        - after:  '05:00:00'
           before: '06:00:00'
           condition: time
         - after:  '16:00:00'
-          before: '18:00:00'
+          before: '17:00:00'
           condition: time
       sequence:
       - service: switch.turn_on
@@ -417,9 +417,6 @@
   condition:
   - condition: and
     conditions:
-    - after: '00:00:01'
-      before: '00:00:00'
-      condition: time
     - entity_id: binary_sensor.ground_toilet_motion_sensor_motion
       condition: state
       state: 'off'
@@ -443,9 +440,6 @@
   condition:
   - condition: and
     conditions:
-    - after: '00:00:01'
-      before: '00:00:00'
-      condition: time
     - entity_id: binary_sensor.ground_toilet_door
       condition: state
       state: 'on'
@@ -460,41 +454,38 @@
 
 
 # Corridors
-- alias: L-GC Ground Corridor Lights On From Ground Floor If Person Present
+- alias: L-GC Corridor Lights On If Person Present
   description: ''
   trigger:
   - entity_id: binary_sensor.ground_corridor_motion_sensor_motion
     platform: state
     from: 'off'
     to: 'on'
-  condition:
-  - entity_id: binary_sensor.ground_corridor_motion_sensor_motion
-    condition: state
-    state: 'on'
-  - entity_id: sensor.ground_corridor_motion_sensor_light
-    condition: numeric_state
-    below: '30'
-  action:
-  - service: script.corridor_lights_turn_on_from_ground_floor
-
-
-
-- alias: L-GC Ground Corridor Lights On From First Floor If Person Present
-  description: ''
-  trigger:
   - entity_id: binary_sensor.first_corridor_motion_sensor_motion
     platform: state
     from: 'off'
-    to: 'on'
+    to: 'on'    
   condition:
-  - entity_id: binary_sensor.first_corridor_motion_sensor_motion
-    condition: state
-    state: 'on'
-  - entity_id: sensor.first_corridor_motion_sensor_light
-    condition: numeric_state
-    below: '30'
+  - condition: or
+    conditions:
+    - condition: and
+      conditions:
+      - entity_id: binary_sensor.ground_corridor_motion_sensor_motion
+        condition: state
+        state: 'on'
+      - entity_id: sensor.ground_corridor_motion_sensor_light
+        condition: numeric_state
+        below: '50'
+    - condition: and
+      conditions:
+      - entity_id: binary_sensor.first_corridor_motion_sensor_motion
+        condition: state
+        state: 'on'
+      - entity_id: sensor.first_corridor_motion_sensor_light
+        condition: numeric_state
+        below: '50'  
   action:
-  - service: script.corridor_lights_turn_on_from_first_floor
+  - service: script.corridor_lights_turn_on
 
 
 
@@ -526,7 +517,7 @@
 
 
 
-- alias: L-GC Ground Corridor Turn On ALl Always On Switches If Accidentally Turned Off
+- alias: L-GC Ground Corridor Turn On ALl Always On AON Switches If Accidentally Turned Off
   trigger:
   - platform: state
     from: 'off'
@@ -540,6 +531,8 @@
       - binary_sensor.master_toilet_basin_motion_sensor_motion
       - binary_sensor.master_toilet_shower_motion_sensor_motion
       - binary_sensor.master_toilet_dressing_motion_sensor_motion
+      - binary_sensor.study_motion_sensor_motion
+      - binary_sensor.guest_room_radiator_motion_sensor_motion
   condition: []
   action:
   - service: switch.turn_on
@@ -547,8 +540,11 @@
       - switch.front_door_light_switch
       - switch.ground_corridor_light_switch
       - switch.first_corridor_light_switch
-      - switch.master_room_entrance_light_switch
+      #- switch.master_room_entrance_light_switch
       - switch.master_toilet_light
+      - switch.kitchen_ceiling_light
+      - switch.study_ceiling_light
+      - switch.guest_room_ceiling_light
       
 ################################################
 #

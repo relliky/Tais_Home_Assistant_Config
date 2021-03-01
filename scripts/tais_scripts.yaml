@@ -175,7 +175,7 @@ pause_sonos_if_sole_speaker_group:
     - condition: template
       value_template: >
         {% for speaker in state_attr(target_player, "sonos_group") %}
-          {% if loop.index == 1%}  
+          {% if loop.index == 1 %}  
             {% if loop.length == 1 %} 
               true  
             {% else %}      
@@ -197,7 +197,7 @@ pause_sonos_if_sole_speaker_group:
 ###########################################
 # Corridors Services
 ###########################################
-corridor_nighttime_lights_turn_on_from_ground_floor:
+corridor_nighttime_lights_turn_on:
   alias: Corridor Nighttime Lights Turn On
   max: 100
   mode: parallel
@@ -206,15 +206,15 @@ corridor_nighttime_lights_turn_on_from_ground_floor:
     service: light.turn_on
     data:
       brightness: 76
-      color_temp: 370
+      kelvin: 2700
   - entity_id: light.first_corridor_ble_light
     service: light.turn_on
     data:
       brightness: 3
-      color_temp: 250
+      kelvin: 2700
 
 
-corridor_daytime_lights_turn_on_from_ground_floor:
+corridor_daytime_lights_turn_on:
   alias: Corridor Daytime Lights Turn On
   max: 100
   mode: parallel
@@ -223,71 +223,24 @@ corridor_daytime_lights_turn_on_from_ground_floor:
     service: light.turn_on
     data:
       brightness: 255
-      color_temp: 153
+      kelvin: 4000
   - entity_id: light.first_corridor_ble_light
     service: light.turn_on
     data:
       brightness: 255
-      color_temp: 153
+      kelvin: 4000
 
 
-
-corridor_nighttime_lights_turn_on_from_first_floor:
-  alias: Corridor Nighttime Lights Turn On
-  max: 100
-  mode: parallel
-  sequence:
-  - entity_id: light.first_corridor_ble_light
-    service: light.turn_on
-    data:
-      brightness: 3
-      color_temp: 250
-  - entity_id: light.ground_corridor_ble_light
-    service: light.turn_on
-    data:
-      brightness: 76
-      color_temp: 370
-
-
-corridor_daytime_lights_turn_on_from_first_floor:
-  alias: Corridor Daytime Lights Turn On
-  max: 100
-  mode: parallel
-  sequence:
-  - entity_id: light.first_corridor_ble_light
-    service: light.turn_on
-    data:
-      brightness: 255
-      color_temp: 153
-  - entity_id: light.ground_corridor_ble_light
-    service: light.turn_on
-    data:
-      brightness: 255
-      color_temp: 153
-
-
-corridor_lights_turn_on_from_first_floor:
+corridor_lights_turn_on:
   alias: Corridor Lights Turn On
   max: 100
   mode: parallel
   sequence:
   - service:  >
       {% if now().hour >= 23 or now().hour < 7 %}
-        script.corridor_nighttime_lights_turn_on_from_first_floor
+        script.corridor_nighttime_lights_turn_on
       {% else %}
-        script.corridor_daytime_lights_turn_on_from_first_floor
-      {% endif %}
-
-corridor_lights_turn_on_from_ground_floor:
-  alias: Corridor Lights Turn On
-  max: 100
-  mode: parallel
-  sequence:
-  - service:  >
-      {% if now().hour >= 23 or now().hour < 7 %}
-        script.corridor_nighttime_lights_turn_on_from_ground_floor
-      {% else %}
-        script.corridor_daytime_lights_turn_on_from_ground_floor
+        script.corridor_daytime_lights_turn_on
       {% endif %}
 
 
@@ -348,49 +301,19 @@ ground_toilet_set_heating_temp_with_state_maintaince:
 ###########################################
 # Kitchen Services
 ###########################################
-kitchen_all_wall_lights_turn_on:
-  alias: Kitchen All Lights Turn On
-  max: 100
-  mode: parallel
-  sequence:
-  - data: {}
-    entity_id: switch.kitchen_ceiling_light
-    service: switch.turn_on
-  - data: {}
-    entity_id: switch.kitchen_dining_light
-    service: switch.turn_on
-  - data: {}
-    entity_id: switch.kitchen_floor_led
-    service: switch.turn_on
-
-kitchen_dining_lights_and_floor_led_turn_on:
-  alias: Kitchen Dining Lights And Floor LED Turn On
-  max: 100
-  mode: parallel
-  sequence:
-  - entity_id: switch.kitchen_dining_light
-    service: switch.turn_on
-  - data: {}
-    entity_id: switch.kitchen_floor_led
-    service: switch.turn_on
-
 kitchen_all_lights_turn_off:
   alias: Kitchen All Lights Turn Off
   max: 100
   mode: parallel
   sequence:
-  - data: {}
-    entity_id: switch.kitchen_ceiling_light
-    service: switch.turn_off
-  - data: {}
-    entity_id: switch.kitchen_dining_light
-    service: switch.turn_off
-  - data: {}
-    entity_id: switch.kitchen_floor_led
-    service: switch.turn_off
-  - data: {}
-    entity_id: script.kitchen_worktop_lights_turn_off
-    service: script.turn_on
+  - entity_id:  light.kitchen_ceiling_light
+    service:    light.turn_off
+  - entity_id: switch.kitchen_dining_light
+    service:   switch.turn_off
+  - entity_id: switch.kitchen_floor_led
+    service:   switch.turn_off
+  - entity_id: script.kitchen_worktop_lights_turn_off
+    service:   script.turn_on
 
 # Turn Off All Kitchen Lights and Also Reset Extractor Automation
 kitchen_all_lights_and_appliances_turn_off:
@@ -441,8 +364,8 @@ kitchen_worktop_and_ceiling_lights_turn_on:
     entity_id: script.kitchen_worktop_lights_turn_on
     service: script.turn_on
   - data: {}
-    entity_id: switch.kitchen_ceiling_light
-    service: switch.turn_on
+    entity_id: light.kitchen_ceiling_light
+    service: light.turn_on
 
 
 kitchen_worktop_and_ceiling_lights_turn_off:
@@ -454,8 +377,9 @@ kitchen_worktop_and_ceiling_lights_turn_off:
     entity_id: script.kitchen_worktop_lights_turn_off
     service: script.turn_on
   - data: {}
-    entity_id: switch.kitchen_ceiling_light
-    service: switch.turn_off
+    entity_id: light.kitchen_ceiling_light
+    service: light.turn_off
+
 
 kitchen_worktop_and_ceiling_lights_toggle:
   alias: Kitchen Worktop and Ceiling Lights Turn Off
@@ -469,6 +393,48 @@ kitchen_worktop_and_ceiling_lights_toggle:
          script.kitchen_worktop_and_ceiling_lights_turn_on
       {% endif %}
 
+
+kitchen_set_dark_warm_light:
+  alias: Kitchen Set Dark Warm Light
+  mode: single
+  sequence:
+  - service: script.kitchen_worktop_lights_turn_off
+  - service:   switch.turn_off
+    entity_id: switch.kitchen_floor_led
+  - service:   light.turn_on
+    entity_id: light.kitchen_ceiling_light
+    data:
+      brightness: 1
+      kelvin:  3000      
+
+
+kitchen_set_bright_warm_light:
+  alias: Kitchen Set Bright Warm Light
+  mode: single
+  sequence:
+  - service: script.kitchen_worktop_lights_turn_off
+  - service:   switch.turn_on
+    entity_id: switch.kitchen_floor_led
+  - service:   light.turn_on
+    entity_id: light.kitchen_ceiling_light
+    data:
+      brightness: 255
+      kelvin:  3000      
+
+
+kitchen_set_cool_white_light:
+  alias: Master Toilet Set Cool White Light
+  mode: single
+  sequence:
+  - service: script.kitchen_worktop_lights_turn_on
+  - service:   switch.turn_off
+    entity_id: switch.kitchen_floor_led
+  - service:   light.turn_on
+    entity_id: light.kitchen_ceiling_light
+    data:
+      brightness: 255
+      kelvin:  5000      
+      
 
 kitchen_extractor_turn_off:
   alias: Kitchen Extractor Turn Off
@@ -485,8 +451,7 @@ kitchen_extractor_turn_on:
   max: 100
   mode: parallel
   sequence:
-  - data: {}
-    entity_id: switch.kitchen_extractor
+  - entity_id: switch.kitchen_extractor
     service: switch.turn_on
 
 
@@ -832,7 +797,7 @@ master_toilet_set_heating_temp_with_state_maintaince:
           22
         {% elif now().hour >= 23 or now().hour < 9 %}
         {# 23:00 - 9:00 #}
-          25
+          23
         {% else %}
         {# 9:00 - 18:00 #}
           20
@@ -909,9 +874,12 @@ guest_room_all_lights_turn_off:
   sequence:
   - service: switch.turn_off
     entity_id:
-      - switch.guest_room_ceiling_light
       - switch.guest_room_screen_led
-
+  - service:  light.turn_off
+    entity_id: 
+      - light.guest_room_lamps
+      - light.guest_room_ceiling_light
+    
 
 guest_room_set_heating_temp_with_state_maintaince:
   alias: Guest Room Set Heating Temperature With State Maintaince
@@ -1079,4 +1047,13 @@ living_room_set_heating_temp_with_state_maintaince:
       stop_actions: false
     entity_id: automation.living_room_heating_on_if_people_present
     service:   automation.turn_off
+
+
+########
+# Misc
+########
+hassio_restart:
+  alias: Restart Home Assistant
+  sequence:
+  - service: homeassistant.restart
 

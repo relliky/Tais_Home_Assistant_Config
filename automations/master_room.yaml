@@ -6,6 +6,7 @@
 # - Lighting/TV automation based on time
 # - Disable the entering automation if people present in the bedroom
 # - Sonos Speakers Grouping/Ungrouping Based On Motion Sensor
+# - TV auto turn-off based on motion sensors
 #
 ###############################################
 #
@@ -14,7 +15,7 @@
 ###############################################
 
 # Master Room
-- alias: HLTV-MR Master Room Heating/Lighting Off If No Person
+- alias: HL-MR Master Room Heating/Lighting Off If No Person
   id: '1599910386760'
   description: ''
   trigger:
@@ -162,10 +163,10 @@
       temperature: >
         {% if now().hour >= 18 %}
         {# 18:00 - 0:00 #}
-          23
+          22
         {% elif now().hour < 9 %}
         {# 0:00 - 9:00 #}
-          24
+          23
         {% else %}
         {# 9:00 - 18:00 #}
           21
@@ -325,7 +326,7 @@
     - conditions:
       - condition: numeric_state
         entity_id: sensor.master_room_light_meter
-        above: '50'
+        above: '100'
       sequence:
       - service: script.master_room_open_all_curtains
     # ELSE - in nighttime, turn on master room ceiling lights
@@ -360,7 +361,7 @@
         entity_id: sensor.master_room_light_meter
         below: '50'
       sequence:
-      - service: script.corridor_lights_turn_on_from_first_floor
+      - service: script.corridor_lights_turn_on
   mode: single
 
 
@@ -737,13 +738,21 @@
         - service: script.master_room_bedside_lights_turn_on
         - service:   light.turn_on
           entity_id: light.master_room_bed_led
-    # ELSE IF bed lamp lights on - turn off bedside lights
+    # ELSE IF bed lamp lights on - turn off bedside lights 
     - conditions:
       - condition: state
         entity_id: light.master_room_lamp_near_door
         state: 'on'
       sequence:
         - service: script.master_room_bedside_lights_turn_off
+        - service:   light.turn_on
+          entity_id: light.master_room_bed_led
+    # ELSE IF bed LDE on - turn off bed LED
+    - conditions:
+      - condition: state
+        entity_id: light.master_room_bed_led
+        state: 'on'
+      sequence:
         - service:   light.turn_off
           entity_id: light.master_room_bed_led
     # ELSE - (everything was off) turn on ceiling lights
@@ -975,14 +984,6 @@
     platform: time
   - at: 05:00:00
     platform: time
-  condition: 
-  - condition: state
-    entity_id:
-      - binary_sensor.master_room_dressing_table_motion_sensor_motion
-      - binary_sensor.master_room_tv_motion_sensor_motion
-      - binary_sensor.master_room_drawer_motion_sensor_motion
-    for: 00:10:00
-    state: 'off'  
   action:
   # Turn Off lights and curtains
   - service: script.master_room_close_all_curtains
@@ -1128,6 +1129,42 @@
     data: 
       target_player: media_player.master_room_sonos
       
+#################################################################
+#
+# TV auto turn-off based on motion sensors
+#
+#################################################################
+- alias: TV-MR Master Room Turn Off TV If No Person
+  trigger:
+  - platform: state
+    from: 'on'
+    to: 'off'
+    for: 00:20:00
+    entity_id:
+      - binary_sensor.master_room_bed_motion_sensor_motion
+      - binary_sensor.master_room_entrance_motion_sensor
+      - binary_sensor.master_room_stair_motion_sensor_motion
+      - binary_sensor.master_room_dressing_table_motion_sensor_motion
+      - binary_sensor.master_room_tv_motion_sensor_motion
+      - binary_sensor.master_room_drawer_motion_sensor_motion
+  - minutes: /5
+    platform: time_pattern      
+  condition: 
+  - condition: state
+    entity_id:
+      - binary_sensor.master_room_bed_motion_sensor_motion
+      - binary_sensor.master_room_entrance_motion_sensor
+      - binary_sensor.master_room_stair_motion_sensor_motion
+      - binary_sensor.master_room_dressing_table_motion_sensor_motion
+      - binary_sensor.master_room_tv_motion_sensor_motion
+      - binary_sensor.master_room_drawer_motion_sensor_motion
+    for: 00:20:00
+    state: 'off'    
+  action:
+  # Switch Off TV
+  - service:   switch.turn_off
+    entity_id: switch.master_room_tv    
+
     
     
     

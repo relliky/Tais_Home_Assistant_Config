@@ -4,6 +4,7 @@
 # - Lighting automation based on buttons
 # - Sonos Speakers Grouping/Ungrouping Based On Motion Sensor
 # - TV auto turn-off based on motion sensors
+# - Linked Switches
 #
 ###############################################
 #
@@ -114,31 +115,31 @@
       - switch.garden_light
       - switch.garden_extension_lead_switch_1
   - service: script.living_room_landing_lights_turn_on
-  - service: script.corridor_lights_turn_on_from_ground_floor
+  - service: script.corridor_lights_turn_on
 
 
-- alias: L-LR Garden and Floor Lights On If Person Present Around Bike Shed
-  description: ''
-  trigger:
-  - entity_id: 
-      - binary_sensor.garden_bike_shed_motion_sensor_motion
-    platform: state
-    from: 'off'
-    to: 'on'
-  condition:
-    - condition: and
-      conditions:
-      - entity_id: binary_sensor.garden_bike_shed_motion_sensor_motion
-        condition: state
-        state: 'on'
-      - entity_id: sensor.garden_bike_shed_motion_sensor_light
-        condition: numeric_state
-        below: '30'
-  action:
-  - service: switch.turn_on
-    entity_id: 
-      - switch.garden_light
-      - switch.garden_extension_lead_switch_1
+#- alias: L-LR Garden and Floor Lights On If Person Present Around Bike Shed
+#  description: ''
+#  trigger:
+#  - entity_id: 
+#      - binary_sensor.garden_bike_shed_motion_sensor_motion
+#    platform: state
+#    from: 'off'
+#    to: 'on'
+#  condition:
+#    - condition: and
+#      conditions:
+#      - entity_id: binary_sensor.garden_bike_shed_motion_sensor_motion
+#        condition: state
+#        state: 'on'
+#      - entity_id: sensor.garden_bike_shed_motion_sensor_light
+#        condition: numeric_state
+#        below: '30'
+#  action:
+#  - service: switch.turn_on
+#    entity_id: 
+#      - switch.garden_light
+#      - switch.garden_extension_lead_switch_1
 
 
 
@@ -147,7 +148,7 @@
   trigger:
   - entity_id: 
     - binary_sensor.garden_sliding_door_motion_sensor_motion
-    - binary_sensor.garden_bike_shed_motion_sensor_motion
+    #- binary_sensor.garden_bike_shed_motion_sensor_motion
     platform: state
     from: 'on'
     to: 'off'
@@ -157,7 +158,7 @@
   condition:
   - entity_id: 
     - binary_sensor.garden_sliding_door_motion_sensor_motion
-    - binary_sensor.garden_bike_shed_motion_sensor_motion
+    #- binary_sensor.garden_bike_shed_motion_sensor_motion
     condition: state
     state: 'off'
     for: 00:05:00
@@ -396,7 +397,7 @@
   - platform: state
     from: 'on'
     to: 'off'
-    for: 00:10:00
+    for: 00:20:00
     entity_id:
       - binary_sensor.living_room_sofa_motion_sensor_motion
       - binary_sensor.living_room_tv_motion_sensor_motion
@@ -407,11 +408,44 @@
     entity_id:
       - binary_sensor.living_room_sofa_motion_sensor_motion
       - binary_sensor.living_room_tv_motion_sensor_motion
-    for: 00:10:00
+    for: 00:20:00
     state: 'off'    
   action:
   # Switch Off TV
   - service:   switch.turn_off
     entity_id: switch.living_room_tv
 
-    
+#################################################################
+#
+# Linked Switches
+#
+#################################################################
+- alias: B-LR Garden Wall Lights ON/OFF Controls Floor Spotlights
+  trigger:
+  - platform: state
+    to: 'off'
+    entity_id:
+      - switch.garden_light
+  - platform: state
+    to: 'on'
+    entity_id:
+      - switch.garden_light
+  action:
+  - choose:
+    - conditions:
+      - condition: state
+        entity_id: switch.garden_light
+        state:     'on'
+      sequence:
+      - service:   switch.turn_on
+        entity_id: 
+        - switch.garden_spotlights
+    default:    
+      - service:   switch.turn_off
+        entity_id: 
+        - switch.garden_spotlights
+
+
+
+
+

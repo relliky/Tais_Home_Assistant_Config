@@ -9,10 +9,6 @@ default_config:
 # * Fixed the living room light switches.
 # * move automation to be package based - check if we can use a shared package for shared code
 # * delay heating on en-suite room and moved that to thermostat based control like master room
-# * master toilet light 
-#.  - dim version in the night
-#.  - color change depends on mirror on/off 
-#.  - if color is white, turn off floor warm led
 # * use motion sensor light to tell if people is up but still stay at the room to adjust temp in the morning
 #
 #xiaomi_aqara:
@@ -21,17 +17,19 @@ default_config:
 #    - key: 153EEFE707B24CFB
 #      mac: 34CE008D7558
 #
-#
-#yeelight:
-#  devices:
-#    192.168.1.23:
-#      name: Master Room Lamp Near Wall
-#    192.168.1.26:
-#      name: Master Room Lamp Near Door
-#    192.168.1.22:
-#      name: Living Room LED strip
-#    192.168.1.25:
-#      name: Master Room LED strip
+
+
+# Manually adding yeelight lights in yaml
+# This gurantees the integeration will still works after wifi AP updates
+# as long as the IPs are reserved to these addresses
+#      - light.master_room_lamp_near_door
+#      - light.master_room_lamp_near_wall
+yeelight:
+  devices:
+    192.168.1.23:
+      name: Guest Room Lamp Left
+    192.168.1.26:
+      name: Guest Room Lamp Right
 
 # Customize binary sensor
 binary_sensor:
@@ -45,19 +43,62 @@ binary_sensor:
 # Added MagicHome LEDs
 # This is a third-party custom component on flux_led 
 # instead of the official one from HA
-light:
-  - platform: flux_led
-    devices:
-      192.168.1.29:
-        name: spare_wifi_led
-        mode: "rgb"
+#light:
+#  - platform: flux_led
+#    devices:
+#      192.168.1.29:
+#        name: spare_wifi_led
+#        mode: "rgb"
+#
+## Added XiaoMi Vacuum Robot
+#vacuum:
+#  - platform: xiaomi_miio
+#    name: Xiaomi Vacuum Cleaner
+#    host: 192.168.1.42
+#    token: 674c4d4465476b6b4543735064795468
 
-
+# Added Xiaomi Wifi Plug
+switch:
+  - platform: xiaomi_miio
+    name: Study Screen LED
+    host: 192.168.1.33
+    token: c478198279b5a198988b168f84e0c408
 
 ###########################################
-# Light Groups
+# Light/Cover/Switch Groups
 ###########################################
-light mt_group:
+# HA does not have switch group so have to use group as a workaround
+#group tais_switch_group:
+#  kitchen_wall_lights:
+#    name: Kitchen Wall Lights
+#    entities:
+#      - light.kitchen_ceiling_light
+#      - switch.kitchen_dining_light
+#      - switch.kitchen_floor_led
+#  kitchen_worktop_lights:
+#    name: Kitchen Worktop Lights
+#    entities:
+#      - switch.kitchen_led_left_13815882
+#      - switch.kitchen_led_right_97186274
+#  master_room_ceiling_lights:
+#    name: Master Room Ceiling Lights
+#    entities:
+#      - switch.master_room_bed_ceiling_light
+#      - switch.master_room_landing_ceiling_light
+
+cover tais_cover_group:
+  - platform: group
+    name: Master Room Blind
+    entities:
+      - cover.master_room_blind_left
+      - cover.master_room_blind_right
+
+light tais_light_group:
+  - platform: group
+    name: Master Room Bed Lamps
+    entities:
+      - light.master_toilet_spotlight_bulb_1
+      - light.master_toilet_spotlight_bulb_2
   - platform: group
     name: Master Toilet Ceiling Light
     entities:
@@ -65,12 +106,27 @@ light mt_group:
       - light.master_toilet_spotlight_bulb_2
       - light.master_toilet_spotlight_bulb_3
       - light.master_toilet_spotlight_bulb_4
-
-
-tado:
-  username: !secret tado_user
-  password: !secret tado_pass
-
+  - platform: group
+    name: Kitchen Ceiling Light
+    entities:
+      - light.kitchen_spotlight_bulb_1
+      - light.kitchen_spotlight_bulb_2
+      - light.kitchen_spotlight_bulb_3
+      - light.kitchen_spotlight_bulb_4
+      - light.kitchen_spotlight_bulb_5
+      - light.kitchen_spotlight_bulb_6
+      - light.kitchen_spotlight_bulb_7
+  - platform: group
+    name: Guest Room Lamps
+    entities:
+      - light.guest_room_lamp_left
+      - light.guest_room_lamp_right
+  - platform: group
+    name: Study Lamps
+    entities:
+      - light.study_lamp_left
+      - light.study_lamp_right
+      
 
 sensor:
   # Time
@@ -96,23 +152,32 @@ sensor:
 #               'A4:C1:38:EC:DB:BA': '1b535cbb3e68651bd67157ee0775e5cb'
 #               # Kitchen Worktop Temperature Sensor
 #               #'58:2d:34:3b:6a:27'
-  # Xiaomi BLE Round Fast Update Temperature Sensor
-  - platform: mitemp_bt
-    period: 5 # seconds for refresh interval
-    sensor_names:
-      '58:2d:34:3b:6a:27': 'Kitchen Hob Temperature Sensor'
+
+# HA_On_VMs does not have BLE (bluetooth v4)
+#  # Xiaomi BLE Round Fast Update Temperature Sensor
+#  - platform: mitemp_bt
+#    period: 5 # seconds for refresh interval
+#    sensor_names:
+#      '58:2d:34:3b:6a:27': 'Kitchen Hob Temperature Sensor'
+
+sensor system:
+  - platform: systemmonitor
+    resources:
+      - type: disk_use
+      - type: memory_use  
+      - type: load_1m
+      - type: processor_use
+
 
 # TVs
 #samsungtv:
 #  - host: 192.168.1.31
 #    name: Living Room TV
-
 #media_player:
 #  - platform: samsungtv_tizen
-#    host: 192.168.1.30
-#    port: 8002
-#    mac: D0:03:DF:DB:89:AC
-#    #name: Master Room TV
+#    host: 192.168.1.29
+#    mac: bc:7e:8b:cc:ad:b4
+#    name: Master Room TV
 
 #device_tracker:
 # - platform: tado
@@ -121,7 +186,7 @@ sensor:
 #  - platform: xiaomi
 #    host: 192.168.1.11
 #    password: !secret xiaomi_admin_pass
-#    interval_seconds: 10
+#    interval_seconds: 10 
 #    consider_home: 180
 #    new_device_defaults:
 #      track_new_devices: false
@@ -131,14 +196,34 @@ sensor:
 recorder:
   purge_keep_days: 1
   auto_purge: true
-  commit_interval: 10 # updates log every 10s
+  commit_interval: 15 # updates log every 15s
+#  include:
+#    domains:
+#      - sensor
+#      - binary_sensor
+#      - switch
+#      - light
+#      - automations
+#      - device_tracker
+#      - vacuum
+#      - group
+#      - input_boolean
+#  exclude:
+#    event_types:
+#      - service_removed
+#      - service_executed
+#      - platform_discovered
+#      - homeassistant_start
+#      - homeassistant_stop
+#      - feedreader
+#      - service_registered
+#      - call_service
 
 # Install Mini Media Player
 #resources:
 #  - url: /local/mini-media-player-bundle.js?v=1.11.0
 #    type: module
 
-group:          !include groups.yaml
 automation:     !include_dir_merge_list automations/
 automation gui: !include automations.yaml
 script:         !include scripts/tais_scripts.yaml
@@ -151,7 +236,7 @@ climate:
     name: En-suite Room Thermostat
     heater: input_boolean.en_suite_room_valve_switch
     target_sensor: sensor.en_suite_room_temperature_sensor
-    precision: 0.1
+    precision: 0.5
     min_temp: 10
     max_temp: 25
     cold_tolerance: 0.1
@@ -162,7 +247,7 @@ climate:
     name: Master Room Thermostat
     heater: input_boolean.master_room_valve_switch
     target_sensor: sensor.master_room_temperature_sensor
-    precision: 0.1
+    precision: 0.5
     min_temp: 10
     max_temp: 25
     cold_tolerance: 0.1
@@ -173,7 +258,7 @@ climate:
     name: Guest Room Thermostat
     heater: input_boolean.guest_room_valve_switch
     target_sensor: sensor.guest_room_temperature_sensor
-    precision: 0.1
+    precision: 0.5
     min_temp: 10
     max_temp: 25
     cold_tolerance: 0.1
@@ -279,131 +364,144 @@ input_select:
 # Port some thrid party products to Homekit for easy UI control
 homekit:
 - filter:
-    include_entities:
+    include_entities:  
     # Misc
+        - script.hassio_restart
     # Master Room
-      - binary_sensor.master_room_tv_motion_sensor_motion
-      - binary_sensor.master_room_stair_motion_sensor_motion
-      - binary_sensor.master_room_dressing_table_motion_sensor_motion
-      - binary_sensor.master_room_drawer_motion_sensor_motion
-      - binary_sensor.master_room_bed_motion_sensor_motion
-      - binary_sensor.master_toilet_basin_motion_sensor_motion
-      - binary_sensor.master_toilet_shower_motion_sensor_motion
-      - binary_sensor.master_toilet_dressing_motion_sensor_motion
-      - binary_sensor.master_toilet_door
-      - sensor.master_room_light_meter
-      #- sensor.master_room_bedside_button
-      #- sensor.master_room_six_key_button
-      #- sensor.master_room_spare_button
-      #- climate.master_room  # tado
-      - climate.master_room_thermostat
-      - climate.master_toilet
-      - switch.master_room_tv
-      - cover.master_room_curtain
-      - cover.master_room_blind_left
-      - cover.master_room_blind_right
-      - light.master_room_lamp_near_door
-      - light.master_room_lamp_near_wall
-      - light.master_room_bed_led
-      - light.master_room_entrance_led_light
-      - light.master_toilet_ceiling_light      
-      - switch.master_room_dressing_table_light
-      - switch.master_room_bed_ceiling_light
-      - switch.master_room_landing_ceiling_light
-      - switch.master_room_balcony_decro_light
-      - switch.master_toilet_dressing_light
-      - switch.master_toilet_floor_led
-      - switch.master_toilet_light
+        - binary_sensor.master_room_tv_motion_sensor_motion
+        - binary_sensor.master_room_stair_motion_sensor_motion
+        - binary_sensor.master_room_dressing_table_motion_sensor_motion
+        - binary_sensor.master_room_drawer_motion_sensor_motion
+        - binary_sensor.master_room_bed_motion_sensor_motion
+        - binary_sensor.master_toilet_basin_motion_sensor_motion
+        - binary_sensor.master_toilet_shower_motion_sensor_motion
+        - binary_sensor.master_toilet_dressing_motion_sensor_motion
+        - binary_sensor.master_toilet_door
+        - sensor.master_room_light_meter
+        #- sensor.master_room_bedside_button
+        #- sensor.master_room_six_key_button
+        #- sensor.master_room_spare_button
+        #- climate.master_room  # tado
+        - climate.master_room_thermostat
+        - climate.master_toilet
+        - switch.master_room_tv
+        - cover.master_room_curtain
+        - cover.master_room_blind_left
+        - cover.master_room_blind_right
+        - light.master_room_lamp_near_door
+        - light.master_room_lamp_near_wall
+        - light.master_room_bed_led
+        - light.master_room_entrance_led_light
+        - light.master_toilet_ceiling_light      
+        - switch.master_room_dressing_table_light
+        - switch.master_room_bed_ceiling_light
+        - switch.master_room_landing_ceiling_light
+        - switch.master_room_balcony_decro_light
+        - switch.master_toilet_dressing_light
+        - switch.master_toilet_floor_led
     # Living Room
-      - binary_sensor.living_room_tv_motion_sensor_motion
-      - binary_sensor.living_room_sofa_motion_sensor_motion
-      - binary_sensor.garden_sliding_door_motion_sensor_motion
-      - binary_sensor.garden_bike_shed_motion_sensor_motion
-      - binary_sensor.garden_door
-      - media_player.living_room_sonos 
-      #- sensor.living_room_sofa_button
-      - climate.living_room
-      - switch.living_room_tv
-      - light.living_room_ble_light_near_door
-      - light.living_room_ble_light_near_wall
-      - switch.living_room_ceiling_light
-      - switch.living_room_tree_light
-      - switch.garden_light
-      - switch.garden_extension_lead_switch_1      
-      - switch.garden_extension_lead_switch_2
-      - switch.garden_extension_lead_switch_3      
+        - binary_sensor.living_room_tv_motion_sensor_motion
+        - binary_sensor.living_room_sofa_motion_sensor_motion
+        - binary_sensor.garden_sliding_door_motion_sensor_motion
+        - binary_sensor.garden_bike_shed_motion_sensor_motion
+        - binary_sensor.garden_door
+        - media_player.living_room_sonos 
+        #- sensor.living_room_sofa_button
+        - climate.living_room
+        - switch.living_room_tv
+        - light.living_room_ble_light_near_door
+        - light.living_room_ble_light_near_wall
+        - switch.living_room_ceiling_light
+        - switch.living_room_tree_light
+        - switch.garden_light
+        - switch.garden_extension_lead_switch_2
+        - switch.garden_extension_lead_switch_3      
     # Kitchen
-      - binary_sensor.kitchen_table_motion_sensor_motion
-      - binary_sensor.kitchen_worktop_motion_sensor_motion
-      #- sensor.kitchen_worktop_button
-      - media_player.kitchen_sonos
-      - climate.kitchen
-      - sensor.mi_temperature_kitchen_hob_temperature_sensor
-      - switch.kitchen_tv
-      - switch.kitchen_drinking_hot_water
-      - switch.kitchen_led_left_13815882
-      - switch.kitchen_led_right_97186274
-      - switch.kitchen_ceiling_light
-      - switch.kitchen_dining_light
-      - switch.kitchen_floor_led
-      - switch.kitchen_extractor
-      - switch.kitchen_decro_light
-    # Guest Room
-      - binary_sensor.guest_room_radiator_motion_sensor_motion
-      - binary_sensor.guest_room_bed_motion_sensor_motion
-      - binary_sensor.guest_toilet_motion_sensor_motion
-      - binary_sensor.guest_toilet_door
-      - input_boolean.guest_room_guests_use_this_room
-      #- sensor.guest_room_button
-      #- climate.guest_room  # tado
-      - climate.guest_room_thermostat
-      - climate.guest_toilet
-      - switch.guest_room_ceiling_light
-      - switch.guest_room_screen_led
-      - switch.guest_toilet_ceiling_light
-      - switch.guest_toilet_floor_led
-    # En-suite Room
-      - binary_sensor.en_suite_room_motion_sensor_motion
-      - binary_sensor.en_suite_toilet_motion_sensor_motion
-      - binary_sensor.en_suite_toilet_door
-      - input_boolean.en_suite_room_guests_use_this_room
-      #- sensor.en_suite_room_bedside_button
-      #- climate.en_suite_room # tado
-      - climate.en_suite_room_thermostat
-      - climate.en_suite_toilet
-      - sensor.temp_of_en_suite_room
-      - switch.en_suite_room_ceiling_light
-      - switch.en_suite_toilet_light
-      - switch.en_suite_room_bedside_lamp
-    # Ground Toilet
-      - binary_sensor.ground_toilet_motion_sensor_motion
-      - binary_sensor.ground_toilet_door
-      - climate.ground_toilet
-      - switch.ground_toilet_light
-    # Corridor
-      - binary_sensor.front_door_motion_sensor_motion
-      - binary_sensor.first_corridor_motion_sensor_motion
-      - binary_sensor.ground_corridor_motion_sensor_motion    
-      - media_player.first_corridor_sonos
-      - climate.ground_floor_corridor
-      - light.first_corridor_ble_light
-      - light.ground_corridor_ble_light
-      - switch.corridor_decro_light
-      # Always ON Switch
-      - switch.front_door_light_switch
-      - switch.ground_corridor_light_switch
-      - switch.first_corridor_light_switch
-      - switch.master_room_entrance_light_switch
-      # Zone Heating
-      - switch.downstairs_heating
-      - switch.upstairs_heating
-      - switch.water_heater
-      # Water Heater Scheudle
-      - automation.water_heater_on_schedule
-      # Sonos Music Follower
-      - input_boolean.follow_music
+        - binary_sensor.kitchen_table_motion_sensor_motion
+        - binary_sensor.kitchen_worktop_motion_sensor_motion
+        #- sensor.kitchen_worktop_button
+        - media_player.kitchen_sonos
+        - climate.kitchen
+        - vacuum.xiaomi_vacuum_cleaner
+        - sensor.mi_temperature_kitchen_hob_temperature_sensor
+        - light.kitchen_ceiling_light
+        - switch.kitchen_tv
+        - switch.kitchen_drinking_hot_water
+        - switch.kitchen_led_left_13815882
+        - switch.kitchen_led_right_97186274
+        - switch.kitchen_dining_light
+        - switch.kitchen_floor_led
+        - switch.kitchen_extractor
+        - switch.kitchen_decro_light
     # Study
-      - binary_sensor.study_motion_sensor_motion
-      #- sensor.study_button
-      - climate.study
-      - switch.study_light
+        - binary_sensor.study_motion_sensor_motion
+        #- sensor.study_button
+        - climate.study
+        - light.study_ceiling_light
+        - light.study_lamp_left
+        - light.study_lamp_right
+        - switch.study_screen_led
+    # Guest Room
+        - binary_sensor.guest_room_radiator_motion_sensor_motion
+        - binary_sensor.guest_room_bed_motion_sensor_motion
+        - binary_sensor.guest_toilet_motion_sensor_motion
+        - binary_sensor.guest_toilet_door
+        - input_boolean.guest_room_guests_use_this_room
+        #- sensor.guest_room_button
+        #- climate.guest_room  # tado
+        - climate.guest_room_thermostat
+        - climate.guest_toilet
+        - light.guest_room_lamp_left
+        - light.guest_room_lamp_right
+        - light.guest_room_ceiling_light
+        - switch.guest_room_screen_led
+        - switch.guest_toilet_ceiling_light
+        - switch.guest_toilet_floor_led
+    # En-suite Room
+        - binary_sensor.en_suite_room_motion_sensor_motion
+        - binary_sensor.en_suite_toilet_motion_sensor_motion
+        - binary_sensor.en_suite_toilet_door
+        - input_boolean.en_suite_room_guests_use_this_room
+        #- sensor.en_suite_room_bedside_button
+        #- climate.en_suite_room # tado
+        - climate.en_suite_room_thermostat
+        - climate.en_suite_toilet
+        - switch.en_suite_toilet_light
+        - switch.en_suite_room_ceiling_light
+        #- switch.en_suite_room_bedside_lamp
+    # Ground Toilet
+        - binary_sensor.ground_toilet_motion_sensor_motion
+        - binary_sensor.ground_toilet_door
+        - climate.ground_toilet
+        - switch.ground_toilet_light
+    # Corridor
+        - binary_sensor.front_door_motion_sensor_motion
+        - binary_sensor.first_corridor_motion_sensor_motion
+        - binary_sensor.ground_corridor_motion_sensor_motion    
+        - media_player.first_corridor_sonos
+        - climate.ground_floor_corridor
+        - light.first_corridor_ble_light
+        - light.ground_corridor_ble_light
+        - switch.corridor_decro_light
+        # Zone Heating
+        - switch.downstairs_heating
+        - switch.upstairs_heating
+        - switch.water_heater
+        # Water Heater Scheudle
+        - automation.water_heater_on_schedule
+        # Sonos Music Follower
+        - input_boolean.follow_music
+        ####################
+        # Always ON Switch #
+        ####################
+        - switch.front_door_light_switch
+        - switch.ground_corridor_light_switch
+        - switch.first_corridor_light_switch
+        - switch.master_room_entrance_light_switch
+        - switch.kitchen_ceiling_light
+        - switch.master_toilet_light
+        - switch.study_ceiling_light
+        - switch.guest_room_ceiling_light
+
+      
+
