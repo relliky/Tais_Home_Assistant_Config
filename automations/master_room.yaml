@@ -16,138 +16,132 @@
 
 # Master Room
 - alias: HL-MR Master Room Heating/Lighting Off If No Person
-  id: '1599910386760'
-  description: ''
+  id: "1599910386760"
+  description: ""
   trigger:
-  - platform: state
-    from: 'on'
-    to: 'off'
-    for: 00:15:00
-    entity_id:
-      - binary_sensor.master_room_bed_motion_sensor_motion
-      - binary_sensor.master_room_entrance_motion_sensor
-      - binary_sensor.master_room_stair_motion_sensor_motion
-      - binary_sensor.master_room_dressing_table_motion_sensor_motion
-      - binary_sensor.master_room_tv_motion_sensor_motion
-      - binary_sensor.master_room_drawer_motion_sensor_motion
-  - minutes: /5
-    platform: time_pattern
+    - platform: state
+      from: "on"
+      to: "off"
+      for: 00:15:00
+      entity_id:
+        - binary_sensor.master_room_bed_motion_sensor_motion
+        - binary_sensor.master_room_entrance_motion_sensor
+        - binary_sensor.master_room_stair_motion_sensor_motion
+        - binary_sensor.master_room_dressing_table_motion_sensor_motion
+        - binary_sensor.master_room_tv_motion_sensor_motion
+        - binary_sensor.master_room_drawer_motion_sensor_motion
+    - minutes: /5
+      platform: time_pattern
   condition:
-  - condition: or
-    conditions:
-    # in daytime, turn off if no person for 15 min
-    - condition: and
+    - condition: or
       conditions:
-      - after:  '10:00:00'
-        before: '22:00:00'
-        condition: time
-      - condition: state
-        entity_id:
-          - binary_sensor.master_room_bed_motion_sensor_motion
-          - binary_sensor.master_room_entrance_motion_sensor
-          - binary_sensor.master_room_stair_motion_sensor_motion
-          - binary_sensor.master_room_dressing_table_motion_sensor_motion
-          - binary_sensor.master_room_tv_motion_sensor_motion
-          - binary_sensor.master_room_drawer_motion_sensor_motion
-        for: 00:15:00
-        state: 'off'
-    # in nighttime, turn off and re-eable automation
-    #               if no person for 2 hours
-    - condition: and
-      conditions:
-      - after:  '22:00:00'
-        before: '10:00:00'
-        condition: time
-      - condition: state
-        entity_id:
-          - binary_sensor.master_room_bed_motion_sensor_motion
-          - binary_sensor.master_room_entrance_motion_sensor
-          - binary_sensor.master_room_stair_motion_sensor_motion
-          - binary_sensor.master_room_dressing_table_motion_sensor_motion
-          - binary_sensor.master_room_tv_motion_sensor_motion
-          - binary_sensor.master_room_drawer_motion_sensor_motion
-        for: 02:00:00
-        state: 'off'
+        # in daytime, turn off if no person for 15 min
+        - condition: and
+          conditions:
+            - after: "10:00:00"
+              before: "22:00:00"
+              condition: time
+            - condition: state
+              entity_id:
+                - binary_sensor.master_room_bed_motion_sensor_motion
+                - binary_sensor.master_room_entrance_motion_sensor
+                - binary_sensor.master_room_stair_motion_sensor_motion
+                - binary_sensor.master_room_dressing_table_motion_sensor_motion
+                - binary_sensor.master_room_tv_motion_sensor_motion
+                - binary_sensor.master_room_drawer_motion_sensor_motion
+              for: 00:15:00
+              state: "off"
+        # in nighttime, turn off and re-eable automation
+        #               if no person for 2 hours
+        - condition: and
+          conditions:
+            - after: "22:00:00"
+              before: "10:00:00"
+              condition: time
+            - condition: state
+              entity_id:
+                - binary_sensor.master_room_bed_motion_sensor_motion
+                - binary_sensor.master_room_entrance_motion_sensor
+                - binary_sensor.master_room_stair_motion_sensor_motion
+                - binary_sensor.master_room_dressing_table_motion_sensor_motion
+                - binary_sensor.master_room_tv_motion_sensor_motion
+                - binary_sensor.master_room_drawer_motion_sensor_motion
+              for: 02:00:00
+              state: "off"
   action:
-  # Heating scheduler off and turn on entering automation  
-  - service:   automation.turn_off    
-    entity_id: automation.master_room_heating_scheduler
-  - service:   climate.set_temperature
-    entity_id: climate.master_room_thermostat
-    data:
-      temperature: 10
-  - service:   automation.turn_on
-    entity_id: automation.master_room_turn_on_heating_schedule_if_person_present
-  # Clear flags
-  - service:   input_boolean.turn_off
-    entity_id: input_boolean.master_room_short_presence      
-  # Lighting/Curtain Off
-  - service:   script.master_room_lights_turn_off
-  - service:   script.master_room_close_all_curtains
-  - service:   automation.turn_on
-    entity_id: automation.master_room_ceiling_lights_on_or_open_curtain_if_entering_room
-  # Switch Off TV
-  - service:   switch.turn_off
-    entity_id: switch.master_room_tv
-
-
-
+    # Heating scheduler off and turn on entering automation
+    - service: automation.turn_off
+      entity_id: automation.master_room_heating_scheduler
+    - service: climate.set_temperature
+      entity_id: climate.master_room_thermostat
+      data:
+        temperature: 10
+    - service: automation.turn_on
+      entity_id: automation.master_room_turn_on_heating_schedule_if_person_present
+    # Clear flags
+    - service: input_boolean.turn_off
+      entity_id: input_boolean.master_room_short_presence
+    # Lighting/Curtain Off
+    - service: script.master_room_lights_turn_off
+    - service: script.master_room_close_all_curtains
+    - service: automation.turn_on
+      entity_id: automation.master_room_ceiling_lights_on_or_open_curtain_if_entering_room
+    # Switch Off TV
+    - service: switch.turn_off
+      entity_id: switch.master_room_tv
 
 
 - alias: H-MR Master Room Turn On Schedule If Person Present
-  id: '1599909943770'
-  description: 'automation.master_room_turn_on_heating_schedule_if_person_present'
+  id: "1599909943770"
+  description: "automation.master_room_turn_on_heating_schedule_if_person_present"
   trigger:
-  - entity_id: binary_sensor.master_room_bed_motion_sensor_motion
-    platform: state
-    from: 'off'
-    to: 'on'
+    - entity_id: binary_sensor.master_room_bed_motion_sensor_motion
+      platform: state
+      from: "off"
+      to: "on"
   # Queued mode guarentees race condition are in series
-  mode: queued    
+  mode: queued
   action:
-  # Resolve race on multiple triggers - only execute instances that 
-  # turned on heating and turned off the automation.
-  - condition: state
-    entity_id: automation.master_room_turn_on_heating_schedule_if_person_present
-    state:     'on'  
-  # Turn on heating on repeated short presence or longer presence
-  - choose:
-    # IF - first time entering, set the flag
-    #      Longer presence will turn on heating       
-    - conditions:
-      # Wait for 1.5 min if it is the first time of presence
-      - condition: state
-        entity_id: input_boolean.master_room_short_presence
-        state:     'off'
-      sequence:
-      # set the short presence flag
-      - service:   input_boolean.turn_on
-        entity_id: input_boolean.master_room_short_presence
-      # Delay 1.5 min and test motion sensor 
-      - delay:     00:01:45
-      - condition: state
-        entity_id: binary_sensor.master_room_bed_motion_sensor_motion
-        state:     'on'
-      # Longer presence will turn on heating       
-      - service: script.master_room_set_heating_temp_with_state_maintaince
-    # ELSE - Repeated short presence will turn on heating
-    default:    
-      - service: script.master_room_set_heating_temp_with_state_maintaince
-
-
-
+    # Resolve race on multiple triggers - only execute instances that
+    # turned on heating and turned off the automation.
+    - condition: state
+      entity_id: automation.master_room_turn_on_heating_schedule_if_person_present
+      state: "on"
+    # Turn on heating on repeated short presence or longer presence
+    - choose:
+        # IF - first time entering, set the flag
+        #      Longer presence will turn on heating
+        - conditions:
+            # Wait for 1.5 min if it is the first time of presence
+            - condition: state
+              entity_id: input_boolean.master_room_short_presence
+              state: "off"
+          sequence:
+            # set the short presence flag
+            - service: input_boolean.turn_on
+              entity_id: input_boolean.master_room_short_presence
+            # Delay 1.5 min and test motion sensor
+            - delay: 00:01:45
+            - condition: state
+              entity_id: binary_sensor.master_room_bed_motion_sensor_motion
+              state: "on"
+            # Longer presence will turn on heating
+            - service: script.master_room_set_heating_temp_with_state_maintaince
+      # ELSE - Repeated short presence will turn on heating
+      default:
+        - service: script.master_room_set_heating_temp_with_state_maintaince
 
 - alias: H-MR Master Room Heating Scheduler
-  id: '1599909948789'
-  description: 'automation.master_room_heating_scheduler'
+  id: "1599909948789"
+  description: "automation.master_room_heating_scheduler"
   trigger:
-  - platform: time
-    at: "18:00:00"
-  - platform: time
-    at: "00:00:00"
+    - platform: time
+      at: "18:00:00"
+    - platform: time
+      at: "00:00:00"
   # Do not change temperature based on trigger 9am
-  # this means people are still in a contineous presence 
-  # and could be still sleeping so a high sleeping temperature 
+  # this means people are still in a contineous presence
+  # and could be still sleeping so a high sleeping temperature
   # is required
   # TODO: could use motion sensor light to tell if people
   # is up but still stay at the room
@@ -155,150 +149,150 @@
   #  at: "09:00:00"
   condition: []
   action:
-  - data:
-      hvac_mode: 'heat'
-    entity_id: climate.master_room_thermostat
-    service: climate.set_hvac_mode
-  - data:
-      temperature: >
-        {% if now().hour >= 18 %}
-        {# 18:00 - 0:00 #}
-          22
-        {% elif now().hour < 9 %}
-        {# 0:00 - 9:00 #}
-          22
-        {% else %}
-        {# 9:00 - 18:00 #}
-          21
-        {% endif %}
-    entity_id: climate.master_room_thermostat
-    service: climate.set_temperature
-
-
-
+    - data:
+        hvac_mode: "heat"
+      entity_id: climate.master_room_thermostat
+      service: climate.set_hvac_mode
+    - data:
+        temperature: >
+          {% if now().hour >= 18 %}
+          {# 18:00 - 0:00 #}
+            22
+          {% elif now().hour < 9 %}
+          {# 0:00 - 9:00 #}
+            22
+          {% else %}
+          {# 9:00 - 18:00 #}
+            21
+          {% endif %}
+      entity_id: climate.master_room_thermostat
+      service: climate.set_temperature
 
 # Master Room with Custom Thermostat
 - alias: H-MR Master Room Thermostat Switch Turns On/Off The Tado Valve
   trigger:
-  - platform:  state
-    entity_id: input_boolean.master_room_valve_switch
-    to: 
-      - 'off'
-      - 'on'
-  - minutes:  /5
-    platform: time_pattern
+    - platform: state
+      entity_id: input_boolean.master_room_valve_switch
+      to:
+        - "off"
+        - "on"
+    - minutes: /5
+      platform: time_pattern
   condition: []
   action:
-  - data:
-      hvac_mode: heat
-    entity_id: climate.master_room
-    service: climate.set_hvac_mode
-  - data:
-      temperature: >
-        {% if states('input_boolean.master_room_valve_switch') == 'off' %}
-          5
-        {% else %}
-          25
-        {% endif %}
-    entity_id: climate.master_room
-    service: climate.set_temperature
-
-
+    - data:
+        hvac_mode: heat
+      entity_id: 
+        - climate.master_room
+        - climate.master_room_thermostat
+      service: climate.set_hvac_mode
+    - data:
+        # Set tado temperature based on outdoor temperatures
+        temperature: >
+          {% if states('input_boolean.master_room_valve_switch') == 'off' %}
+            5
+          {% elif states.weather.home.attributes.temperature < 2 %}
+            25
+          {% elif states.weather.home.attributes.temperature < 4 %}
+            24
+          {% elif states.weather.home.attributes.temperature < 6 %}
+            23
+          {% else %}
+            22
+          {% endif %}
+      entity_id: climate.master_room
+      service: climate.set_temperature
 
 # Master Toilet
 - alias: H-MT Master Toilet Heating On If Person Present
-  id: '1600014380137'
-  description: 'automation.master_toilet_heating_on_if_person_present'
+  id: "1600014380137"
+  description: "automation.master_toilet_heating_on_if_person_present"
   trigger:
-  - entity_id: binary_sensor.master_toilet_basin_motion_sensor_motion
-    platform: state
-    from: 'off'
-    to: 'on'
-  - entity_id: binary_sensor.master_toilet_shower_motion_sensor_motion
-    platform: state
-    from: 'off'
-    to: 'on'
+    - entity_id: binary_sensor.master_toilet_basin_motion_sensor_motion
+      platform: state
+      from: "off"
+      to: "on"
+    - entity_id: binary_sensor.master_toilet_shower_motion_sensor_motion
+      platform: state
+      from: "off"
+      to: "on"
   # Queued mode guarentees race condition are in series
-  mode: queued    
+  mode: queued
   action:
-  # Resolve race on multiple triggers - only execute instances that 
-  # turned on heating and turned off the automation.
-  - condition: state
-    entity_id: automation.master_toilet_heating_on_if_person_present
-    state:     'on'  
-  # Turn on heating on repeated short presence or longer presence
-  - choose:
-    # IF - first time entering, set the flag
-    #      Longer presence will turn on heating       
-    - conditions:
-      # Wait for 1.5 min if it is the first time of presence
-      - condition: state
-        entity_id: input_boolean.master_toilet_short_presence
-        state:     'off'
-      sequence:
-      # set the short presence flag
-      - service:   input_boolean.turn_on
-        entity_id: input_boolean.master_toilet_short_presence
-      # Delay 1.5 min and test motion sensor 
-      - delay:     00:01:45
-      - condition: or
-        conditions:
-        - condition: state
-          entity_id: binary_sensor.master_toilet_basin_motion_sensor_motion
-          state:     'on'
-        - condition: state
-          entity_id: binary_sensor.master_toilet_shower_motion_sensor_motion
-          state:     'on'
-      # Longer presence will turn on heating       
-      - service: script.master_toilet_set_heating_temp_with_state_maintaince
-    # ELSE - Repeated short presence will turn on heating
-    default:    
-      - service: script.master_toilet_set_heating_temp_with_state_maintaince
-
-  
-  
-
+    # Resolve race on multiple triggers - only execute instances that
+    # turned on heating and turned off the automation.
+    - condition: state
+      entity_id: automation.master_toilet_heating_on_if_person_present
+      state: "on"
+    # Turn on heating on repeated short presence or longer presence
+    - choose:
+        # IF - first time entering, set the flag
+        #      Longer presence will turn on heating
+        - conditions:
+            # Wait for 1.5 min if it is the first time of presence
+            - condition: state
+              entity_id: input_boolean.master_toilet_short_presence
+              state: "off"
+          sequence:
+            # set the short presence flag
+            - service: input_boolean.turn_on
+              entity_id: input_boolean.master_toilet_short_presence
+            # Delay 1.5 min and test motion sensor
+            - delay: 00:01:45
+            - condition: or
+              conditions:
+                - condition: state
+                  entity_id: binary_sensor.master_toilet_basin_motion_sensor_motion
+                  state: "on"
+                - condition: state
+                  entity_id: binary_sensor.master_toilet_shower_motion_sensor_motion
+                  state: "on"
+            # Longer presence will turn on heating
+            - service: script.master_toilet_set_heating_temp_with_state_maintaince
+      # ELSE - Repeated short presence will turn on heating
+      default:
+        - service: script.master_toilet_set_heating_temp_with_state_maintaince
 
 
 - alias: H-MT Master Toilet Heating Off If No Person
-  id: '1600015749043'
-  description: 'automation.master_toilet_heating_off_if_no_person'
+  id: "1600015749043"
+  description: "automation.master_toilet_heating_off_if_no_person"
   trigger:
-  - minutes: /5
-    platform: time_pattern
-  - entity_id: binary_sensor.master_toilet_basin_motion_sensor_motion
-    platform: state
-    from: 'on'
-    to: 'off'
-    for: 00:05:00
-  - entity_id: binary_sensor.master_toilet_shower_motion_sensor_motion
-    platform: state
-    from: 'on'
-    to: 'off'
-    for: 00:05:00
-  - minutes: /5
-    platform: time_pattern
+    - minutes: /5
+      platform: time_pattern
+    - entity_id: binary_sensor.master_toilet_basin_motion_sensor_motion
+      platform: state
+      from: "on"
+      to: "off"
+      for: 00:05:00
+    - entity_id: binary_sensor.master_toilet_shower_motion_sensor_motion
+      platform: state
+      from: "on"
+      to: "off"
+      for: 00:05:00
+    - minutes: /5
+      platform: time_pattern
   condition:
-  - condition: state
-    entity_id: binary_sensor.master_toilet_basin_motion_sensor_motion
-    for: 00:05:00
-    state: 'off'
-  - condition: state
-    entity_id: binary_sensor.master_toilet_shower_motion_sensor_motion
-    for: 00:05:00
-    state: 'off'
+    - condition: state
+      entity_id: binary_sensor.master_toilet_basin_motion_sensor_motion
+      for: 00:05:00
+      state: "off"
+    - condition: state
+      entity_id: binary_sensor.master_toilet_shower_motion_sensor_motion
+      for: 00:05:00
+      state: "off"
   action:
-  # Turn off heating
-  - service: climate.set_hvac_mode
-    entity_id: climate.master_toilet
-    data:
-      hvac_mode: auto
-  - data: {}
-    entity_id: automation.master_toilet_heating_on_if_person_present
-    service: automation.turn_on
-  # Clear flags
-  - service:   input_boolean.turn_off
-    entity_id: input_boolean.master_toilet_short_presence
+    # Turn off heating
+    - service: climate.set_hvac_mode
+      entity_id: climate.master_toilet
+      data:
+        hvac_mode: auto
+    - data: {}
+      entity_id: automation.master_toilet_heating_on_if_person_present
+      service: automation.turn_on
+    # Clear flags
+    - service: input_boolean.turn_off
+      entity_id: input_boolean.master_toilet_short_presence
 
 ###############################################
 #
@@ -308,83 +302,90 @@
 
 # Master Room
 - alias: L-MR Master Room Ceiling Lighting On Or Open Curtains If Entering to Master Room
-  id: '1599909943779'
-  description: 'automation.master_room_ceiling_lights_on_or_open_curtain_if_entering_room'
+  id: "1599909943779"
+  description: "automation.master_room_ceiling_lights_on_or_open_curtain_if_entering_room"
   trigger:
-  - entity_id: binary_sensor.master_room_entrance_motion_sensor
-    platform: state
-    from: 'off'
-    to: 'on'
+    - entity_id: binary_sensor.master_room_entrance_motion_sensor
+      platform: state
+      from: "off"
+      to: "on"
   condition: []
   action:
-  - data:
-      stop_actions: false
-    entity_id: automation.master_room_ceiling_lights_on_or_open_curtain_if_entering_room
-    service: automation.turn_off
-  - choose:
-    # IF - in daytime, open curtain
-    - conditions:
-      - condition: numeric_state
-        entity_id: sensor.master_room_light_meter
-        above: '100'
-      sequence:
-      - service: script.master_room_open_all_curtains
-    # ELSE - in nighttime, turn on master room ceiling lights
-    default:
+    - data:
+        stop_actions: false
+      entity_id: automation.master_room_ceiling_lights_on_or_open_curtain_if_entering_room
+      service: automation.turn_off
+    - choose:
+        # IF - in daytime, open curtain
+        - conditions:
+            - condition: numeric_state
+              entity_id: sensor.master_room_light_meter
+              above: "100"
+          sequence:
+            - service: script.master_room_open_all_curtains
+      # ELSE - in nighttime, turn on master room ceiling lights
+      default:
         - service: script.master_room_ceiling_lights_turn_on
         - service: script.master_room_bedside_lights_set_4000k
-        # Open Curtains To see decro Lights if it is a festival 
+        # Open Curtains To see decro Lights if it is a festival
         #- service: script.master_room_open_all_curtains
 
-
-
-
 - alias: L-MR Master Room Entrance/Corridor LED Light On If Person Present
-  description: ''
+  description: ""
   trigger:
-  - entity_id: binary_sensor.master_room_entrance_motion_sensor
-    platform: state
-    from: 'off'
-    to: 'on'
-  - entity_id: binary_sensor.master_room_stair_motion_sensor_motion
-    platform: state
-    from: 'off'
-    to: 'on'
+    - entity_id: binary_sensor.master_room_entrance_motion_sensor
+      platform: state
+      from: "off"
+      to: "on"
+    - entity_id: binary_sensor.master_room_stair_motion_sensor_motion
+      platform: state
+      from: "off"
+      to: "on"
   condition: []
   action:
-  - service:   light.turn_on
-    entity_id: light.master_room_entrance_led_light
-  - choose:
-    # IF - in the nighttime, also turn on corridor lights
-    - conditions:
-      - condition: numeric_state
-        entity_id: sensor.master_room_light_meter
-        below: '50'
-      sequence:
-      - service: script.corridor_lights_turn_on
+    - service: light.turn_on
+      entity_id: light.master_room_entrance_led_light
+      data: 
+        brightness: >
+          {% if now().hour >= 23 or now().hour < 7 %}
+            1
+          {% else %}
+            255
+          {% endif %}      
+        kelvin: >
+          {% if now().hour >= 23 or now().hour < 7 %}
+            3000
+          {% else %}
+            4000
+          {% endif %}      
+    - choose:
+        # IF - in the nighttime, also turn on corridor lights
+        - conditions:
+            - condition: numeric_state
+              entity_id: sensor.master_room_light_meter
+              below: "50"
+          sequence:
+            - service: script.corridor_lights_turn_on
   mode: single
 
-
-
 - alias: L-MR Master Room Entrance Lights Off If No Person
-  description: ''
+  description: ""
   trigger:
-  - entity_id: binary_sensor.master_room_entrance_motion_sensor
-    platform: state
-    from: 'on'
-    to: 'off'
-    for: 00:02:00
-  - minutes: /5
-    platform: time_pattern
+    - entity_id: binary_sensor.master_room_entrance_motion_sensor
+      platform: state
+      from: "on"
+      to: "off"
+      for: 00:02:00
+    - minutes: /5
+      platform: time_pattern
   condition:
-  - entity_id: binary_sensor.master_room_entrance_motion_sensor
-    condition: state
-    state: 'off'
-    for: 00:02:00
+    - entity_id: binary_sensor.master_room_entrance_motion_sensor
+      condition: state
+      state: "off"
+      for: 00:02:00
   action:
-  - service:   light.turn_off
-    entity_id: light.master_room_entrance_led_light
-
+    - service: light.turn_off
+      entity_id: light.master_room_entrance_led_light
 
 #- alias: L-MR Master Room Open Blinds If No Person For A Long Time In Daytime
 #  description: ''
@@ -406,289 +407,265 @@
 #      - cover.master_room_blind_left
 #
 
-
 - alias: L-MR Master Room Dressing Table On If Person Present
-  id: '1603640027683'
-  description: ''
+  id: "1603640027683"
+  description: ""
   trigger:
-  - entity_id: binary_sensor.master_room_dressing_table_motion_sensor_motion
-    platform: state
-    from: 'off'
-    to: 'on'
+    - entity_id: binary_sensor.master_room_dressing_table_motion_sensor_motion
+      platform: state
+      from: "off"
+      to: "on"
   condition: []
   action:
-  - entity_id: switch.master_room_dressing_table_light
-    service: switch.turn_on
-
-
+    - entity_id: switch.master_room_dressing_table_light
+      service: switch.turn_on
 
 - alias: L-MR Master Room Dressing Table Off If No Person For 2 Min
-  id: '1603640027689'
-  description: ''
+  id: "1603640027689"
+  description: ""
   trigger:
-  - entity_id: binary_sensor.master_room_dressing_table_motion_sensor_motion
-    platform: state
-    from: 'on'
-    to: 'off'
-    for: 00:02:00
-  - minutes: /5
-    platform: time_pattern
+    - entity_id: binary_sensor.master_room_dressing_table_motion_sensor_motion
+      platform: state
+      from: "on"
+      to: "off"
+      for: 00:02:00
+    - minutes: /5
+      platform: time_pattern
   condition:
-  - entity_id: binary_sensor.master_room_dressing_table_motion_sensor_motion
-    condition: state
-    state: 'off'
-    for: 00:02:00
+    - entity_id: binary_sensor.master_room_dressing_table_motion_sensor_motion
+      condition: state
+      state: "off"
+      for: 00:02:00
   action:
-  - data: {}
-    entity_id: switch.master_room_dressing_table_light
-    service: switch.turn_off
-
-
+    - data: {}
+      entity_id: switch.master_room_dressing_table_light
+      service: switch.turn_off
 
 - alias: L-MR Master Room Bed LED Strip On For 3 Min If People Are Walking In the Dark
-  id: '1603640027693'
-  description: ''
+  id: "1603640027693"
+  description: ""
   mode: restart
   trigger:
-  - entity_id: 
-      - binary_sensor.master_room_tv_motion_sensor_motion
-      - binary_sensor.master_room_drawer_motion_sensor_motion
-      - binary_sensor.master_toilet_dressing_motion_sensor_motion
-    platform: state
-    from: 'off'
-    to: 'on'
+    - entity_id:
+        - binary_sensor.master_room_tv_motion_sensor_motion
+        - binary_sensor.master_room_drawer_motion_sensor_motion
+        - binary_sensor.master_toilet_dressing_motion_sensor_motion
+      platform: state
+      from: "off"
+      to: "on"
   condition:
-  # In the night
-  - entity_id: sensor.master_room_light_meter
-    condition: numeric_state
-    below: '5'
-  # And all lights off in the master room
-  - entity_id: light.master_room_lamp_near_door
-    condition: state
-    state: 'off'
-  - entity_id: light.master_room_lamp_near_wall
-    condition: state
-    state: 'off'
-  - entity_id: light.master_room_bed_led
-    condition: state
-    state: 'off'
-  - entity_id: switch.master_room_bed_ceiling_light
-    condition: state
-    state: 'off'
-  - entity_id: switch.master_room_landing_ceiling_light
-    condition: state
-    state: 'off'
-  - entity_id: switch.master_room_dressing_table_light
-    condition: state
-    state: 'off'
+    # In the night
+    - entity_id: sensor.master_room_light_meter
+      condition: numeric_state
+      below: "5"
+    # And all lights off in the master room
+    - entity_id: light.master_room_lamp_near_door
+      condition: state
+      state: "off"
+    - entity_id: light.master_room_lamp_near_wall
+      condition: state
+      state: "off"
+    - entity_id: light.master_room_bed_led
+      condition: state
+      state: "off"
+    - entity_id: switch.master_room_bed_ceiling_light
+      condition: state
+      state: "off"
+    - entity_id: switch.master_room_landing_ceiling_light
+      condition: state
+      state: "off"
+    - entity_id: switch.master_room_dressing_table_light
+      condition: state
+      state: "off"
   action:
-  # Turn on bed LED on night mode for 2 min to walk to toilet or back from toilet
-  - service: script.master_room_bed_led_set_dark_yellow
-  - delay: '00:03:00'
-  - service: light.turn_off
-    entity_id: light.master_room_bed_led
-
-
+    # Turn on bed LED on night mode for 2 min to walk to toilet or back from toilet
+    - service: script.master_room_bed_led_set_dark_yellow
+    - delay: "00:03:00"
+    - service: light.turn_off
+      entity_id: light.master_room_bed_led
 
 # Master Toilet
 - alias: L-MT Master Toilet Lights On If Person Present and Dark
-  description: ''
+  description: ""
   trigger:
-  - entity_id: binary_sensor.master_toilet_basin_motion_sensor_motion
-    platform: state
-    from: 'off'
-    to: 'on'
-  - entity_id: binary_sensor.master_toilet_shower_motion_sensor_motion
-    platform: state
-    from: 'off'
-    to: 'on'
+    - entity_id: binary_sensor.master_toilet_basin_motion_sensor_motion
+      platform: state
+      from: "off"
+      to: "on"
+    - entity_id: binary_sensor.master_toilet_shower_motion_sensor_motion
+      platform: state
+      from: "off"
+      to: "on"
   condition:
-  - condition: or
-    conditions:
-    - condition: and
+    - condition: or
       conditions:
-      - entity_id: binary_sensor.master_toilet_basin_motion_sensor_motion
-        condition: state
-        state: 'on'
-      - entity_id: sensor.master_toilet_basin_motion_sensor_light
-        condition: numeric_state
-        below: '30'
-    - condition: and
-      conditions:
-      - entity_id: binary_sensor.master_toilet_shower_motion_sensor_motion
-        condition: state
-        state: 'on'
-      - entity_id: sensor.master_toilet_shower_motion_sensor_light
-        condition: numeric_state
-        below: '10'
+        - condition: and
+          conditions:
+            - entity_id: binary_sensor.master_toilet_basin_motion_sensor_motion
+              condition: state
+              state: "on"
+            - entity_id: sensor.master_toilet_basin_motion_sensor_light
+              condition: numeric_state
+              below: "30"
+        - condition: and
+          conditions:
+            - entity_id: binary_sensor.master_toilet_shower_motion_sensor_motion
+              condition: state
+              state: "on"
+            - entity_id: sensor.master_toilet_shower_motion_sensor_light
+              condition: numeric_state
+              below: "10"
   action:
-  - choose:
-    # IF in daytime, turn on toilet all lights to bright warm lights
-    - conditions:
-      - condition: time
-        after: '10:00:00'
-        before: '22:30:00'
-      sequence:
-        - service: script.master_toilet_set_bright_warm_light
-    # ELSE - in nighttime, turn on toilet lights to dark warm lights
-    default:
-      - service: script.master_toilet_set_dark_warm_light
-
-
+    - service: light.turn_on
+      entity_id: light.master_toilet_ceiling_light
 
 - alias: L-MT Master Toilet Mirror Light On/Off Changes The Colour Of Ceilight Light
   trigger:
-  - entity_id: binary_sensor.master_toilet_mirror_light
-    platform: state
-    from: 'on'
-    to: 'off'
-  - entity_id: binary_sensor.master_toilet_mirror_light
-    platform: state
-    from: 'off'
-    to: 'on'
+    - entity_id: binary_sensor.master_toilet_mirror_light
+      platform: state
+      from: "on"
+      to: "off"
+    - entity_id: binary_sensor.master_toilet_mirror_light
+      platform: state
+      from: "off"
+      to: "on"
   condition:
-  - entity_id: light.master_toilet_ceiling_light
-    condition: state
-    state: 'on'
+    - entity_id: light.master_toilet_ceiling_light
+      condition: state
+      state: "on"
   action:
-  - choose:
-    # IF mirror light on, change the ceiling light to cool 5000k
-    #.                    turn off warm floor led
-    - conditions:
-      - entity_id: binary_sensor.master_toilet_mirror_light
-        condition: state
-        state: 'on'    
-      sequence:
-      - service:   light.turn_on
-        entity_id: light.master_toilet_ceiling_light
-        data:
-          kelvin: 5000
-      - service:   switch.turn_off
-        entity_id: switch.master_toilet_floor_led
-      
-    # ELSE - change the ceiling light to warm 3000k
-    #        turn on warm floor led
-    default:
-      - service:   light.turn_on
-        entity_id: light.master_toilet_ceiling_light
-        data:
-          kelvin: 3000      
-      - service:   switch.turn_on
-        entity_id: switch.master_toilet_floor_led
+    - choose:
+        # IF mirror light on, change the ceiling light to cool 5000k
+        #.                    turn off warm floor led
+        - conditions:
+            - entity_id: binary_sensor.master_toilet_mirror_light
+              condition: state
+              state: "on"
+          sequence:
+            - service: light.turn_on
+              entity_id: light.master_toilet_ceiling_light
+              data:
+                kelvin: 5000
+            - service: switch.turn_off
+              entity_id: switch.master_toilet_floor_led
 
-
+      # ELSE - change the ceiling light to warm 3000k
+      #        turn on warm floor led
+      default:
+        - service: light.turn_on
+          entity_id: light.master_toilet_ceiling_light
+          data:
+            kelvin: 3000
+        - service: switch.turn_on
+          entity_id: switch.master_toilet_floor_led
 
 - alias: L-MT Master Toilet Lights Off If No Person For 10 Min
-  id: '1603640029094'
-  description: ''
+  id: "1603640029094"
+  description: ""
   trigger:
-  - entity_id: binary_sensor.master_toilet_basin_motion_sensor_motion
-    platform: state
-    from: 'on'
-    to: 'off'
-    for: 00:10:00
-  - entity_id: binary_sensor.master_toilet_shower_motion_sensor_motion
-    platform: state
-    from: 'on'
-    to: 'off'
-    for: 00:10:00
-  - minutes: /5
-    platform: time_pattern
+    - entity_id: binary_sensor.master_toilet_basin_motion_sensor_motion
+      platform: state
+      from: "on"
+      to: "off"
+      for: 00:10:00
+    - entity_id: binary_sensor.master_toilet_shower_motion_sensor_motion
+      platform: state
+      from: "on"
+      to: "off"
+      for: 00:10:00
+    - minutes: /5
+      platform: time_pattern
   condition:
-  - entity_id: binary_sensor.master_toilet_basin_motion_sensor_motion
-    condition: state
-    state: 'off'
-    for: 00:10:00
-  - entity_id: binary_sensor.master_toilet_shower_motion_sensor_motion
-    condition: state
-    state: 'off'
-    for: 00:10:00
+    - entity_id: binary_sensor.master_toilet_basin_motion_sensor_motion
+      condition: state
+      state: "off"
+      for: 00:10:00
+    - entity_id: binary_sensor.master_toilet_shower_motion_sensor_motion
+      condition: state
+      state: "off"
+      for: 00:10:00
   action:
-  - service: script.master_toilet_all_lights_turn_off
-
-
+    - service: script.master_toilet_all_lights_turn_off
 
 - alias: L-MT Master Toilet Lights Off If No Person For 2 Min And Door Open
-  id: '1603640027495'
-  description: ''
+  id: "1603640027495"
+  description: ""
   trigger:
-  - entity_id: binary_sensor.master_toilet_basin_motion_sensor_motion
-    platform: state
-    from: 'on'
-    to: 'off'
-    for: 00:02:00
-  - entity_id: binary_sensor.master_toilet_shower_motion_sensor_motion
-    platform: state
-    from: 'on'
-    to: 'off'
-    for: 00:02:00
-  - minutes: /5
-    platform: time_pattern
+    - entity_id: binary_sensor.master_toilet_basin_motion_sensor_motion
+      platform: state
+      from: "on"
+      to: "off"
+      for: 00:02:00
+    - entity_id: binary_sensor.master_toilet_shower_motion_sensor_motion
+      platform: state
+      from: "on"
+      to: "off"
+      for: 00:02:00
+    - minutes: /5
+      platform: time_pattern
   condition:
-  - entity_id: binary_sensor.master_toilet_door
-    condition: state
-    state: 'on'
-  - entity_id: binary_sensor.master_toilet_basin_motion_sensor_motion
-    condition: state
-    state: 'off'
-    for: 00:02:00
-  - entity_id: binary_sensor.master_toilet_shower_motion_sensor_motion
-    condition: state
-    state: 'off'
-    for: 00:02:00
+    - entity_id: binary_sensor.master_toilet_door
+      condition: state
+      state: "on"
+    - entity_id: binary_sensor.master_toilet_basin_motion_sensor_motion
+      condition: state
+      state: "off"
+      for: 00:02:00
+    - entity_id: binary_sensor.master_toilet_shower_motion_sensor_motion
+      condition: state
+      state: "off"
+      for: 00:02:00
   action:
-  - service: script.master_toilet_all_lights_turn_off
+    - service: script.master_toilet_all_lights_turn_off
 
 # Master Toilet Dressing Room
 - alias: L-MT Master Toilet Dressing Lights On If Person Present
-  description: ''
+  description: ""
   trigger:
-  - entity_id: binary_sensor.master_toilet_dressing_motion_sensor_motion
-    platform: state
-    from: 'off'
-    to: 'on'
-  condition:
-  - entity_id: binary_sensor.master_toilet_dressing_motion_sensor_motion
-    condition: state
-    state: 'on'
-  - entity_id: sensor.master_toilet_dressing_motion_sensor_light
-    condition: numeric_state
-    below: '30'
-  action:
-  - choose:
-    # IF in daytime, turn on dressing room light
-    - conditions:
-      - condition: time
-        after: '7:00:00'
-        before: '23:30:00'
-      sequence:
-        - service: switch.turn_on
-          entity_id: switch.master_toilet_dressing_light
-    # ELSE - in nighttime, turn on toilet lights to dark warm lights
-    default:
-      - service: script.master_toilet_set_dark_warm_light
-
-- alias: L-MT Master Toilet Dressing Lights Off If No Person Present For 2 Min
-  description: ''
-  trigger:
-  - entity_id: binary_sensor.master_toilet_dressing_motion_sensor_motion
-    platform: state
-    from: 'on'
-    to: 'off'
-    for: 00:02:00
-  - minutes: /5
-    platform: time_pattern
+    - entity_id: binary_sensor.master_toilet_dressing_motion_sensor_motion
+      platform: state
+      from: "off"
+      to: "on"
   condition:
     - entity_id: binary_sensor.master_toilet_dressing_motion_sensor_motion
       condition: state
-      state: 'off'
+      state: "on"
+    - entity_id: sensor.master_toilet_dressing_motion_sensor_light
+      condition: numeric_state
+      below: "30"
+  action:
+    - choose:
+        # IF in daytime, turn on dressing room light
+        - conditions:
+            - condition: time
+              after: "7:00:00"
+              before: "23:30:00"
+          sequence:
+            - service: switch.turn_on
+              entity_id: switch.master_toilet_dressing_light
+      # ELSE - in nighttime, turn on toilet lights to dark warm lights
+      default:
+        - service: script.master_toilet_set_dark_warm_light
+
+- alias: L-MT Master Toilet Dressing Lights Off If No Person Present For 2 Min
+  description: ""
+  trigger:
+    - entity_id: binary_sensor.master_toilet_dressing_motion_sensor_motion
+      platform: state
+      from: "on"
+      to: "off"
+      for: 00:02:00
+    - minutes: /5
+      platform: time_pattern
+  condition:
+    - entity_id: binary_sensor.master_toilet_dressing_motion_sensor_motion
+      condition: state
+      state: "off"
       for: 00:02:00
   action:
-  - data: {}
-    entity_id: switch.master_toilet_dressing_light
-    service: switch.turn_off
-
-
+    - data: {}
+      entity_id: switch.master_toilet_dressing_light
+      service: switch.turn_off
 
 ###############################################
 #
@@ -699,275 +676,266 @@
 # Master Room
 - alias: B-MR Master Room Entrance Switch - Single Press - Toggle Entrace Light
   trigger:
-  - platform: state
-    entity_id: sensor.master_room_entrance_light_wall_button
-    to: single
+    - platform: state
+      entity_id: sensor.master_room_entrance_light_wall_button
+      to: single
   action:
-  - service:   light.toggle
-    entity_id: light.master_room_entrance_led_light
+    - service: light.toggle
+      entity_id: light.master_room_entrance_led_light
 
 - alias: B-MR Master Room Wall Switch - Double Press - Turn Off All Lights and Curtains
   trigger:
-  - platform: state
-    entity_id: sensor.master_room_entrance_light_wall_button
-    to: double
+    - platform: state
+      entity_id: sensor.master_room_entrance_light_wall_button
+      to: double
   action:
-  - service: script.master_room_lights_turn_off
-  - service:   cover.close_cover
-    entity_id: cover.master_room_curtain
-
+    - service: script.master_room_lights_turn_off
+    - service: cover.close_cover
+      entity_id: cover.master_room_curtain
 
 - alias: B-MR Master Room Bed Button - Single - Toggle Bed Lights/Ceiling Lights
   trigger:
-  - platform: state
-    entity_id: sensor.master_room_bedside_button
-    to: single
+    - platform: state
+      entity_id: sensor.master_room_bedside_button
+      to: single
   action:
-  # N.B. choose will only choose the first matching condition to execute
-  #      and exit the choose function immediately after the cooresponding
-  #      sequence completed and will not continue to test other condtions.
-  #      So it is a proper IF-ELSE statement.
-  - choose:
-    # IF ceiling lights on - turn off ceiling lights and turn on bedside lights
-    - conditions:
-      - condition: state
-        entity_id: switch.master_room_bed_ceiling_light
-        state: 'on'
-      sequence:
-        - service: script.master_room_ceiling_lights_turn_off
-        - service: script.master_room_bedside_lights_turn_on
-        - service:   light.turn_on
-          entity_id: light.master_room_bed_led
-    # ELSE IF bed lamp lights on - turn off bedside lights 
-    - conditions:
-      - condition: state
-        entity_id: light.master_room_lamp_near_door
-        state: 'on'
-      sequence:
-        - service: script.master_room_bedside_lights_turn_off
-        - service:   light.turn_on
-          entity_id: light.master_room_bed_led
-    # ELSE IF bed LDE on - turn off bed LED
-    - conditions:
-      - condition: state
-        entity_id: light.master_room_bed_led
-        state: 'on'
-      sequence:
-        - service:   light.turn_off
-          entity_id: light.master_room_bed_led
-    # ELSE - (everything was off) turn on ceiling lights
-    default:
-      - service: script.master_room_ceiling_lights_turn_on
-
-
+    # N.B. choose will only choose the first matching condition to execute
+    #      and exit the choose function immediately after the cooresponding
+    #      sequence completed and will not continue to test other condtions.
+    #      So it is a proper IF-ELSE statement.
+    - choose:
+        # IF ceiling lights on - turn off ceiling lights and turn on bedside lights
+        - conditions:
+            - condition: state
+              entity_id: switch.master_room_bed_ceiling_light
+              state: "on"
+          sequence:
+            - service: script.master_room_ceiling_lights_turn_off
+            - service: script.master_room_bedside_lights_turn_on
+            - service: light.turn_on
+              entity_id: light.master_room_bed_led
+        # ELSE IF bed lamp lights on - turn off bedside lights
+        - conditions:
+            - condition: state
+              entity_id: light.master_room_lamp_near_door
+              state: "on"
+          sequence:
+            - service: script.master_room_bedside_lights_turn_off
+            - service: light.turn_on
+              entity_id: light.master_room_bed_led
+        # ELSE IF bed LDE on - turn off bed LED
+        - conditions:
+            - condition: state
+              entity_id: light.master_room_bed_led
+              state: "on"
+          sequence:
+            - service: light.turn_off
+              entity_id: light.master_room_bed_led
+      # ELSE - (everything was off) turn on ceiling lights
+      default:
+        - service: script.master_room_ceiling_lights_turn_on
 
 - alias: B-MR Master Room Six Key - Middle Keys Double Press - Toggle Bedside Lights
-  id: '1603640020890'
+  id: "1603640020890"
   trigger:
-  - platform: state
-    entity_id: sensor.master_room_six_key_button
-    to: button_4_double
-  - platform: state
-    entity_id: sensor.master_room_six_key_button
-    to: button_3_double
+    - platform: state
+      entity_id: sensor.master_room_six_key_button
+      to: button_4_double
+    - platform: state
+      entity_id: sensor.master_room_six_key_button
+      to: button_3_double
   action:
-  - service: script.master_room_bedside_lights_toggle
+    - service: script.master_room_bedside_lights_toggle
 
-
-- alias: B-MR Master Room Six Key - Middle Key 3 Single Press - Toggle Each Bedside Light Door
-  id: '1603640020891'
+- alias: B-MR Master Room Six Key - Middle Key 3 Single Press - Toggle Bedside Light Door
+  id: "1603640020891"
   trigger:
-  - platform: state
-    entity_id: sensor.master_room_six_key_button
-    to: button_3_single
+    - platform: state
+      entity_id: sensor.master_room_six_key_button
+      to: button_3_single
   action:
-  - entity_id: light.master_room_lamp_near_door
-    service: light.toggle
+    - entity_id: light.master_room_lamp_near_door
+      service: light.toggle
 
-
-- alias: B-MR Master Room Six Key - Middle Key 4 Single Press - Toggle Each Bedside Light Wall
-  id: '1603640020892'
+- alias: B-MR Master Room Six Key - Middle Key 4 Single Press - Toggle Bedside Light Wall
+  id: "1603640020892"
   trigger:
-  - platform: state
-    entity_id: sensor.master_room_six_key_button
-    to: button_4_single
+    - platform: state
+      entity_id: sensor.master_room_six_key_button
+      to: button_4_single
   action:
-  - entity_id: light.master_room_lamp_near_wall
-    service: light.toggle
+    - entity_id: light.master_room_lamp_near_wall
+      service: light.toggle
 
 
 - alias: B-MR Master Room Six Key - Right Keys Long Press - Toggle Blind Right
-  id: '1603640020893'
+  id: "1603640020893"
   # This automation needs to restart to interrupt the previous run
   mode: restart
   trigger:
-  - platform: state
-    entity_id: sensor.master_room_six_key_button
-    to: button_5_hold
-  - platform: state
-    entity_id: sensor.master_room_six_key_button
-    to: button_6_hold
+    - platform: state
+      entity_id: sensor.master_room_six_key_button
+      to: button_5_hold
+    - platform: state
+      entity_id: sensor.master_room_six_key_button
+      to: button_6_hold
   action:
-  - choose:
-    # IF
-    - conditions:
-      - condition: state
-        entity_id: input_boolean.master_room_right_blind_moving_in_progress
-        state: 'off'
-      sequence:
-        # Mark the curtain as moving in progress and toggle the curtain
-        - service: input_boolean.turn_on
-          entity_id: input_boolean.master_room_right_blind_moving_in_progress
-        - service: script.master_room_right_blind_toggle
-        # Wait for curtain motor to finish and mark it as completed
-        - delay: '00:01:30'
-        - service: input_boolean.turn_off
-          entity_id: input_boolean.master_room_right_blind_moving_in_progress
-    # ELSE IF
-    - conditions:
-      - condition: state
-        entity_id: input_boolean.master_room_right_blind_moving_in_progress
-        state: 'on'
-      sequence:
-        # Stop the motor and mark it as stopped
-        - service: cover.stop_cover
-          entity_id: cover.master_room_blind_right
-        - service: input_boolean.turn_off
-          entity_id: input_boolean.master_room_right_blind_moving_in_progress
+    - choose:
+        # IF
+        - conditions:
+            - condition: state
+              entity_id: input_boolean.master_room_right_blind_moving_in_progress
+              state: "off"
+          sequence:
+            # Mark the curtain as moving in progress and toggle the curtain
+            - service: input_boolean.turn_on
+              entity_id: input_boolean.master_room_right_blind_moving_in_progress
+            - service: script.master_room_right_blind_toggle
+            # Wait for curtain motor to finish and mark it as completed
+            - delay: "00:01:30"
+            - service: input_boolean.turn_off
+              entity_id: input_boolean.master_room_right_blind_moving_in_progress
+        # ELSE IF
+        - conditions:
+            - condition: state
+              entity_id: input_boolean.master_room_right_blind_moving_in_progress
+              state: "on"
+          sequence:
+            # Stop the motor and mark it as stopped
+            - service: cover.stop_cover
+              entity_id: cover.master_room_blind_right
+            - service: input_boolean.turn_off
+              entity_id: input_boolean.master_room_right_blind_moving_in_progress
 
 
 - alias: B-MR Master Room Six Key - Left Keys Long Press - Toggle Blind Left
-  id: '1603640020897'
+  id: "1603640020897"
   # This automation needs to restart to interrupt the previous run
   mode: restart
   trigger:
-  - platform: state
-    entity_id: sensor.master_room_six_key_button
-    to: button_1_hold
-  - platform: state
-    entity_id: sensor.master_room_six_key_button
-    to: button_2_hold
+    - platform: state
+      entity_id: sensor.master_room_six_key_button
+      to: button_1_hold
+    - platform: state
+      entity_id: sensor.master_room_six_key_button
+      to: button_2_hold
   action:
-  - choose:
-    # IF
-    - conditions:
-      - condition: state
-        entity_id: input_boolean.master_room_left_blind_moving_in_progress
-        state: 'off'
-      sequence:
-        # Mark the curtain as moving in progress and toggle the curtain
-        - service: input_boolean.turn_on
-          entity_id: input_boolean.master_room_left_blind_moving_in_progress
-        - service: script.master_room_left_blind_toggle
-        # Wait for curtain motor to finish and mark it as completed
-        - delay: '00:01:30'
-        - service: input_boolean.turn_off
-          entity_id: input_boolean.master_room_left_blind_moving_in_progress
-    # ELSE IF
-    - conditions:
-      - condition: state
-        entity_id: input_boolean.master_room_left_blind_moving_in_progress
-        state: 'on'
-      sequence:
-        # Stop the motor and mark it as stopped
-        - service: cover.stop_cover
-          entity_id: cover.master_room_blind_left
-        - service: input_boolean.turn_off
-          entity_id: input_boolean.master_room_left_blind_moving_in_progress
-
-
+    - choose:
+        # IF
+        - conditions:
+            - condition: state
+              entity_id: input_boolean.master_room_left_blind_moving_in_progress
+              state: "off"
+          sequence:
+            # Mark the curtain as moving in progress and toggle the curtain
+            - service: input_boolean.turn_on
+              entity_id: input_boolean.master_room_left_blind_moving_in_progress
+            - service: script.master_room_left_blind_toggle
+            # Wait for curtain motor to finish and mark it as completed
+            - delay: "00:01:30"
+            - service: input_boolean.turn_off
+              entity_id: input_boolean.master_room_left_blind_moving_in_progress
+        # ELSE IF
+        - conditions:
+            - condition: state
+              entity_id: input_boolean.master_room_left_blind_moving_in_progress
+              state: "on"
+          sequence:
+            # Stop the motor and mark it as stopped
+            - service: cover.stop_cover
+              entity_id: cover.master_room_blind_left
+            - service: input_boolean.turn_off
+              entity_id: input_boolean.master_room_left_blind_moving_in_progress
 
 - alias: B-MR Master Room Six Key - Middle Keys Long Press - Toggle Curtain
-  id: '1603640020894'
+  id: "1603640020894"
   # This automation needs to restart to interrupt the previous run
   mode: restart
   trigger:
-  - platform: state
-    entity_id: sensor.master_room_six_key_button
-    to: button_3_hold
-  - platform: state
-    entity_id: sensor.master_room_six_key_button
-    to: button_4_hold
+    - platform: state
+      entity_id: sensor.master_room_six_key_button
+      to: button_3_hold
+    - platform: state
+      entity_id: sensor.master_room_six_key_button
+      to: button_4_hold
   action:
-  - choose:
-    # IF
-    # REVISIT: this variable checking can be replaced by checking the position of the curtain
-    - conditions:
-      - condition: state
-        entity_id: input_boolean.master_room_curtain_moving_in_progress
-        state: 'off'
-      sequence:
-        # Mark the curtain as moving in progress and toggle the curtain
-        - service: input_boolean.turn_on
-          entity_id: input_boolean.master_room_curtain_moving_in_progress
-        - service: script.master_room_curtain_toggle
-        # Wait for curtain motor to finish and mark it as completed
-        - delay: '00:00:10'
-        - service: input_boolean.turn_off
-          entity_id: input_boolean.master_room_curtain_moving_in_progress
-    # ELSE IF
-    - conditions:
-      - condition: state
-        entity_id: input_boolean.master_room_curtain_moving_in_progress
-        state: 'on'
-      sequence:
-        # Stop the motor and mark it as stopped
-        - service: cover.stop_cover
-          entity_id: cover.master_room_curtain
-        - service: input_boolean.turn_off
-          entity_id: input_boolean.master_room_curtain_moving_in_progress
+    - choose:
+        # IF
+        # REVISIT: this variable checking can be replaced by checking the position of the curtain
+        - conditions:
+            - condition: state
+              entity_id: input_boolean.master_room_curtain_moving_in_progress
+              state: "off"
+          sequence:
+            # Mark the curtain as moving in progress and toggle the curtain
+            - service: input_boolean.turn_on
+              entity_id: input_boolean.master_room_curtain_moving_in_progress
+            - service: script.master_room_curtain_toggle
+            # Wait for curtain motor to finish and mark it as completed
+            - delay: "00:00:10"
+            - service: input_boolean.turn_off
+              entity_id: input_boolean.master_room_curtain_moving_in_progress
+        # ELSE IF
+        - conditions:
+            - condition: state
+              entity_id: input_boolean.master_room_curtain_moving_in_progress
+              state: "on"
+          sequence:
+            # Stop the motor and mark it as stopped
+            - service: cover.stop_cover
+              entity_id: cover.master_room_curtain
+            - service: input_boolean.turn_off
+              entity_id: input_boolean.master_room_curtain_moving_in_progress
 
 # Master Toilet
 - alias: B-MT Master Toilet Wall Switch Single Press - Toggle All Toilet Lights
   trigger:
-  - platform: state
-    entity_id: sensor.master_toilet_light_wall_button
-    to: single
+    - platform: state
+      entity_id: sensor.master_toilet_light_wall_button
+      to: single
   action:
-  - service: script.master_toilet_all_lights_toggle
+    - service: script.master_toilet_all_lights_toggle
 
 
 - alias: B-MT Master Toilet Wall Switch Double Press - Toggle Toilet Ceiling Lights
   trigger:
-  - platform: state
-    entity_id: sensor.master_toilet_light_wall_button
-    to: double
+    - platform: state
+      entity_id: sensor.master_toilet_light_wall_button
+      to: double
   action:
-  - service: light.toggle
-    entity_id:      
-    - light.master_toilet_ceiling_light
-
+    - service: light.toggle
+      entity_id:
+        - light.master_toilet_ceiling_light
 
 
 - alias: B-MT Master Toilet Dressing Room Wall Switch Single Press - Turn On Dressing Room Lights/Turn Off All Toilet Lights
   trigger:
-  - platform: state
-    entity_id: sensor.master_toilet_dressing_light_wall_button
-    to: single
+    - platform: state
+      entity_id: sensor.master_toilet_dressing_light_wall_button
+      to: single
   action:
-  - choose:
-    # IF - all lights off - turn on dressing room light
-    - conditions:
-      - condition: and
-        conditions:
-        - condition: state
-          entity_id: switch.master_toilet_floor_led
-          state: 'off'
-        - condition: state
-          entity_id: light.master_toilet_ceiling_light
-          state: 'off'
-        - condition: state
+    - choose:
+        # IF - all lights off - turn on dressing room light
+        - conditions:
+            - condition: and
+              conditions:
+                - condition: state
+                  entity_id: switch.master_toilet_floor_led
+                  state: "off"
+                - condition: state
+                  entity_id: light.master_toilet_ceiling_light
+                  state: "off"
+                - condition: state
+                  entity_id: switch.master_toilet_dressing_light
+                  state: "off"
+          sequence:
+            - service: switch.turn_on
+              entity_id: switch.master_toilet_dressing_light
+      # ELSE - some lights on - turn off all toilet lights and dressing room lights
+      default:
+        - service: script.master_toilet_all_lights_turn_off
+        - service: switch.turn_off
           entity_id: switch.master_toilet_dressing_light
-          state: 'off'
-      sequence:
-        - service: switch.turn_on
-          entity_id: switch.master_toilet_dressing_light
-    # ELSE - some lights on - turn off all toilet lights and dressing room lights
-    default:
-      - service: script.master_toilet_all_lights_turn_off
-      - service: switch.turn_off
-        entity_id: switch.master_toilet_dressing_light
-
 
 ###############################################
 #
@@ -976,28 +944,75 @@
 ###############################################
 
 - alias: T-MR Master Room Turn Off all Lights/Curtains/TV at 3/4/5am
-  description: ''
+  description: ""
   trigger:
-  - at: 03:00:00
-    platform: time
-  - at: 04:00:00
-    platform: time
-  - at: 05:00:00
-    platform: time
+    - at: "03:00:00"
+      platform: time
+    - at: "04:00:00"
+      platform: time
+    - at: "05:00:00"
+      platform: time
   action:
-  # Turn Off lights and curtains
-  - service: script.master_room_close_all_curtains
-  - service: script.master_room_lights_turn_off
-  # Turn Off TV
-  - service:   switch.turn_off
-    entity_id: switch.master_room_tv
-  # Tuya Blind Sometimes is not online - make sure it is properly executed
-  - delay: '00:00:05'
-  - service: script.master_room_close_all_curtains
-  - delay: '00:00:05'
-  - service: script.master_room_close_all_curtains
-  - delay: '00:00:05'
-  - service: script.master_room_close_all_curtains
+    # Turn Off lights and curtains
+    - service: script.master_room_close_all_curtains
+    - service: script.master_room_lights_turn_off
+    # Turn Off TV
+    - service: switch.turn_off
+      entity_id: switch.master_room_tv
+    # Tuya Blind Sometimes is not online - make sure it is properly executed
+    - delay: "00:00:05"
+    - service: script.master_room_close_all_curtains
+    - delay: "00:00:05"
+    - service: script.master_room_close_all_curtains
+    - delay: "00:00:05"
+    - service: script.master_room_close_all_curtains
+
+
+- alias: T-MT Master Toilet Light Update Colour In the Morning
+  description: ""
+  trigger:
+    - at: "10:00:00"
+      platform: time
+  action:
+    - choose:
+        # If the light is already on - change colour temperature only
+        - conditions:
+            - condition: state
+              entity_id: light.master_toilet_ceiling_light
+              state: "on"
+          sequence:
+            - service: script.master_toilet_set_bright_warm_light
+      # ELSE - change colour temperature and turn it off 
+      default:
+        - service: script.master_toilet_set_bright_warm_light
+        - delay: "00:00:02"
+        - service: light.turn_off
+          entity_id: light.master_toilet_ceiling_light        
+    
+   
+- alias: T-MT Master Toilet Light Update Colour At Night
+  description: ""
+  trigger:
+    - at: "22:30:00"
+      platform: time
+  action:
+    - choose:
+        # If the light is already on - change colour temperature only
+        - conditions:
+            - condition: state
+              entity_id: light.master_toilet_ceiling_light
+              state: "on"
+          sequence:
+            - service: script.master_toilet_set_dark_warm_light
+      # ELSE - change colour temperature and turn it off 
+      default:
+        - service: script.master_toilet_set_dark_warm_light
+        - delay: "00:00:02"
+        - service: light.turn_off
+          entity_id: light.master_toilet_ceiling_light        
+    
+
+ 
 
 #################################################################
 #
@@ -1007,44 +1022,43 @@
 
 - alias: P-MR Master Room Disable The Entering Room Automation If People Present
   trigger:
-  - platform: state
-    from: 'off'
-    to: 'on'
-    entity_id:
-      - binary_sensor.master_room_bed_motion_sensor_motion
-      - binary_sensor.master_room_entrance_motion_sensor
-      - binary_sensor.master_room_stair_motion_sensor_motion
-      - binary_sensor.master_room_dressing_table_motion_sensor_motion
-      - binary_sensor.master_room_tv_motion_sensor_motion
-      - binary_sensor.master_room_drawer_motion_sensor_motion
+    - platform: state
+      from: "off"
+      to: "on"
+      entity_id:
+        - binary_sensor.master_room_bed_motion_sensor_motion
+        - binary_sensor.master_room_entrance_motion_sensor
+        - binary_sensor.master_room_stair_motion_sensor_motion
+        - binary_sensor.master_room_dressing_table_motion_sensor_motion
+        - binary_sensor.master_room_tv_motion_sensor_motion
+        - binary_sensor.master_room_drawer_motion_sensor_motion
   condition: []
   action:
-  - delay: 00:00:05
-  - service: automation.turn_off
-    entity_id:
-     - automation.master_room_ceiling_lights_on_or_open_curtain_if_entering_room
-  - delay: 00:03:00
-  # IF sleeping in the daytime caused the issue, i.e. entering automation is on,
-  # turn the heating back on and turn off the entering automations
-  - choose:
-    - conditions:
-      - condition: state
-        entity_id: automation.master_room_turn_on_heating_schedule_if_person_present
-        state: 'on'
-      sequence:
-      - service: automation.trigger
-        entity_id: automation.master_room_turn_on_heating_schedule_if_person_present
-      # make it warmer if sleeping in daytime    
-      - data:
-          temperature: 23
-        entity_id: climate.master_room_thermostat
-        service: climate.set_temperature      
-  # Turn off all entering automations        
-  - service: automation.turn_off
-    entity_id:
-     - automation.master_room_ceiling_lights_on_or_open_curtain_if_entering_room
-     - automation.master_room_turn_on_heating_schedule_if_person_present
- 
+    - delay: 00:00:05
+    - service: automation.turn_off
+      entity_id:
+        - automation.master_room_ceiling_lights_on_or_open_curtain_if_entering_room
+    - delay: 00:03:00
+    # IF sleeping in the daytime caused the issue, i.e. entering automation is on,
+    # turn the heating back on and turn off the entering automations
+    - choose:
+        - conditions:
+            - condition: state
+              entity_id: automation.master_room_turn_on_heating_schedule_if_person_present
+              state: "on"
+          sequence:
+            - service: automation.trigger
+              entity_id: automation.master_room_turn_on_heating_schedule_if_person_present
+            # make it warmer if sleeping in daytime
+            - data:
+                temperature: 23
+              entity_id: climate.master_room_thermostat
+              service: climate.set_temperature
+    # Turn off all entering automations
+    - service: automation.turn_off
+      entity_id:
+        - automation.master_room_ceiling_lights_on_or_open_curtain_if_entering_room
+        - automation.master_room_turn_on_heating_schedule_if_person_present
 
 #################################################################
 #
@@ -1054,81 +1068,78 @@
 
 - alias: S-MR Master Room Group Its Speaker If People Present
   trigger:
-  - platform: state
-    from: 'off'
-    to: 'on'
-    entity_id:
-      - binary_sensor.master_room_bed_motion_sensor_motion
-      - binary_sensor.master_room_entrance_motion_sensor
-      - binary_sensor.master_room_stair_motion_sensor_motion
-      - binary_sensor.master_room_dressing_table_motion_sensor_motion
-      - binary_sensor.master_room_tv_motion_sensor_motion
-      - binary_sensor.master_room_drawer_motion_sensor_motion
-  condition: 
-  - condition: state
-    entity_id: input_boolean.follow_music
-    state: 'on'  
-  # The controller player must be playing music (not paused)  
-  - condition: template
-    value_template: >
-      {% if states('media_player.' + states('input_select.music_controller')) == 'playing' %}
-        true
-      {% else %}
-        false
-      {% endif %}    
+    - platform: state
+      from: "off"
+      to: "on"
+      entity_id:
+        - binary_sensor.master_room_bed_motion_sensor_motion
+        - binary_sensor.master_room_entrance_motion_sensor
+        - binary_sensor.master_room_stair_motion_sensor_motion
+        - binary_sensor.master_room_dressing_table_motion_sensor_motion
+        - binary_sensor.master_room_tv_motion_sensor_motion
+        - binary_sensor.master_room_drawer_motion_sensor_motion
+  condition:
+    - condition: state
+      entity_id: input_boolean.follow_music
+      state: "on"
+    # The controller player must be playing music (not paused)
+    - condition: template
+      value_template: >
+        {% if states('media_player.' + states('input_select.music_controller')) == 'playing' %}
+          true
+        {% else %}
+          false
+        {% endif %}
   action:
-  # Add this room speaker into the group
-  - service: script.add_sonos_into_speaker_group
-    data: 
-      target_player: media_player.master_room_sonos
-
-
-
+    # Add this room speaker into the group
+    - service: script.add_sonos_into_speaker_group
+      data:
+        target_player: media_player.master_room_sonos
 
 - alias: S-MR Master Room Ungroup/Pause Its Speaker If No People
   trigger:
-  - platform: state
-    from: 'on'
-    to: 'off'
-    for: 00:10:00
-    entity_id:
-      - binary_sensor.master_room_bed_motion_sensor_motion
-      - binary_sensor.master_room_entrance_motion_sensor
-      - binary_sensor.master_room_stair_motion_sensor_motion
-      - binary_sensor.master_room_dressing_table_motion_sensor_motion
-      - binary_sensor.master_room_tv_motion_sensor_motion
-      - binary_sensor.master_room_drawer_motion_sensor_motion
-  - minutes: /5
-    platform: time_pattern      
-  condition: 
-  - condition: state
-    entity_id:
-      - binary_sensor.master_room_bed_motion_sensor_motion
-      - binary_sensor.master_room_entrance_motion_sensor
-      - binary_sensor.master_room_stair_motion_sensor_motion
-      - binary_sensor.master_room_dressing_table_motion_sensor_motion
-      - binary_sensor.master_room_tv_motion_sensor_motion
-      - binary_sensor.master_room_drawer_motion_sensor_motion
-    for: 00:10:00
-    state: 'off'    
+    - platform: state
+      from: "on"
+      to: "off"
+      for: 00:10:00
+      entity_id:
+        - binary_sensor.master_room_bed_motion_sensor_motion
+        - binary_sensor.master_room_entrance_motion_sensor
+        - binary_sensor.master_room_stair_motion_sensor_motion
+        - binary_sensor.master_room_dressing_table_motion_sensor_motion
+        - binary_sensor.master_room_tv_motion_sensor_motion
+        - binary_sensor.master_room_drawer_motion_sensor_motion
+    - minutes: /5
+      platform: time_pattern
+  condition:
+    - condition: state
+      entity_id:
+        - binary_sensor.master_room_bed_motion_sensor_motion
+        - binary_sensor.master_room_entrance_motion_sensor
+        - binary_sensor.master_room_stair_motion_sensor_motion
+        - binary_sensor.master_room_dressing_table_motion_sensor_motion
+        - binary_sensor.master_room_tv_motion_sensor_motion
+        - binary_sensor.master_room_drawer_motion_sensor_motion
+      for: 00:10:00
+      state: "off"
   action:
-  - choose:
-    # IF - music follower is on
-    - conditions:
-      - condition: state
-        entity_id: input_boolean.follow_music
-        state: 'on'      
-      sequence:
-      # Remove this room speaker from the group
-      - service: script.remove_sonos_from_speaker_group
-        data: 
-          target_player: media_player.master_room_sonos
-  # Pause this room speaker in case it is the last item in the group 
-  # or music follower is off  
-  - service: script.pause_sonos_if_sole_speaker_group
-    data: 
-      target_player: media_player.master_room_sonos
-      
+    - choose:
+        # IF - music follower is on
+        - conditions:
+            - condition: state
+              entity_id: input_boolean.follow_music
+              state: "on"
+          sequence:
+            # Remove this room speaker from the group
+            - service: script.remove_sonos_from_speaker_group
+              data:
+                target_player: media_player.master_room_sonos
+    # Pause this room speaker in case it is the last item in the group
+    # or music follower is off
+    - service: script.pause_sonos_if_sole_speaker_group
+      data:
+        target_player: media_player.master_room_sonos
+
 #################################################################
 #
 # TV auto turn-off based on motion sensors
@@ -1136,37 +1147,31 @@
 #################################################################
 - alias: TV-MR Master Room Turn Off TV If No Person
   trigger:
-  - platform: state
-    from: 'on'
-    to: 'off'
-    for: 00:20:00
-    entity_id:
-      - binary_sensor.master_room_bed_motion_sensor_motion
-      - binary_sensor.master_room_entrance_motion_sensor
-      - binary_sensor.master_room_stair_motion_sensor_motion
-      - binary_sensor.master_room_dressing_table_motion_sensor_motion
-      - binary_sensor.master_room_tv_motion_sensor_motion
-      - binary_sensor.master_room_drawer_motion_sensor_motion
-  - minutes: /5
-    platform: time_pattern      
-  condition: 
-  - condition: state
-    entity_id:
-      - binary_sensor.master_room_bed_motion_sensor_motion
-      - binary_sensor.master_room_entrance_motion_sensor
-      - binary_sensor.master_room_stair_motion_sensor_motion
-      - binary_sensor.master_room_dressing_table_motion_sensor_motion
-      - binary_sensor.master_room_tv_motion_sensor_motion
-      - binary_sensor.master_room_drawer_motion_sensor_motion
-    for: 00:20:00
-    state: 'off'    
+    - platform: state
+      from: "on"
+      to: "off"
+      for: 00:20:00
+      entity_id:
+        - binary_sensor.master_room_bed_motion_sensor_motion
+        - binary_sensor.master_room_entrance_motion_sensor
+        - binary_sensor.master_room_stair_motion_sensor_motion
+        - binary_sensor.master_room_dressing_table_motion_sensor_motion
+        - binary_sensor.master_room_tv_motion_sensor_motion
+        - binary_sensor.master_room_drawer_motion_sensor_motion
+    - minutes: /5
+      platform: time_pattern
+  condition:
+    - condition: state
+      entity_id:
+        - binary_sensor.master_room_bed_motion_sensor_motion
+        - binary_sensor.master_room_entrance_motion_sensor
+        - binary_sensor.master_room_stair_motion_sensor_motion
+        - binary_sensor.master_room_dressing_table_motion_sensor_motion
+        - binary_sensor.master_room_tv_motion_sensor_motion
+        - binary_sensor.master_room_drawer_motion_sensor_motion
+      for: 00:20:00
+      state: "off"
   action:
-  # Switch Off TV
-  - service:   switch.turn_off
-    entity_id: switch.master_room_tv    
-
-    
-    
-    
-    
-    
+    # Switch Off TV
+    - service: switch.turn_off
+      entity_id: switch.master_room_tv

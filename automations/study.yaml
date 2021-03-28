@@ -11,58 +11,52 @@
 ###############################################
 
 - alias: H-ST Study Heating On If Person Present
-  id: '1600014380444'
-  description: 'automation.study_heating_on_if_person_present'
+  id: "1600014380444"
+  description: "automation.study_heating_on_if_person_present"
   trigger:
-  - entity_id: binary_sensor.study_motion_sensor_motion
-    platform: state
-    from: 'off'
-    to: 'on'
+    - entity_id: binary_sensor.study_motion_sensor_motion
+      platform: state
+      from: "off"
+      to: "on"
   condition: []
   action:
-  - data:
-      hvac_mode: heat
-    entity_id: climate.study
-    service: climate.set_hvac_mode
-  - data:
-      temperature: 23
-    entity_id: climate.study
-    service: climate.set_temperature
-  - data:
-      stop_actions: false
-    entity_id: automation.study_heating_on_if_person_present
-    service: automation.turn_off
+    - data:
+        hvac_mode: heat
+      entity_id: climate.study
+      service: climate.set_hvac_mode
+    - data:
+        temperature: 23
+      entity_id: climate.study
+      service: climate.set_temperature
+    - data:
+        stop_actions: false
+      entity_id: automation.study_heating_on_if_person_present
+      service: automation.turn_off
 
-
-
-
-- alias: H-ST Study Heating Off If No Person 
-  id: '1600015749444'
-  description: 'automation.study_heating_off_if_no_person'
+- alias: H-ST Study Heating Off If No Person
+  id: "1600015749444"
+  description: "automation.study_heating_off_if_no_person"
   trigger:
-  - entity_id: binary_sensor.study_motion_sensor_motion
-    for: 00:05:00
-    from: 'on'
-    platform: state
-    to: 'off'
-  - minutes: /5
-    platform: time_pattern
+    - entity_id: binary_sensor.study_motion_sensor_motion
+      for: 00:05:00
+      from: "on"
+      platform: state
+      to: "off"
+    - minutes: /5
+      platform: time_pattern
   condition:
-  - condition: state
-    entity_id: binary_sensor.study_motion_sensor_motion
-    for: 00:05:00
-    state: 'off'
+    - condition: state
+      entity_id: binary_sensor.study_motion_sensor_motion
+      for: 00:05:00
+      state: "off"
   action:
-  - service: climate.set_hvac_mode
-    entity_id: climate.study
-    data:
-      hvac_mode: auto
-  - data: {}
-    entity_id: automation.study_heating_on_if_person_present
-    service: automation.turn_on
-
-
-
+    - service: climate.set_hvac_mode
+      entity_id: climate.study
+      data:
+        hvac_mode: auto
+    - data: {}
+      entity_id: automation.study_heating_on_if_person_present
+      service: automation.turn_on
 
 ###############################################
 #
@@ -70,56 +64,58 @@
 #
 ###############################################
 - alias: L-ST Study Lights On If Person Present
-  id: '1603640030051'
-  description: ''
+  id: "1603640030051"
+  description: ""
   trigger:
-  - entity_id: binary_sensor.study_motion_sensor_motion
-    platform: state
-    from: 'off'
-    to: 'on'
+    - entity_id: binary_sensor.study_motion_sensor_motion
+      platform: state
+      from: "off"
+      to: "on"
   condition:
     - condition: and
       conditions:
-      - entity_id: binary_sensor.study_motion_sensor_motion
-        condition: state
-        state: 'on'
+        - entity_id: binary_sensor.study_motion_sensor_motion
+          condition: state
+          state: "on"
       #- entity_id: sensor.study_motion_sensor_light
       #  condition: numeric_state
       #  below: '50'
   action:
-  - service:   light.turn_on
-    entity_id: light.study_ceiling_light
-  - service:   light.turn_on
-    entity_id: light.study_lamps
-  - service:   switch.turn_on
-    entity_id: switch.study_screen_led
-        
-
+    - service: light.turn_on
+      entity_id: light.study_ceiling_light
+    - service: light.turn_on
+      entity_id: light.study_lamps
+    # Only turn on screen LED in daytime
+    - condition: time
+      after: "06:00:00"
+      before: "20:00:00"
+    - service: switch.turn_on
+      entity_id: switch.study_screen_led
 
 - alias: L-ST Study Lights Off If No Person Present For 5 Min
-  id: '1603640030052'
-  description: ''
+  id: "1603640030052"
+  description: ""
   trigger:
-  - entity_id: binary_sensor.study_motion_sensor_motion
-    platform: state
-    from: 'on'
-    to: 'off'
-    for: 00:15:00
-  - minutes: /5
-    platform: time_pattern
+    - entity_id: binary_sensor.study_motion_sensor_motion
+      platform: state
+      from: "on"
+      to: "off"
+      for: 00:15:00
+    - minutes: /5
+      platform: time_pattern
   condition:
     - entity_id: binary_sensor.study_motion_sensor_motion
       condition: state
-      state: 'off'
+      state: "off"
       for: 00:15:00
   action:
-  - service:   light.turn_off
-    entity_id: light.study_ceiling_light
-  - service:   light.turn_off
-    entity_id: light.study_lamps
-  - service:   switch.turn_off
-    entity_id: switch.study_screen_led
-    
+    - service: light.turn_off
+      entity_id: light.study_ceiling_light
+    - service: light.turn_off
+      entity_id: light.study_lamps
+    - service: switch.turn_off
+      entity_id: switch.study_screen_led
+
 ###############################################
 #
 # Lighting Automation based on buttons
@@ -128,67 +124,65 @@
 
 - alias: B-ST Study Wall Switch - Single Press - Toggle Ceiling Light
   trigger:
-  - platform: state
-    entity_id: sensor.study_ceiling_light_wall_button
-    to: single
+    - platform: state
+      entity_id: sensor.study_ceiling_light_wall_button
+      to: single
   action:
-  - choose:
-    # IF - all lights off - turn on ceiling light
-    - conditions:
-      - condition: and
-        conditions:
-        - condition: state
-          entity_id: light.study_ceiling_light
-          state: 'off'
-        - condition: state
+    - choose:
+        # IF - all lights off - turn on ceiling light
+        - conditions:
+            - condition: and
+              conditions:
+                - condition: state
+                  entity_id: light.study_ceiling_light
+                  state: "off"
+                - condition: state
+                  entity_id: switch.study_screen_led
+                  state: "off"
+                - condition: state
+                  entity_id: light.study_lamps
+                  state: "off"
+          sequence:
+            - service: light.turn_on
+              entity_id: light.study_ceiling_light
+      # ELSE - some lights on - turn off all lights
+      default:
+        - service: switch.turn_off
           entity_id: switch.study_screen_led
-          state: 'off'
-        - condition: state
-          entity_id: light.study_lamps
-          state: 'off'
-      sequence:
-        - service: switch.turn_on
-          entity_id: light.guest_room_ceiling_light
-    # ELSE - some lights on - turn off all lights
-    default:
-      - service: switch.turn_off
-        entity_id: 
-        - switch.study_screen_led
-      - service: light.turn_off
-        entity_id: 
-        - light.study_ceiling_light
-        - light.study_lamps
-
+        - service: light.turn_off
+          entity_id:
+            - light.study_ceiling_light
+            - light.study_lamps
 
 - alias: B-ST Study Button Single Press - Toggle Ceiling Lights
   trigger:
-  #- platform: state
-  #  entity_id: sensor.study_button
-  #  to: single
-  - platform: event
-    event_type: xiaomi_aqara.click
-    event_data:
-      entity_id: binary_sensor.study_button
-      click_type: single    
+    #- platform: state
+    #  entity_id: sensor.study_button
+    #  to: single
+    - platform: event
+      event_type: xiaomi_aqara.click
+      event_data:
+        entity_id: binary_sensor.study_button
+        click_type: single
   action:
-  - service:   light.toggle
-    entity_id: light.study_ceiling_light
-    
+    - service: light.toggle
+      entity_id: light.study_ceiling_light
 
-- alias: B-ST Study Button Double Press - Toggle Screen LED/Desk Lamps
+- alias: B-ST Study Button/Wall Switch - Double Press - Toggle Screen LED/Desk Lamps
   trigger:
-  #- platform: state
-  #  entity_id: sensor.study_button
-  #  to: double
-  - platform: event
-    event_type: xiaomi_aqara.click
-    event_data:
-      entity_id: binary_sensor.study_button
-      click_type: double        
+    #- platform: state
+    #  entity_id: sensor.study_button
+    #  to: double
+    - platform: event
+      event_type: xiaomi_aqara.click
+      event_data:
+        entity_id: binary_sensor.study_button
+        click_type: double
+    - platform: state
+      entity_id: sensor.study_ceiling_light_wall_button
+      to: double
   action:
-  - service:   switch.toggle
-    entity_id: switch.study_screen_led
-  - service:   light.toggle
-    entity_id: light.study_lamps
-
-
+    - service: switch.toggle
+      entity_id: switch.study_screen_led
+    - service: light.toggle
+      entity_id: light.study_lamps

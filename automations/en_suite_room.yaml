@@ -69,18 +69,19 @@
   - service: script.en_suite_room_all_lights_turn_off
   - service: automation.turn_on
     entity_id: automation.en_suite_room_lights_on_if_person_present
+  # Clear flags
+  - service: input_boolean.turn_off
+    entity_id: input_boolean.en_suite_room_short_presence
   # Turn Off Room Thermostat and Turn On Auto Heating
-  - service: automation.turn_off
-    entity_id: automation.en_suite_room_heating_based_on_temerature_sensor
+  - service: climate.set_temperature
+    entity_id: climate.en_suite_room_thermostat
+    data:
+      temperature: 10
   - service: automation.turn_on
     entity_id: automation.en_suite_room_heating_on_if_person_present
-  - service: climate.set_hvac_mode
-    entity_id: climate.en_suite_room
-    data:
-      hvac_mode: auto
-
-
-- alias: H-ER En-suite Room Heating Automation On If Person Present
+    
+      
+- alias: H-ER En-suite Room Heating On If Person Present
   id: '1599909943111'
   description: 'automation.en_suite_room_heating_on_if_person_present'
   trigger:
@@ -88,140 +89,113 @@
     platform: state
     from: 'off'
     to: 'on'
-  condition: []
+  # Queued mode guarentees race condition are in series
+  mode: queued
   action:
-  - service: climate.set_hvac_mode
-    entity_id: climate.en_suite_room
-    data:
-      hvac_mode: heat
-  - service: climate.set_temperature
-    entity_id: climate.en_suite_room
-    data:
-      temperature: 20
-  - entity_id: automation.en_suite_room_heating_based_on_temerature_sensor
-    service: automation.turn_on
-  - data:
-      stop_actions: false
-    entity_id: automation.en_suite_room_heating_on_if_person_present
-    service: automation.turn_off
+    # Resolve race on multiple triggers - only execute instances that
+    # turned on heating and turned off the automation.
+    - condition: state
+      entity_id: automation.en_suite_room_heating_on_if_person_present
+      state: "on"
+    # Turn on heating on repeated short presence or longer presence
+    - choose:
+        # IF - first time entering, set the flag
+        #      Longer presence will turn on heating
+        - conditions:
+            # Wait for 1.5 min if it is the first time of presence
+            - condition: state
+              entity_id: input_boolean.en_suite_room_short_presence
+              state: "off"
+          sequence:
+            # set the short presence flag
+            - service: input_boolean.turn_on
+              entity_id: input_boolean.en_suite_room_short_presence
+            # Delay 1.5 min and test motion sensor
+            - delay: 00:01:45
+            - condition: state
+              entity_id: binary_sensor.en_suite_room_bed_motion_sensor_motion
+              state: "on"
+            # Longer presence will turn on heating
+            - service: script.en_suite_room_set_heating_temp_with_state_maintaince
+      # ELSE - Repeated short presence will turn on heating
+      default:
+        - service: script.en_suite_room_set_heating_temp_with_state_maintaince
 
-
-
-
-- alias: H-ER En-suite Room Heating Set to 22.5 Based on Temerature Sensor
-  id: '1602027730610'
-  description: 'automation.en_suite_room_heating_based_on_temerature_sensor'
-  trigger:
-  - minutes: /3
-    platform: time_pattern
-  condition: []
-  action:
-  - data:
-      hvac_mode: heat
-    entity_id: climate.en_suite_room
-    service: climate.set_hvac_mode
-  - data:
-      temperature: >
-        {% set temp = states('sensor.temp_of_en_suite_room')|float %}
-        {% if temp < 22.5 %}
-          25
-        {% else %}
-          5
-        {% endif %}
-    entity_id: climate.en_suite_room
-    service: climate.set_temperature
-
-
-
-
-- alias: H-ER En-suite Room Heating Off If No Person For 10 Min
-  id: '1599910386111'
-  description: 'automation.en_suite_room_heating_off_if_no_person_in_daytime'
-  trigger:
-  - minutes: /5
-    platform: time_pattern
-  - entity_id: binary_sensor.en_suite_room_motion_sensor_motion
-    platform: state
-    from: 'on'
-    to: 'off'
-    for: 00:10:00
-  - minutes: /5
-    platform: time_pattern
-  condition:
-  - condition: state
-    entity_id: binary_sensor.en_suite_room_motion_sensor_motion
-    for: 00:10:00
-    state: 'off'
-  action:
-  - data: {}
-    entity_id: automation.en_suite_room_heating_based_on_temerature_sensor
-    service: automation.turn_off
-  - data: {}
-    entity_id: automation.en_suite_room_heating_on_if_person_present
-    service: automation.turn_on
-  - service: climate.set_hvac_mode
-    entity_id: climate.en_suite_room
-    data:
-      hvac_mode: auto
 
 
 # En-suite Room with Custom Thermostat
-- alias: H-ER En-suite Room Thermostat Switch Turns On/Off The Tado Valve
+- alias: H-ER En-suite Room Thermostat Switch Turns On/Off the Tado Valve
   trigger:
-  - platform:  state
-    entity_id: input_boolean.en_suite_room_valve_switch
-    to: 
-      - 'off'
-      - 'on'
-  - minutes:  /5
-    platform: time_pattern
+    - platform: state
+      entity_id: input_boolean.en_suite_room_valve_switch
+      to:
+        - "off"
+        - "on"
+    - minutes: /5
+      platform: time_pattern
   condition: []
   action:
-  - data:
-      hvac_mode: heat
-    entity_id: climate.en_suite_room
-    service: climate.set_hvac_mode
-  - data:
-      temperature: >
-        {% if states('input_boolean.en_suite_room_valve_switch') == 'off' %}
-          5
-        {% else %}
-          25
-        {% endif %}
-    entity_id: climate.en_suite_room
-    service: climate.set_temperature
+    - data:
+        hvac_mode: heat
+      entity_id: climate.en_suite_room
+      service: climate.set_hvac_mode
+    - data:
+        # Set tado temperature based on outdoor temperatures
+        temperature: >
+          {% if states('input_boolean.en_suite_room_valve_switch') == 'off' %}
+            5
+          {% else %}
+            25
+          {% endif %}
+      entity_id: climate.en_suite_room
+      service: climate.set_temperature
 
 
 
 # En-suite Toilet
-- alias: H-ET En-suite Toilet Heating Set to 22 If Person Present
-  id: '1600014380333'
+- alias: H-ER En-suite Toilet Heating On If Person Present
+  id: '1599909943194'
   description: 'automation.en_suite_toilet_heating_on_if_person_present'
   trigger:
   - entity_id: binary_sensor.en_suite_toilet_motion_sensor_motion
     platform: state
     from: 'off'
     to: 'on'
-  condition: []
+  # Queued mode guarentees race condition are in series
+  mode: queued
   action:
-  - data:
-      hvac_mode: heat
-    entity_id: climate.en_suite_toilet
-    service: climate.set_hvac_mode
-  - data:
-      temperature: 22
-    entity_id: climate.en_suite_toilet
-    service: climate.set_temperature
-  - data: {}
-    entity_id: automation.en_suite_toilet_heating_on_if_person_present
-    service: automation.turn_off
-
+    # Resolve race on multiple triggers - only execute instances that
+    # turned on heating and turned off the automation.
+    - condition: state
+      entity_id: automation.en_suite_toilet_heating_on_if_person_present
+      state: "on"
+    # Turn on heating on repeated short presence or longer presence
+    - choose:
+        # IF - first time entering, set the flag
+        #      Longer presence will turn on heating
+        - conditions:
+            # Wait for 1.5 min if it is the first time of presence
+            - condition: state
+              entity_id: input_boolean.en_suite_toilet_short_presence
+              state: "off"
+          sequence:
+            # set the short presence flag
+            - service: input_boolean.turn_on
+              entity_id: input_boolean.en_suite_toilet_short_presence
+            # Delay 1.5 min and test motion sensor
+            - delay: 00:01:45
+            - condition: state
+              entity_id: binary_sensor.en_suite_toilet_motion_sensor_motion
+              state: "on"
+            # Longer presence will turn on heating
+            - service: script.en_suite_toilet_set_heating_temp_with_state_maintaince
+      # ELSE - Repeated short presence will turn on heating
+      default:
+        - service: script.en_suite_toilet_set_heating_temp_with_state_maintaince
 
 
 
 - alias: H-ET En-suite Toilet Heating Off If No Person
-  id: '1600015749333'
-  description: ''
   trigger:
   - entity_id: binary_sensor.en_suite_toilet_motion_sensor_motion
     platform: state
@@ -236,13 +210,16 @@
     for: 00:05:00
     state: 'off'
   action:
-  - service: climate.set_hvac_mode
+  # Clear flags
+  - service: input_boolean.turn_off
+    entity_id: input_boolean.en_suite_toilet_short_presence
+  # Turn Off Room Tado and Turn On Auto Heating
+  - service: climate.set_temperature
     entity_id: climate.en_suite_toilet
     data:
-      hvac_mode: auto
-  - data: {}
+      temperature: 5
+  - service: automation.turn_on
     entity_id: automation.en_suite_toilet_heating_on_if_person_present
-    service: automation.turn_on
 
 
 ###############################################
@@ -267,7 +244,7 @@
     state: 'on'
   - entity_id: sensor.en_suite_room_motion_sensor_light
     condition: numeric_state
-    below: '30'
+    below: '40'
   action:
   - data: {}
     service: script.en_suite_room_all_lights_turn_on
@@ -431,6 +408,10 @@
   - service: automation.turn_off
     entity_id:
      - automation.en_suite_room_lights_on_if_person_present
+  # Short presence machanism requires to turn off auto-heating late     
+  - delay: 00:03:00
+  - service: automation.turn_off
+    entity_id:
      - automation.en_suite_room_heating_on_if_person_present
 
 

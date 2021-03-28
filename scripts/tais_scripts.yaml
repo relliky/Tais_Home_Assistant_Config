@@ -2,8 +2,8 @@ test1:
   alias: test 1
   fields:
     target_player:
-      description: 'Sonos player name that need to be added into the group'
-      example: 'media_player.master_room_sonos'  
+      description: "Sonos player name that need to be added into the group"
+      example: "media_player.master_room_sonos"
   sequence:
     - service: sonos.unjoin
       data:
@@ -13,13 +13,13 @@ test1:
 ###########################################
 # Sonos Services
 ###########################################
-add_sonos_into_speaker_group:    
+add_sonos_into_speaker_group:
   mode: queued
   alias: Add Sonos Speaker Into the Speaker Group
   fields:
     target_player:
-      description: 'Sonos player name that need to be added into the group'
-      example: 'media_player.master_room_sonos'
+      description: "Sonos player name that need to be added into the group"
+      example: "media_player.master_room_sonos"
   sequence:
     - condition: template
       value_template: >
@@ -28,7 +28,7 @@ add_sonos_into_speaker_group:
         {% else %}
           false
         {% endif %}
-        
+
     # The target player must not be playing anything
     - condition: template
       value_template: >
@@ -37,7 +37,7 @@ add_sonos_into_speaker_group:
         {% else %}
           false
         {% endif %}
-    
+
     # First set the target player to the same volume as the controller
     - service: media_player.volume_set
       data_template:
@@ -50,12 +50,12 @@ add_sonos_into_speaker_group:
             {% if   states('input_select.music_controller') != 'kitchen_sonos' and target_player == 'media_player.kitchen_sonos' %}
               {{ state.attributes.volume_level + 0.1 }}
             {% elif states('input_select.music_controller') == 'kitchen_sonos' and target_player != 'media_player.kitchen_sonos' %}
-              {{ state.attributes.volume_level - 0.1 }}
+              {{ state.attr1236cecc-385d-46ac-b39b-0a96a03e9515ibutes.volume_level - 0.1 }}
             {% else %}  
               {{ state.attributes.volume_level }}
             {% endif %}
           {% endfor %}
-  
+
     # Now join the player into the group in case sometimes it didn't manage to join in for certain cases
     - service: sonos.join
       data_template:
@@ -77,14 +77,13 @@ add_sonos_into_speaker_group:
             media_player.living_room_sonos
           {% endif %}
 
-
 remove_sonos_from_speaker_group:
   alias: Remove Sonos Speaker From the Speaker Group and Update the Master Speaker
   mode: queued
   fields:
     target_player:
-      description: 'Sonos player that need to be removed from the group'
-      example: 'media_player.master_room_sonos'  
+      description: "Sonos player that need to be removed from the group"
+      example: "media_player.master_room_sonos"
   sequence:
     - condition: template
       value_template: >
@@ -93,7 +92,7 @@ remove_sonos_from_speaker_group:
         {% else %}
           false
         {% endif %}
-  
+
     # The target player must be playing
     - condition: template
       value_template: >
@@ -102,7 +101,7 @@ remove_sonos_from_speaker_group:
         {% else %}
           false
         {% endif %}
-  
+
     # The target is not the soundbar that is playing TV sound
     - condition: template
       value_template: >
@@ -112,29 +111,29 @@ remove_sonos_from_speaker_group:
           false
         {% endif %}
 
-    # Update the master speaker in the group 
+    # Update the master speaker in the group
     - service: input_select.select_option
       entity_id: input_select.music_controller
       data:
         option: >
-         {% set ns = namespace() %}
-         {% set ns.primary_speaker   = 'none' %}
-         {% set ns.secondary_speaker = 'none' %}
-         {# set the pri_speaker and sec_speaker #}
-         {% for speaker in state_attr(target_player, "sonos_group") %}
-           {% if loop.index == 1 %} 
-             {% set ns.primary_speaker   = speaker|regex_replace(find='media_player.', replace='', ignorecase=False) %}
-           {% elif loop.index == 2 %} 
-             {% set ns.secondary_speaker = speaker|regex_replace(find='media_player.', replace='', ignorecase=False) %}
-           {% endif %}
-         {% endfor %}
+          {% set ns = namespace() %}
+          {% set ns.primary_speaker   = 'none' %}
+          {% set ns.secondary_speaker = 'none' %}
+          {# set the pri_speaker and sec_speaker #}
+          {% for speaker in state_attr(target_player, "sonos_group") %}
+            {% if loop.index == 1 %} 
+              {% set ns.primary_speaker   = speaker|regex_replace(find='media_player.', replace='', ignorecase=False) %}
+            {% elif loop.index == 2 %} 
+              {% set ns.secondary_speaker = speaker|regex_replace(find='media_player.', replace='', ignorecase=False) %}
+            {% endif %}
+          {% endfor %}
 
-         {# use the second speaker as master speaker if target speaker is currently the master #}
-         {% if target_player == ('media_player.' + ns.primary_speaker) and ns.secondary_speaker != 'none' %}
-           {{ ns.secondary_speaker }}
-         {% else %}
-           {{ ns.primary_speaker }}
-         {% endif %} 
+          {# use the second speaker as master speaker if target speaker is currently the master #}
+          {% if target_player == ('media_player.' + ns.primary_speaker) and ns.secondary_speaker != 'none' %}
+            {{ ns.secondary_speaker }}
+          {% else %}
+            {{ ns.primary_speaker }}
+          {% endif %}
 
     # The target must be the slave to be removed from the group
     - condition: template
@@ -144,7 +143,7 @@ remove_sonos_from_speaker_group:
         {% else %}
           false
         {% endif %}
-        
+
     - service: sonos.unjoin
       data:
         entity_id: >
@@ -154,14 +153,13 @@ remove_sonos_from_speaker_group:
             media_player.living_room_sonos
           {% endif %}
 
-    
 pause_sonos_if_sole_speaker_group:
   alias: Pause the Sonos Speaker if it is a Sole Speaker Group
   mode: queued
   fields:
     target_player:
-      description: 'Sonos player that need to be paused'
-      example: 'media_player.master_room_sonos'  
+      description: "Sonos player that need to be paused"
+      example: "media_player.master_room_sonos"
   sequence:
     - condition: template
       value_template: >
@@ -169,9 +167,9 @@ pause_sonos_if_sole_speaker_group:
           true
         {% else %}
           false
-        {% endif %}  
-    
-    # check it is a sole speaker    
+        {% endif %}
+
+    # check it is a sole speaker
     - condition: template
       value_template: >
         {% for speaker in state_attr(target_player, "sonos_group") %}
@@ -183,7 +181,7 @@ pause_sonos_if_sole_speaker_group:
             {% endif %}
           {% endif %}
         {% endfor %}
-        
+
     - service: media_player.media_pause
       data:
         entity_id: >
@@ -192,7 +190,6 @@ pause_sonos_if_sole_speaker_group:
           {% else %}
             media_player.living_room_sonos
           {% endif %}
-
 
 ###########################################
 # Corridors Services
@@ -210,7 +207,7 @@ corridor_nighttime_lights_turn_on:
   - entity_id: light.first_corridor_ble_light
     service: light.turn_on
     data:
-      brightness: 3
+      brightness: 1
       kelvin: 2700
 
 
@@ -243,17 +240,16 @@ corridor_lights_turn_on:
         script.corridor_daytime_lights_turn_on
       {% endif %}
 
-
 corridor_lights_turn_off:
   alias: Corridor Lights Turn Off
   max: 100
   mode: parallel
   sequence:
-  - entity_id: light.ground_corridor_ble_light
-    service: light.turn_off
-  - entity_id: light.first_corridor_ble_light
-    service: light.turn_off
-
+    - service: light.turn_off
+      entity_id: 
+      - light.first_corridor_ble_light
+      - light.ground_corridor_ble_light
+     
 ###########################################
 # Ground Toilet Services
 ###########################################
@@ -262,42 +258,41 @@ ground_toilet_light_turn_on:
   mode: parallel
   max: 100
   sequence:
-  - data: {}
-    entity_id: switch.ground_toilet_light
-    service: switch.turn_on
+    - data: {}
+      entity_id: switch.ground_toilet_light
+      service: switch.turn_on
 
 ground_toilet_light_turn_off:
   alias: Ground Toilet Light Turn Off
   mode: parallel
   max: 100
   sequence:
-  - data: {}
-    entity_id: switch.ground_toilet_light
-    service: switch.turn_off
-
+    - data: {}
+      entity_id: switch.ground_toilet_light
+      service: switch.turn_off
 
 ground_toilet_set_heating_temp_with_state_maintaince:
   alias: Ground Toilet Set Heating Temperature With State Maintaince
   mode: restart
   sequence:
-  # Clear flags
-  # set the short presence flag
-  - service:   input_boolean.turn_off
-    entity_id: input_boolean.ground_toilet_short_presence  
-  # turn on heating    
-  - service:   climate.set_hvac_mode
-    entity_id: climate.ground_toilet
-    data:
-      hvac_mode: heat
-  - service:   climate.set_temperature
-    entity_id: climate.ground_toilet
-    data:
-      temperature: 20
-  - service:   automation.turn_off
-    entity_id: automation.ground_toilet_heating_on_if_people_present
-    data:
-      stop_actions: false
-    
+    # Clear flags
+    # set the short presence flag
+    - service: input_boolean.turn_off
+      entity_id: input_boolean.ground_toilet_short_presence
+    # turn on heating
+    - service: climate.set_hvac_mode
+      entity_id: climate.ground_toilet
+      data:
+        hvac_mode: heat
+    - service: climate.set_temperature
+      entity_id: climate.ground_toilet
+      data:
+        temperature: 20
+    - service: automation.turn_off
+      entity_id: automation.ground_toilet_heating_on_if_people_present
+      data:
+        stop_actions: false
+
 ###########################################
 # Kitchen Services
 ###########################################
@@ -306,14 +301,14 @@ kitchen_all_lights_turn_off:
   max: 100
   mode: parallel
   sequence:
-  - entity_id:  light.kitchen_ceiling_light
-    service:    light.turn_off
-  - entity_id: switch.kitchen_dining_light
-    service:   switch.turn_off
-  - entity_id: switch.kitchen_floor_led
-    service:   switch.turn_off
-  - entity_id: script.kitchen_worktop_lights_turn_off
-    service:   script.turn_on
+    - entity_id: light.kitchen_ceiling_light
+      service: light.turn_off
+    - entity_id: light.kitchen_dining_light
+      service: light.turn_off
+    - entity_id: switch.kitchen_floor_led
+      service: switch.turn_off
+    - entity_id: script.kitchen_worktop_lights_turn_off
+      service: script.turn_on
 
 # Turn Off All Kitchen Lights and Also Reset Extractor Automation
 kitchen_all_lights_and_appliances_turn_off:
@@ -321,181 +316,176 @@ kitchen_all_lights_and_appliances_turn_off:
   max: 100
   mode: parallel
   sequence:
-  - data: {}
-    entity_id: script.kitchen_extractor_turn_off
-    service: script.turn_on
-  - data: {}
-    entity_id: script.kitchen_all_lights_turn_off
-    service: script.turn_on
-
+    - entity_id: script.kitchen_extractor_turn_off
+      service: script.turn_on
+    - entity_id: script.kitchen_all_lights_turn_off
+      service: script.turn_on
 
 kitchen_worktop_lights_turn_on:
   alias: Kitchen Worktop Lights Turn On
   max: 100
   mode: parallel
   sequence:
-  - data: {}
-    entity_id: switch.kitchen_led_left_13815882
-    service: switch.turn_on
-  - data: {}
-    entity_id: switch.kitchen_led_right_97186274
-    service: switch.turn_on
-
+    - data: {}
+      entity_id: switch.kitchen_worktop_led_left
+      service: switch.turn_on
+    - data: {}
+      entity_id: switch.kitchen_worktop_led_right
+      service: switch.turn_on
 
 kitchen_worktop_lights_turn_off:
   alias: Kitchen Worktop Lights Turn Off
   max: 100
   mode: parallel
   sequence:
-  - data: {}
-    entity_id: switch.kitchen_led_left_13815882
-    service: switch.turn_off
-  - data: {}
-    entity_id: switch.kitchen_led_right_97186274
-    service: switch.turn_off
-
+    - data: {}
+      entity_id: switch.kitchen_worktop_led_left
+      service: switch.turn_off
+    - data: {}
+      entity_id: switch.kitchen_worktop_led_right
+      service: switch.turn_off
 
 kitchen_worktop_and_ceiling_lights_turn_on:
   alias: Kitchen Worktop and Ceiling Lights Turn On
   max: 100
   mode: parallel
   sequence:
-  - data: {}
-    entity_id: script.kitchen_worktop_lights_turn_on
-    service: script.turn_on
-  - data: {}
-    entity_id: light.kitchen_ceiling_light
-    service: light.turn_on
-
+    - data: {}
+      entity_id: script.kitchen_worktop_lights_turn_on
+      service: script.turn_on
+    - data: {}
+      entity_id: light.kitchen_ceiling_light
+      service: light.turn_on
 
 kitchen_worktop_and_ceiling_lights_turn_off:
   alias: Kitchen Worktop and Ceiling Lights Turn Off
   max: 100
   mode: parallel
   sequence:
-  - data: {}
-    entity_id: script.kitchen_worktop_lights_turn_off
-    service: script.turn_on
-  - data: {}
-    entity_id: light.kitchen_ceiling_light
-    service: light.turn_off
-
+    - data: {}
+      entity_id: script.kitchen_worktop_lights_turn_off
+      service: script.turn_on
+    - data: {}
+      entity_id: light.kitchen_ceiling_light
+      service: light.turn_off
 
 kitchen_worktop_and_ceiling_lights_toggle:
   alias: Kitchen Worktop and Ceiling Lights Turn Off
   max: 100
   mode: parallel
   sequence:
-  - service: >
-      {% if is_state('switch.kitchen_led_left_13815882', 'on') %}
-         script.kitchen_worktop_and_ceiling_lights_turn_off
-      {% else %}
-         script.kitchen_worktop_and_ceiling_lights_turn_on
-      {% endif %}
-
+    - service: >
+        {% if is_state('switch.kitchen_worktop_led_left', 'on') %}
+          script.kitchen_worktop_and_ceiling_lights_turn_off
+        {% else %}
+          script.kitchen_worktop_and_ceiling_lights_turn_on
+        {% endif %}
 
 kitchen_set_dark_warm_light:
   alias: Kitchen Set Dark Warm Light
   mode: single
   sequence:
-  - service: script.kitchen_worktop_lights_turn_off
-  - service:   switch.turn_off
-    entity_id: switch.kitchen_floor_led
-  - service:   light.turn_on
-    entity_id: light.kitchen_ceiling_light
-    data:
-      brightness: 1
-      kelvin:  3000      
-
+    - service: light.turn_on
+      entity_id: 
+       - light.kitchen_ceiling_light
+       - light.kitchen_dining_light
+      data:
+        brightness: 1
+        kelvin: 3000
 
 kitchen_set_bright_warm_light:
   alias: Kitchen Set Bright Warm Light
   mode: single
   sequence:
-  - service: script.kitchen_worktop_lights_turn_off
-  - service:   switch.turn_on
-    entity_id: switch.kitchen_floor_led
-  - service:   light.turn_on
-    entity_id: light.kitchen_ceiling_light
-    data:
-      brightness: 255
-      kelvin:  3000      
-
+    - service: switch.turn_on
+      entity_id: switch.kitchen_floor_led
+    - service: light.turn_on
+      entity_id: light.kitchen_ceiling_light
+      data:
+        brightness: 255
+        kelvin: 3000
+    - service: light.turn_on
+      entity_id: light.kitchen_dining_light
+      data:
+        brightness: 255
+        kelvin: 3000
 
 kitchen_set_cool_white_light:
   alias: Master Toilet Set Cool White Light
   mode: single
   sequence:
-  - service: script.kitchen_worktop_lights_turn_on
-  - service:   switch.turn_off
-    entity_id: switch.kitchen_floor_led
-  - service:   light.turn_on
-    entity_id: light.kitchen_ceiling_light
-    data:
-      brightness: 255
-      kelvin:  5000      
-      
-
+    - service: script.kitchen_worktop_lights_turn_on
+    - service: switch.turn_off
+      entity_id: switch.kitchen_floor_led
+    - service: light.turn_on
+      entity_id: light.kitchen_ceiling_light
+      data:
+        brightness: 255
+        kelvin: 4000
+    - service: light.turn_on
+      entity_id: light.kitchen_dining_light
+      data:
+        brightness: 255
+        kelvin: 4000
+        
 kitchen_extractor_turn_off:
   alias: Kitchen Extractor Turn Off
   max: 100
   mode: parallel
   sequence:
-  - data: {}
-    entity_id: switch.kitchen_extractor
-    service: switch.turn_off
-
+    - data: {}
+      entity_id: switch.kitchen_extractor
+      service: switch.turn_off
 
 kitchen_extractor_turn_on:
   alias: Kitchen Extractor Turn On
   max: 100
   mode: parallel
   sequence:
-  - entity_id: switch.kitchen_extractor
-    service: switch.turn_on
-
+    - entity_id: switch.kitchen_extractor
+      service: switch.turn_on
 
 kitchen_set_heating_temp_with_state_maintaince:
   alias: Kitchen Set Heating Temperature With State Maintaince
   mode: restart
   sequence:
-  # Clear flags
-  - service:   input_boolean.turn_off
-    entity_id: input_boolean.kitchen_short_presence  
-  # Turn on Heating     
-  - data:
-      hvac_mode: heat
-    entity_id: climate.kitchen
-    service: climate.set_hvac_mode
-  - data:
-      temperature: 21
-    entity_id: climate.kitchen
-    service: climate.set_temperature
-  - data:
-      stop_actions: false
-    entity_id: automation.kitchen_heating_on_if_people_present
-    service: automation.turn_off
+    # Clear flags
+    - service: input_boolean.turn_off
+      entity_id: input_boolean.kitchen_short_presence
+    # Turn on Heating
+    - data:
+        hvac_mode: heat
+      entity_id: climate.kitchen
+      service: climate.set_hvac_mode
+    - data:
+        temperature: 21
+      entity_id: climate.kitchen
+      service: climate.set_temperature
+    - data:
+        stop_actions: false
+      entity_id: automation.kitchen_heating_on_if_people_present
+      service: automation.turn_off
 
 ###########################################
 # Study Sevices
-###########################################  
+###########################################
 study_ceiling_light_turn_on:
   alias: Study Ceiling Light Turn On
   mode: parallel
   max: 100
   sequence:
-  - data: {}
-    entity_id: switch.study_light
-    service: switch.turn_on
+    - data: {}
+      entity_id: switch.study_light
+      service: switch.turn_on
 
 study_ceiling_light_turn_off:
   alias: Study Ceiling Light Turn off
   mode: parallel
   max: 100
   sequence:
-  - data: {}
-    entity_id: switch.study_light
-    service: switch.turn_off
+    - data: {}
+      entity_id: switch.study_light
+      service: switch.turn_off
 
 ###########################################
 # Master Room Sevices
@@ -505,200 +495,198 @@ master_room_bedside_lights_turn_off:
   max: 100
   mode: parallel
   sequence:
-  - service: light.turn_off
-    entity_id:
-      - light.master_room_lamp_near_door
-      - light.master_room_lamp_near_wall
+    - service: light.turn_off
+      entity_id:
+        - light.master_room_lamp_near_door
+        - light.master_room_lamp_near_wall
 
 master_room_bedside_lights_turn_on:
   alias: Master Room Bedside Lights Turn On
   max: 100
   mode: parallel
   sequence:
-  - service: light.turn_on
-    entity_id:
-      - light.master_room_lamp_near_door
-      - light.master_room_lamp_near_wall
+    - service: light.turn_on
+      entity_id:
+        - light.master_room_lamp_near_door
+        - light.master_room_lamp_near_wall
 
 master_room_bedside_lights_toggle:
   alias: Master Room Bedside Lights Toggle
   max: 100
   mode: parallel
   sequence:
-  - service: >
-      {% if is_state('light.master_room_lamp_near_door', 'on') %}
-         script.master_room_bedside_lights_turn_off
-      {% else %}
-         script.master_room_bedside_lights_turn_on
-      {% endif %}
-
+    - service: >
+        {% if is_state('light.master_room_lamp_near_door', 'on') %}
+           script.master_room_bedside_lights_turn_off
+        {% else %}
+           script.master_room_bedside_lights_turn_on
+        {% endif %}
 
 master_room_ceiling_lights_turn_on:
   alias: Master Room Ceiling Lights Turn On
   max: 100
   mode: parallel
   sequence:
-  - service: switch.turn_on
-    entity_id:
-      - switch.master_room_bed_ceiling_light
-      - switch.master_room_landing_ceiling_light
+    - service: switch.turn_on
+      entity_id:
+        - switch.master_room_bed_ceiling_light
+        - switch.master_room_landing_ceiling_light
 
 master_room_ceiling_lights_turn_off:
   alias: Master Room Ceiling Lights Turn Off
   max: 100
   mode: parallel
   sequence:
-  - service: switch.turn_off
-    entity_id:
-      - switch.master_room_bed_ceiling_light
-      - switch.master_room_landing_ceiling_light
-
+    - service: switch.turn_off
+      entity_id:
+        - switch.master_room_bed_ceiling_light
+        - switch.master_room_landing_ceiling_light
 
 master_room_bed_led_set_dark_yellow:
   alias: Master Room Bed LED Strip Set Dark Yellow
   max: 100
   mode: parallel
   sequence:
-  - service: light.turn_on
-    entity_id: light.master_room_bed_led
-    data:
-      brightness: 27
-      rgb_color: [255, 47, 0]
-
+    - service: light.turn_on
+      entity_id: light.master_room_bed_led
+      data:
+        brightness: 27
+        rgb_color: [255, 47, 0]
 
 master_room_bed_led_set_movie_blue:
   alias: Master Room Bed LED Strip Set Movie Blue
   max: 100
   mode: parallel
   sequence:
-  - service: light.turn_on
-    entity_id: light.master_room_bed_led
-    data:
-      brightness: 255
-      rgb_color: [102, 102, 255]
-
+    - service: light.turn_on
+      entity_id: light.master_room_bed_led
+      data:
+        brightness: 255
+        rgb_color: [102, 102, 255]
 
 master_room_bedside_lights_set_4000k:
   alias: Master Room Bedside Lights Set To 4000k
   max: 100
   mode: parallel
   sequence:
-  - service: light.turn_on
-    entity_id:
-      - light.master_room_lamp_near_wall
-      - light.master_room_lamp_near_door
-    data:
-      brightness: 255
-      kelvin: 4000
-  - service: light.turn_on
-    entity_id:
-      - light.master_room_bed_led
-    data:
-      brightness: 255
-      rgb_color: [255,255,255]
-      #kelvin: 6500
+    - service: light.turn_on
+      entity_id:
+        - light.master_room_lamp_near_wall
+        - light.master_room_lamp_near_door
+      data:
+        brightness: 255
+        kelvin: 4000
+    - service: light.turn_on
+      entity_id:
+        - light.master_room_bed_led
+      data:
+        brightness: 255
+        rgb_color: [255, 255, 255]
+        #kelvin: 6500
 
 master_room_lights_turn_off:
   alias: Master Room Lights Turn Off
   max: 100
   mode: parallel
   sequence:
-  - service: light.turn_off
-    entity_id: light.master_room_bed_led
-  - service: switch.turn_off
-    entity_id:
-      - switch.master_room_bed_ceiling_light
-      - switch.master_room_landing_ceiling_light
-      - switch.master_room_dressing_table_light
-  - service: script.master_room_bedside_lights_turn_off
-
-
+    - service: light.turn_off
+      entity_id: light.master_room_bed_led
+    - service: switch.turn_off
+      entity_id:
+        - switch.master_room_bed_ceiling_light
+        - switch.master_room_landing_ceiling_light
+        - switch.master_room_dressing_table_light
+    - service: script.master_room_bedside_lights_turn_off
 
 master_room_right_blind_toggle:
   alias: Master Room Right Blind Toggle
   mode: restart
   sequence:
-  # Toggle Curtain Open State and Actual Motor
-  - service: >
-      {% if is_state('input_boolean.master_room_right_blind_is_open', 'on') %}
-         cover.close_cover
-      {% else %}
-         cover.open_cover
-      {% endif %}
-    entity_id: cover.master_room_blind_right
-  - service: input_boolean.toggle
-    entity_id: input_boolean.master_room_right_blind_is_open
-
+    # Toggle Curtain Open State and Actual Motor
+    - service: >
+        {% if is_state('input_boolean.master_room_right_blind_is_open', 'on') %}
+          cover.close_cover
+        {% else %}
+          cover.open_cover
+        {% endif %}
+      entity_id: cover.master_room_blind_right
+    - service: input_boolean.toggle
+      entity_id: input_boolean.master_room_right_blind_is_open
 
 master_room_left_blind_toggle:
   alias: Master Room Left Blind Toggle
   mode: restart
   sequence:
-  # Toggle Curtain Open State and Actual Motor
-  - service: >
-      {% if is_state('input_boolean.master_room_left_blind_is_open', 'on') %}
-         cover.close_cover
-      {% else %}
-         cover.open_cover
-      {% endif %}
-    entity_id: cover.master_room_blind_left
-  - service: input_boolean.toggle
-    entity_id: input_boolean.master_room_left_blind_is_open
-
-
+    # Toggle Curtain Open State and Actual Motor
+    - service: >
+        {% if is_state('input_boolean.master_room_left_blind_is_open', 'on') %}
+          cover.close_cover
+        {% else %}
+          cover.open_cover
+        {% endif %}
+      entity_id: cover.master_room_blind_left
+    - service: input_boolean.toggle
+      entity_id: input_boolean.master_room_left_blind_is_open
 
 master_room_curtain_toggle:
   alias: Master Room Curtain Toggle
   mode: restart
   sequence:
-  # Toggle Curtain Open State and Actual Motor
-  - service: >
-      {% if is_state('input_boolean.master_room_curtain_is_open', 'on') %}
-         cover.close_cover
-      {% else %}
-         cover.open_cover
-      {% endif %}
-    entity_id: cover.master_room_curtain
-  - service: input_boolean.toggle
-    entity_id: input_boolean.master_room_curtain_is_open
+    # Toggle Curtain Open State and Actual Motor
+    - service: >
+        {% if is_state('input_boolean.master_room_curtain_is_open', 'on') %}
+           cover.close_cover
+        {% else %}
+           cover.open_cover
+        {% endif %}
+      entity_id: cover.master_room_curtain
+    - service: input_boolean.toggle
+      entity_id: input_boolean.master_room_curtain_is_open
 
 master_room_close_all_curtains:
   alias: Master Room Close All Curtains
   mode: single
   sequence:
-  - service:   cover.close_cover
-    entity_id:
-     - cover.master_room_curtain
-     - cover.master_room_blind_left
-     - cover.master_room_blind_right
+    - service: cover.close_cover
+      entity_id:
+        - cover.master_room_curtain
+        - cover.master_room_blind_right
+    - delay: "00:00:02"
+    - service: cover.close_cover
+      entity_id:
+        - cover.master_room_blind_left
 
 master_room_open_all_curtains:
   alias: Master Room Open All Curtains
   mode: single
   sequence:
-  - service:   cover.open_cover
-    entity_id:
-      - cover.master_room_curtain
-      - cover.master_room_blind_left
-      - cover.master_room_blind_right
+    - service: cover.open_cover
+      entity_id:
+        - cover.master_room_curtain
+        - cover.master_room_blind_right
+    - delay: "00:00:02"
+    - service: cover.open_cover
+      entity_id:
+        - cover.master_room_blind_left
+
 
 master_room_set_heating_temp_with_state_maintaince:
   alias: Master Room Set Heating Temperature With State Maintaince
   mode: restart
   sequence:
-  # Clear flags
-  - service:   input_boolean.turn_off
-    entity_id: input_boolean.master_room_short_presence  
-  # Turn on Heating     
-  - service:   automation.trigger    
-    entity_id: automation.master_room_heating_scheduler
-  - service:   automation.turn_on
-    entity_id: automation.master_room_heating_scheduler
-  - service:   automation.turn_off
-    entity_id: automation.master_room_turn_on_heating_schedule_if_person_present
-    data:
-      stop_actions: false      
-      
+    # Clear flags
+    - service: input_boolean.turn_off
+      entity_id: input_boolean.master_room_short_presence
+    # Turn on Heating
+    - service: automation.trigger
+      entity_id: automation.master_room_heating_scheduler
+    - service: automation.turn_on
+      entity_id: automation.master_room_heating_scheduler
+    - service: automation.turn_off
+      entity_id: automation.master_room_turn_on_heating_schedule_if_person_present
+      data:
+        stop_actions: false
+
 ###########################################
 # Master Toilet Sevices
 ###########################################
@@ -706,261 +694,288 @@ master_toilet_all_lights_turn_on:
   alias: Master Toilet All Lights Turn On
   mode: single
   sequence:
-  - service: switch.turn_on
-    entity_id:
-     - switch.master_toilet_floor_led
-  - service: light.turn_on
-    entity_id:
-     - light.master_toilet_ceiling_light
-     
+    - service: switch.turn_on
+      entity_id:
+        - switch.master_toilet_floor_led
+    - service: light.turn_on
+      entity_id:
+        - light.master_toilet_ceiling_light
+
 master_toilet_all_lights_turn_off:
   alias: Master Toilet All Lights Turn Off
   mode: single
   sequence:
-  - service: switch.turn_off
-    entity_id:
-     - switch.master_toilet_floor_led
-  - service: light.turn_off
-    entity_id:
-     - light.master_toilet_ceiling_light
+    - service: switch.turn_off
+      entity_id:
+        - switch.master_toilet_floor_led
+    - service: light.turn_off
+      entity_id:
+        - light.master_toilet_ceiling_light
 
 master_toilet_all_lights_toggle:
   alias: Master Toilet All Lights Turn Off
   mode: single
   sequence:
-  - service: >
-      {% if is_state('switch.master_toilet_floor_led', 'on') %}
-         script.master_toilet_all_lights_turn_off
-      {% else %}
-         script.master_toilet_all_lights_turn_on
-      {% endif %}
+    - service: >
+        {% if is_state('switch.master_toilet_floor_led', 'on') %}
+           script.master_toilet_all_lights_turn_off
+        {% else %}
+           script.master_toilet_all_lights_turn_on
+        {% endif %}
 
 master_toilet_set_dark_warm_light:
   alias: Master Toilet Set Dark Warm Light
   mode: single
   sequence:
-  - service: switch.turn_on
-    entity_id:
-     - switch.master_toilet_floor_led
-  - service: light.turn_on
-    entity_id:
-     - light.master_toilet_ceiling_light
-    data:
-      brightness: 1
-      kelvin: 3000
+    - service: light.turn_on
+      entity_id:
+        - light.master_toilet_ceiling_light
+      data:
+        brightness: 1
+        kelvin: 3000
 
 master_toilet_set_bright_warm_light:
   alias: Master Toilet Set Bright Warm Light
   mode: single
   sequence:
-  - service: switch.turn_on
-    entity_id:
-     - switch.master_toilet_floor_led
-  - service: light.turn_on
-    entity_id:
-     - light.master_toilet_ceiling_light
-    data:
-      brightness: 255
-      kelvin: 3000
+    - service: light.turn_on
+      entity_id:
+        - light.master_toilet_ceiling_light
+      data:
+        brightness: 255
+        kelvin: 3000
 
 master_toilet_set_daylight_light:
   alias: Master Toilet Set Daylight Light
   mode: single
   sequence:
-  - service: switch.turn_on
-    entity_id:
-     - switch.master_toilet_floor_led
-  - service: light.turn_on
-    entity_id:
-     - light.master_toilet_ceiling_light
-    data:
-      brightness: 255
-      kelvin: 4000
-
+    - service: switch.turn_on
+      entity_id:
+        - switch.master_toilet_floor_led
+    - service: light.turn_on
+      entity_id:
+        - light.master_toilet_ceiling_light
+      data:
+        brightness: 255
+        kelvin: 4000
 
 master_toilet_set_heating_temp_with_state_maintaince:
   alias: Master Toilet Set Heating Temperature With State Maintaince
   mode: restart
   sequence:
-  # Clear flags
-  - service:   input_boolean.turn_off
-    entity_id: input_boolean.master_toilet_short_presence  
-  # Turn on Heating     
-  - data:
-      hvac_mode: heat
-    entity_id: climate.master_toilet
-    service: climate.set_hvac_mode
-  - data:
-      temperature: >
-        {% if now().hour >= 18 and now().hour < 23 %}
-        {# 18:00 - 23:00 #}
-          22
-        {% elif now().hour >= 23 or now().hour < 9 %}
-        {# 23:00 - 9:00 #}
-          23
-        {% else %}
-        {# 9:00 - 18:00 #}
-          20
-        {% endif %}
-    entity_id: climate.master_toilet
-    service: climate.set_temperature
-  - data:
-      stop_actions: false
-    entity_id: automation.master_toilet_heating_on_if_person_present
-    service: automation.turn_off
-  
+    # Clear flags
+    - service: input_boolean.turn_off
+      entity_id: input_boolean.master_toilet_short_presence
+    # Turn on Heating
+    - data:
+        hvac_mode: heat
+      entity_id: climate.master_toilet
+      service: climate.set_hvac_mode
+    - data:
+        temperature: >
+          {% if now().hour >= 18 and now().hour < 23 %}
+          {# 18:00 - 23:00 #}
+            22
+          {% elif now().hour >= 23 or now().hour < 9 %}
+          {# 23:00 - 9:00 #}
+            23
+          {% else %}
+          {# 9:00 - 18:00 #}
+            20
+          {% endif %}
+      entity_id: climate.master_toilet
+      service: climate.set_temperature
+    - data:
+        stop_actions: false
+      entity_id: automation.master_toilet_heating_on_if_person_present
+      service: automation.turn_off
 
 ###########################################
 # En-suite Room Sevices
-###########################################  
+###########################################
 en_suite_room_all_lights_turn_on:
   alias: En-suite Room All Light Turn On
   mode: parallel
   max: 100
   sequence:
-  - service: switch.turn_on
-    entity_id:
-     - switch.en_suite_room_ceiling_light
-     - switch.en_suite_room_bedside_lamp
+    - service: switch.turn_on
+      entity_id:
+        - switch.en_suite_room_ceiling_light
+        #- switch.en_suite_room_bedside_lamp
 
 en_suite_room_all_lights_turn_off:
   alias: En-suite Room All Light Turn Off
   mode: parallel
   max: 100
   sequence:
-  - service: switch.turn_off
-    entity_id:
-     - switch.en_suite_room_ceiling_light
-     - switch.en_suite_room_bedside_lamp
+    - service: switch.turn_off
+      entity_id:
+        - switch.en_suite_room_ceiling_light
+        #- switch.en_suite_room_bedside_lamp
+        
+en_suite_room_set_heating_temp_with_state_maintaince:
+  alias: En-suite Room Set Heating Temperature With State Maintaince
+  mode: restart
+  sequence:
+    # clear the short presence flag
+    - service: input_boolean.turn_off
+      entity_id: input_boolean.en_suite_room_short_presence
+    # turn on heating
+    - data:
+        hvac_mode: heat
+      entity_id: climate.en_suite_room_thermostat
+      service: climate.set_hvac_mode
+    - data:
+        temperature: 23
+      entity_id: climate.en_suite_room_thermostat
+      service: climate.set_temperature
+    - data:
+        stop_actions: false
+      entity_id: automation.en_suite_room_heating_on_if_people_present
+      service: automation.turn_off
+
+
+en_suite_toilet_set_heating_temp_with_state_maintaince:
+  alias: En-suite Toilet Set Heating Temperature With State Maintaince
+  mode: restart
+  sequence:
+    # clear the short presence flag
+    - service: input_boolean.turn_off
+      entity_id: input_boolean.en_suite_toilet_short_presence
+    # turn on heating
+    - data:
+        hvac_mode: heat
+      entity_id: climate.en_suite_toilet
+      service: climate.set_hvac_mode
+    - data:
+        temperature: 21
+      entity_id: climate.en_suite_toilet
+      service: climate.set_temperature
+    - data:
+        stop_actions: false
+      entity_id: automation.en_suite_toilet_heating_on_if_people_present
+      service: automation.turn_off
 
 ###########################################
 # En-suite Toilet Sevices
-###########################################  
+###########################################
 en_suite_toilet_all_lights_turn_on:
   alias: En-suite Toilet All Lights Turn On
   mode: parallel
   max: 100
   sequence:
-  - data: {}
-    entity_id: switch.en_suite_toilet_light
-    service: switch.turn_on
+    - data: {}
+      entity_id: switch.en_suite_toilet_light
+      service: switch.turn_on
 
 en_suite_toilet_all_lights_turn_off:
   alias: En-suite Toilet All Lights Turn Off
   mode: parallel
   max: 100
   sequence:
-  - data: {}
-    entity_id: switch.en_suite_toilet_light
-    service: switch.turn_off
-    
+    - data: {}
+      entity_id: switch.en_suite_toilet_light
+      service: switch.turn_off
 
 ###########################################
 # Guest Room Sevices
-###########################################  
+###########################################
 guest_room_all_lights_turn_on:
   alias: Guest Room All Lights Turn On
   mode: parallel
   max: 100
   sequence:
-  - service: switch.turn_on
-    entity_id:
-      - switch.guest_room_ceiling_light
+    - service: switch.turn_on
+      entity_id:
+        - switch.guest_room_ceiling_light
 
 guest_room_all_lights_turn_off:
   alias: Guest Room All Lights Turn Off
   mode: parallel
   max: 100
   sequence:
-  - service: switch.turn_off
-    entity_id:
-      - switch.guest_room_screen_led
-  - service:  light.turn_off
-    entity_id: 
-      - light.guest_room_lamps
-      - light.guest_room_ceiling_light
-    
+    - service: switch.turn_off
+      entity_id:
+        - switch.guest_room_screen_led
+    - service: light.turn_off
+      entity_id:
+        - light.guest_room_lamps
+        - light.guest_room_ceiling_light
 
 guest_room_set_heating_temp_with_state_maintaince:
   alias: Guest Room Set Heating Temperature With State Maintaince
   mode: restart
   sequence:
-  # Clear flags
-  - service:   input_boolean.turn_off
-    entity_id: input_boolean.guest_room_short_presence  
-  # Turn on Heating     
-  - data:
-      hvac_mode: heat
-    entity_id: climate.guest_room
-    service: climate.set_hvac_mode
-  - data:
-      temperature: 22
-    entity_id: climate.guest_room
-    service: climate.set_temperature
-  - data:
-      stop_actions: false
-    entity_id: automation.guest_room_heating_on_if_person_present
-    service: automation.turn_off
+    # Clear flags
+    - service: input_boolean.turn_off
+      entity_id: input_boolean.guest_room_short_presence
+    # Turn on Heating
+    - data:
+        hvac_mode: heat
+      entity_id: climate.guest_room
+      service: climate.set_hvac_mode
+    - data:
+        temperature: 22
+      entity_id: climate.guest_room
+      service: climate.set_temperature
+    - data:
+        stop_actions: false
+      entity_id: automation.guest_room_heating_on_if_person_present
+      service: automation.turn_off
 
-      
 ###########################################
 # Guest Toilet Sevices
-###########################################  
+###########################################
 guest_toilet_ceiling_light_turn_on:
   alias: Guest Toilet Ceiling Light Turn On
   mode: parallel
   max: 100
   sequence:
-  - data: {}
-    entity_id: switch.guest_toilet_ceiling_light
-    service: switch.turn_on
+    - data: {}
+      entity_id: switch.guest_toilet_ceiling_light
+      service: switch.turn_on
 
 guest_toilet_floor_led_light_turn_on:
   alias: Guest Toilet Floor LED Turn On
   mode: parallel
   max: 100
   sequence:
-  - data: {}
-    entity_id: switch.guest_toilet_floor_led
-    service: switch.turn_on
-
+    - data: {}
+      entity_id: switch.guest_toilet_floor_led
+      service: switch.turn_on
 
 guest_toilet_set_heating_temp_with_state_maintaince:
   alias: Guest Toilet Set Heating Temperature With State Maintaince
   mode: restart
   sequence:
-  # clear the short presence flag
-  - service:   input_boolean.turn_off
-    entity_id: input_boolean.guest_toilet_short_presence
-  # turn on heating    
-  - data:
-      hvac_mode: heat
-    entity_id: climate.guest_toilet
-    service:   climate.set_hvac_mode
-  - data:
-      temperature: 22
-    entity_id: climate.guest_toilet
-    service:   climate.set_temperature
-  - service:   automation.turn_off
-    entity_id: automation.guest_toilet_heating_on_if_person_present
-    data:
-      stop_actions: false
-        
+    # clear the short presence flag
+    - service: input_boolean.turn_off
+      entity_id: input_boolean.guest_toilet_short_presence
+    # turn on heating
+    - data:
+        hvac_mode: heat
+      entity_id: climate.guest_toilet
+      service: climate.set_hvac_mode
+    - data:
+        temperature: 22
+      entity_id: climate.guest_toilet
+      service: climate.set_temperature
+    - service: automation.turn_off
+      entity_id: automation.guest_toilet_heating_on_if_person_present
+      data:
+        stop_actions: false
 
 guest_toilet_all_lights_turn_off:
   alias: Guest Toilet Ceiling Light Turn Off
   mode: parallel
   max: 100
   sequence:
-  - data: {}
-    entity_id: switch.guest_toilet_ceiling_light
-    service: switch.turn_off
-  - data: {}
-    entity_id: switch.guest_toilet_floor_led
-    service: switch.turn_off
-
-
-
+    - data: {}
+      entity_id: switch.guest_toilet_ceiling_light
+      service: switch.turn_off
+    - data: {}
+      entity_id: switch.guest_toilet_floor_led
+      service: switch.turn_off
 
 ###########################################
 # Living Room Services
@@ -971,82 +986,75 @@ living_room_landing_lights_turn_off:
   max: 100
   mode: parallel
   sequence:
-  - entity_id: light.living_room_ble_light_near_wall
-    service: light.turn_off
-  - entity_id: light.living_room_ble_light_near_door
-    service: light.turn_off
-
+    - entity_id: light.living_room_ble_light_near_wall
+      service: light.turn_off
+    - entity_id: light.living_room_ble_light_near_door
+      service: light.turn_off
 
 living_room_landing_lights_turn_on:
   alias: Living Room Landing Lights Turn On
   max: 100
   mode: parallel
   sequence:
-  - entity_id: light.living_room_ble_light_near_door
-    service: light.turn_on
-  - entity_id: light.living_room_ble_light_near_wall
-    service: light.turn_on
-
-
+    - entity_id: light.living_room_ble_light_near_door
+      service: light.turn_on
+    - entity_id: light.living_room_ble_light_near_wall
+      service: light.turn_on
 
 living_room_landing_lights_toggle:
   alias: Living Room Landing Lights Toggle
   mode: parallel
   max: 100
   sequence:
-  - service: >
-      {% if is_state('light.living_room_ble_light_near_door', 'on') %}
-         script.living_room_landing_lights_turn_off
-      {% else %}
-         script.living_room_landing_lights_turn_on
-      {% endif %}
-
+    - service: >
+        {% if is_state('light.living_room_ble_light_near_door', 'on') %}
+           script.living_room_landing_lights_turn_off
+        {% else %}
+           script.living_room_landing_lights_turn_on
+        {% endif %}
 
 living_room_all_lights_turn_on:
   alias: Living Room Ceiling All Lights Turn On
   mode: parallel
   max: 100
   sequence:
-  - service: switch.turn_on
-    entity_id:
-      - switch.living_room_ceiling_light
-      - switch.living_room_tree_light
-  - service: script.living_room_landing_lights_turn_on
-
+    - service: switch.turn_on
+      entity_id:
+        - switch.living_room_ceiling_light
+        - switch.living_room_tree_light
+    - service: script.living_room_landing_lights_turn_on
 
 living_room_all_lights_turn_off:
   alias: Living Room All Lights Turn Off
   mode: parallel
   max: 100
   sequence:
-  - service: switch.turn_off
-    entity_id:
-      - switch.living_room_ceiling_light
-      - switch.garden_light
-  - service: script.living_room_landing_lights_turn_off
-
-
+    - service: switch.turn_off
+      entity_id:
+        - switch.living_room_ceiling_light
+        - switch.garden_light
+    - service: script.living_room_landing_lights_turn_off
 
 living_room_set_heating_temp_with_state_maintaince:
   alias: Living Room Set Heating Temperature With State Maintaince
   mode: restart
   sequence:
-  # clear the short presence flag
-  - service:   input_boolean.turn_off
-    entity_id: input_boolean.living_room_short_presence
-  # turn on heating
-  - data:
-      hvac_mode: heat
-    entity_id: climate.living_room
-    service: climate.set_hvac_mode
-  - data:
-      temperature: 22
-    entity_id: climate.living_room
-    service: climate.set_temperature
-  - data:
-      stop_actions: false
-    entity_id: automation.living_room_heating_on_if_people_present
-    service:   automation.turn_off
+    # clear the short presence flag
+    - service: input_boolean.turn_off
+      entity_id: input_boolean.living_room_short_presence
+    # turn on heating
+    - data:
+        hvac_mode: heat
+      entity_id: climate.living_room
+      service: climate.set_hvac_mode
+    - data:
+        temperature: 22
+      entity_id: climate.living_room
+      service: climate.set_temperature
+    - data:
+        stop_actions: false
+      entity_id: automation.living_room_heating_on_if_people_present
+      service: automation.turn_off
 
 
 ########
@@ -1055,5 +1063,4 @@ living_room_set_heating_temp_with_state_maintaince:
 hassio_restart:
   alias: Restart Home Assistant
   sequence:
-  - service: homeassistant.restart
-
+    - service: homeassistant.restart
