@@ -39,6 +39,7 @@ add_sonos_into_speaker_group:
         {% endif %}
 
     # First set the target player to the same volume as the controller
+    # Play:3 sounds level needs to be offset for setting up Play:1/Playbars
     - service: media_player.volume_set
       data_template:
         entity_id: >
@@ -50,13 +51,13 @@ add_sonos_into_speaker_group:
             {% if   states('input_select.music_controller') != 'kitchen_sonos' and target_player == 'media_player.kitchen_sonos' %}
               {{ state.attributes.volume_level + 0.1 }}
             {% elif states('input_select.music_controller') == 'kitchen_sonos' and target_player != 'media_player.kitchen_sonos' %}
-              {{ state.attr1236cecc-385d-46ac-b39b-0a96a03e9515ibutes.volume_level - 0.1 }}
+              {{ state.attributes.volume_level - 0.1 }}
             {% else %}  
               {{ state.attributes.volume_level }}
             {% endif %}
           {% endfor %}
 
-    # Now join the player into the group in case sometimes it didn't manage to join in for certain cases
+    # Now join the player into the group twice in case sometimes it didn't manage to join in for certain cases
     - service: sonos.join
       data_template:
         master: media_player.{{ states('input_select.music_controller') }}
@@ -687,6 +688,42 @@ master_room_set_heating_temp_with_state_maintaince:
       data:
         stop_actions: false
 
+master_room_blind_left_tuya_open:
+  alias: Master Room Blind Left Open
+  sequence:
+    - service: cover.open_cover
+      entity_id: cover.master_room_blind_left_tuya
+    
+master_room_blind_left_tuya_close:
+  alias: Master Room Blind Left Close
+  sequence:
+    - service: cover.close_cover
+      entity_id: cover.master_room_blind_left_tuya
+    
+master_room_blind_left_tuya_stop:
+  alias: Master Room Blind Left Stop
+  sequence:
+    - service: cover.stop_cover
+      entity_id: cover.master_room_blind_left_tuya
+    
+master_room_blind_right_tuya_open:
+  alias: Master Room Blind Right Open
+  sequence:
+    - service: cover.open_cover
+      entity_id: cover.master_room_blind_right_tuya
+    
+master_room_blind_right_tuya_close:
+  alias: Master Room Blind Right Close
+  sequence:
+    - service: cover.close_cover
+      entity_id: cover.master_room_blind_right_tuya
+    
+master_room_blind_right_tuya_stop:
+  alias: Master Room Blind Right Stop
+  sequence:
+    - service: cover.stop_cover
+      entity_id: cover.master_room_blind_right_tuya
+    
 ###########################################
 # Master Toilet Sevices
 ###########################################
@@ -864,18 +901,16 @@ en_suite_toilet_all_lights_turn_on:
   mode: parallel
   max: 100
   sequence:
-    - data: {}
-      entity_id: switch.en_suite_toilet_light
-      service: switch.turn_on
+    - entity_id: light.en_suite_toilet_light
+      service: light.turn_on
 
 en_suite_toilet_all_lights_turn_off:
   alias: En-suite Toilet All Lights Turn Off
   mode: parallel
   max: 100
   sequence:
-    - data: {}
-      entity_id: switch.en_suite_toilet_light
-      service: switch.turn_off
+    - entity_id: light.en_suite_toilet_light
+      service: light.turn_off
 
 ###########################################
 # Guest Room Sevices

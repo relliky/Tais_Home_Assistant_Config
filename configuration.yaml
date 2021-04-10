@@ -2,13 +2,10 @@
 default_config:
 
 # TODO:
-# * adapt the entrance light colour to yellow in the night
-# * bedside lights colour control by button/homekit
+# * bedside lights colour control by button
 # * bed lights colour control by day in the week/mode/sleep etc
 # * Fixed the living room light switches.
 # * move automation to be package based - check if we can use a shared package for shared code
-# * delay heating on en-suite room and moved that to thermostat based control like master room
-# * use motion sensor light to tell if people is up but still stay at the room to adjust temp in the morning
 #
 #xiaomi_aqara:
 #  discovery_retry: 5
@@ -55,11 +52,11 @@ vacuum:
     token: 674c4d4465476b6b4543735064795468
 
 # Added Xiaomi Wifi Plug
-switch:
-  - platform: xiaomi_miio
-    name: Study Screen LED
-    host: 192.168.1.33
-    token: c478198279b5a198988b168f84e0c408
+#switch:
+#  - platform: xiaomi_miio
+#    name: Study Screen LED
+#    host: 192.168.1.33
+#    token: c478198279b5a198988b168f84e0c408
 
 ###########################################
 # Light/Cover/Switch Groups
@@ -83,14 +80,14 @@ switch:
 #      - switch.master_room_bed_ceiling_light
 #      - switch.master_room_landing_ceiling_light
 
-cover tais_cover_group:
+cover my_cover_group:
   - platform: group
     name: Master Room Blind
     entities:
       - cover.master_room_blind_left
       - cover.master_room_blind_right
 
-light tais_light_group:
+light my_light_group:
   - platform: group
     name: Master Room Bed Lamps
     entities:
@@ -123,6 +120,12 @@ light tais_light_group:
     entities:
       - light.study_lamp_left
       - light.study_lamp_right
+  - platform: group
+    name: En-suite Toilet Light
+    entities:
+      - light.en_suite_toilet_spotlight_bulb_1
+      - light.en_suite_toilet_spotlight_bulb_2
+      - light.en_suite_toilet_spotlight_bulb_3
 
 sensor:
   # Time
@@ -163,7 +166,7 @@ sensor system:
       - type: memory_use
       - type: load_1m
       - type: processor_use
-      - type: ipv4_address
+
 
 # TVs
 #samsungtv:
@@ -175,17 +178,6 @@ sensor system:
 #    mac: bc:7e:8b:cc:ad:b4
 #    name: Master Room TV
 
-#device_tracker:
-# - platform: tado
-#   username: !secret tado_user
-#   password: !secret tado_pass
-#  - platform: xiaomi
-#    host: 192.168.1.11
-#    password: !secret xiaomi_admin_pass
-#    interval_seconds: 10
-#    consider_home: 180
-#    new_device_defaults:
-#      track_new_devices: false
 
 # Database logging config
 recorder:
@@ -197,6 +189,7 @@ recorder:
   include:
     entity_globs: 
       - sensor.*
+      #- binary_sensor.*
 
 # Debug Homekit Integration
 #logger:
@@ -223,7 +216,7 @@ climate:
     heater: input_boolean.en_suite_room_valve_switch
     target_sensor: sensor.en_suite_room_temperature_sensor
     precision: 0.5
-    min_temp: 10
+    min_temp: 7
     max_temp: 25
     cold_tolerance: 0.1
     hot_tolerance: 0.1
@@ -251,6 +244,28 @@ climate:
     hot_tolerance: 0.1
     initial_hvac_mode: "heat"
 
+# Blinds
+cover:
+  - platform: cover_rf_time_based
+    devices:
+      master_room_blind_left:
+        name: Master Room Blind Left
+        travelling_time_up: 95
+        travelling_time_down: 95
+        close_script_entity_id: script.master_room_blind_left_tuya_close
+        stop_script_entity_id:  script.master_room_blind_left_tuya_stop
+        open_script_entity_id:  script.master_room_blind_left_tuya_open
+        
+  - platform: cover_rf_time_based
+    devices:
+      master_room_blind_right:
+        name: Master Room Blind Right
+        travelling_time_up: 95
+        travelling_time_down: 95
+        close_script_entity_id: script.master_room_blind_right_tuya_close
+        stop_script_entity_id:  script.master_room_blind_right_tuya_stop
+        open_script_entity_id:  script.master_room_blind_right_tuya_open        
+
 # Lights Temperature Changed for Flux
 switch flux:
   - platform: flux
@@ -263,7 +278,7 @@ switch flux:
       - light.study_ceiling_light
     name: Fluxer
     start_time: "6:00"
-    stop_time: "23:59"
+    stop_time: "23:00"
     start_colortemp: 6000
     sunset_colortemp: 5000
     stop_colortemp: 3000
@@ -395,6 +410,7 @@ homekit:
         - switch.master_room_bed_ceiling_light
         - switch.master_room_landing_ceiling_light
         - switch.master_room_balcony_decro_light
+        - switch.master_room_balcony_wall_light
         # Master Toilet
         - binary_sensor.master_toilet_basin_motion_sensor_motion
         - binary_sensor.master_toilet_shower_motion_sensor_motion
@@ -477,7 +493,7 @@ homekit:
         - binary_sensor.en_suite_toilet_motion_sensor_motion
         - binary_sensor.en_suite_toilet_door
         - climate.en_suite_toilet
-        - switch.en_suite_toilet_light
+        - light.en_suite_toilet_light
         # Ground Toilet
         - binary_sensor.ground_toilet_motion_sensor_motion
         - binary_sensor.ground_toilet_door
@@ -512,3 +528,4 @@ homekit:
         - switch.master_toilet_light
         - switch.study_ceiling_light
         - switch.guest_room_ceiling_light
+        - switch.en_suite_toilet_light
