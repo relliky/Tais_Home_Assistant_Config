@@ -142,6 +142,39 @@
         - service: script.guest_room_set_heating_temp_with_state_maintaince
 
 
+- alias: H-GR Guest Room Thermostat Switch Turns On/Off The Tado Valve
+  id: "1569909948781"
+  trigger:
+    - platform: state
+      entity_id: input_boolean.guest_room_valve_switch
+      to:
+        - "off"
+        - "on"
+    - minutes: /5
+      platform: time_pattern
+  condition: []
+  action:
+    - data:
+        hvac_mode: heat
+      entity_id: 
+        - climate.guest_room
+      service: climate.set_hvac_mode
+    - data:
+        # Set tado temperature based on outdoor temperatures
+        temperature: >
+          {% if states('input_boolean.guest_room_valve_switch') == 'off' %}
+            5
+          {% elif states.weather.home.attributes.temperature < 2 %}
+            25
+          {% elif states.weather.home.attributes.temperature < 4 %}
+            24
+          {% elif states.weather.home.attributes.temperature < 6 %}
+            23
+          {% else %}
+            22
+          {% endif %}
+      entity_id: climate.guest_room
+      service: climate.set_temperature
 
 # Guest Toilet
 - alias: H-GT Guest Toilet Heating Set to 22 If Person Present
@@ -217,14 +250,6 @@
 # Lighting Automation based on motion sensors
 #
 ###############################################
-# Update Flux colour temperature
-- alias: L-GT Guest Toilet Lights On Daytime If Person Present and Dark
-  trigger:
-    - platform: time_pattern
-      minutes: "/1"
-  action:
-    - service: switch.fluxer_update
-
 # Guest Toilet Lights
 - alias: L-GT Guest Toilet Lights On Daytime If Person Present and Dark
   description: ""
@@ -344,7 +369,7 @@
             - entity_id: binary_sensor.guest_room_bed_motion_sensor_motion
               condition: state
               state: "on"
-            - entity_id: sensor.guest_room_bed_motion_sensor_light
+            - entity_id: binary_sensor.guest_room_bed_motion_sensor_light
               condition: numeric_state
               below: "30"
   action:
@@ -356,12 +381,16 @@
 - alias: L-GR Guest Room Desk light On If Person Present Sits In the Chair
   description: ""
   trigger:
-    - entity_id: sensor.guest_room_chair_movement_sensor
+    #- entity_id: sensor.guest_room_chair_movement_sensor
+    #  platform: state
+    #  to: "vibration"
+    #- entity_id: sensor.guest_room_chair_movement_sensor
+    #  platform: state
+    #  to: "tilt"
+    - entity_id: binary_sensor.guest_room_desk_motion_sensor_motion
       platform: state
-      to: "vibration"
-    - entity_id: sensor.guest_room_chair_movement_sensor
-      platform: state
-      to: "tilt"
+      from: "off"
+      to: "on"      
   action:
     - service: light.turn_on
       entity_id: light.guest_room_lamps
@@ -375,14 +404,18 @@
 - alias: L-GR Guest Room Desk light Off If Person Left the Chair
   description: ""
   trigger:
-    - entity_id: sensor.guest_room_chair_movement_sensor
+    - entity_id: 
+        #- sensor.guest_room_chair_movement_sensor
+        - binary_sensor.guest_room_desk_motion_sensor_motion
       platform: state
       to: "off"
       for: 00:10:00
     - minutes: /5
       platform: time_pattern
   condition:
-    - entity_id: sensor.guest_room_chair_movement_sensor
+    - entity_id: 
+        #- sensor.guest_room_chair_movement_sensor
+        - binary_sensor.guest_room_desk_motion_sensor_motion    
       condition: state
       state: "off"
       for: 00:10:00
@@ -412,35 +445,35 @@
                 - condition: state
                   entity_id: light.guest_room_ceiling_light
                   state: "off"
-                - condition: state
-                  entity_id: switch.guest_room_screen_led
-                  state: "off"
-                - condition: state
-                  entity_id: light.guest_room_lamps
-                  state: "off"
+                #- condition: state
+                #  entity_id: switch.guest_room_screen_led
+                #  state: "off"
+                #- condition: state
+                #  entity_id: light.guest_room_lamps
+                #  state: "off"
           sequence:
             - service: light.turn_on
               entity_id: light.guest_room_ceiling_light
       # ELSE - some lights on - turn off all lights
       default:
-        - service: switch.turn_off
-          entity_id:
-            - switch.guest_room_screen_led
+        #- service: switch.turn_off
+        #  entity_id:
+        #    - switch.guest_room_screen_led
         - service: light.turn_off
           entity_id:
             - light.guest_room_ceiling_light
-            - light.guest_room_lamps
+        #    - light.guest_room_lamps
 
-- alias: B-GR Guest Room Button Single Press - Toggle Ceiling Lights
-  trigger:
-    - platform: state
-      entity_id: sensor.guest_room_button
-      to: single
-  action:
-    - service: light.toggle
-      entity_id: light.guest_room_ceiling_light
+#- alias: B-GR Guest Room Button Single Press - Toggle Ceiling Lights
+#  trigger:
+#    - platform: state
+#      entity_id: sensor.guest_room_button
+#      to: single
+#  action:
+#    - service: light.toggle
+#      entity_id: light.guest_room_ceiling_light
 
-- alias: B-GR Guest Room Button Double Press - Toggle Screen LED
+- alias: B-GR Guest Room Button Double Press - Toggle Desk Lights
   trigger:
     - platform: state
       entity_id: sensor.guest_room_button

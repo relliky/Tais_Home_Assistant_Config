@@ -83,14 +83,14 @@
   action:
     - service: light.turn_on
       entity_id: light.study_ceiling_light
-    - service: light.turn_on
-      entity_id: light.study_lamps
-    # Only turn on screen LED in daytime
-    - condition: time
-      after: "06:00:00"
-      before: "20:00:00"
-    - service: switch.turn_on
-      entity_id: switch.study_screen_led
+    #- service: light.turn_on
+    #  entity_id: light.study_lamps
+    ## Only turn on screen LED in daytime
+    #- condition: time
+    #  after: "06:00:00"
+    #  before: "20:00:00"
+    #- service: switch.turn_on
+    #  entity_id: switch.study_screen_led
 
 - alias: L-ST Study Lights Off If No Person Present For 5 Min
   id: "1603640030052"
@@ -111,10 +111,53 @@
   action:
     - service: light.turn_off
       entity_id: light.study_ceiling_light
+    #- service: light.turn_off
+    #  entity_id: light.study_lamps
+    #- service: switch.turn_off
+    #  entity_id: switch.study_screen_led
+
+
+- alias: L-ST Study Desk Lights On If Person Sits In The Desk
+  id: "1603640030053"
+  description: ""
+  trigger:
+    - entity_id: binary_sensor.study_desk_motion_sensor_motion
+      platform: state
+      from: "off"
+      to: "on"
+  action:
+    - service: light.turn_on
+      entity_id: light.study_lamps
+    # Only turn on screen LED in daytime
+    - condition: time
+      after: "06:00:00"
+      before: "20:00:00"
+    - service: switch.turn_on
+      entity_id: switch.study_screen_led
+
+
+- alias: L-ST Study Desk Lights Off If Person Left Desk
+  id: "1603640030054"
+  description: ""
+  trigger:
+    - entity_id: binary_sensor.study_desk_motion_sensor_motion
+      platform: state
+      from: "on"
+      to: "off"
+      for: 00:10:00
+    - minutes: /5
+      platform: time_pattern
+  condition:
+    - entity_id: binary_sensor.study_desk_motion_sensor_motion
+      condition: state
+      state: "off"
+      for: 00:10:00
+  action:
     - service: light.turn_off
       entity_id: light.study_lamps
     - service: switch.turn_off
       entity_id: switch.study_screen_led
+
 
 ###############################################
 #
@@ -136,51 +179,51 @@
                 - condition: state
                   entity_id: light.study_ceiling_light
                   state: "off"
-                - condition: state
-                  entity_id: switch.study_screen_led
-                  state: "off"
-                - condition: state
-                  entity_id: light.study_lamps
-                  state: "off"
+                #- condition: state
+                #  entity_id: switch.study_screen_led
+                #  state: "off"
+                #- condition: state
+                #  entity_id: light.study_lamps
+                #  state: "off"
           sequence:
             - service: light.turn_on
               entity_id: light.study_ceiling_light
       # ELSE - some lights on - turn off all lights
       default:
-        - service: switch.turn_off
-          entity_id: switch.study_screen_led
+        #- service: switch.turn_off
+        #  entity_id: switch.study_screen_led
         - service: light.turn_off
           entity_id:
             - light.study_ceiling_light
-            - light.study_lamps
+        #    - light.study_lamps
 
-- alias: B-ST Study Button Single Press - Toggle Ceiling Lights
-  trigger:
-    #- platform: state
-    #  entity_id: sensor.study_button
-    #  to: single
-    - platform: event
-      event_type: xiaomi_aqara.click
-      event_data:
-        entity_id: binary_sensor.study_button
-        click_type: single
-  action:
-    - service: light.toggle
-      entity_id: light.study_ceiling_light
+#- alias: B-ST Study Button Single Press - Toggle Ceiling Lights
+#  trigger:
+#    - platform: state
+#      entity_id: sensor.study_button
+#      to: single
+#    #- platform: event
+#    #  event_type: xiaomi_aqara.click
+#    #  event_data:
+#    #    entity_id: binary_sensor.study_button
+#    #    click_type: single
+#  action:
+#    - service: light.toggle
+#      entity_id: light.study_ceiling_light
 
 - alias: B-ST Study Button/Wall Switch - Double Press - Toggle Screen LED/Desk Lamps
   trigger:
-    #- platform: state
-    #  entity_id: sensor.study_button
-    #  to: double
-    - platform: event
-      event_type: xiaomi_aqara.click
-      event_data:
-        entity_id: binary_sensor.study_button
-        click_type: double
     - platform: state
-      entity_id: sensor.study_ceiling_light_wall_button
+      entity_id: sensor.study_button
       to: double
+    #- platform: event
+    #  event_type: xiaomi_aqara.click
+    #  event_data:
+    #    entity_id: binary_sensor.study_button
+    #    click_type: double
+    #- platform: state
+    #  entity_id: sensor.study_ceiling_light_wall_button
+    #  to: double
   action:
     - service: switch.toggle
       entity_id: switch.study_screen_led

@@ -835,9 +835,9 @@ en_suite_room_all_lights_turn_on:
   mode: parallel
   max: 100
   sequence:
-    - service: switch.turn_on
+    - service: light.turn_on
       entity_id:
-        - switch.en_suite_room_ceiling_light
+        - light.en_suite_room_ceiling_light
         #- switch.en_suite_room_bedside_lamp
 
 en_suite_room_all_lights_turn_off:
@@ -845,9 +845,9 @@ en_suite_room_all_lights_turn_off:
   mode: parallel
   max: 100
   sequence:
-    - service: switch.turn_off
+    - service: light.turn_off
       entity_id:
-        - switch.en_suite_room_ceiling_light
+        - light.en_suite_room_ceiling_light
         #- switch.en_suite_room_bedside_lamp
         
 en_suite_room_set_heating_temp_with_state_maintaince:
@@ -863,13 +863,53 @@ en_suite_room_set_heating_temp_with_state_maintaince:
       entity_id: climate.en_suite_room_thermostat
       service: climate.set_hvac_mode
     - data:
-        temperature: 23
+        temperature: 22.5
       entity_id: climate.en_suite_room_thermostat
       service: climate.set_temperature
     - data:
         stop_actions: false
       entity_id: automation.en_suite_room_heating_on_if_people_present
       service: automation.turn_off
+
+
+###########################################
+# En-suite Toilet Sevices
+###########################################
+en_suite_toilet_all_lights_turn_on:
+  alias: En-suite Toilet All Lights Turn On
+  mode: parallel
+  max: 100
+  sequence:
+    - entity_id: light.en_suite_toilet_light
+      service: light.turn_on
+
+en_suite_toilet_all_lights_turn_off:
+  alias: En-suite Toilet All Lights Turn Off
+  mode: parallel
+  max: 100
+  sequence:
+    - entity_id: light.en_suite_toilet_light
+      service: light.turn_off
+
+en_suite_toilet_set_bright_cool_light:
+  alias: En-suite Toilet Set Bright Cool Light
+  mode: single
+  sequence:
+    - service: light.turn_on
+      entity_id: light.en_suite_toilet_light
+      data:
+        brightness: 255
+        kelvin: 4000
+
+en_suite_toilet_set_dark_warm_light:
+  alias: En-suite Toilet Set Bright Cool Light
+  mode: single
+  sequence:
+    - service: light.turn_on
+      entity_id: light.en_suite_toilet_light
+      data:
+        brightness: 1
+        kelvin: 3000
 
 
 en_suite_toilet_set_heating_temp_with_state_maintaince:
@@ -894,25 +934,6 @@ en_suite_toilet_set_heating_temp_with_state_maintaince:
       service: automation.turn_off
 
 ###########################################
-# En-suite Toilet Sevices
-###########################################
-en_suite_toilet_all_lights_turn_on:
-  alias: En-suite Toilet All Lights Turn On
-  mode: parallel
-  max: 100
-  sequence:
-    - entity_id: light.en_suite_toilet_light
-      service: light.turn_on
-
-en_suite_toilet_all_lights_turn_off:
-  alias: En-suite Toilet All Lights Turn Off
-  mode: parallel
-  max: 100
-  sequence:
-    - entity_id: light.en_suite_toilet_light
-      service: light.turn_off
-
-###########################################
 # Guest Room Sevices
 ###########################################
 guest_room_all_lights_turn_on:
@@ -929,12 +950,12 @@ guest_room_all_lights_turn_off:
   mode: parallel
   max: 100
   sequence:
-    - service: switch.turn_off
-      entity_id:
-        - switch.guest_room_screen_led
+    #- service: switch.turn_off
+    #  entity_id:
+    #    - switch.guest_room_screen_led
     - service: light.turn_off
       entity_id:
-        - light.guest_room_lamps
+    #    - light.guest_room_lamps
         - light.guest_room_ceiling_light
 
 guest_room_set_heating_temp_with_state_maintaince:
@@ -1021,9 +1042,7 @@ living_room_landing_lights_turn_off:
   max: 100
   mode: parallel
   sequence:
-    - entity_id: light.living_room_ble_light_near_wall
-      service: light.turn_off
-    - entity_id: light.living_room_ble_light_near_door
+    - entity_id: light.living_room_landing_light
       service: light.turn_off
 
 living_room_landing_lights_turn_on:
@@ -1031,9 +1050,7 @@ living_room_landing_lights_turn_on:
   max: 100
   mode: parallel
   sequence:
-    - entity_id: light.living_room_ble_light_near_door
-      service: light.turn_on
-    - entity_id: light.living_room_ble_light_near_wall
+    - entity_id: light.living_room_landing_light
       service: light.turn_on
 
 living_room_landing_lights_toggle:
@@ -1041,12 +1058,8 @@ living_room_landing_lights_toggle:
   mode: parallel
   max: 100
   sequence:
-    - service: >
-        {% if is_state('light.living_room_ble_light_near_door', 'on') %}
-           script.living_room_landing_lights_turn_off
-        {% else %}
-           script.living_room_landing_lights_turn_on
-        {% endif %}
+    - entity_id: light.living_room_landing_light
+      service: light.toggle
 
 living_room_all_lights_turn_on:
   alias: Living Room Ceiling All Lights Turn On
@@ -1069,7 +1082,11 @@ living_room_all_lights_turn_off:
         - switch.living_room_ceiling_light
         - switch.garden_light
     - service: script.living_room_landing_lights_turn_off
-
+    - service: light.turn_off
+      entity_id:
+        - light.living_room_tv_led
+        - light.living_room_sofa_led
+        
 living_room_set_heating_temp_with_state_maintaince:
   alias: Living Room Set Heating Temperature With State Maintaince
   mode: restart

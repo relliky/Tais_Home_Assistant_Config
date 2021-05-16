@@ -125,6 +125,7 @@
 
 # En-suite Room with Custom Thermostat
 - alias: H-ER En-suite Room Thermostat Switch Turns On/Off the Tado Valve
+  id: '1596909943139'
   trigger:
     - platform: state
       entity_id: input_boolean.en_suite_room_valve_switch
@@ -149,6 +150,45 @@
           {% endif %}
       entity_id: climate.en_suite_room
       service: climate.set_temperature
+
+- alias: H-ER En-suite Room Thermostat State Are Mutually Exclusive From Aircon
+  id: '1596919933135'
+  trigger:
+    - platform: state
+      entity_id: climate.en_suite_room_thermostat
+      to:
+        - "off"
+        - "heat"
+  action:
+    - entity_id: climate.en_suite_room_air_conditioner
+      service: climate.set_hvac_mode
+      data:
+        hvac_mode: >
+          {% if states('climate.en_suite_room_thermostat') == 'heat' %}
+            off
+          {% else %}
+            cool
+          {% endif %}            
+
+
+- alias: H-ER En-suite Room Aircon State Are Mutually Exclusive From Thermostat
+  id: '1596919933136'
+  trigger:
+    - platform: state
+      entity_id: climate.en_suite_room_air_conditioner
+      to:
+        - "off"
+        - "cool"
+  action:
+    - entity_id: climate.en_suite_room_thermostat
+      service: climate.set_hvac_mode
+      data:
+        hvac_mode: >
+          {% if states('climate.en_suite_room_air_conditioner') == 'cool' %}
+            off
+          {% else %}
+            heat
+          {% endif %}            
 
 
 
@@ -246,10 +286,8 @@
     condition: numeric_state
     below: '40'
   action:
-  - data: {}
-    service: script.en_suite_room_all_lights_turn_on
-  - data: {}
-    entity_id: automation.en_suite_room_lights_on_if_person_present
+  - service: script.en_suite_room_all_lights_turn_on
+  - entity_id: automation.en_suite_room_lights_on_if_person_present
     service: automation.turn_off
 
 
@@ -270,7 +308,7 @@
     state: 'on'
   - entity_id: sensor.en_suite_toilet_motion_sensor_light
     condition: numeric_state
-    below: '30'
+    below: '250'
   action:
   - entity_id: light.en_suite_toilet_light
     service: light.turn_on
@@ -337,51 +375,53 @@
 ###############################################
 
 # En-suite Room
-- alias: B-MR En-suite Room Wall Switch - Single Press - Turn On En-suite Room Lights/Turn Off All Lights
+#- alias: B-ER En-suite Room Wall Switch - Single Press - Turn On En-suite Room Lights/Turn Off All Lights
+#  trigger:
+#  - platform: state
+#    entity_id: sensor.en_suite_room_ceiling_light_wall_button
+#    to: single
+#  action:
+#  - choose:
+#    # IF - all lights off - turn on ceiling light
+#    - conditions:
+#      - condition: and
+#        conditions:
+#        - condition: state
+#          entity_id: switch.en_suite_room_ceiling_light
+#          state: 'off'
+#        - condition: state
+#          entity_id: switch.en_suite_room_bedside_lamp
+#          state: 'off'
+#        - condition: state
+#          entity_id: light.en_suite_toilet_light
+#          state: 'off'
+#      sequence:
+#        - service: switch.turn_on
+#          entity_id: switch.en_suite_room_ceiling_light
+#    # ELSE - some lights on - turn off all lights
+#    default:
+#      - service: switch.turn_off
+#        entity_id: 
+#        - switch.en_suite_room_ceiling_light
+#        - switch.en_suite_room_bedside_lamp
+#      - service: light.turn_off
+#        entity_id: 
+#        - light.en_suite_toilet_light
+
+
+- alias: B-ER En-suite Room Wall/Bed Button  - Single Press - Toggle Ceiling Lights
   trigger:
   - platform: state
-    entity_id: sensor.en_suite_room_ceiling_light_wall_button
+    entity_id: 
+     - sensor.en_suite_room_bedside_button
+     - sensor.en_suite_room_ceiling_light_wall_button     
     to: single
   action:
-  - choose:
-    # IF - all lights off - turn on ceiling light
-    - conditions:
-      - condition: and
-        conditions:
-        - condition: state
-          entity_id: switch.en_suite_room_ceiling_light
-          state: 'off'
-        - condition: state
-          entity_id: switch.en_suite_room_bedside_lamp
-          state: 'off'
-        - condition: state
-          entity_id: light.en_suite_toilet_light
-          state: 'off'
-      sequence:
-        - service: switch.turn_on
-          entity_id: switch.en_suite_room_ceiling_light
-    # ELSE - some lights on - turn off all lights
-    default:
-      - service: switch.turn_off
-        entity_id: 
-        - switch.en_suite_room_ceiling_light
-        - switch.en_suite_room_bedside_lamp
-      - service: light.turn_off
-        entity_id: 
-        - light.en_suite_toilet_light
+  - service:   light.toggle
+    entity_id: light.en_suite_room_ceiling_light
 
 
-- alias: B-MR En-suite Room Bed Button  - Single Press - Toggle Ceiling Lights
-  trigger:
-  - platform: state
-    entity_id: sensor.en_suite_room_bedside_button
-    to: single
-  action:
-  - service:   switch.toggle
-    entity_id: switch.en_suite_room_ceiling_light
-
-
-- alias: B-MR En-suite Room Bed Button - Double Press - Toggle Bedside Lamp
+- alias: B-ER En-suite Room Bed Button - Double Press - Toggle Bedside Lamp
   trigger:
   - platform: state
     entity_id: sensor.en_suite_room_bedside_button
@@ -389,6 +429,53 @@
   action:
   - service:   switch.toggle
     entity_id: switch.en_suite_room_bedside_lamp
+
+
+    
+   
+- alias: T-ET En-suite Toilet Light Update Colour At Night
+  description: ""
+  trigger:
+    - at: "23:30:00"
+      platform: time
+  action:
+    - choose:
+        # If the light is already on - change colour temperature only
+        - conditions:
+            - condition: state
+              entity_id: light.en_suite_toilet_light
+              state: "on"
+          sequence:
+            - service: script.en_suite_toilet_set_dark_warm_light
+      # ELSE - change colour temperature and turn it off 
+      default:
+        - service: script.en_suite_toilet_set_dark_warm_light
+        - delay: "00:00:02"
+        - service: light.turn_off
+          entity_id: light.en_suite_toilet_light        
+
+
+   
+- alias: T-ET En-suite Toilet Light Update Colour At Daytime
+  description: ""
+  trigger:
+    - at: "06:00:00"
+      platform: time
+  action:
+    - choose:
+        # If the light is already on - change colour temperature only
+        - conditions:
+            - condition: state
+              entity_id: light.en_suite_toilet_light
+              state: "on"
+          sequence:
+            - service: script.en_suite_toilet_set_bright_cool_light
+      # ELSE - change colour temperature and turn it off 
+      default:
+        - service: script.en_suite_toilet_set_bright_cool_light
+        - delay: "00:00:02"
+        - service: light.turn_off
+          entity_id: light.en_suite_toilet_light           
 
 
 ######################################################

@@ -13,8 +13,6 @@ default_config:
 #    - key: 153EEFE707B24CFB
 #      mac: 34CE008D7558
 #
-
-
 # Manually adding yeelight lights in yaml
 # This gurantees the integeration will still works after wifi AP updates
 # as long as the IPs are reserved to these addresses
@@ -37,20 +35,30 @@ binary_sensor:
 # Added MagicHome LEDs
 # This is a third-party custom component on flux_led
 # instead of the official one from HA
-# light:
-#   - platform: flux_led
-#     devices:
-#       192.168.1.29:
-#         name: spare_wifi_led
-#         mode: "rgb"
+light:
+   - platform: flux_led
+     devices:
+       192.168.1.52:
+         name: Master Room Bed LED
+         mode: "rgb"
+       192.168.1.53:
+         name: Living Room TV LED
+         mode: "rgb"
+       192.168.1.54:
+         name: Living Room Sofa LED
+         mode: "rgb"
+
+# Added Conbee II
+# MAC: 00212EFFFF0740B0
+# Install Code: 3CC4 B1A8 F002 79BC
 
 # Added XiaoMi Vacuum Robot
-vacuum:
-  - platform: xiaomi_miio
-    name: Xiaomi Vacuum Cleaner
-    host: 192.168.1.42
-    token: 674c4d4465476b6b4543735064795468
-
+#vacuum:
+#  - platform: xiaomi_miio
+#    name: Xiaomi Vacuum Cleaner
+#    host: 192.168.1.42
+#    token: 674c4d4465476b6b4543735064795468
+#
 # Added Xiaomi Wifi Plug
 #switch:
 #  - platform: xiaomi_miio
@@ -96,20 +104,20 @@ light my_light_group:
   - platform: group
     name: Master Toilet Ceiling Light
     entities:
-      - light.master_toilet_spotlight_bulb_1
-      - light.master_toilet_spotlight_bulb_2
-      - light.master_toilet_spotlight_bulb_3
-      - light.master_toilet_spotlight_bulb_4
+      - light.master_toilet_spotlight_1_hue
+      - light.master_toilet_spotlight_2_hue
+      - light.master_toilet_spotlight_3_hue
+      - light.master_toilet_spotlight_4_hue
   - platform: group
     name: Kitchen Ceiling Light
     entities:
-      - light.kitchen_spotlight_bulb_1
-      - light.kitchen_spotlight_bulb_2
-      - light.kitchen_spotlight_bulb_3
-      - light.kitchen_spotlight_bulb_4
-      - light.kitchen_spotlight_bulb_5
-      - light.kitchen_spotlight_bulb_6
-      - light.kitchen_spotlight_bulb_7
+      - light.kitchen_spotlight_bulb_1_localtuya
+      - light.kitchen_spotlight_bulb_2_localtuya
+      - light.kitchen_spotlight_bulb_3_localtuya
+      - light.kitchen_spotlight_bulb_4_localtuya
+      - light.kitchen_spotlight_bulb_5_localtuya
+      - light.kitchen_spotlight_bulb_6_localtuya
+      - light.kitchen_spotlight_bulb_7_localtuya
   - platform: group
     name: Guest Room Lamps
     entities:
@@ -126,7 +134,12 @@ light my_light_group:
       - light.en_suite_toilet_spotlight_bulb_1
       - light.en_suite_toilet_spotlight_bulb_2
       - light.en_suite_toilet_spotlight_bulb_3
-
+  - platform: group
+    name: Living Room Landing Light
+    entities:
+      - light.living_room_landing_light_bulb_1
+      - light.living_room_landing_light_bulb_2
+      
 sensor:
   # Time
   - platform: time_date
@@ -153,25 +166,24 @@ sensor:
 #               #'58:2d:34:3b:6a:27'
 
 # HA_On_VMs does not have BLE (bluetooth v4)
-#  # Xiaomi BLE Round Fast Update Temperature Sensor
-#  - platform: mitemp_bt
-#    period: 5 # seconds for refresh interval
-#    sensor_names:
-#      '58:2d:34:3b:6a:27': 'Kitchen Hob Temperature Sensor'
-
-sensor system:
-  - platform: systemmonitor
-    resources:
-      - type: disk_use
-      - type: memory_use
-      - type: load_1m
-      - type: processor_use
+  # Xiaomi BLE Round Fast Update Temperature Sensor
+  - platform: mitemp_bt
+    period: 10 # seconds for refresh interval
+    sensor_names:
+      '58:2d:34:3b:6a:27': 'Kitchen Hob Temperature Sensor'
 
 
-# TVs
-#samsungtv:
-#  - host: 192.168.1.29
-#    name: Master Room TV
+# Samsung TVs
+# 1. [OK] The offical HA integration on master room TV. It can only turn off but unable to turn on
+# 2. 
+samsungtv:
+  - host: 192.168.1.29
+    name: Master Room TV
+    turn_on_action:
+      - service: wake_on_lan.send_magic_packet
+        data:
+          mac: 'bc:7e:8b:cc:ad:b4'
+          
 #media_player:
 #  - platform: samsungtv_tizen
 #    host: 192.168.1.29
@@ -179,23 +191,35 @@ sensor system:
 #    name: Master Room TV
 
 
+sensor system:
+  - platform: systemmonitor
+    resources:
+      - type: disk_use
+        arg: /
+      - type: memory_use
+      - type: load_1m
+      - type: processor_use
+
 # Database logging config
 recorder:
   purge_keep_days: 1
   auto_purge: true
   commit_interval: 15 # updates log every 15s
-  db_url: mysql://hass_user:hass_pass@core-mariadb/homeassistant?charset=utf8mb4
+  #db_url: mysql://hass_user:hass_pass@core-mariadb/homeassistant?charset=utf8mb4
   # Do not log any entity activities unless required for further debug
-  include:
-    entity_globs: 
-      - sensor.*
-      #- binary_sensor.*
+#  include:
+#    entity_globs: 
+#      - sensor.*temperature*
+#      - sensor.load*
+#      - sensor.process*
+#      - climate.*
 
 # Debug Homekit Integration
 #logger:
 #  default: warning
 #  logs:
-#    homeassistant.components.homekit: debug
+##    homeassistant.components.homekit: debug
+#    homeassistant.components.tado: debug
 #    pyhap: debug
 
 
@@ -243,6 +267,30 @@ climate:
     cold_tolerance: 0.1
     hot_tolerance: 0.1
     initial_hvac_mode: "heat"
+
+  - platform: generic_thermostat
+    name: Master Room Air Conditioner
+    heater: switch.air_conditioner
+    ac_mode: true
+    target_sensor: sensor.master_room_temperature_sensor
+    precision: 0.5
+    min_temp: 10
+    max_temp: 25
+    cold_tolerance: 0.1
+    hot_tolerance: 0.1
+    initial_hvac_mode: "off"
+
+  - platform: generic_thermostat
+    name: En-suite Room Air Conditioner
+    heater: switch.air_conditioner
+    ac_mode: true
+    target_sensor: sensor.en_suite_room_temperature_sensor
+    precision: 0.5
+    min_temp: 10
+    max_temp: 25
+    cold_tolerance: 0.1
+    hot_tolerance: 0.1
+    initial_hvac_mode: "off"
 
 # Blinds
 cover:
@@ -370,6 +418,13 @@ input_boolean:
 
   en_suite_toilet_short_presence:
     name: "En-suite Toilet Short Presence"
+    
+  ####################################
+  # Log Enable
+  ####################################
+  log_enable:
+    name: "Log Enable"
+    initial: "off"
 
 input_select:
   music_controller:
@@ -385,21 +440,29 @@ homekit:
   - name: HA Brdige i1
     filter:
       include_entities:
+        ########################
         # Misc
+        ########################
         - script.hassio_restart
+        - input_boolean.log_enable
+        ########################
         # Master Room
+        ########################
         - binary_sensor.master_room_tv_motion_sensor_motion
         - binary_sensor.master_room_stair_motion_sensor_motion
         - binary_sensor.master_room_dressing_table_motion_sensor_motion
         - binary_sensor.master_room_drawer_motion_sensor_motion
         - binary_sensor.master_room_bed_motion_sensor_motion
         - sensor.master_room_light_meter
+        - binary_sensor.master_room_balcony_door
         #- sensor.master_room_bedside_button
         #- sensor.master_room_six_key_button
         #- sensor.master_room_spare_button
         #- climate.master_room  # tado
         - climate.master_room_thermostat
-        - switch.master_room_tv
+        - climate.master_room_air_conditioner
+        #- switch.master_room_tv
+        - media_player.master_room_tv
         - cover.master_room_curtain
         - cover.master_room_blind
         - light.master_room_lamp_near_door
@@ -411,16 +474,23 @@ homekit:
         - switch.master_room_landing_ceiling_light
         - switch.master_room_balcony_decro_light
         - switch.master_room_balcony_wall_light
+        ########################
         # Master Toilet
+        ########################
         - binary_sensor.master_toilet_basin_motion_sensor_motion
         - binary_sensor.master_toilet_shower_motion_sensor_motion
-        - binary_sensor.master_toilet_dressing_motion_sensor_motion
+        - binary_sensor.master_toilet_dressing_room_motion_sensor_motion
         - binary_sensor.master_toilet_door
         - climate.master_toilet
-        - light.master_toilet_ceiling_light
-        - switch.master_toilet_dressing_light
+        - light.master_toilet_spotlight_1_hue
+        - light.master_toilet_spotlight_2_hue
+        - light.master_toilet_spotlight_3_hue
+        - light.master_toilet_spotlight_4_hue
+        - switch.master_toilet_dressing_room_light
         - switch.master_toilet_floor_led
+        ########################
         # Living Room
+        ########################
         - binary_sensor.living_room_tv_motion_sensor_motion
         - binary_sensor.living_room_sofa_motion_sensor_motion
         - binary_sensor.garden_sliding_door_motion_sensor_motion
@@ -431,15 +501,19 @@ homekit:
         - climate.living_room
         #- switch.living_room_tv
         - light.boiler_room_light
-        - light.living_room_ble_light_near_door
-        - light.living_room_ble_light_near_wall
+        - light.living_room_landing_light_bulb_1
+        - light.living_room_landing_light_bulb_2
+        - light.living_room_tv_led
+        - light.living_room_sofa_led        
         - switch.living_room_ceiling_light
         #- switch.living_room_tree_light
         - switch.garden_spotlight
         - switch.garden_wall_light
         - switch.garden_extension_lead_switch_2
         - switch.garden_extension_lead_switch_3
+        ########################
         # Kitchen
+        ########################
         - binary_sensor.kitchen_table_motion_sensor_motion
         - binary_sensor.kitchen_worktop_motion_sensor_motion
         #- sensor.kitchen_worktop_button
@@ -456,7 +530,9 @@ homekit:
         - switch.kitchen_floor_led
         - switch.kitchen_extractor
         - switch.kitchen_decro_light
+        ########################
         # Study
+        ########################
         - binary_sensor.study_motion_sensor_motion
         #- sensor.study_button
         - climate.study
@@ -464,7 +540,9 @@ homekit:
         - light.study_lamp_left
         - light.study_lamp_right
         - switch.study_screen_led
+        ########################
         # Guest Room
+        ########################
         - binary_sensor.guest_room_radiator_motion_sensor_motion
         - binary_sensor.guest_room_bed_motion_sensor_motion
         - input_boolean.guest_room_guests_use_this_room
@@ -475,31 +553,42 @@ homekit:
         - light.guest_room_lamp_right
         - light.guest_room_ceiling_light
         - switch.guest_room_screen_led
+        ########################
         # Guest Toilet
+        ########################
         - binary_sensor.guest_toilet_motion_sensor_motion
         - binary_sensor.guest_toilet_door
         - climate.guest_toilet
         - switch.guest_toilet_ceiling_light
         - switch.guest_toilet_floor_led
+        ########################
         # En-suite Room
+        ########################
         - binary_sensor.en_suite_room_motion_sensor_motion
         - input_boolean.en_suite_room_guests_use_this_room
         #- sensor.en_suite_room_bedside_button
         #- climate.en_suite_room # tado
         - climate.en_suite_room_thermostat
-        - switch.en_suite_room_ceiling_light
+        - climate.en_suite_room_air_conditioner
+        - light.en_suite_room_ceiling_light
         #- switch.en_suite_room_bedside_lamp
+        ########################
         # En-suite Toilet
+        ########################
         - binary_sensor.en_suite_toilet_motion_sensor_motion
         - binary_sensor.en_suite_toilet_door
         - climate.en_suite_toilet
         - light.en_suite_toilet_light
+        ########################
         # Ground Toilet
+        ########################
         - binary_sensor.ground_toilet_motion_sensor_motion
         - binary_sensor.ground_toilet_door
         - climate.ground_toilet
         - switch.ground_toilet_light
+        ########################
         # Corridor
+        ########################
         - binary_sensor.front_door_motion_sensor_motion
         - binary_sensor.first_corridor_motion_sensor_motion
         - binary_sensor.ground_corridor_motion_sensor_motion
@@ -529,3 +618,4 @@ homekit:
         - switch.study_ceiling_light
         - switch.guest_room_ceiling_light
         - switch.en_suite_toilet_light
+        - switch.en_suite_room_ceiling_light

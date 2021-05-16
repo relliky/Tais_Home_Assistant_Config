@@ -1,10 +1,9 @@
 # Living Room
 # - Heating automation
 # - Lighting automation based on motion sensors
-# - Lighting automation based on buttons
+# - Lighting automation based on buttons/linked switches
 # - Sonos Speakers Grouping/Ungrouping Based On Motion Sensor
 # - TV auto turn-off based on motion sensors
-# - Linked Switches
 #
 ###############################################
 #
@@ -191,6 +190,7 @@
   action:
     - service: script.living_room_landing_lights_turn_on
 
+
 - alias: L-LR Living Room Lights Off If No Person For 10 Min
   id: "1603640031662"
   description: ""
@@ -218,6 +218,49 @@
       state: "off"
   action:
     - service: script.living_room_all_lights_turn_off
+
+
+
+- alias: L-LR Boiler Room Lights On If Door Opens
+  id: "1603640041661"
+  trigger:
+    - entity_id: binary_sensor.boiler_room_door
+      platform: state
+      from: "off"
+      to: "on"
+  action:
+    - service:   light.turn_on
+      entity_id: light.boiler_room_light
+
+
+
+- alias: L-LR Boiler Room Lights Off If No Movemenet on Door 
+  id: "1603640041662"
+  trigger:
+    - entity_id: binary_sensor.boiler_room_door
+      platform: state
+      to: "off"
+      for: 00:02:00
+    - entity_id: binary_sensor.boiler_room_door
+      platform: state
+      to: "on"
+      for: 00:15:00
+    - minutes: /5
+      platform: time_pattern      
+  condition:
+    - condition: or
+      conditions:
+      - entity_id: binary_sensor.boiler_room_door
+        condition: state
+        state: "off"
+        for: "00:02:00"
+      - entity_id: binary_sensor.boiler_room_door
+        condition: state
+        state: "on"
+        for: "00:15:00"
+  action:
+    - service:   light.turn_off
+      entity_id: light.boiler_room_light
 
 ###############################################
 #
@@ -252,9 +295,13 @@
       entity_id: sensor.living_room_sofa_button
       to: double
   action:
-    - entity_id: switch.living_room_ceiling_light
-      service: switch.toggle
-
+    #- entity_id: switch.living_room_ceiling_light
+    #  service: switch.toggle
+    - service: light.toggle
+      entity_id:
+        - light.living_room_tv_led
+        - light.living_room_sofa_led
+        
 - alias: B-LR Living Room Sofa - Tripple Press - Turn off lights - Movie Scene For 2 Hours
   id: "1603641040072"
   trigger:
@@ -286,6 +333,58 @@
         - service: automation.turn_on
           entity_id: automation.l_lr_living_room_lights_on_if_person_present
   mode: restart
+
+
+# Linked Switches
+- alias: B-LR Garden Wall Lights ON Controls Floor Spotlights
+  id: "1603641040170"
+  trigger:
+    - platform: state
+      to: "on"
+      entity_id:
+        - switch.garden_wall_light
+  action:
+    - service: switch.turn_on
+      entity_id: switch.garden_spotlight            
+
+- alias: B-LR Garden Wall Lights OFF Controls Floor Spotlights
+  id: "1603641040171"
+  trigger:
+    - platform: state
+      to: "off"
+      entity_id:
+        - switch.garden_wall_light
+  action:
+    - service: switch.turn_off
+      entity_id: switch.garden_spotlight         
+
+- alias: B-LR Garden Decro Wall Switch ON Controls Decro Lights
+  id: "1603641040172"
+  trigger:
+    - platform: state
+      to: "on"
+      entity_id:
+        switch.garden_decro_wall_switch
+  action:
+    - service: switch.turn_on
+      entity_id: 
+      - switch.garden_extension_lead_switch_2
+      - switch.garden_extension_lead_switch_3
+
+- alias: B-LR Garden Decro Wall Switch OFF Controls Decro Lights
+  id: "1603641040173"
+  trigger:
+    - platform: state
+      to: "off"
+      entity_id:
+        switch.garden_decro_wall_switch
+  action:
+    - service: switch.turn_off
+      entity_id: 
+      - switch.garden_extension_lead_switch_2
+      - switch.garden_extension_lead_switch_3
+
+
 
 #################################################################
 #
@@ -355,6 +454,27 @@
       data:
         target_player: media_player.living_room_sonos
 
+- alias: S-LR Living Room Sonos Night Mode On In the Night
+  trigger:
+    - at: "21:00:00"
+      platform: time
+  action:
+    - service: sonos.set_option
+      data:
+        night_sound: true
+        entity_id: media_player.living_room_sonos
+    
+
+- alias: S-LR Living Room Sonos Night Mode Off In the Morning
+  trigger:
+    - at: "09:00:00"
+      platform: time
+  action:
+    - service: sonos.set_option
+      data:
+        night_sound: false
+        entity_id: media_player.living_room_sonos
+        
 #################################################################
 #
 # TV auto turn-off based on motion sensors
@@ -383,30 +503,5 @@
     - service: switch.turn_off
       entity_id: switch.living_room_tv
 
-#################################################################
-#
-# Linked Switches
-#
-#################################################################
-- alias: B-LR Garden Wall Lights ON/OFF Controls Floor Spotlights
-  trigger:
-    - platform: state
-      to: "off"
-      entity_id:
-        - switch.garden_wall_light
-    - platform: state
-      to: "on"
-      entity_id:
-        - switch.garden_wall_light
-  action:
-    - choose:
-        - conditions:
-            - condition: state
-              entity_id: switch.garden_wall_light
-              state: "on"
-          sequence:
-            - service: switch.turn_on
-              entity_id: switch.garden_wall_light            
-      default:
-        - service: switch.turn_off
-          entity_id: switch.garden_wall_light
+
+          

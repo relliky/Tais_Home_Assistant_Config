@@ -87,8 +87,8 @@
     - service: automation.turn_on
       entity_id: automation.master_room_ceiling_lights_on_or_open_curtain_if_entering_room
     # Switch Off TV
-    - service: switch.turn_off
-      entity_id: switch.master_room_tv
+    - service: media_player.turn_off
+      entity_id: media_player.master_room_tv
 
 
 - alias: H-MR Master Room Turn On Schedule If Person Present
@@ -131,6 +131,7 @@
       default:
         - service: script.master_room_set_heating_temp_with_state_maintaince
 
+
 - alias: H-MR Master Room Heating Scheduler
   id: "1599909948789"
   description: "automation.master_room_heating_scheduler"
@@ -157,10 +158,10 @@
         temperature: >
           {% if now().hour >= 18 %}
           {# 18:00 - 0:00 #}
-            22
+            22.5
           {% elif now().hour < 9 %}
           {# 0:00 - 9:00 #}
-            22
+            22.5
           {% else %}
           {# 9:00 - 18:00 #}
             21
@@ -170,6 +171,7 @@
 
 # Master Room with Custom Thermostat
 - alias: H-MR Master Room Thermostat Switch Turns On/Off The Tado Valve
+  id: "1599909948781"
   trigger:
     - platform: state
       entity_id: input_boolean.master_room_valve_switch
@@ -184,7 +186,7 @@
         hvac_mode: heat
       entity_id: 
         - climate.master_room
-        - climate.master_room_thermostat
+        #- climate.master_room_thermostat
       service: climate.set_hvac_mode
     - data:
         # Set tado temperature based on outdoor temperatures
@@ -202,6 +204,47 @@
           {% endif %}
       entity_id: climate.master_room
       service: climate.set_temperature
+
+
+- alias: H-MR Master Room Thermostat State Are Mutually Exclusive From Aircon
+  id: '1596916933135'
+  trigger:
+    - platform: state
+      entity_id: climate.master_room_thermostat
+      to:
+        - "off"
+        - "heat"
+  action:
+    - entity_id: climate.master_room_air_conditioner
+      service: climate.set_hvac_mode
+      data:
+        hvac_mode: >
+          {% if states('climate.master_room_thermostat') == 'heat' %}
+            off
+          {% else %}
+            cool
+          {% endif %}            
+
+
+- alias: H-MR Master Room Aircon State Are Mutually Exclusive From Thermostat
+  id: '1596916933136'
+  trigger:
+    - platform: state
+      entity_id: climate.master_room_air_conditioner
+      to:
+        - "off"
+        - "cool"
+  action:
+    - entity_id: climate.master_room_thermostat
+      service: climate.set_hvac_mode
+      data:
+        hvac_mode: >
+          {% if states('climate.master_room_air_conditioner') == 'cool' %}
+            off
+          {% else %}
+            heat
+          {% endif %}            
+
 
 # Master Toilet
 - alias: H-MT Master Toilet Heating On If Person Present
@@ -387,6 +430,45 @@
     - service: light.turn_off
       entity_id: light.master_room_entrance_led_light
 
+
+- alias: L-MR Master Room Balcony Lights On If Door Open
+  description: ""
+  trigger:
+    - entity_id: binary_sensor.master_room_balcony_door
+      platform: state
+      from: "off"
+      to: "on"
+  condition:
+    - entity_id: sensor.master_room_light_meter
+      condition: numeric_state
+      below: "100"
+  action:
+    - service: switch.turn_on
+      entity_id: switch.master_room_balcony_wall_light
+
+
+
+- alias: L-MR Master Room Balcony Lights Off If Door Close
+  description: ""
+  trigger:
+    - entity_id: binary_sensor.master_room_balcony_door
+      platform: state
+      from: "on"
+      to: "off"
+      for: 00:10:00
+    - minutes: /5
+      platform: time_pattern
+  condition:
+    - entity_id: binary_sensor.master_room_balcony_door
+      condition: state
+      state: "off"
+      for: 00:10:00
+  action:
+    - service: switch.turn_off
+      entity_id: switch.master_room_balcony_wall_light
+
+
+
 #- alias: L-MR Master Room Open Blinds If No Person For A Long Time In Daytime
 #  description: ''
 #  trigger:
@@ -449,7 +531,7 @@
     - entity_id:
         - binary_sensor.master_room_tv_motion_sensor_motion
         - binary_sensor.master_room_drawer_motion_sensor_motion
-        - binary_sensor.master_toilet_dressing_motion_sensor_motion
+        - binary_sensor.master_toilet_dressing_room_motion_sensor_motion
       platform: state
       from: "off"
       to: "on"
@@ -548,7 +630,6 @@
                 kelvin: 5000
             - service: switch.turn_off
               entity_id: switch.master_toilet_floor_led
-
       # ELSE - change the ceiling light to warm 3000k
       #        turn on warm floor led
       default:
@@ -622,15 +703,15 @@
 - alias: L-MT Master Toilet Dressing Lights On If Person Present
   description: ""
   trigger:
-    - entity_id: binary_sensor.master_toilet_dressing_motion_sensor_motion
+    - entity_id: binary_sensor.master_toilet_dressing_room_motion_sensor_motion
       platform: state
       from: "off"
       to: "on"
   condition:
-    - entity_id: binary_sensor.master_toilet_dressing_motion_sensor_motion
+    - entity_id: binary_sensor.master_toilet_dressing_room_motion_sensor_motion
       condition: state
       state: "on"
-    - entity_id: sensor.master_toilet_dressing_motion_sensor_light
+    - entity_id: sensor.master_toilet_dressing_room_motion_sensor_light
       condition: numeric_state
       below: "30"
   action:
@@ -642,15 +723,18 @@
               before: "23:30:00"
           sequence:
             - service: switch.turn_on
-              entity_id: switch.master_toilet_dressing_light
-      # ELSE - in nighttime, turn on toilet lights to dark warm lights
+              entity_id: switch.master_toilet_dressing_room_light
+      # ELSE - in nighttime, turn on toilet lights only
       default:
-        - service: script.master_toilet_set_dark_warm_light
+        - service: light.turn_on
+          entity_id: light.master_toilet_ceiling_light
+        - service: switch.turn_on
+          entity_id: switch.master_toilet_floor_led
 
 - alias: L-MT Master Toilet Dressing Lights Off If No Person Present For 2 Min
   description: ""
   trigger:
-    - entity_id: binary_sensor.master_toilet_dressing_motion_sensor_motion
+    - entity_id: binary_sensor.master_toilet_dressing_room_motion_sensor_motion
       platform: state
       from: "on"
       to: "off"
@@ -658,13 +742,13 @@
     - minutes: /5
       platform: time_pattern
   condition:
-    - entity_id: binary_sensor.master_toilet_dressing_motion_sensor_motion
+    - entity_id: binary_sensor.master_toilet_dressing_room_motion_sensor_motion
       condition: state
       state: "off"
       for: 00:02:00
   action:
     - data: {}
-      entity_id: switch.master_toilet_dressing_light
+      entity_id: switch.master_toilet_dressing_room_light
       service: switch.turn_off
 
 ###############################################
@@ -696,7 +780,9 @@
 - alias: B-MR Master Room Bed Button - Single - Toggle Bed Lights/Ceiling Lights
   trigger:
     - platform: state
-      entity_id: sensor.master_room_bedside_button
+      entity_id: 
+        - sensor.master_room_bedside_button_right
+        - sensor.master_room_bedside_button_left
       to: single
   action:
     # N.B. choose will only choose the first matching condition to execute
@@ -926,16 +1012,16 @@
                   entity_id: light.master_toilet_ceiling_light
                   state: "off"
                 - condition: state
-                  entity_id: switch.master_toilet_dressing_light
+                  entity_id: switch.master_toilet_dressing_room_light
                   state: "off"
           sequence:
             - service: switch.turn_on
-              entity_id: switch.master_toilet_dressing_light
+              entity_id: switch.master_toilet_dressing_room_light
       # ELSE - some lights on - turn off all toilet lights and dressing room lights
       default:
         - service: script.master_toilet_all_lights_turn_off
         - service: switch.turn_off
-          entity_id: switch.master_toilet_dressing_light
+          entity_id: switch.master_toilet_dressing_room_light
 
 ###############################################
 #
@@ -993,7 +1079,7 @@
 - alias: T-MT Master Toilet Light Update Colour At Night
   description: ""
   trigger:
-    - at: "22:30:00"
+    - at: "23:30:00"
       platform: time
   action:
     - choose:
@@ -1010,8 +1096,6 @@
         - delay: "00:00:02"
         - service: light.turn_off
           entity_id: light.master_toilet_ceiling_light        
-    
-
  
 
 #################################################################
@@ -1049,11 +1133,9 @@
           sequence:
             - service: automation.trigger
               entity_id: automation.master_room_turn_on_heating_schedule_if_person_present
-            # make it warmer if sleeping in daytime
-            - data:
-                temperature: 23
-              entity_id: climate.master_room_thermostat
-              service: climate.set_temperature
+            # Turn on heating if it is off 
+            - service: automation.trigger
+              entity_id: automation.master_room_heating_scheduler
     # Turn off all entering automations
     - service: automation.turn_off
       entity_id:

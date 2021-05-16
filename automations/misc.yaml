@@ -2,6 +2,7 @@
 # - TV controls
 # - Sonos Music state mantainance
 # - Restart HA
+# - Turn Off Raditor if outdoor temperature is high
 
 - alias: Turn Off All TVs at 2.3.4.5am
   id: '1602117522624'
@@ -72,107 +73,7 @@
 # Sonos Music state mantainance
 #
 ###############################################
-
-#- alias: S- Turn On Music Follower - Kitchen/Master room/First corridor
-#  trigger:
-#  - platform: state
-#    entity_id:
-#      - media_player.master_room_sonos
-#      - media_player.kitchen_sonos
-#    to:
-#      - "idle"
-#      - "playing"
-#      - "paused"
-#      - "off"
-#  - minutes: /5
-#    platform: time_pattern      
-#  condition: 
-#  # IF any Sonos is playing music, turn on music follower
-#  - condition: or
-#    conditions:
-#    - condition: state
-#      state:     "playing"
-#      entity_id: media_player.master_room_sonos
-#    - condition: state
-#      state:     "playing"
-#      entity_id: media_player.kitchen_sonos
-#  action:
-#  - service: input_boolean.turn_on
-#    entity_id: input_boolean.follow_music   
-#
-#
-#
-#
-#- alias: S- Turn On Music Follower - living room
-#  trigger:
-#  - platform: state
-#    entity_id:
-#      - media_player.living_room_sonos
-#    to:
-#      - "idle"
-#      - "playing"
-#      - "paused"
-#      - "off"
-#  - minutes: /5
-#    platform: time_pattern      
-#  condition: 
-#  # IF living room Sonos is playing music, turn on music follower
-#    - condition: template
-#      value_template: >
-#        {% if state_attr('media_player.living_room_sonos', 'media_title') != 'TV' %}
-#          true
-#        {% else %}
-#          false
-#        {% endif %}    
-#    - condition: state
-#      state:     "playing"
-#      entity_id: media_player.living_room_sonos  
-#  action:
-#  - service: input_boolean.turn_on
-#    entity_id: input_boolean.follow_music   
-#
-#
-#
-#
-#- alias: S- Turn Off Music Follower  
-#  trigger:
-#  - platform: state
-#    entity_id:
-#      - media_player.living_room_sonos
-#      - media_player.master_room_sonos
-#      - media_player.kitchen_sonos
-#      - media_player.first_corridor_sonos
-#    to:
-#      - "idle"
-#      - "playing"
-#      - "paused"
-#      - "off"
-#  - minutes: /5
-#    platform: time_pattern      
-#  condition: 
-#  # IF any Sonos is playing music, turn on music follower
-#  - condition: not
-#    conditions:
-#    - condition: state
-#      state:     "playing"
-#      entity_id: media_player.master_room_sonos
-#    - condition: state
-#      state:     "playing"
-#      entity_id: media_player.kitchen_sonos
-#    - condition: state
-#      state:     "playing"
-#      entity_id: media_player.living_room_sonos  
-#    - condition: state
-#      state:     "playing"
-#      entity_id: media_player.first_corridor_sonos
-#  action:
-#  - service: input_boolean.turn_off
-#    entity_id: input_boolean.follow_music   
-#
-
-
-
-- alias: S- Set Music Master Speaker and Mantain Follow Music When The Only One Is Playing
+- alias: S- Set Music Master Speaker When The Only One Is Playing
   trigger:
   - platform: state
     entity_id:
@@ -282,4 +183,51 @@
           data:
             option:  first_corridor_sonos
 
+
+## Update Flux colour temperature
+#- alias: L-GR Guest Room Fluxer Update
+#  trigger:
+#    - platform: time_pattern
+#      seconds: "/30"
+#  action:
+#    - service: switch.fluxer_update
+
+- alias: Enable/Disable Logging By The State of The Log Enable
+  id: '1607918439986'
+  trigger:
+    - platform: time_pattern
+      minutes: "/5"
+    - platform: state
+      entity_id: input_boolean.log_enable
+      to:
+        - "on"
+        - "off"
+  action:
+    - service: >
+        {% if states('input_boolean.log_enable') == 'on' %}
+          recorder.enable
+        {% else %}
+          recorder.disable
+        {% endif %}   
+      
+#- alias: H- Turn On/Off Raditors/Aircon Mode Based On Outdoor Temperature
+#  id: '1607918454986'
+#  description: ''
+#  trigger:
+#  - minutes: /5
+#    platform: time_pattern
+#  condition: []
+#  action:
+#  - condition: numeric_state
+#    entity_id: sensor.kitchen_temperature_sensor
+#    above: "23"
+#  - condition: numeric_state
+#    entity_id: sensor.cambridge_city_airport_temperature
+#    above: "17"
+#  - data: {}
+#    entity_id: media_player.living_room_tv
+#    service: media_player.turn_on
+#  - condition: numeric_state
+#    entity_id: sensor.master_room_light_meter
+#    above: "100"
 
