@@ -1,12 +1,27 @@
 # Configure a default setup of Home Assistant (frontend, api, etc)
 default_config:
 
+
 # TODO:
 # * bedside lights colour control by button
 # * bed lights colour control by day in the week/mode/sleep etc
 # * Fixed the living room light switches.
 # * move automation to be package based - check if we can use a shared package for shared code
 #
+
+
+#----------------
+# Emulated Hue
+#----------------
+#emulated_hue:
+#  listen_port: 80
+#  expose_by_default: false
+#  entities:
+#    switch.master_toilet_dressing_room_light:
+#      name: "Emulated Hue MT Light"
+#    climate.master_room_thermostat:
+#      name: "Master Room Thermostat"
+      
 #xiaomi_aqara:
 #  discovery_retry: 5
 #  gateways: # XiaoMi Gateway
@@ -19,7 +34,7 @@ default_config:
 #yeelight:
 #  devices:
 #    192.168.1.23:
-#      name: Guest Room Lamp Left
+#      name: Guest Room Lamp Leftd
 #    192.168.1.26:
 #      name: Guest Room Lamp Right
 
@@ -45,9 +60,16 @@ light:
          name: Living Room TV LED
          mode: "rgb"
        192.168.1.54:
+         name: En-suite Room Bed LED
+         mode: "rgb"
+       192.168.1.55:
          name: Living Room Sofa LED
          mode: "rgb"
-
+       192.168.1.58:
+         name: Master Room TV LED
+         mode: "rgb"
+       
+       
 # Added Conbee II
 # MAC: 00212EFFFF0740B0
 # Install Code: 3CC4 B1A8 F002 79BC
@@ -101,13 +123,25 @@ light my_light_group:
     entities:
       - light.master_room_lamp_near_door
       - light.master_room_lamp_near_wall
+
+  - platform: group
+    name: Master Room LEDs
+    entities:
+      - light.master_room_bed_led
+      - light.master_room_tv_led
+
   - platform: group
     name: Master Toilet Ceiling Light
     entities:
-      - light.master_toilet_spotlight_1_hue
-      - light.master_toilet_spotlight_2_hue
-      - light.master_toilet_spotlight_3_hue
-      - light.master_toilet_spotlight_4_hue
+      #- light.master_toilet_spotlight_1_hue
+      #- light.master_toilet_spotlight_2_hue
+      #- light.master_toilet_spotlight_3_hue
+      #- light.master_toilet_spotlight_4_hue
+      - light.master_toilet_spotlight_bulb_1
+      - light.master_toilet_spotlight_bulb_2
+      - light.master_toilet_spotlight_bulb_3
+      - light.master_toilet_spotlight_bulb_4
+
   - platform: group
     name: Kitchen Ceiling Light
     entities:
@@ -118,35 +152,47 @@ light my_light_group:
       - light.kitchen_spotlight_bulb_5_localtuya
       - light.kitchen_spotlight_bulb_6_localtuya
       - light.kitchen_spotlight_bulb_7_localtuya
+
   - platform: group
     name: Guest Room Lamps
     entities:
       - light.guest_room_lamp_left
       - light.guest_room_lamp_right
+
   - platform: group
     name: Study Lamps
     entities:
       - light.study_lamp_left
       - light.study_lamp_right
+
   - platform: group
-    name: En-suite Toilet Light
+    name: En-suite Toilet Ceiling Light
     entities:
       - light.en_suite_toilet_spotlight_bulb_1
       - light.en_suite_toilet_spotlight_bulb_2
       - light.en_suite_toilet_spotlight_bulb_3
+
   - platform: group
     name: Living Room Landing Light
     entities:
       - light.living_room_landing_light_bulb_1
       - light.living_room_landing_light_bulb_2
-      
-sensor:
+  
+  - platform: group
+    name: Ground Toilet Ceiling Light
+    entities:
+      - light.ground_toilet_spotlight_bulb_1_localtuya 
+      - light.ground_toilet_spotlight_bulb_2_localtuya 
+
+sensor time:
   # Time
   - platform: time_date
     display_options:
       - "time"
       - "date"
+
 #  # XiaoMi BLE Temperature Sensor
+#sensor xiaomi_ble_slow:      
 #  - platform: mitemp_bt
 #    period: 60
 #    encryptors:
@@ -167,6 +213,7 @@ sensor:
 
 # HA_On_VMs does not have BLE (bluetooth v4)
   # Xiaomi BLE Round Fast Update Temperature Sensor
+sensor xiaomi_ble_fast:      
   - platform: mitemp_bt
     period: 10 # seconds for refresh interval
     sensor_names:
@@ -175,15 +222,21 @@ sensor:
 
 # Samsung TVs
 # 1. [OK] The offical HA integration on master room TV. It can only turn off but unable to turn on
-# 2. 
+#         even with correct WOL MAC address.
+#         However, after a couple of days useage, I have to reconfigure the integration and 
+#         the authentication notification shows up every a few seconds and never goes away.
 samsungtv:
   - host: 192.168.1.29
     name: Master Room TV
-    turn_on_action:
-      - service: wake_on_lan.send_magic_packet
-        data:
-          mac: 'bc:7e:8b:cc:ad:b4'
-          
+#    turn_on_action:
+#      - service: wake_on_lan.send_magic_packet
+#        data:
+#          mac: 'bc:7e:8b:cc:ad:b4'
+# 2. 
+
+
+
+
 #media_player:
 #  - platform: samsungtv_tizen
 #    host: 192.168.1.29
@@ -228,6 +281,10 @@ recorder:
 #  - url: /local/mini-media-player-bundle.js?v=1.11.0
 #    type: module
 
+homeassistant:
+  customize: !include customize.yaml
+  
+  
 automation: !include_dir_merge_list automations/
 automation gui: !include automations.yaml
 script: !include scripts/tais_scripts.yaml
@@ -435,6 +492,35 @@ input_select:
       - living_room_sonos
       - first_corridor_sonos
 
+
+# Avoid race condition with /5 time pattern trigger
+input_datetime:
+  toilet_daytime_early_start:
+    name: Toilet Daytime Early Start
+    has_date: false
+    has_time: true 
+    initial: "06:01:00"   
+
+  toilet_daytime_late_start:
+    name: Toilet Daytime Late Start
+    has_date: false
+    has_time: true 
+    initial: "10:01:00"   
+
+  toilet_nighttime_start:
+    name: Toilet Nighttime Start
+    has_date: false
+    has_time: true 
+    initial: "18:01:00"   
+
+  toilet_midnight_start:
+    name: Toilet Midnight Start
+    has_date: false
+    has_time: true 
+    initial: "00:01:00"   
+
+
+
 ## Port some thrid party products to Homekit for easy UI control
 homekit:
   - name: HA Brdige i1
@@ -468,6 +554,7 @@ homekit:
         - light.master_room_lamp_near_door
         - light.master_room_lamp_near_wall
         - light.master_room_bed_led
+        - light.master_room_tv_led
         - light.master_room_entrance_led_light
         - switch.master_room_dressing_table_light
         - switch.master_room_bed_ceiling_light
@@ -482,10 +569,11 @@ homekit:
         - binary_sensor.master_toilet_dressing_room_motion_sensor_motion
         - binary_sensor.master_toilet_door
         - climate.master_toilet
-        - light.master_toilet_spotlight_1_hue
-        - light.master_toilet_spotlight_2_hue
-        - light.master_toilet_spotlight_3_hue
-        - light.master_toilet_spotlight_4_hue
+        #- light.master_toilet_spotlight_1_hue
+        #- light.master_toilet_spotlight_2_hue
+        #- light.master_toilet_spotlight_3_hue
+        #- light.master_toilet_spotlight_4_hue
+        - light.master_toilet_ceiling_light
         - switch.master_toilet_dressing_room_light
         - switch.master_toilet_floor_led
         ########################
@@ -578,14 +666,14 @@ homekit:
         - binary_sensor.en_suite_toilet_motion_sensor_motion
         - binary_sensor.en_suite_toilet_door
         - climate.en_suite_toilet
-        - light.en_suite_toilet_light
+        - light.en_suite_toilet_ceiling_light
         ########################
         # Ground Toilet
         ########################
         - binary_sensor.ground_toilet_motion_sensor_motion
         - binary_sensor.ground_toilet_door
         - climate.ground_toilet
-        - switch.ground_toilet_light
+        - light.ground_toilet_ceiling_light
         ########################
         # Corridor
         ########################
@@ -619,3 +707,5 @@ homekit:
         - switch.guest_room_ceiling_light
         - switch.en_suite_toilet_light
         - switch.en_suite_room_ceiling_light
+        - switch.ground_toilet_light
+        - automation.always_on_switches_stays_on
