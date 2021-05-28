@@ -1,93 +1,52 @@
-# Ground Toielt
-# Ground Corrdior
-# Downstairs Zone
-# Upstairs Zone
-# - Heating/Hot Water automation
-# - Lighting automation based on motion sensors
-# - Lighting automation based on buttons
+###########################################
+#
+# Custom Entities
+#
+###########################################
+light:
+  - platform: group
+    name: Corridor Light
+    entities:
+      - light.ground_corridor_ble_light
+      - light.first_corridor_ble_light
+
 
 
 ###############################################
 #
+# Scripts
+#
+###############################################  
+script:
+  corridor_lights_turn_on:
+    alias: Corridor Lights Turn On
+    max: 100
+    mode: parallel
+    sequence:
+    - service:   light.turn_on
+      entity_id: light.corridor_light
+
+
+  corridor_lights_turn_off:
+    alias: Corridor Lights Turn Off
+    max: 100
+    mode: parallel
+    sequence:
+    - service:   light.turn_off
+      entity_id: light.corridor_light
+
+###############################################
+#
+# Automations:
+# - Lighting/Heating/Hot Water automation based on motion sensors
+# - Actions based on buttons
+# - Sonos Speakers Grouping/Ungrouping Based On Motion Sensor
+#
+###############################################
+automation:
+###############################################
 # Heating Automation based on motion sensors
-#
 ###############################################
-
-- alias: H-0T Ground Toilet Heating Set to 20 If Person Present
-  id: '11122334455000'
-  description: 'automation.ground_toilet_heating_on_if_people_present'
-  trigger:
-  - entity_id: binary_sensor.ground_toilet_motion_sensor_motion
-    platform: state
-    from: 'off'
-    to: 'on'
-  # Queued mode guarentees race condition are in series
-  mode: queued    
-  action:
-  # Resolve race on multiple triggers - only execute instances that 
-  # turned on heating and turned off the automation.
-  - condition: state
-    entity_id: automation.ground_toilet_heating_on_if_people_present
-    state:     'on'  
-  # Turn on heating on repeated short presence or longer presence
-  - choose:
-    # IF - first time entering, set the flag
-    #      Longer presence will turn on heating       
-    - conditions:
-      # Wait for 1.5 min if it is the first time of presence
-      - condition: state
-        entity_id: input_boolean.ground_toilet_short_presence
-        state:     'off'
-      sequence:
-      # set the short presence flag
-      - service:   input_boolean.turn_on
-        entity_id: input_boolean.ground_toilet_short_presence
-      # Delay 1.5 min and test motion sensor 
-      - delay:     00:01:45
-      - condition: state
-        entity_id: binary_sensor.ground_toilet_motion_sensor_motion
-        state:     'on'
-      # Longer presence will turn on heating       
-      - service: script.ground_toilet_set_heating_temp_with_state_maintaince
-    # ELSE - Repeated short presence will turn on heating
-    default:    
-      - service: script.ground_toilet_set_heating_temp_with_state_maintaince
-
-
-  
-  
-
-- alias: H-0T Ground Toilet Heating Off If No Person
-  id: '1599605792677'
-  description: 'automation.ground_toilet_heating_off_if_no_person'
-  trigger:
-  - entity_id: binary_sensor.ground_toilet_motion_sensor_motion
-    platform: state
-    from: 'on'
-    to: 'off'
-    for: 00:05:00
-  - minutes: /5
-    platform: time_pattern
-  condition:
-  - condition: state
-    entity_id: binary_sensor.ground_toilet_motion_sensor_motion
-    for: 00:05:00
-    state: 'off'
-  action:
-  - service: climate.set_hvac_mode
-    entity_id: climate.ground_toilet
-    data:
-      hvac_mode: auto
-  - data: {}
-    entity_id: automation.ground_toilet_heating_on_if_people_present
-    service: automation.turn_on
-  # set the short presence flag
-  - service:   input_boolean.turn_off
-    entity_id: input_boolean.ground_toilet_short_presence  
-
-
-
-
 - alias: H-GC Ground Corrdior Heating Set to 20 If Person Present
   id: '1599611792932'
   description: 'automation.ground_corrdior_heating_on_if_person_present'
@@ -106,9 +65,6 @@
       temperature: 20
     entity_id: climate.ground_floor_corridor
     service: climate.set_temperature
-
-
-
 
 
 - alias: H-GC Ground Corridor Heating Off If No Person For 20 Min
@@ -142,21 +98,43 @@
 
 
 
-- alias: H-DS Downstairs Zone Heating On If Person Present
+- alias: H-DS Downstairs Zone Heating On When Heating Required
   id: '1599612133872'
-  description: 'automation.downstairs_zone_heating_on_if_person_present'
+  description: ''
   trigger:
-  - entity_id:
+  - minutes: /5
+    platform: time_pattern
+  - platform: state
+    from: 'off'
+    to: 'on'
+    entity_id:
       - binary_sensor.ground_corridor_motion_sensor_motion
+      - binary_sensor.first_corridor_motion_sensor_motion
       - binary_sensor.ground_toilet_motion_sensor_motion
       - binary_sensor.living_room_sofa_motion_sensor_motion
       - binary_sensor.living_room_tv_motion_sensor_motion
       - binary_sensor.kitchen_table_motion_sensor_motion
       - binary_sensor.kitchen_worktop_motion_sensor_motion
-    platform: state
-    from: 'off'
-    to: 'on'
-  condition: []
+      - binary_sensor.master_toilet_basin_motion_sensor_motion
+      - binary_sensor.master_toilet_shower_motion_sensor_motion
+      - binary_sensor.master_room_bed_motion_sensor_motion
+      - binary_sensor.study_motion_sensor_motion
+      - binary_sensor.guest_toilet_motion_sensor_motion
+      - binary_sensor.guest_room_radiator_motion_sensor_motion
+      - binary_sensor.guest_room_bed_motion_sensor_motion
+      - binary_sensor.en_suite_toilet_motion_sensor_motion
+      - binary_sensor.en_suite_room_motion_sensor_motion    
+  condition: 
+  - condition: or
+    conditions:
+    - condition: template
+      value_template: '{{ states.climate.kitchen.attributes.temperature         > states.climate.kitchen.attributes.current_temperature}}'    
+    - condition: template
+      value_template: '{{ states.climate.living_room.attributes.temperature     > states.climate.living_room.attributes.current_temperature}}'    
+    - condition: template
+      value_template: '{{ states.climate.ground_toilet.attributes.temperature   > states.climate.ground_toilet.attributes.current_temperature}}'    
+    - condition: template
+      value_template: '{{ states.climate.ground_corridor.attributes.temperature > states.climate.ground_corridor.attributes.current_temperature}}'    
   action:
   - service: switch.turn_on
     entity_id: switch.downstairs_heating
@@ -164,23 +142,41 @@
 
 
 
-- alias: H-DS Downstairs Zone Heating Off If No Person For 10 Min
+- alias: H-DS Downstairs Zone Heating Off When No Heating Required
   id: '1599653387645'
-  description: 'automation.downstairs_zone_heating_off_if_no_person'
+  description: ''
   trigger:
   - minutes: /5
     platform: time_pattern
-  condition:
-  - condition: state
+  - platform: state
+    from: 'off'
+    to: 'on'
     entity_id:
       - binary_sensor.ground_corridor_motion_sensor_motion
+      - binary_sensor.first_corridor_motion_sensor_motion
       - binary_sensor.ground_toilet_motion_sensor_motion
       - binary_sensor.living_room_sofa_motion_sensor_motion
       - binary_sensor.living_room_tv_motion_sensor_motion
       - binary_sensor.kitchen_table_motion_sensor_motion
       - binary_sensor.kitchen_worktop_motion_sensor_motion
-    state: 'off'
-    for: 00:10:00
+      - binary_sensor.master_toilet_basin_motion_sensor_motion
+      - binary_sensor.master_toilet_shower_motion_sensor_motion
+      - binary_sensor.master_room_bed_motion_sensor_motion
+      - binary_sensor.study_motion_sensor_motion
+      - binary_sensor.guest_toilet_motion_sensor_motion
+      - binary_sensor.guest_room_radiator_motion_sensor_motion
+      - binary_sensor.guest_room_bed_motion_sensor_motion
+      - binary_sensor.en_suite_toilet_motion_sensor_motion
+      - binary_sensor.en_suite_room_motion_sensor_motion    
+  condition:
+    - condition: template
+      value_template: '{{ states.climate.kitchen.attributes.temperature         < states.climate.kitchen.attributes.current_temperature}}'    
+    - condition: template
+      value_template: '{{ states.climate.living_room.attributes.temperature     < states.climate.living_room.attributes.current_temperature}}'    
+    - condition: template
+      value_template: '{{ states.climate.ground_toilet.attributes.temperature   < states.climate.ground_toilet.attributes.current_temperature}}'    
+    - condition: template
+      value_template: '{{ states.climate.ground_corridor.attributes.temperature < states.climate.ground_corridor.attributes.current_temperature}}'    
   action:
   - service: switch.turn_off
     entity_id: switch.downstairs_heating
@@ -188,83 +184,103 @@
 
 
 
-- alias: H-US Upstairs Zone Heating On If Person Present
+- alias: H-US Upstairs Zone Heating On When Heating Required
   id: '1600016150575'
-  description: 'automation.upstairs_zone_heating_on_if_person_present'
+  description: ''
   trigger:
-  - entity_id:
-     - binary_sensor.master_toilet_basin_motion_sensor_motion
-     - binary_sensor.master_toilet_shower_motion_sensor_motion
-     - binary_sensor.master_room_bed_motion_sensor_motion
-     - binary_sensor.study_motion_sensor_motion
-     - binary_sensor.guest_toilet_motion_sensor_motion
-     - binary_sensor.guest_room_radiator_motion_sensor_motion
-     - binary_sensor.guest_room_bed_motion_sensor_motion
-     - binary_sensor.en_suite_toilet_motion_sensor_motion
-     - binary_sensor.en_suite_room_motion_sensor_motion
-    platform: state
+  - minutes: /5
+    platform: time_pattern
+  - platform: state
     from: 'off'
     to: 'on'
-  condition: []
+    entity_id:
+      - binary_sensor.ground_corridor_motion_sensor_motion
+      - binary_sensor.first_corridor_motion_sensor_motion
+      - binary_sensor.ground_toilet_motion_sensor_motion
+      - binary_sensor.living_room_sofa_motion_sensor_motion
+      - binary_sensor.living_room_tv_motion_sensor_motion
+      - binary_sensor.kitchen_table_motion_sensor_motion
+      - binary_sensor.kitchen_worktop_motion_sensor_motion
+      - binary_sensor.master_toilet_basin_motion_sensor_motion
+      - binary_sensor.master_toilet_shower_motion_sensor_motion
+      - binary_sensor.master_room_bed_motion_sensor_motion
+      - binary_sensor.study_motion_sensor_motion
+      - binary_sensor.guest_toilet_motion_sensor_motion
+      - binary_sensor.guest_room_radiator_motion_sensor_motion
+      - binary_sensor.guest_room_bed_motion_sensor_motion
+      - binary_sensor.en_suite_toilet_motion_sensor_motion
+      - binary_sensor.en_suite_room_motion_sensor_motion    
+  condition: 
+  - condition: or
+    conditions:
+    - condition: template
+      value_template: '{{ states.climate.master_toilet.attributes.temperature   > states.climate.master_toilet.attributes.current_temperature}}'    
+    - condition: template
+      value_template: '{{ states.climate.master_room.attributes.temperature     > states.climate.master_room.attributes.current_temperature}}'    
+    - condition: template
+      value_template: '{{ states.climate.study.attributes.temperature           > states.climate.study.attributes.current_temperature}}'    
+    - condition: template
+      value_template: '{{ states.climate.guest_toilet.attributes.temperature    > states.climate.guest_toilet.attributes.current_temperature}}'    
+    - condition: template
+      value_template: '{{ states.climate.guest_room.attributes.temperature      > states.climate.guest_room.attributes.current_temperature}}'    
+    - condition: template
+      value_template: '{{ states.climate.en_suite_toilet.attributes.temperature > states.climate.en_suite_toilet.attributes.current_temperature}}'    
+    - condition: template
+      value_template: '{{ states.climate.en_suite_room.attributes.temperature   > states.climate.en_suite_room.attributes.current_temperature}}'    
   action:
   - service: switch.turn_on
     entity_id: switch.upstairs_heating
 
 
 
-- alias: H-US Upstairs Zone Heating Off If No Person
+- alias: H-US Upstairs Zone Heating Off When No Heating Required
   id: '1600017150562'
-  description: 'automation.upstairs_zone_heating_off_if_no_person'
+  description: ''
   trigger:
   - minutes: /5
     platform: time_pattern
-  condition: []
+  - platform: state
+    from: 'off'
+    to: 'on'
+    entity_id:
+      - binary_sensor.ground_corridor_motion_sensor_motion
+      - binary_sensor.first_corridor_motion_sensor_motion
+      - binary_sensor.ground_toilet_motion_sensor_motion
+      - binary_sensor.living_room_sofa_motion_sensor_motion
+      - binary_sensor.living_room_tv_motion_sensor_motion
+      - binary_sensor.kitchen_table_motion_sensor_motion
+      - binary_sensor.kitchen_worktop_motion_sensor_motion
+      - binary_sensor.master_toilet_basin_motion_sensor_motion
+      - binary_sensor.master_toilet_shower_motion_sensor_motion
+      - binary_sensor.master_room_bed_motion_sensor_motion
+      - binary_sensor.study_motion_sensor_motion
+      - binary_sensor.guest_toilet_motion_sensor_motion
+      - binary_sensor.guest_room_radiator_motion_sensor_motion
+      - binary_sensor.guest_room_bed_motion_sensor_motion
+      - binary_sensor.en_suite_toilet_motion_sensor_motion
+      - binary_sensor.en_suite_room_motion_sensor_motion    
+  condition: 
+    - condition: template
+      value_template: '{{ states.climate.master_toilet.attributes.temperature   < states.climate.master_toilet.attributes.current_temperature}}'    
+    - condition: template
+      value_template: '{{ states.climate.master_room.attributes.temperature     < states.climate.master_room.attributes.current_temperature}}'    
+    - condition: template
+      value_template: '{{ states.climate.study.attributes.temperature           < states.climate.study.attributes.current_temperature}}'    
+    - condition: template
+      value_template: '{{ states.climate.guest_toilet.attributes.temperature    < states.climate.guest_toilet.attributes.current_temperature}}'    
+    - condition: template
+      value_template: '{{ states.climate.guest_room.attributes.temperature      < states.climate.guest_room.attributes.current_temperature}}'    
+    - condition: template
+      value_template: '{{ states.climate.en_suite_toilet.attributes.temperature < states.climate.en_suite_toilet.attributes.current_temperature}}'    
+    - condition: template
+      value_template: '{{ states.climate.en_suite_room.attributes.temperature   < states.climate.en_suite_room.attributes.current_temperature}}'    
   action:
-  - choose:
-    # IF - in daytime, turn off in 20 min
-    - conditions:
-      - after: '9:00:00'
-        before: '21:00:00'
-        condition: time
-      - condition: state
-        entity_id:
-         - binary_sensor.master_toilet_basin_motion_sensor_motion
-         - binary_sensor.master_toilet_shower_motion_sensor_motion
-         - binary_sensor.master_room_bed_motion_sensor_motion
-         - binary_sensor.study_motion_sensor_motion
-         - binary_sensor.guest_toilet_motion_sensor_motion
-         - binary_sensor.guest_room_radiator_motion_sensor_motion
-         - binary_sensor.guest_room_bed_motion_sensor_motion
-         - binary_sensor.en_suite_toilet_motion_sensor_motion
-         - binary_sensor.en_suite_room_motion_sensor_motion
-        state: 'off'
-        for: 00:20:00
-      sequence:
-      - service: switch.turn_off
-        entity_id: switch.upstairs_heating
-    # ELSE IF - in nighttime, turn off in 2 hours
-    - conditions:
-      - after: '21:00:00'
-        before: '9:00:00'
-        condition: time
-      - condition: state
-        entity_id:
-         - binary_sensor.master_toilet_basin_motion_sensor_motion
-         - binary_sensor.master_toilet_shower_motion_sensor_motion
-         - binary_sensor.master_room_bed_motion_sensor_motion
-         - binary_sensor.study_motion_sensor_motion
-         - binary_sensor.guest_toilet_motion_sensor_motion
-         - binary_sensor.guest_room_radiator_motion_sensor_motion
-         - binary_sensor.guest_room_bed_motion_sensor_motion
-         - binary_sensor.en_suite_toilet_motion_sensor_motion
-         - binary_sensor.en_suite_room_motion_sensor_motion
-        state: 'off'
-        for: 02:00:00
-      sequence:
-      - service: switch.turn_off
-        entity_id: switch.upstairs_heating
+  - service: switch.turn_off
+    entity_id: switch.upstairs_heating
 
-
+###############################################
+# Water Heating Automation based on motion sensors
+###############################################
 
 - alias: W-DS Water Heater Start For 2 Hour And Schedule On If People Back From Journey
   id: '1600016351670'
@@ -371,89 +387,10 @@
       - service: switch.turn_off
         entity_id: switch.water_heater
 
-
 ###############################################
-#
 # Lighting Automation based on motion sensors
-#
 ###############################################
 
-# Ground Toilet Lights
-- alias: L-0T Ground Toilet Lights On If Person Present and Dark
-  id: '1603640020013'
-  description: ''
-  trigger:
-  - entity_id: binary_sensor.ground_toilet_motion_sensor_motion
-    platform: state
-    from: 'off'
-    to: 'on'
-  condition:
-  - condition: and
-    conditions:
-    - entity_id: binary_sensor.ground_toilet_motion_sensor_motion
-      condition: state
-      state: 'on'
-    - entity_id: sensor.ground_toilet_motion_sensor_light
-      condition: numeric_state
-      below: '100'
-  action:
-  - data: {}
-    entity_id: light.ground_toilet_ceiling_light
-    service: light.turn_on
-
-
-
-- alias: L-0T Ground Toilet Lights Off If No Person For 10 Min
-  id: '1603640020014'
-  description: ''
-  trigger:
-  - entity_id: binary_sensor.ground_toilet_motion_sensor_motion
-    platform: state
-    from: 'on'
-    to: 'off'
-    for: 00:10:00
-  - minutes: /5
-    platform: time_pattern
-  condition:
-  - condition: and
-    conditions:
-    - entity_id: binary_sensor.ground_toilet_motion_sensor_motion
-      condition: state
-      state: 'off'
-      for: 00:10:00
-  action:
-  - data: {}
-    entity_id: light.ground_toilet_ceiling_light
-    service: light.turn_off
-
-
-
-- alias: L-0T Ground Toilet Lights Off If No Person For 2 Min And Door Open
-  id: '1603640020015'
-  description: ''
-  trigger:
-  - entity_id: binary_sensor.ground_toilet_motion_sensor_motion
-    platform: state
-    from: 'on'
-    to: 'off'
-    for: 00:02:00
-  condition:
-  - condition: and
-    conditions:
-    - entity_id: binary_sensor.ground_toilet_door
-      condition: state
-      state: 'on'
-    - entity_id: binary_sensor.ground_toilet_motion_sensor_motion
-      condition: state
-      state: 'off'
-      for: 00:02:00
-  action:
-  - data: {}
-    entity_id: light.ground_toilet_ceiling_light
-    service: light.turn_off
-
-
-# Corridors
 - alias: L-GC Corridor Lights On If Person Present
   description: ''
   trigger:
@@ -548,7 +485,10 @@
       - switch.ground_corridor_light_switch
       - switch.first_corridor_light_switch
       - switch.master_room_entrance_light_switch
+      - switch.master_room_bed_ceiling_light
+      - switch.master_room_landing_ceiling_light
       - switch.master_toilet_light
+      - switch.master_toilet_dressing_room_light
       - switch.kitchen_ceiling_light
       - switch.kitchen_dining_light
       - switch.study_ceiling_light
@@ -557,25 +497,9 @@
       - switch.en_suite_room_ceiling_light
       - switch.ground_toilet_light
 
-################################################
-#
-# Lighting automation based on buttons
-#
-################################################
-
-
-- alias: B-0T Ground Toilet Wall Switch - Single Press - Toggle Lights
-  trigger:
-  - entity_id: sensor.ground_toilet_light_wall_button
-    platform: state
-    to:
-    - button_1_single
-    - button_2_single
-  condition: []
-  action:
-  - service: light.toggle
-    entity_id: light.ground_toilet_ceiling_light
-
+###############################################
+# Actions based on buttons
+###############################################  
 
 - alias: B-GC Ground Corridor Wall Switch - Doulbe Press - Turn Off Ground Floor Lights
   trigger:
@@ -593,9 +517,7 @@
 
 
 #################################################################
-#
 # Sonos Speakers Grouping/Ungrouping Based On Motion Sensor
-#
 #################################################################
 
 - alias: S-FC First Corridor Group Its Speaker If People Present In Corridor
@@ -670,6 +592,7 @@
     data: 
       target_player: media_player.first_corridor_sonos
     
+
 
 
 

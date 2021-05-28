@@ -1,0 +1,247 @@
+###########################################
+#
+# Custom Entities
+#
+###########################################
+
+# Custom Variables
+input_boolean:
+
+  guest_toilet_short_presence: # done
+    name: "Ground Toilet Short Presence"
+
+
+###############################################
+#
+# Scripts
+#
+###############################################  
+script:
+  guest_toilet_ceiling_light_turn_on:
+    alias: Guest Toilet Ceiling Light Turn On
+    mode: parallel
+    max: 100
+    sequence:
+      - data: {}
+        entity_id: switch.guest_toilet_ceiling_light
+        service: switch.turn_on
+
+  guest_toilet_floor_led_light_turn_on:
+    alias: Guest Toilet Floor LED Turn On
+    mode: parallel
+    max: 100
+    sequence:
+      - data: {}
+        entity_id: switch.guest_toilet_floor_led
+        service: switch.turn_on
+
+  guest_toilet_set_heating_temp_with_state_maintaince:
+    alias: Guest Toilet Set Heating Temperature With State Maintaince
+    mode: restart
+    sequence:
+      # clear the short presence flag
+      - service: input_boolean.turn_off
+        entity_id: input_boolean.guest_toilet_short_presence
+      # turn on heating
+      - data:
+          hvac_mode: heat
+        entity_id: climate.guest_toilet
+        service: climate.set_hvac_mode
+      - data:
+          temperature: 22
+        entity_id: climate.guest_toilet
+        service: climate.set_temperature
+      - service: automation.turn_off
+        entity_id: automation.guest_toilet_heating_on_if_person_present
+        data:
+          stop_actions: false
+
+  guest_toilet_all_lights_turn_off:
+    alias: Guest Toilet Ceiling Light Turn Off
+    mode: parallel
+    max: 100
+    sequence:
+      - data: {}
+        entity_id: switch.guest_toilet_ceiling_light
+        service: switch.turn_off
+      - data: {}
+        entity_id: switch.guest_toilet_floor_led
+        service: switch.turn_off
+
+
+###############################################
+#
+# Automations:
+# - Lighting/Heating automation based on motion sensors
+# - Actions based on buttons
+# - Maintaince on bedroom automation based on presence
+#
+###############################################
+automation:
+###############################################
+# Heating Automation based on motion sensors
+###############################################
+- alias: H-GT Guest Toilet Heating Set to 22 If Person Present
+  id: "1600014384333"
+  description: "automation.guest_toilet_heating_on_if_person_present"
+  trigger:
+    - entity_id: binary_sensor.guest_toilet_motion_sensor_motion
+      platform: state
+      from: "off"
+      to: "on"
+  # Queued mode guarentees race condition are in series
+  mode: queued
+  action:
+    # Resolve race on multiple triggers - only execute instances that
+    # turned on heating and turned off the automation.
+    - condition: state
+      entity_id: automation.guest_toilet_heating_on_if_person_present
+      state: "on"
+    # Turn on heating on repeated short presence or longer presence
+    - choose:
+        # IF - first time entering, set the flag
+        #      Longer presence will turn on heating
+        - conditions:
+            # Wait for 1.5 min if it is the first time of presence
+            - condition: state
+              entity_id: input_boolean.guest_toilet_short_presence
+              state: "off"
+          sequence:
+            # set the short presence flag
+            - service: input_boolean.turn_on
+              entity_id: input_boolean.guest_toilet_short_presence
+            # Delay 1.5 min and test motion sensor
+            - delay: 00:01:45
+            - condition: state
+              entity_id: binary_sensor.guest_toilet_motion_sensor_motion
+              state: "on"
+            # Longer presence will turn on heating
+            - service: script.guest_toilet_set_heating_temp_with_state_maintaince
+      # ELSE - Repeated short presence will turn on heating
+      default:
+        - service: script.guest_toilet_set_heating_temp_with_state_maintaince
+
+- alias: H-GT Guest Toilet Heating Off If No Person For 10 Min
+  id: "1600015744334"
+  description: ""
+  trigger:
+    - entity_id: binary_sensor.guest_toilet_motion_sensor_motion
+      platform: state
+      from: "on"
+      to: "off"
+      for: 00:10:00
+    - minutes: /5
+      platform: time_pattern
+  condition:
+    - condition: state
+      entity_id: binary_sensor.guest_toilet_motion_sensor_motion
+      for: 00:10:00
+      state: "off"
+  action:
+    # turn off heating
+    - service: climate.set_hvac_mode
+      entity_id: climate.guest_toilet
+      data:
+        hvac_mode: auto
+    - entity_id: automation.guest_toilet_heating_on_if_person_present
+      service: automation.turn_on
+    # clear the short presence flag
+    - service: input_boolean.turn_off
+      entity_id: input_boolean.guest_toilet_short_presence
+
+###############################################
+# Lighting Automation based on motion sensors
+###############################################
+
+- alias: L-GT Guest Toilet Lights On Daytime If Person Present and Dark
+  description: ""
+  trigger:
+    - entity_id: binary_sensor.guest_toilet_motion_sensor_motion
+      platform: state
+      from: "off"
+      to: "on"
+  condition:
+    - condition: and
+      conditions:
+        - after: "05:00:00"
+          before: "00:00:00"
+          condition: time
+        - condition: and
+          conditions:
+            - entity_id: binary_sensor.guest_toilet_motion_sensor_motion
+              condition: state
+              state: "on"
+            - entity_id: sensor.guest_toilet_motion_sensor_light
+              condition: numeric_state
+              below: "30"
+  action:
+    - service: script.guest_toilet_ceiling_light_turn_on
+
+- alias: L-GT Guest Toilet Lights On Nighttime If Person Present and Dark
+  description: ""
+  trigger:
+    - entity_id: binary_sensor.guest_toilet_motion_sensor_motion
+      platform: state
+      from: "off"
+      to: "on"
+  condition:
+    - condition: and
+      conditions:
+        - after: "00:00:00"
+          before: "05:00:00"
+          condition: time
+        - condition: and
+          conditions:
+            - entity_id: binary_sensor.guest_toilet_motion_sensor_motion
+              condition: state
+              state: "on"
+            - entity_id: sensor.guest_toilet_motion_sensor_light
+              condition: numeric_state
+              below: "30"
+  action:
+    - service: script.guest_toilet_floor_led_light_turn_on
+
+- alias: L-GT Guest Toilet Lights Off If No Person For 10 Min
+  description: ""
+  trigger:
+    - entity_id: binary_sensor.guest_toilet_motion_sensor_motion
+      platform: state
+      from: "on"
+      to: "off"
+      for: 00:10:00
+    - minutes: /5
+      platform: time_pattern
+  condition:
+    - entity_id: binary_sensor.guest_toilet_motion_sensor_motion
+      condition: state
+      state: "off"
+      for: 00:10:00
+  action:
+    - service: script.guest_toilet_all_lights_turn_off
+
+- alias: L-GT Guest Toilet Lights Off If No Person For 2 Min And Door Open
+  description: ""
+  trigger:
+    - entity_id: binary_sensor.guest_toilet_motion_sensor_motion
+      platform: state
+      from: "on"
+      to: "off"
+      for: 00:02:00
+    - minutes: /5
+      platform: time_pattern
+  condition:
+    - condition: and
+      conditions:
+        - entity_id: binary_sensor.guest_toilet_door
+          condition: state
+          state: "on"
+        - entity_id: binary_sensor.guest_toilet_motion_sensor_motion
+          condition: state
+          state: "off"
+          for: 00:02:00
+  action:
+    - service: script.guest_toilet_all_lights_turn_off
+
+###############################################
+# Actions based on buttons
+###############################################  

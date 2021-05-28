@@ -1,15 +1,228 @@
-# Kitchen
-# - Heating/Hot Water automation
-# - Lighting automation based on motion sensors
-# - Lighting/Extractor control based on buttons
-# - Extractor auotmation based on temperature
-# - TV auto turn-off based on motion sensors
-# - Automations based on Time
+###########################################
 #
+# Custom Entities
+#
+###########################################
+
+light:
+  - platform: group
+    name: Kitchen Ceiling Light
+    entities:
+      - light.kitchen_spotlight_bulb_1_localtuya
+      - light.kitchen_spotlight_bulb_2_localtuya
+      - light.kitchen_spotlight_bulb_3_localtuya
+      - light.kitchen_spotlight_bulb_4_localtuya
+      - light.kitchen_spotlight_bulb_5_localtuya
+      - light.kitchen_spotlight_bulb_6_localtuya
+      - light.kitchen_spotlight_bulb_7_localtuya
+
+
+# Custom Variables
+input_boolean:
+
+  kitchen_short_presence: # done
+    name: "Kitchen Short Presence"
+
+
+# HA_On_VMs does not have BLE (bluetooth v4)
+  # Xiaomi BLE Round Fast Update Temperature Sensor
+sensor xiaomi_ble_fast:      
+  - platform: mitemp_bt
+    period: 10 # seconds for refresh interval
+    sensor_names:
+      '58:2d:34:3b:6a:27': 'Kitchen Hob Temperature Sensor'
+
+
 ###############################################
 #
-# Heating Automation based on motion sensors
+# Scripts
 #
+###############################################  
+script:
+  kitchen_all_lights_turn_off:
+    alias: Kitchen All Lights Turn Off
+    max: 100
+    mode: parallel
+    sequence:
+      - entity_id: light.kitchen_ceiling_light
+        service: light.turn_off
+      - entity_id: light.kitchen_dining_light
+        service: light.turn_off
+      - entity_id: switch.kitchen_floor_led
+        service: switch.turn_off
+      - entity_id: script.kitchen_worktop_lights_turn_off
+        service: script.turn_on
+
+  # Turn Off All Kitchen Lights and Also Reset Extractor Automation
+  kitchen_all_lights_and_appliances_turn_off:
+    alias: Kitchen All Lights And Appliances Turn Off
+    max: 100
+    mode: parallel
+    sequence:
+      - entity_id: script.kitchen_extractor_turn_off
+        service: script.turn_on
+      - entity_id: script.kitchen_all_lights_turn_off
+        service: script.turn_on
+
+  kitchen_worktop_lights_turn_on:
+    alias: Kitchen Worktop Lights Turn On
+    max: 100
+    mode: parallel
+    sequence:
+      - data: {}
+        entity_id: switch.kitchen_worktop_led_left
+        service: switch.turn_on
+      - data: {}
+        entity_id: switch.kitchen_worktop_led_right
+        service: switch.turn_on
+
+  kitchen_worktop_lights_turn_off:
+    alias: Kitchen Worktop Lights Turn Off
+    max: 100
+    mode: parallel
+    sequence:
+      - data: {}
+        entity_id: switch.kitchen_worktop_led_left
+        service: switch.turn_off
+      - data: {}
+        entity_id: switch.kitchen_worktop_led_right
+        service: switch.turn_off
+
+  kitchen_worktop_and_ceiling_lights_turn_on:
+    alias: Kitchen Worktop and Ceiling Lights Turn On
+    max: 100
+    mode: parallel
+    sequence:
+      - data: {}
+        entity_id: script.kitchen_worktop_lights_turn_on
+        service: script.turn_on
+      - data: {}
+        entity_id: light.kitchen_ceiling_light
+        service: light.turn_on
+
+  kitchen_worktop_and_ceiling_lights_turn_off:
+    alias: Kitchen Worktop and Ceiling Lights Turn Off
+    max: 100
+    mode: parallel
+    sequence:
+      - data: {}
+        entity_id: script.kitchen_worktop_lights_turn_off
+        service: script.turn_on
+      - data: {}
+        entity_id: light.kitchen_ceiling_light
+        service: light.turn_off
+
+  kitchen_worktop_and_ceiling_lights_toggle:
+    alias: Kitchen Worktop and Ceiling Lights Turn Off
+    max: 100
+    mode: parallel
+    sequence:
+      - service: >
+          {% if is_state('switch.kitchen_worktop_led_left', 'on') %}
+            script.kitchen_worktop_and_ceiling_lights_turn_off
+          {% else %}
+            script.kitchen_worktop_and_ceiling_lights_turn_on
+          {% endif %}
+
+  kitchen_set_dark_warm_light:
+    alias: Kitchen Set Dark Warm Light
+    mode: single
+    sequence:
+      - service: light.turn_on
+        entity_id: 
+         - light.kitchen_ceiling_light
+         - light.kitchen_dining_light
+        data:
+          brightness: 1
+          kelvin: 3000
+
+  kitchen_set_bright_warm_light:
+    alias: Kitchen Set Bright Warm Light
+    mode: single
+    sequence:
+      - service: switch.turn_on
+        entity_id: switch.kitchen_floor_led
+      - service: light.turn_on
+        entity_id: light.kitchen_ceiling_light
+        data:
+          brightness: 255
+          kelvin: 3000
+      - service: light.turn_on
+        entity_id: light.kitchen_dining_light
+        data:
+          brightness: 255
+          kelvin: 3000
+
+  kitchen_set_cool_white_light:
+    alias: Master Toilet Set Cool White Light
+    mode: single
+    sequence:
+      - service: script.kitchen_worktop_lights_turn_on
+      - service: switch.turn_off
+        entity_id: switch.kitchen_floor_led
+      - service: light.turn_on
+        entity_id: light.kitchen_ceiling_light
+        data:
+          brightness: 255
+          kelvin: 4000
+      - service: light.turn_on
+        entity_id: light.kitchen_dining_light
+        data:
+          brightness: 255
+          kelvin: 4000
+          
+  kitchen_extractor_turn_off:
+    alias: Kitchen Extractor Turn Off
+    max: 100
+    mode: parallel
+    sequence:
+      - data: {}
+        entity_id: switch.kitchen_extractor
+        service: switch.turn_off
+
+  kitchen_extractor_turn_on:
+    alias: Kitchen Extractor Turn On
+    max: 100
+    mode: parallel
+    sequence:
+      - entity_id: switch.kitchen_extractor
+        service: switch.turn_on
+
+  kitchen_set_heating_temp_with_state_maintaince:
+    alias: Kitchen Set Heating Temperature With State Maintaince
+    mode: restart
+    sequence:
+      # Clear flags
+      - service: input_boolean.turn_off
+        entity_id: input_boolean.kitchen_short_presence
+      # Turn on Heating
+      - data:
+          hvac_mode: heat
+        entity_id: climate.kitchen
+        service: climate.set_hvac_mode
+      - data:
+          temperature: 21
+        entity_id: climate.kitchen
+        service: climate.set_temperature
+      - data:
+          stop_actions: false
+        entity_id: automation.kitchen_heating_on_if_people_present
+        service: automation.turn_off
+
+
+###############################################
+#
+# Automations:
+# - Lighting/Heating automation based on motion sensors
+# - Actions based on buttons
+# - Extractor auotmation based on temperature
+# - Sonos Speakers Grouping/Ungrouping Based On Motion Sensor
+# - Vacuum based on time
+#
+###############################################
+automation:
+###############################################
+# Heating Automation based on motion sensors
 ###############################################
 
 - alias: H-KC Kitchen Heating And Drinking Hot Water On If Person Present
@@ -92,13 +305,10 @@
     - service: input_boolean.turn_off
       entity_id: input_boolean.kitchen_short_presence
 
-###############################################
-#
-# Lighting Automation based on motion sensors
-#
-###############################################
 
-# Kitchen
+###############################################
+# Lighting Automation based on motion sensors
+###############################################
 - alias: L-KC Kitchen Lights On If Person Present and Dark In Daytime
   id: "1603640029617"
   description: "automation.kitchen_lights_on_if_person_present_and_dark_in_daytime"
@@ -227,11 +437,10 @@
     - service: script.kitchen_set_bright_warm_light
     - service: script.kitchen_worktop_lights_turn_off
 
+
 ###############################################
-#
-# Lighting/Extractor control based on buttons
-#
-###############################################
+# Actions based on buttons
+###############################################  
 
 - alias: B-KC Kitchen Turn Off Worktop LED When Turning Off Kitchen Ceiling Lights
   description: ""
@@ -281,10 +490,10 @@
   action:
     service: script.kitchen_all_lights_and_appliances_turn_off
 
+
+
 ###############################################
-#
 # Extractor auotmation based on temperature
-#
 ###############################################
 
 - alias: E-KC Kitchen Extractor On If Temperature Is High
@@ -332,12 +541,9 @@
 #          entity_id: 
 #           - light.kitchen_ceiling_light
 #           - light.kitchen_dining_light         
-   
 
 #################################################################
-#
 # Sonos Speakers Grouping/Ungrouping Based On Motion Sensor
-#
 #################################################################
 
 - alias: S-KC Kitchen Group Its Speaker If People Present
@@ -402,46 +608,46 @@
       data:
         target_player: media_player.kitchen_sonos
 
-#################################################################
-#
-# TV auto turn-off based on motion sensors
-#
-#################################################################
-- alias: TV-KC Kitchen Turn Off TV If No Person
-  trigger:
-    - platform: state
-      from: "on"
-      to: "off"
-      for: 00:20:00
-      entity_id:
-        - binary_sensor.kitchen_table_motion_sensor_motion
-        - binary_sensor.kitchen_worktop_motion_sensor_motion
-    - minutes: /5
-      platform: time_pattern
-  condition:
-    - condition: state
-      entity_id:
-        - binary_sensor.kitchen_table_motion_sensor_motion
-        - binary_sensor.kitchen_worktop_motion_sensor_motion
-      for: 00:20:00
-      state: "off"
-  action:
-    # Switch Off TV
-    - service: switch.turn_off
-      entity_id: switch.kitchen_tv
 
-###############################################
-#
-# Autmation based on time
-#
-###############################################
 
-#- alias: T-KC Kitchen Vacuum Starts At 4am
-#  description: ""
+#################################################################
+# TV auto turn-off based on motion sensor
+#################################################################
+#- alias: TV-KC Kitchen Turn Off TV If No Person
 #  trigger:
-#    - at: 04:00:00
-#      platform: time
+#    - platform: state
+#      from: "on"
+#      to: "off"
+#      for: 00:20:00
+#      entity_id:
+#        - binary_sensor.kitchen_table_motion_sensor_motion
+#        - binary_sensor.kitchen_worktop_motion_sensor_motion
+#    - minutes: /5
+#      platform: time_pattern
 #  condition:
+#    - condition: state
+#      entity_id:
+#        - binary_sensor.kitchen_table_motion_sensor_motion
+#        - binary_sensor.kitchen_worktop_motion_sensor_motion
+#      for: 00:20:00
+#      state: "off"
 #  action:
-#    - service: vacuum.start
-#      entity_id: vacuum.xiaomi_vacuum_cleaner
+#    # Switch Off TV
+#    - service: switch.turn_off
+#      entity_id: switch.kitchen_tv
+
+###############################################
+# Vacuum based on time
+###############################################
+
+- alias: T-KC Kitchen Vacuum Starts At 4am
+  description: ""
+  trigger:
+    - at: 04:00:00
+      platform: time
+  condition:
+  action:
+    - service: vacuum.start
+      entity_id: vacuum.xiaomi_vacuum_cleaner
+
+

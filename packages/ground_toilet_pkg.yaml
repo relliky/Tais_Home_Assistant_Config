@@ -1,0 +1,247 @@
+###########################################
+#
+# Custom Entities
+#
+###########################################
+light:
+  - platform: group
+    name: Ground Toilet Ceiling Light
+    entities:
+      - light.ground_toilet_spotlight_bulb_1_localtuya 
+      - light.ground_toilet_spotlight_bulb_2_localtuya 
+
+
+# Custom Variables
+input_boolean:
+
+  ground_toilet_short_presence: # done
+    name: "Ground Toilet Short Presence"
+
+###############################################
+#
+# Scripts
+#
+###############################################  
+script:
+  ground_toilet_light_turn_on:
+    alias: Ground Toilet Light Turn On
+    mode: parallel
+    max: 100
+    sequence:
+      - data: {}
+        entity_id: switch.ground_toilet_light
+        service: switch.turn_on
+
+  ground_toilet_light_turn_off:
+    alias: Ground Toilet Light Turn Off
+    mode: parallel
+    max: 100
+    sequence:
+      - data: {}
+        entity_id: switch.ground_toilet_light
+        service: switch.turn_off
+
+  ground_toilet_set_heating_temp_with_state_maintaince:
+    alias: Ground Toilet Set Heating Temperature With State Maintaince
+    mode: restart
+    sequence:
+      # Clear flags
+      # set the short presence flag
+      - service: input_boolean.turn_off
+        entity_id: input_boolean.ground_toilet_short_presence
+      # turn on heating
+      - service: climate.set_hvac_mode
+        entity_id: climate.ground_toilet
+        data:
+          hvac_mode: heat
+      - service: climate.set_temperature
+        entity_id: climate.ground_toilet
+        data:
+          temperature: 20
+      - service: automation.turn_off
+        entity_id: automation.ground_toilet_heating_on_if_people_present
+        data:
+          stop_actions: false
+
+###############################################
+#
+# Automations:
+# - Lighting/Heating automation based on motion sensors
+# - Actions based on buttons
+#
+###############################################
+automation:
+###############################################
+# Heating Automation based on motion sensors
+###############################################
+
+- alias: H-0T Ground Toilet Heating Set to 20 If Person Present
+  id: '11122334455000'
+  description: 'automation.ground_toilet_heating_on_if_people_present'
+  trigger:
+  - entity_id: binary_sensor.ground_toilet_motion_sensor_motion
+    platform: state
+    from: 'off'
+    to: 'on'
+  # Queued mode guarentees race condition are in series
+  mode: queued    
+  action:
+  # Resolve race on multiple triggers - only execute instances that 
+  # turned on heating and turned off the automation.
+  - condition: state
+    entity_id: automation.ground_toilet_heating_on_if_people_present
+    state:     'on'  
+  # Turn on heating on repeated short presence or longer presence
+  - choose:
+    # IF - first time entering, set the flag
+    #      Longer presence will turn on heating       
+    - conditions:
+      # Wait for 1.5 min if it is the first time of presence
+      - condition: state
+        entity_id: input_boolean.ground_toilet_short_presence
+        state:     'off'
+      sequence:
+      # set the short presence flag
+      - service:   input_boolean.turn_on
+        entity_id: input_boolean.ground_toilet_short_presence
+      # Delay 1.5 min and test motion sensor 
+      - delay:     00:01:45
+      - condition: state
+        entity_id: binary_sensor.ground_toilet_motion_sensor_motion
+        state:     'on'
+      # Longer presence will turn on heating       
+      - service: script.ground_toilet_set_heating_temp_with_state_maintaince
+    # ELSE - Repeated short presence will turn on heating
+    default:    
+      - service: script.ground_toilet_set_heating_temp_with_state_maintaince
+
+
+  
+  
+
+- alias: H-0T Ground Toilet Heating Off If No Person
+  id: '1599605792677'
+  description: 'automation.ground_toilet_heating_off_if_no_person'
+  trigger:
+  - entity_id: binary_sensor.ground_toilet_motion_sensor_motion
+    platform: state
+    from: 'on'
+    to: 'off'
+    for: 00:05:00
+  - minutes: /5
+    platform: time_pattern
+  condition:
+  - condition: state
+    entity_id: binary_sensor.ground_toilet_motion_sensor_motion
+    for: 00:05:00
+    state: 'off'
+  action:
+  - service: climate.set_hvac_mode
+    entity_id: climate.ground_toilet
+    data:
+      hvac_mode: auto
+  - data: {}
+    entity_id: automation.ground_toilet_heating_on_if_people_present
+    service: automation.turn_on
+  # set the short presence flag
+  - service:   input_boolean.turn_off
+    entity_id: input_boolean.ground_toilet_short_presence  
+
+###############################################
+# Lighting Automation based on motion sensors
+###############################################
+
+# Ground Toilet Lights
+- alias: L-0T Ground Toilet Lights On If Person Present and Dark
+  id: '1603640020013'
+  description: ''
+  trigger:
+  - entity_id: binary_sensor.ground_toilet_motion_sensor_motion
+    platform: state
+    from: 'off'
+    to: 'on'
+  condition:
+  - condition: and
+    conditions:
+    - entity_id: binary_sensor.ground_toilet_motion_sensor_motion
+      condition: state
+      state: 'on'
+    - entity_id: sensor.ground_toilet_motion_sensor_light
+      condition: numeric_state
+      below: '100'
+  action:
+  - data: {}
+    entity_id: light.ground_toilet_ceiling_light
+    service: light.turn_on
+
+
+
+- alias: L-0T Ground Toilet Lights Off If No Person For 10 Min
+  id: '1603640020014'
+  description: ''
+  trigger:
+  - entity_id: binary_sensor.ground_toilet_motion_sensor_motion
+    platform: state
+    from: 'on'
+    to: 'off'
+    for: 00:10:00
+  - minutes: /5
+    platform: time_pattern
+  condition:
+  - condition: and
+    conditions:
+    - entity_id: binary_sensor.ground_toilet_motion_sensor_motion
+      condition: state
+      state: 'off'
+      for: 00:10:00
+  action:
+  - data: {}
+    entity_id: light.ground_toilet_ceiling_light
+    service: light.turn_off
+
+
+
+- alias: L-0T Ground Toilet Lights Off If No Person For 2 Min And Door Open
+  id: '1603640020015'
+  description: ''
+  trigger:
+  - entity_id: binary_sensor.ground_toilet_motion_sensor_motion
+    platform: state
+    from: 'on'
+    to: 'off'
+    for: 00:02:00
+  condition:
+  - condition: and
+    conditions:
+    - entity_id: binary_sensor.ground_toilet_door
+      condition: state
+      state: 'on'
+    - entity_id: binary_sensor.ground_toilet_motion_sensor_motion
+      condition: state
+      state: 'off'
+      for: 00:02:00
+  action:
+  - data: {}
+    entity_id: light.ground_toilet_ceiling_light
+    service: light.turn_off
+
+
+###############################################
+# Actions based on buttons
+###############################################  
+
+- alias: B-0T Ground Toilet Wall Switch - Single Press - Toggle Lights
+  trigger:
+  - entity_id: sensor.ground_toilet_light_wall_button
+    platform: state
+    to:
+    - button_1_single
+    - button_2_single
+  condition: []
+  action:
+  - service: light.toggle
+    entity_id: light.ground_toilet_ceiling_light
+
+
+
+

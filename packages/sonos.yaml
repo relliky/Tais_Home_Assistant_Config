@@ -1,0 +1,330 @@
+###########################################
+#
+# Custom Entities
+#
+###########################################
+input_select:
+  music_controller:
+    name: Sonos Music Master Speaker
+    options:
+      - master_room_sonos
+      - kitchen_sonos
+      - living_room_sonos
+      - first_corridor_sonos
+
+
+# Music Followers
+input_boolean:  
+  follow_music:
+    name: "Follow Music"
+
+###############################################
+#
+# Scripts
+#
+###############################################  
+script:
+  add_sonos_into_speaker_group:
+    mode: queued
+    alias: Add Sonos Speaker Into the Speaker Group
+    fields:
+      target_player:
+        description: "Sonos player name that need to be added into the group"
+        example: "media_player.master_room_sonos"
+    sequence:
+      - condition: template
+        value_template: >
+          {% if target_player is not none and target_player != false and target_player != '' %}
+            true
+          {% else %}
+            false
+          {% endif %}
+
+      # The target player must not be playing anything
+      - condition: template
+        value_template: >
+          {% if states(target_player) != 'playing' %}
+            true
+          {% else %}
+            false
+          {% endif %}
+
+      # First set the target player to the same volume as the controller
+      # Play:3 sounds level needs to be offset for setting up Play:1/Playbars
+      - service: media_player.volume_set
+        data_template:
+          entity_id: >
+            {% if target_player is not none %}
+              {{ target_player }}
+            {% endif %}
+          volume_level: >
+            {% for state in states.media_player if state.entity_id == 'media_player.' + states('input_select.music_controller') %}
+              {% if   states('input_select.music_controller') != 'kitchen_sonos' and target_player == 'media_player.kitchen_sonos' %}
+                {{ state.attributes.volume_level + 0.1 }}
+              {% elif states('input_select.music_controller') == 'kitchen_sonos' and target_player != 'media_player.kitchen_sonos' %}
+                {{ state.attributes.volume_level - 0.1 }}
+              {% else %}  
+                {{ state.attributes.volume_level }}
+              {% endif %}
+            {% endfor %}
+
+      # Now join the player into the group twice in case sometimes it didn't manage to join in for certain cases
+      - service: sonos.join
+        data_template:
+          master: media_player.{{ states('input_select.music_controller') }}
+          entity_id: >
+            {% if target_player is not none %}
+              {{ target_player }}
+            {% else %}
+              media_player.living_room_sonos
+            {% endif %}
+
+      - service: sonos.join
+        data_template:
+          master: media_player.{{ states('input_select.music_controller') }}
+          entity_id: >
+            {% if target_player is not none %}
+              {{ target_player }}
+            {% else %}
+              media_player.living_room_sonos
+            {% endif %}
+
+  remove_sonos_from_speaker_group:
+    alias: Remove Sonos Speaker From the Speaker Group and Update the Master Speaker
+    mode: queued
+    fields:
+      target_player:
+        description: "Sonos player that need to be removed from the group"
+        example: "media_player.master_room_sonos"
+    sequence:
+      - condition: template
+        value_template: >
+          {% if target_player is not none and target_player != false and target_player != '' %}
+            true
+          {% else %}
+            false
+          {% endif %}
+
+      # The target player must be playing
+      - condition: template
+        value_template: >
+          {% if states(target_player) == 'playing' %}
+            true
+          {% else %}
+            false
+          {% endif %}
+
+      # The target is not the soundbar that is playing TV sound
+      - condition: template
+        value_template: >
+          {% if target_player is not none and state_attr(target_player, 'media_title') != 'TV' %}
+            true
+          {% else %}
+            false
+          {% endif %}
+
+      # Update the master speaker in the group
+      - service: input_select.select_option
+        entity_id: input_select.music_controller
+        data:
+          option: >
+            {% set ns = namespace() %}
+            {% set ns.primary_speaker   = 'none' %}
+            {% set ns.secondary_speaker = 'none' %}
+            {# set the pri_speaker and sec_speaker #}
+            {% for speaker in state_attr(target_player, "sonos_group") %}
+              {% if loop.index == 1 %} 
+                {% set ns.primary_speaker   = speaker|regex_replace(find='media_player.', replace='', ignorecase=False) %}
+              {% elif loop.index == 2 %} 
+                {% set ns.secondary_speaker = speaker|regex_replace(find='media_player.', replace='', ignorecase=False) %}
+              {% endif %}
+            {% endfor %}
+
+            {# use the second speaker as master speaker if target speaker is currently the master #}
+            {% if target_player == ('media_player.' + ns.primary_speaker) and ns.secondary_speaker != 'none' %}
+              {{ ns.secondary_speaker }}
+            {% else %}
+              {{ ns.primary_speaker }}
+            {% endif %}
+
+      # The target must be the slave to be removed from the group
+      - condition: template
+        value_template: >
+          {% if target_player != 'media_player.' + states('input_select.music_controller') %}
+            true
+          {% else %}
+            false
+          {% endif %}
+
+      - service: sonos.unjoin
+        data:
+          entity_id: >
+            {% if target_player is not none and target_player != false and target_player != '' and target_player != 'None'%}
+              {{ target_player }}
+            {% else %}
+              media_player.living_room_sonos
+            {% endif %}
+
+  pause_sonos_if_sole_speaker_group:
+    alias: Pause the Sonos Speaker if it is a Sole Speaker Group
+    mode: queued
+    fields:
+      target_player:
+        description: "Sonos player that need to be paused"
+        example: "media_player.master_room_sonos"
+    sequence:
+      - condition: template
+        value_template: >
+          {% if target_player is not none and target_player != false and target_player != '' %}
+            true
+          {% else %}
+            false
+          {% endif %}
+
+      # check it is a sole speaker
+      - condition: template
+        value_template: >
+          {% for speaker in state_attr(target_player, "sonos_group") %}
+            {% if loop.index == 1 %}  
+              {% if loop.length == 1 %} 
+                true  
+              {% else %}      
+                false      
+              {% endif %}
+            {% endif %}
+          {% endfor %}
+
+      - service: media_player.media_pause
+        data:
+          entity_id: >
+            {% if target_player is not none and target_player != false and target_player != '' and target_player != 'None'%}
+              {{ target_player }}
+            {% else %}
+              media_player.living_room_sonos
+            {% endif %}
+
+###############################################
+#
+# Automations
+#
+###############################################             
+automation: 
+###############################################
+# Sonos Music state mantainance
+###############################################
+- alias: S- Set Music Master Speaker When The Only One Is Playing
+  trigger:
+  - platform: state
+    entity_id:
+      - media_player.living_room_sonos
+      - media_player.master_room_sonos
+      - media_player.kitchen_sonos
+      - media_player.first_corridor_sonos
+    to:
+      - "idle"
+      - "playing"
+      - "paused"
+      - "off"
+  - minutes: /5
+    platform: time_pattern      
+  condition: []
+  action:
+  - choose:
+    # IF - only kitchen sonos is playing - set it as master speaker
+    - conditions:
+      - condition: state
+        state:     "playing"
+        entity_id: media_player.kitchen_sonos
+      - condition: not
+        conditions:
+        - condition: state
+          state:     "playing"
+          entity_id: media_player.living_room_sonos
+        - condition: state
+          state:     "playing"
+          entity_id: media_player.master_room_sonos
+        - condition: state
+          state:     "playing"
+          entity_id: media_player.first_corridor_sonos          
+      sequence:
+        - service: input_select.select_option
+          entity_id: input_select.music_controller
+          data:
+            option:  kitchen_sonos
+    # ELIF only living room sonos is playing music instead of TV - set it as master speaker
+    - conditions:
+      - condition: template
+        value_template: >
+          {% if state_attr('media_player.living_room_sonos', 'media_title') != 'TV' %}
+            true
+          {% else %}
+            false
+          {% endif %}
+      - condition: state
+        state:     "playing"
+        entity_id: media_player.living_room_sonos
+      - condition: not
+        conditions:
+        - condition: state
+          state:     "playing"
+          entity_id: media_player.kitchen_sonos
+        - condition: state
+          state:     "playing"
+          entity_id: media_player.master_room_sonos
+        - condition: state
+          state:     "playing"
+          entity_id: media_player.first_corridor_sonos                 
+      sequence:
+        - service: input_select.select_option
+          entity_id: input_select.music_controller
+          data:
+            option:  living_room_sonos
+    # ELIF only master room sonos is playing - set it as master speaker
+    - conditions:
+      - condition: state
+        state:     "playing"
+        entity_id: media_player.master_room_sonos
+      - condition: not
+        conditions:
+        - condition: state
+          state:     "playing"
+          entity_id: media_player.living_room_sonos
+        - condition: state
+          state:     "playing"
+          entity_id: media_player.kitchen_sonos
+        - condition: state
+          state:     "playing"
+          entity_id: media_player.first_corridor_sonos                 
+      sequence:
+        - service: input_select.select_option
+          entity_id: input_select.music_controller
+          data:
+            option:  master_room_sonos
+    # ELIF only first corridor sonos is playing - set it as master speaker
+    - conditions:
+      - condition: state
+        state:     "playing"
+        entity_id: media_player.first_corridor_sonos
+      - condition: not
+        conditions:
+        - condition: state
+          state:     "playing"
+          entity_id: media_player.living_room_sonos
+        - condition: state
+          state:     "playing"
+          entity_id: media_player.kitchen_sonos
+        - condition: state
+          state:     "playing"
+          entity_id: media_player.master_room_sonos                 
+      sequence:
+        - service: input_select.select_option
+          entity_id: input_select.music_controller
+          data:
+            option:  first_corridor_sonos
+
+
+
+
+
+
+

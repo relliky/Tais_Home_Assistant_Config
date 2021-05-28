@@ -1,0 +1,482 @@
+
+###########################################
+# Custom Entities
+###########################################
+input_boolean:
+  # First Time Presence in a Room
+  master_toilet_short_presence: # done
+    name: "Master Toilet Short Presence"
+
+# Customize Mirror Light
+binary_sensor:
+  - platform: template
+    sensors:
+      master_toilet_mirror_light:
+        friendly_name: "Master Toilet Mirror Light"
+        value_template: >-
+          {{ states('sensor.master_toilet_mirror_light_meter')|int > 1000 }}
+
+light:
+  - platform: group
+    name: Master Toilet Ceiling Light
+    entities:
+      #- light.master_toilet_spotlight_1_hue
+      #- light.master_toilet_spotlight_2_hue
+      #- light.master_toilet_spotlight_3_hue
+      #- light.master_toilet_spotlight_4_hue
+      - light.master_toilet_spotlight_bulb_1
+      - light.master_toilet_spotlight_bulb_2
+      - light.master_toilet_spotlight_bulb_3
+      - light.master_toilet_spotlight_bulb_4    
+
+###############################################
+# Scripts
+###############################################  
+script:
+
+  master_toilet_all_lights_turn_on:
+    alias: Master Toilet All Lights Turn On
+    mode: single
+    sequence:
+      - service: switch.turn_on
+        entity_id:
+          - switch.master_toilet_floor_led
+      - service: light.turn_on
+        entity_id:
+          - light.master_toilet_ceiling_light
+
+  master_toilet_all_lights_turn_off:
+    alias: Master Toilet All Lights Turn Off
+    mode: single
+    sequence:
+      - service: switch.turn_off
+        entity_id:
+          - switch.master_toilet_floor_led
+      - service: light.turn_off
+        entity_id:
+          - light.master_toilet_ceiling_light
+
+  master_toilet_all_lights_toggle:
+    alias: Master Toilet All Lights Turn Off
+    mode: single
+    sequence:
+      - service: >
+          {% if is_state('switch.master_toilet_floor_led', 'on') %}
+             script.master_toilet_all_lights_turn_off
+          {% else %}
+             script.master_toilet_all_lights_turn_on
+          {% endif %}
+
+  master_toilet_set_dark_warm_light:
+    alias: Master Toilet Set Dark Warm Light
+    mode: single
+    sequence:
+      - service: light.turn_on
+        entity_id:
+          - light.master_toilet_ceiling_light
+        data:
+          brightness: 1
+          kelvin: 3000
+
+  master_toilet_set_bright_warm_light:
+    alias: Master Toilet Set Bright Warm Light
+    mode: single
+    sequence:
+      - service: light.turn_on
+        entity_id:
+          - light.master_toilet_ceiling_light
+        data:
+          brightness: 255
+          kelvin: 3000
+
+  master_toilet_set_daylight_light:
+    alias: Master Toilet Set Daylight Light
+    mode: single
+    sequence:
+      - service: switch.turn_on
+        entity_id:
+          - switch.master_toilet_floor_led
+      - service: light.turn_on
+        entity_id:
+          - light.master_toilet_ceiling_light
+        data:
+          brightness: 255
+          kelvin: 4000
+
+  master_toilet_set_heating_temp_with_state_maintaince:
+    alias: Master Toilet Set Heating Temperature With State Maintaince
+    mode: restart
+    sequence:
+      # Clear flags
+      - service: input_boolean.turn_off
+        entity_id: input_boolean.master_toilet_short_presence
+      # Turn on Heating
+      - data:
+          hvac_mode: heat
+        entity_id: climate.master_toilet
+        service: climate.set_hvac_mode
+      - data:
+          temperature: >
+            {% if now().hour >= 18 and now().hour < 23 %}
+            {# 18:00 - 23:00 #}
+              22
+            {% elif now().hour >= 23 or now().hour < 9 %}
+            {# 23:00 - 9:00 #}
+              23
+            {% else %}
+            {# 9:00 - 18:00 #}
+              20
+            {% endif %}
+        entity_id: climate.master_toilet
+        service: climate.set_temperature
+      - data:
+          stop_actions: false
+        entity_id: automation.master_toilet_heating_on_if_person_present
+        service: automation.turn_off
+
+
+###############################################
+#
+# Automations
+# - Heating/Lighting automation based on motion sensors
+# - Lighting automation based on motion sensors
+# - Lighting automation based on buttons
+#
+###############################################  
+automation:
+
+# Master Toilet
+- alias: H-MT Master Toilet Heating On If Person Present
+  id: "1600014380137"
+  description: "automation.master_toilet_heating_on_if_person_present"
+  trigger:
+    - entity_id: binary_sensor.master_toilet_basin_motion_sensor_motion
+      platform: state
+      from: "off"
+      to: "on"
+    - entity_id: binary_sensor.master_toilet_shower_motion_sensor_motion
+      platform: state
+      from: "off"
+      to: "on"
+  # Queued mode guarentees race condition are in series
+  mode: queued
+  action:
+    # Resolve race on multiple triggers - only execute instances that
+    # turned on heating and turned off the automation.
+    - condition: state
+      entity_id: automation.master_toilet_heating_on_if_person_present
+      state: "on"
+    # Turn on heating on repeated short presence or longer presence
+    - choose:
+        # IF - first time entering, set the flag
+        #      Longer presence will turn on heating
+        - conditions:
+            # Wait for 1.5 min if it is the first time of presence
+            - condition: state
+              entity_id: input_boolean.master_toilet_short_presence
+              state: "off"
+          sequence:
+            # set the short presence flag
+            - service: input_boolean.turn_on
+              entity_id: input_boolean.master_toilet_short_presence
+            # Delay 1.5 min and test motion sensor
+            - delay: 00:01:45
+            - condition: or
+              conditions:
+                - condition: state
+                  entity_id: binary_sensor.master_toilet_basin_motion_sensor_motion
+                  state: "on"
+                - condition: state
+                  entity_id: binary_sensor.master_toilet_shower_motion_sensor_motion
+                  state: "on"
+            # Longer presence will turn on heating
+            - service: script.master_toilet_set_heating_temp_with_state_maintaince
+      # ELSE - Repeated short presence will turn on heating
+      default:
+        - service: script.master_toilet_set_heating_temp_with_state_maintaince
+
+
+- alias: H-MT Master Toilet Heating Off If No Person
+  id: "1600015749043"
+  description: "automation.master_toilet_heating_off_if_no_person"
+  trigger:
+    - minutes: /5
+      platform: time_pattern
+    - entity_id: binary_sensor.master_toilet_basin_motion_sensor_motion
+      platform: state
+      from: "on"
+      to: "off"
+      for: 00:05:00
+    - entity_id: binary_sensor.master_toilet_shower_motion_sensor_motion
+      platform: state
+      from: "on"
+      to: "off"
+      for: 00:05:00
+    - minutes: /5
+      platform: time_pattern
+  condition:
+    - condition: state
+      entity_id: binary_sensor.master_toilet_basin_motion_sensor_motion
+      for: 00:05:00
+      state: "off"
+    - condition: state
+      entity_id: binary_sensor.master_toilet_shower_motion_sensor_motion
+      for: 00:05:00
+      state: "off"
+  action:
+    # Turn off heating
+    - service: climate.set_hvac_mode
+      entity_id: climate.master_toilet
+      data:
+        hvac_mode: auto
+    - data: {}
+      entity_id: automation.master_toilet_heating_on_if_person_present
+      service: automation.turn_on
+    # Clear flags
+    - service: input_boolean.turn_off
+      entity_id: input_boolean.master_toilet_short_presence
+
+
+# Master Toilet
+- alias: L-MT Master Toilet Lights On If Person Present and Dark
+  description: ""
+  trigger:
+    - entity_id: binary_sensor.master_toilet_basin_motion_sensor_motion
+      platform: state
+      from: "off"
+      to: "on"
+    - entity_id: binary_sensor.master_toilet_shower_motion_sensor_motion
+      platform: state
+      from: "off"
+      to: "on"
+  condition:
+    - condition: or
+      conditions:
+        - condition: and
+          conditions:
+            - entity_id: binary_sensor.master_toilet_basin_motion_sensor_motion
+              condition: state
+              state: "on"
+            - entity_id: sensor.master_toilet_basin_motion_sensor_light
+              condition: numeric_state
+              below: "200"
+        - condition: and
+          conditions:
+            - entity_id: binary_sensor.master_toilet_shower_motion_sensor_motion
+              condition: state
+              state: "on"
+            - entity_id: sensor.master_toilet_shower_motion_sensor_light
+              condition: numeric_state
+              below: "10"
+  action:
+    - service: light.turn_on
+      entity_id: light.master_toilet_ceiling_light
+    # turn on floor led if mirror light is on
+    - condition: state
+      entity_id: binary_sensor.master_toilet_mirror_light
+      state: "off"
+    - service: switch.turn_on
+      entity_id: switch.master_toilet_floor_led
+      
+      
+- alias: L-MT Master Toilet Mirror Light On/Off Changes The Colour Of Ceilight Light
+  trigger:
+    - entity_id: binary_sensor.master_toilet_mirror_light
+      platform: state
+      from: "on"
+      to: "off"
+    - entity_id: binary_sensor.master_toilet_mirror_light
+      platform: state
+      from: "off"
+      to: "on"
+  condition:
+    - entity_id: light.master_toilet_ceiling_light
+      condition: state
+      state: "on"
+  action:
+    - choose:
+        # IF mirror light on, change the ceiling light to cool 5000k
+        #.                    turn off warm floor led
+        - conditions:
+            - entity_id: binary_sensor.master_toilet_mirror_light
+              condition: state
+              state: "on"
+          sequence:
+            - service: light.turn_on
+              entity_id: light.master_toilet_ceiling_light
+              data:
+                kelvin: 5000
+            - service: switch.turn_off
+              entity_id: switch.master_toilet_floor_led
+      # ELSE - change the ceiling light to warm 3000k
+      #        turn on warm floor led
+      default:
+        - service: light.turn_on
+          entity_id: light.master_toilet_ceiling_light
+          data:
+            kelvin: 3000
+        - service: switch.turn_on
+          entity_id: switch.master_toilet_floor_led
+
+
+- alias: L-MT Master Toilet Lights Off If No Person For 10 Min
+  id: "1603640029094"
+  description: ""
+  trigger:
+    - entity_id: binary_sensor.master_toilet_basin_motion_sensor_motion
+      platform: state
+      from: "on"
+      to: "off"
+      for: 00:10:00
+    - entity_id: binary_sensor.master_toilet_shower_motion_sensor_motion
+      platform: state
+      from: "on"
+      to: "off"
+      for: 00:10:00
+    - minutes: /5
+      platform: time_pattern
+  condition:
+    - entity_id: binary_sensor.master_toilet_basin_motion_sensor_motion
+      condition: state
+      state: "off"
+      for: 00:10:00
+    - entity_id: binary_sensor.master_toilet_shower_motion_sensor_motion
+      condition: state
+      state: "off"
+      for: 00:10:00
+  action:
+    - service: script.master_toilet_all_lights_turn_off
+
+
+- alias: L-MT Master Toilet Lights Off If No Person For 2 Min And Door Open
+  id: "1603640027495"
+  description: ""
+  trigger:
+    - entity_id: binary_sensor.master_toilet_basin_motion_sensor_motion
+      platform: state
+      from: "on"
+      to: "off"
+      for: 00:02:00
+    - entity_id: binary_sensor.master_toilet_shower_motion_sensor_motion
+      platform: state
+      from: "on"
+      to: "off"
+      for: 00:02:00
+    - minutes: /5
+      platform: time_pattern
+  condition:
+    - entity_id: binary_sensor.master_toilet_door
+      condition: state
+      state: "on"
+    - entity_id: binary_sensor.master_toilet_basin_motion_sensor_motion
+      condition: state
+      state: "off"
+      for: 00:02:00
+    - entity_id: binary_sensor.master_toilet_shower_motion_sensor_motion
+      condition: state
+      state: "off"
+      for: 00:02:00
+  action:
+    - service: script.master_toilet_all_lights_turn_off
+
+# Master Toilet Dressing Room
+- alias: L-MT Master Toilet Dressing Lights On If Person Present
+  description: ""
+  trigger:
+    - entity_id: binary_sensor.master_toilet_dressing_room_motion_sensor_motion
+      platform: state
+      from: "off"
+      to: "on"
+  condition:
+    - entity_id: binary_sensor.master_toilet_dressing_room_motion_sensor_motion
+      condition: state
+      state: "on"
+    - entity_id: sensor.master_toilet_dressing_room_motion_sensor_light
+      condition: numeric_state
+      below: "30"
+  action:
+    - choose:
+        # IF in daytime, turn on dressing room light
+        - conditions:
+            - condition: time
+              after: "7:00:00"
+              before: "23:30:00"
+          sequence:
+            - service: light.turn_on
+              entity_id: light.master_toilet_dressing_room_light
+      # ELSE - in nighttime, turn on toilet lights only
+      default:
+        - service: light.turn_on
+          entity_id: light.master_toilet_ceiling_light
+        - service: switch.turn_on
+          entity_id: switch.master_toilet_floor_led
+
+- alias: L-MT Master Toilet Dressing Lights Off If No Person Present For 2 Min
+  description: ""
+  trigger:
+    - entity_id: binary_sensor.master_toilet_dressing_room_motion_sensor_motion
+      platform: state
+      from: "on"
+      to: "off"
+      for: 00:02:00
+    - minutes: /5
+      platform: time_pattern
+  condition:
+    - entity_id: binary_sensor.master_toilet_dressing_room_motion_sensor_motion
+      condition: state
+      state: "off"
+      for: 00:02:00
+  action:
+    - entity_id: light.master_toilet_dressing_room_light
+      service: light.turn_off   
+
+# Lighting Automation based on buttons
+- alias: B-MT Master Toilet Wall Switch Single Press - Toggle All Toilet Lights
+  trigger:
+    - platform: state
+      entity_id: sensor.master_toilet_light_wall_button
+      to: single
+  action:
+    - service: script.master_toilet_all_lights_toggle
+
+
+- alias: B-MT Master Toilet Wall Switch Double Press - Toggle Toilet Ceiling Lights
+  trigger:
+    - platform: state
+      entity_id: sensor.master_toilet_light_wall_button
+      to: double
+  action:
+    - service: light.toggle
+      entity_id:
+        - light.master_toilet_ceiling_light
+
+
+- alias: B-MT Master Toilet Dressing Room Wall Switch Single Press - Turn On Dressing Room Lights/Turn Off All Toilet Lights
+  trigger:
+    - platform: state
+      entity_id: sensor.master_toilet_dressing_light_wall_button
+      to: single
+  action:
+    - choose:
+        # IF - all lights off - turn on dressing room light
+        - conditions:
+            - condition: and
+              conditions:
+                - condition: state
+                  entity_id: switch.master_toilet_floor_led
+                  state: "off"
+                - condition: state
+                  entity_id: light.master_toilet_ceiling_light
+                  state: "off"
+                - condition: state
+                  entity_id: light.master_toilet_dressing_room_light
+                  state: "off"
+          sequence:
+            - service: light.turn_on
+              entity_id: light.master_toilet_dressing_room_light
+      # ELSE - some lights on - turn off all toilet lights and dressing room lights
+      default:
+        - service: script.master_toilet_all_lights_turn_off
+        - service: light.turn_off
+          entity_id: light.master_toilet_dressing_room_light
+

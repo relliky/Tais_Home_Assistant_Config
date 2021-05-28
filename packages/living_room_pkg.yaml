@@ -1,14 +1,135 @@
-# Living Room
+###########################################
+#
+# Integration Instantiated in yaml
+#
+###########################################
+# Added MagicHome LEDs
+# This is a third-party custom component on flux_led
+# instead of the official one from HA
+light magic_home:
+   - platform: flux_led
+     devices:
+       192.168.1.53:
+         name: Living Room TV LED
+         mode: "rgb"
+
+       192.168.1.55:
+         name: Living Room Sofa LED
+         mode: "rgb"
+       
+
+###########################################
+#
+# Custom Entities
+#
+###########################################
+light:
+  - platform: group
+    name: Living Room Landing Light
+    entities:
+      - light.living_room_landing_light_bulb_1
+      - light.living_room_landing_light_bulb_2
+
+# Custom Variables
+input_boolean:
+  # First Time Presence in a Room
+  living_room_short_presence: # done
+    name: "Living Room Short Presence"
+  
+###############################################
+#
+# Scripts
+#
+###############################################  
+script:
+  living_room_landing_lights_turn_off:
+    alias: Living Room Landing Lights Turn Off
+    max: 100
+    mode: parallel
+    sequence:
+      - entity_id: light.living_room_landing_light
+        service: light.turn_off
+
+  living_room_landing_lights_turn_on:
+    alias: Living Room Landing Lights Turn On
+    max: 100
+    mode: parallel
+    sequence:
+      - entity_id: light.living_room_landing_light
+        service: light.turn_on
+
+  living_room_landing_lights_toggle:
+    alias: Living Room Landing Lights Toggle
+    mode: parallel
+    max: 100
+    sequence:
+      - entity_id: light.living_room_landing_light
+        service: light.toggle
+
+  living_room_all_lights_turn_on:
+    alias: Living Room Ceiling All Lights Turn On
+    mode: parallel
+    max: 100
+    sequence:
+      - service: switch.turn_on
+        entity_id:
+          - switch.living_room_ceiling_light
+          - switch.living_room_tree_light
+      - service: script.living_room_landing_lights_turn_on
+
+  living_room_all_lights_turn_off:
+    alias: Living Room All Lights Turn Off
+    mode: parallel
+    max: 100
+    sequence:
+      - service: switch.turn_off
+        entity_id:
+          - switch.living_room_ceiling_light
+          - switch.garden_light
+      - service: script.living_room_landing_lights_turn_off
+      - service: light.turn_off
+        entity_id:
+          - light.living_room_tv_led
+          - light.living_room_sofa_led
+          
+  living_room_set_heating_temp_with_state_maintaince:
+    alias: Living Room Set Heating Temperature With State Maintaince
+    mode: restart
+    sequence:
+      # clear the short presence flag
+      - service: input_boolean.turn_off
+        entity_id: input_boolean.living_room_short_presence
+      # turn on heating
+      - data:
+          hvac_mode: heat
+        entity_id: climate.living_room
+        service: climate.set_hvac_mode
+      - data:
+          temperature: 22
+        entity_id: climate.living_room
+        service: climate.set_temperature
+      - data:
+          stop_actions: false
+        entity_id: automation.living_room_heating_on_if_people_present
+        service: automation.turn_off
+
+
+
+
+
+###############################################
+#
+# Automations:
 # - Heating automation
 # - Lighting automation based on motion sensors
-# - Lighting automation based on buttons/linked switches
+# - Actions based on buttons
 # - Sonos Speakers Grouping/Ungrouping Based On Motion Sensor
 # - TV auto turn-off based on motion sensors
 #
 ###############################################
-#
+automation:
+###############################################
 # Heating Automation based on motion sensors
-#
 ###############################################
 - alias: H-LR Living Room Heating Set to 22 If Person Present
   id: "1599611100701"
@@ -79,12 +200,10 @@
     - service: input_boolean.turn_off
       entity_id: input_boolean.living_room_short_presence
 
-###############################################
-#
-# Lighting Automation based on motion sensors
-#
-###############################################
 
+###############################################
+# Lighting Automation based on motion sensors
+###############################################
 # Gardens
 - alias: L-LR Garden and Corridor Lights On If Person Present Around Door
   description: ""
@@ -186,7 +305,7 @@
               state: "on"
             - entity_id: sensor.master_room_light_meter
               condition: numeric_state
-              below: "30"
+              below: "100"
   action:
     - service: script.living_room_landing_lights_turn_on
 
@@ -220,7 +339,6 @@
     - service: script.living_room_all_lights_turn_off
 
 
-
 - alias: L-LR Boiler Room Lights On If Door Opens
   id: "1603640041661"
   trigger:
@@ -231,8 +349,6 @@
   action:
     - service:   light.turn_on
       entity_id: light.boiler_room_light
-
-
 
 - alias: L-LR Boiler Room Lights Off If No Movemenet on Door 
   id: "1603640041662"
@@ -263,10 +379,8 @@
       entity_id: light.boiler_room_light
 
 ###############################################
-#
-# Lighting Automation based on buttons
-#
-###############################################
+# Actions based on buttons
+###############################################  
 
 - alias: B-LR Living Room Wall/Sofa - Single Press - Toggle Landing Lights
   id: "1603641040070"
@@ -384,12 +498,8 @@
       - switch.garden_extension_lead_switch_2
       - switch.garden_extension_lead_switch_3
 
-
-
 #################################################################
-#
 # Sonos Speakers Grouping/Ungrouping Based On Motion Sensor
-#
 #################################################################
 - alias: S-LR Living Room Group Its Speaker If People Present
   trigger:
@@ -476,32 +586,29 @@
         entity_id: media_player.living_room_sonos
         
 #################################################################
-#
 # TV auto turn-off based on motion sensors
-#
 #################################################################
-- alias: TV-LR Living Room Turn Off TV If No Person
-  trigger:
-    - platform: state
-      from: "on"
-      to: "off"
-      for: 00:20:00
-      entity_id:
-        - binary_sensor.living_room_sofa_motion_sensor_motion
-        - binary_sensor.living_room_tv_motion_sensor_motion
-    - minutes: /5
-      platform: time_pattern
-  condition:
-    - condition: state
-      entity_id:
-        - binary_sensor.living_room_sofa_motion_sensor_motion
-        - binary_sensor.living_room_tv_motion_sensor_motion
-      for: 00:20:00
-      state: "off"
-  action:
-    # Switch Off TV
-    - service: switch.turn_off
-      entity_id: switch.living_room_tv
+#- alias: TV-LR Living Room Turn Off TV If No Person
+#  trigger:
+#    - platform: state
+#      from: "on"
+#      to: "off"
+#      for: 00:20:00
+#      entity_id:
+#        - binary_sensor.living_room_sofa_motion_sensor_motion
+#        - binary_sensor.living_room_tv_motion_sensor_motion
+#    - minutes: /5
+#      platform: time_pattern
+#  condition:
+#    - condition: state
+#      entity_id:
+#        - binary_sensor.living_room_sofa_motion_sensor_motion
+#        - binary_sensor.living_room_tv_motion_sensor_motion
+#      for: 00:20:00
+#      state: "off"
+#  action:
+#    # Switch Off TV
+#    - service: switch.turn_off
+#      entity_id: switch.living_room_tv
 
 
-          
