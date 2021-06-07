@@ -3,13 +3,68 @@
 # Custom Entities
 #
 ###########################################
+# System Sensors
+sensor system:
+  - platform: systemmonitor
+    resources:
+      - type: disk_use
+        arg: /
+      - type: memory_use
+      - type: load_1m
+      - type: processor_use
+
+
+sensor time:
+  # Time
+  - platform: time_date
+    display_options:
+      - "time"
+      - "date"
 
 # Custom Variables
 input_boolean:
 
   log_enable:
     name: "Log Enable"
+
+  always_off_constant:
+    name: "Always Off Constant"
     initial: "off"
+
+  always_on_constant:
+    name: "Always On Constant"
+    initial: "on"
+
+input_datetime:
+  log_disable_time:
+    name: "Log Disable Time"
+    has_date: true
+    has_time: true    
+
+  early_daylight_start:
+    name: "Early Daylight Start"
+    has_date: false
+    has_time: true    
+    initial: "05:59:50"
+
+  late_daylight_start:
+    name: "Late Daylight Start"
+    has_date: false
+    has_time: true    
+    initial: "09:59:50"
+
+  nighttime_start:
+    name: "Nighttime Start"
+    has_date: false
+    has_time: true    
+    initial: "17:59:50"
+
+  midnight_start:
+    name: "Midnight Start"
+    has_date: false
+    has_time: true    
+    initial: "22:59:50"
+
 
 
 # Lights Temperature Changed for Flux
@@ -73,6 +128,10 @@ script:
     sequence:
       - service: homeassistant.restart
 
+  do_nothing:
+    alias: Do nothing
+    sequence:
+      
 ###############################################
 #
 # Automations:
@@ -82,6 +141,11 @@ script:
 #
 ###############################################
 automation:
+- alias: Do nothing
+  id: '1596919926917'
+  trigger:
+  action:
+
 ########################################################################################################################
 # Non-bedroom light colour design
 # 1. T- (10am-6pm) Starting from daylight, uses 4000k white, full brightness
@@ -92,7 +156,7 @@ automation:
 ########################################################################################################################
 - alias: T- Set light starting from early daylight, uses 4000k white, full brightness
   trigger:
-    - at: "05:59:50"
+    - at: input_datetime.early_daylight_start
       platform: time
   action:
     - service: light.turn_on
@@ -105,14 +169,25 @@ automation:
        - light.guest_room_lamps
        - light.study_lamps
        - light.ground_corridor_ble_light
-       - light.first_corridor_ble_light             
+       - light.first_corridor_ble_light         
+       - light.master_room_entrance_led_light
+       - light.living_room_landing_light
       data:
         brightness: 255
         kelvin: 4000
-
+    # Update bedroom lights update status so that it will change setting next time when lights on
+    - service: input_boolean.turn_on
+      entity_id: 
+        - input_boolean.en_suite_room_outstanding_setting_update
+        - input_boolean.tais_desk_outstanding_setting_update
+        - input_boolean.kes_desk_outstanding_setting_update
+        - input_boolean.master_room_ceiling_light_outstanding_setting_update
+        - input_boolean.master_room_lamp_outstanding_setting_update
+        
+    
 - alias: T- Set light starting from late daylight, uses 4000k white, full brightness
   trigger:
-    - at: "09:59:50"
+    - at: input_datetime.late_daylight_start
       platform: time
   action:
     - service: light.turn_on
@@ -123,9 +198,10 @@ automation:
         brightness: 255
         kelvin: 4000
 
+  
 - alias: T- Set light starting from nighttime, uses 3000k white, full brightness
   trigger:
-    - at: "17:59:50"
+    - at: input_datetime.nighttime_start
       platform: time
   action:
     - service: light.turn_on
@@ -140,15 +216,24 @@ automation:
       - light.guest_room_lamps
       - light.study_lamps
       - light.ground_corridor_ble_light
-      - light.first_corridor_ble_light            
+      - light.first_corridor_ble_light         
+      - light.master_room_entrance_led_light
+      - light.living_room_landing_light
       data:
         brightness: 255
         kelvin: 3000
+    - service: input_boolean.turn_on
+      entity_id: 
+        - input_boolean.en_suite_room_outstanding_setting_update
+        - input_boolean.tais_desk_outstanding_setting_update
+        - input_boolean.kes_desk_outstanding_setting_update
+        - input_boolean.master_room_ceiling_light_outstanding_setting_update
+        - input_boolean.master_room_lamp_outstanding_setting_update
+           
 
-
-- alias: T- Set light starting from nighttime, uses 3000k white, 1% brightness
+- alias: T- Set light starting from midnight, uses 3000k white, 1% brightness
   trigger:
-    - at: "22:59:50"
+    - at: input_datetime.midnight_start
       platform: time
   action:
     - service: light.turn_on
@@ -162,7 +247,9 @@ automation:
        - light.master_toilet_dressing_room_light
        #- light.guest_room_lamps
        #- light.study_lamps
-       - light.first_corridor_ble_light          
+       - light.first_corridor_ble_light         
+       - light.master_room_entrance_led_light
+       - light.living_room_landing_light
       data:
         brightness: 1
         kelvin: 3000
@@ -172,7 +259,15 @@ automation:
       data:
         brightness: 76
         kelvin: 3000
-
+    - service: input_boolean.turn_on
+      entity_id: 
+        - input_boolean.en_suite_room_outstanding_setting_update
+        - input_boolean.tais_desk_outstanding_setting_update
+        - input_boolean.kes_desk_outstanding_setting_update
+        - input_boolean.master_room_ceiling_light_outstanding_setting_update
+        - input_boolean.master_room_lamp_outstanding_setting_update
+       
+    
 # - Restart HA on time
 - alias: 'Restart HA at 4am and 5am'
   id: '1602722452776'
@@ -182,17 +277,14 @@ automation:
     platform: time
   - at: 05:00:00
     platform: time
-  condition: []
   action:
   - service: homeassistant.restart
 
 
-# - Log Enable
-- alias: Enable/Disable Logging By The State of The Log Enable
+# - Starts Log Enable and set timeout
+- alias: Enable/Disable Logging By The State of The Log Enable and Set Timeout for 24 Hours
   id: '1607918439986'
   trigger:
-    - platform: time_pattern
-      minutes: "/5"
     - platform: state
       entity_id: input_boolean.log_enable
       to:
@@ -205,3 +297,98 @@ automation:
         {% else %}
           recorder.disable
         {% endif %}           
+        
+    - condition: state
+      entity_id: input_boolean.log_enable
+      state: "on"
+    - service: input_datetime.set_datetime
+      entity_id: input_datetime.log_disable_time
+      # Make the timeout to next day
+      data_template:
+        datetime: "{{ (now().timestamp() + 60*60*24)| timestamp_custom('%Y-%m-%d %H:%M:%S', true) }}"      
+
+
+- alias: Turn Off Logging By The Timeout
+  id: '1607918439987'
+  trigger:
+    - platform: time_pattern
+      minutes: "/5"
+  action:
+  # Time condition does not work with input_datetime so have to use template to work aorund
+  - condition: template
+    value_template: "{{now().timestamp() > state_attr('input_datetime.log_disable_time', 'timestamp')}}"
+  - service:   input_boolean.turn_off
+    entity_id: input_boolean.log_enable
+  - service:   recorder.disable
+
+
+
+# Air cond automation
+- alias: H-MR Master Room Thermostat State Are Mutually Exclusive From Aircon
+  id: '1596916933135'
+  description: "automation.master_room_thermostat_state_are_mutually_exclusive_from_aircon"
+  trigger:
+    - platform: state
+      entity_id: climate.master_room_thermostat
+      to:
+        - "off"
+        - "heat"
+    - platform: state
+      entity_id: climate.en_suite_room_thermostat
+      to:
+        - "off"
+        - "heat"        
+  action:
+    - service:   automation.turn_off
+      entity_id: automation.master_room_aircon_state_are_mutually_exclusive_from_thermostat
+    - entity_id: 
+       - climate.master_room_air_conditioner
+       - climate.en_suite_room_air_conditioner
+      service: climate.set_hvac_mode
+      data:
+        hvac_mode: >
+          {% if states('climate.master_room_thermostat') == 'heat' %}
+            off
+          {% elif states('climate.en_suite_room_thermostat') == 'heat' %}
+            off
+          {% else %}
+            cool
+          {% endif %}            
+    - service:   automation.turn_on
+      entity_id: automation.master_room_aircon_state_are_mutually_exclusive_from_thermostat
+
+
+- alias: H-MR Master Room Aircon State Are Mutually Exclusive From Thermostat
+  id: '1596916933136'
+  description: "automation.master_room_aircon_state_are_mutually_exclusive_from_thermostat"
+  trigger:
+    - platform: state
+      entity_id: climate.master_room_air_conditioner
+      to:
+        - "off"
+        - "cool"
+    - platform: state
+      entity_id: climate.en_suite_room_air_conditioner
+      to:
+        - "off"
+        - "cool"        
+  action:
+    - service:   automation.turn_on
+      entity_id: automation.master_room_thermostat_state_are_mutually_exclusive_from_aircon
+    - entity_id: 
+       - climate.master_room_thermostat
+       - climate.en_suite_room_thermostat
+      service: climate.set_hvac_mode
+      data:
+        hvac_mode: >
+          {% if states('climate.master_room_air_conditioner') == 'cool' %}
+            off
+          {% elif states('climate.en_suite_room_air_conditioner') == 'cool' %}
+            off
+          {% else %}
+            heat
+          {% endif %}            
+    - service:   automation.turn_on
+      entity_id: automation.master_room_thermostat_state_are_mutually_exclusive_from_aircon
+
+

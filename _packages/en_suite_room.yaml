@@ -59,6 +59,11 @@ input_boolean:
     name: "En-suite Room Short Presence"
     initial: "off"
 
+  # Use for detecting if there is an outstanding setting update scheduled
+  en_suite_room_outstanding_setting_update:
+    name: "En-suite Room Outstanding Setting Update"
+    initial: "off"
+
 ###############################################
 #
 # Scripts
@@ -73,6 +78,7 @@ script:
       - service: light.turn_on
         entity_id:
           - light.en_suite_room_ceiling_light
+          - light.en_suite_room_bed_led          
           #- switch.en_suite_room_bedside_lamp
 
   en_suite_room_all_lights_turn_off:
@@ -83,6 +89,7 @@ script:
       - service: light.turn_off
         entity_id:
           - light.en_suite_room_ceiling_light
+          - light.en_suite_room_bed_led
           #- switch.en_suite_room_bedside_lamp
           
   en_suite_room_set_heating_temp_with_state_maintaince:
@@ -124,7 +131,10 @@ automation:
   id: '1603640029651'
   description: ''
   trigger:
-  - entity_id: binary_sensor.en_suite_room_motion_sensor_motion
+  - entity_id: 
+     - binary_sensor.en_suite_room_motion_sensor_motion
+     - binary_sensor.kes_desk_motion_sensor_motion
+     - binary_sensor.tais_desk_motion_sensor_motion
     platform: state
     from: 'on'
     to: 'off'
@@ -141,7 +151,10 @@ automation:
         before: '22:00:00'
         condition: time
       - condition: state
-        entity_id: binary_sensor.en_suite_room_motion_sensor_motion
+        entity_id: 
+         - binary_sensor.en_suite_room_motion_sensor_motion
+         - binary_sensor.kes_desk_motion_sensor_motion
+         - binary_sensor.tais_desk_motion_sensor_motion
         for: 00:15:00
         state: 'off'
     # ELSEIF - in nighttime, if no people live in the room,
@@ -152,7 +165,10 @@ automation:
         before: '10:00:00'
         condition: time
       - condition: state
-        entity_id: binary_sensor.en_suite_room_motion_sensor_motion
+        entity_id: 
+         - binary_sensor.en_suite_room_motion_sensor_motion
+         - binary_sensor.kes_desk_motion_sensor_motion
+         - binary_sensor.tais_desk_motion_sensor_motion
         state: 'off'
         for: 00:15:00
       - condition: state
@@ -166,7 +182,10 @@ automation:
         before: '10:00:00'
         condition: time
       - condition: state
-        entity_id: binary_sensor.en_suite_room_motion_sensor_motion
+        entity_id: 
+         - binary_sensor.en_suite_room_motion_sensor_motion
+         - binary_sensor.kes_desk_motion_sensor_motion
+         - binary_sensor.tais_desk_motion_sensor_motion
         state: 'off'
         for: 02:00:00
       - condition: state
@@ -259,46 +278,6 @@ automation:
       entity_id: climate.en_suite_room
       service: climate.set_temperature
 
-- alias: H-ER En-suite Room Thermostat State Are Mutually Exclusive From Aircon
-  id: '1596919933135'
-  trigger:
-    - platform: state
-      entity_id: climate.en_suite_room_thermostat
-      to:
-        - "off"
-        - "heat"
-  action:
-    - entity_id: climate.en_suite_room_air_conditioner
-      service: climate.set_hvac_mode
-      data:
-        hvac_mode: >
-          {% if states('climate.en_suite_room_thermostat') == 'heat' %}
-            off
-          {% else %}
-            cool
-          {% endif %}            
-
-
-- alias: H-ER En-suite Room Aircon State Are Mutually Exclusive From Thermostat
-  id: '1596919933136'
-  trigger:
-    - platform: state
-      entity_id: climate.en_suite_room_air_conditioner
-      to:
-        - "off"
-        - "cool"
-  action:
-    - entity_id: climate.en_suite_room_thermostat
-      service: climate.set_hvac_mode
-      data:
-        hvac_mode: >
-          {% if states('climate.en_suite_room_air_conditioner') == 'cool' %}
-            off
-          {% else %}
-            heat
-          {% endif %}            
-
-
 
 ###############################################
 # Lighting Automation based on motion sensors
@@ -376,7 +355,9 @@ automation:
     to: single
   action:
   - service:   light.toggle
-    entity_id: light.en_suite_room_ceiling_light
+    entity_id: 
+      - light.en_suite_room_ceiling_light
+     
 
 
 - alias: B-ER En-suite Room Bed Button - Double Press - Toggle Bedside Lamp

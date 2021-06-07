@@ -62,30 +62,6 @@ script:
           kelvin: 3000
 
 
-  en_suite_toilet_set_heating_temp_with_state_maintaince:
-    alias: En-suite Toilet Set Heating Temperature With State Maintaince
-    mode: restart
-    sequence:
-      # clear the short presence flag
-      - service: input_boolean.turn_off
-        entity_id: input_boolean.en_suite_toilet_short_presence
-      # turn on heating
-      - data:
-          hvac_mode: heat
-        entity_id: climate.en_suite_toilet
-        service: climate.set_hvac_mode
-      - data:
-          temperature: 21
-        entity_id: climate.en_suite_toilet
-        service: climate.set_temperature
-      - data:
-          stop_actions: false
-        entity_id: automation.en_suite_toilet_heating_on_if_people_present
-        service: automation.turn_off
-
-
-
-
 ###############################################
 #
 # Automations:
@@ -95,7 +71,6 @@ script:
 #
 ###############################################
 automation:
-
 ###############################################
 # Heating Automation based on motion sensors
 ###############################################
@@ -118,6 +93,8 @@ automation:
   - service: input_boolean.turn_off
     entity_id: input_boolean.en_suite_toilet_short_presence
   # Turn Off Room Tado and Turn On Auto Heating
+  - service: automation.turn_off
+    entity_id: automation.en_suite_toilet_heating_scheduler  
   - service: climate.set_temperature
     entity_id: climate.en_suite_toilet
     data:
@@ -130,44 +107,33 @@ automation:
 - alias: H-ER En-suite Toilet Heating On If Person Present
   id: '1599909943194'
   description: 'automation.en_suite_toilet_heating_on_if_person_present'
+  use_blueprint:
+    path: room_delayed_heating.yaml
+    input:
+      binary_sensor_motion_sensor_list:       
+        - binary_sensor.en_suite_toilet_motion_sensor_motion
+      input_boolean_short_presence:      input_boolean.en_suite_toilet_short_presence
+      automation_this_automation_entity: automation.en_suite_toilet_heating_on_if_person_present
+      automation_heating_scheduler:      automation.en_suite_toilet_heating_scheduler
+
+
+- alias: H-ER En-suite Toilet Heating Schedule
+  id: "1600014325409"
+  description: "automation.en_suite_toilet_heating_scheduler"
   trigger:
-  - entity_id: binary_sensor.en_suite_toilet_motion_sensor_motion
-    platform: state
-    from: 'off'
-    to: 'on'
-  # Queued mode guarentees race condition are in series
-  mode: queued
+    # Never trigger
+    - entity_id: input_boolean.always_off_constant
+      platform: state
+      to: "on"
   action:
-    # Resolve race on multiple triggers - only execute instances that
-    # turned on heating and turned off the automation.
-    - condition: state
-      entity_id: automation.en_suite_toilet_heating_on_if_person_present
-      state: "on"
-    # Turn on heating on repeated short presence or longer presence
-    - choose:
-        # IF - first time entering, set the flag
-        #      Longer presence will turn on heating
-        - conditions:
-            # Wait for 1.5 min if it is the first time of presence
-            - condition: state
-              entity_id: input_boolean.en_suite_toilet_short_presence
-              state: "off"
-          sequence:
-            # set the short presence flag
-            - service: input_boolean.turn_on
-              entity_id: input_boolean.en_suite_toilet_short_presence
-            # Delay 1.5 min and test motion sensor
-            - delay: 00:01:45
-            - condition: state
-              entity_id: binary_sensor.en_suite_toilet_motion_sensor_motion
-              state: "on"
-            # Longer presence will turn on heating
-            - service: script.en_suite_toilet_set_heating_temp_with_state_maintaince
-      # ELSE - Repeated short presence will turn on heating
-      default:
-        - service: script.en_suite_toilet_set_heating_temp_with_state_maintaince
-
-
+    - data:
+        hvac_mode: heat
+      entity_id: climate.en_suite_toilet
+      service: climate.set_hvac_mode
+    - data:
+        temperature: 21
+      entity_id: climate.en_suite_toilet
+      service: climate.set_temperature
 
 
 ###############################################

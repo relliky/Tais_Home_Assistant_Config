@@ -7,8 +7,11 @@ default_config:
 # * bedside lights colour control by button
 # * master room bed lights colour control by day in the week/mode/sleep etc
 # * [HW] Fixed the living room light switches possibly by replacing a new smart switch
-# * move delayed heating to a blueprint and instantiate it for all the rooms
 # * change all bedroom light colour on the time (using light state off->on as trigger)
+# * blueprint instance for heating automation
+# * Master room lamps with localtuya to support colour mode
+# * Replace living room LED with a working controller
+
 
 homeassistant:
   customize: !include           customize.yaml
@@ -19,23 +22,6 @@ automation gui: !include automations.yaml
 script gui:     !include scripts.yaml
 
 
-sensor system:
-  - platform: systemmonitor
-    resources:
-      - type: disk_use
-        arg: /
-      - type: memory_use
-      - type: load_1m
-      - type: processor_use
-
-
-sensor time:
-  # Time
-  - platform: time_date
-    display_options:
-      - "time"
-      - "date"
-
 # Database logging config
 recorder:
   purge_keep_days: 1
@@ -43,6 +29,24 @@ recorder:
   commit_interval: 15 # updates log every 15s
   #db_url: mysql://hass_user:hass_pass@core-mariadb/homeassistant?charset=utf8mb4
 
+# En-suite Room PIR
+# TODO: waiting for HA update to use this syntax
+#template:
+#  - binary_sensor:
+#      - name: En-suite Room Whole Room Motion Sensor Motion
+#        state: >
+#          {{    is_state('binary_sensor.en_suite_room_motion_sensor_motion', 'on')
+#             or is_state('binary_sensor.kes_desk_motion_sensor_motion', 'on')
+#             or is_state('binary_sensor.tais_desk_motion_sensor_motion ', 'on')
+#          }}
+           
+# HA_On_VMs does not have BLE (bluetooth v4)
+  # Xiaomi BLE Round Fast Update Temperature Sensor
+#sensor xiaomi_ble_fast:      
+#  - platform: mitemp_bt
+#    period: 10 # seconds for refresh interval
+#    sensor_names:
+#      '58:2d:34:3b:6a:27': 'Kitchen Hob Temperature Sensor'
 
 
 

@@ -17,6 +17,16 @@ light:
       - light.kes_desk_lamp_2
 
 
+input_boolean:
+  # Use for detecting if there is an outstanding setting update scheduled
+  tais_desk_outstanding_setting_update:
+    name: "Tai's Desk Outstanding Setting Update"
+    initial: "off"
+
+  kes_desk_outstanding_setting_update:
+    name: "Ke's Desk Outstanding Setting Update"
+    initial: "off"
+        
 ###############################################
 #
 # Automations
@@ -50,6 +60,7 @@ automation:
     - service: switch.turn_on
       entity_id: switch.tais_desk_screen_led
 
+
 - alias: L-OD Tai's Desk light Off If Person Left the Chair
   description: ""
   trigger:
@@ -74,6 +85,58 @@ automation:
     - service: light.turn_off
       entity_id: light.tais_desk_lamps
 
+
+#- alias: L-OD Tai's Desk light Update Setting When Turned On
+#  id: '1607918423060'
+#  description: ""
+#  trigger:
+#    - entity_id: light.tais_desk_lamps
+#      platform: state
+#      from: "off"
+#      to: "on"
+#  condition:
+#    - entity_id: input_boolean.office_desk_outstanding_setting_update
+#      condition: state
+#      state: "on"
+#  action:
+#  - choose:
+#      # Daylight setting
+#      - conditions:
+#          - condition: time
+#            after: input_datetime.early_daylight_start
+#        sequence:
+#          - service: light.turn_on
+#            entity_id: light.tais_desk_lamps
+#            data: 
+#              brightness: 255
+#              kelvin: 5000      
+#      # Nighttime setting setting
+#      - conditions:
+#          - condition: time
+#            after:  input_datetime.nighttime_start
+#            before: input_datetime.midnight_start
+#        sequence:
+#          - service: light.turn_on
+#            entity_id: light.tais_desk_lamps
+#            data: 
+#              brightness: 255
+#              kelvin: 3000      
+#    # ELSE - Midnight setting
+#    default:
+#      - service: light.turn_on
+#        entity_id: light.tais_desk_lamps
+#        data: 
+#          brightness: 65
+#          kelvin: 3000     
+
+- alias: L-OD Tai's Desk light Update Setting When Turned On
+  id: '1607918423060'
+  description: ""
+  use_blueprint:
+    path: update_setting_when_on.yaml
+    input:
+      target_light_list:                        light.tais_desk_lamps
+      input_boolean_outstanding_setting_update: input_boolean.tais_desk_outstanding_setting_update
 
 - alias: L-OD Ke's Desk Lights On If Person Sits In The Desk
   id: "1603640030053"
@@ -115,6 +178,16 @@ automation:
       entity_id: light.kes_desk_lamps
     - service: switch.turn_off
       entity_id: switch.kes_desk_screen_led
+
+
+- alias: L-OD Ke's Desk light Update Setting When Turned On
+  id: '1607918427957'
+  description: ""
+  use_blueprint:
+    path: update_setting_when_on.yaml
+    input:
+      target_light_list:                        light.kes_desk_lamps
+      input_boolean_outstanding_setting_update: input_boolean.kes_desk_outstanding_setting_update
 
 
 

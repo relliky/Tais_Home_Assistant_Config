@@ -1,4 +1,4 @@
-###########################################
+ ###########################################
 #
 # Integration Instantiated in yaml
 #
@@ -29,6 +29,12 @@ light:
     entities:
       - light.living_room_landing_light_bulb_1
       - light.living_room_landing_light_bulb_2
+      
+  - platform: group
+    name: Living Room LED
+    entities:
+      - light.living_room_tv_led
+      - light.living_room_sofa_led
 
 # Custom Variables
 input_boolean:
@@ -93,31 +99,59 @@ script:
           - light.living_room_tv_led
           - light.living_room_sofa_led
           
-  living_room_set_heating_temp_with_state_maintaince:
-    alias: Living Room Set Heating Temperature With State Maintaince
+
+  living_room_heating_scheduler:
+    alias: Living Room Set Heating Temperature 
     mode: restart
     sequence:
-      # clear the short presence flag
-      - service: input_boolean.turn_off
-        entity_id: input_boolean.living_room_short_presence
-      # turn on heating
-      - data:
-          hvac_mode: heat
-        entity_id: climate.living_room
-        service: climate.set_hvac_mode
       - data:
           temperature: 22
+          hvac_mode: heat
         entity_id: climate.living_room
         service: climate.set_temperature
-      - data:
-          stop_actions: false
-        entity_id: automation.living_room_heating_on_if_people_present
-        service: automation.turn_off
+
+  living_room_tv_slideshow:
+    alias: Living Room TV Slideshow
+    sequence: 
+    - service: automation.trigger
+      entity_id: automation.living_room_tv_slideshow
 
 
+  living_room_tv_turn_on:
+    alias: Living Room Turn On TV
+    sequence: 
+    # Turn on TV
+    - service: media_player.turn_on
+      target:
+        entity_id: media_player.living_room_tv
+    - service: media_player.play_media
+      target:
+        entity_id: media_player.living_room_fire_tv
+      data:
+        media_content_type: routine
+        media_content_id: TurnOnLivingRoomTV     
 
+  living_room_tv_turn_off:
+    alias: Living Room Turn Off TV
+    sequence: 
+    - service: media_player.turn_off
+      target:
+        entity_id: media_player.living_room_tv
 
-
+  living_room_slideshow_update_tv_setting:
+    alias: Living Room Slideshow Update TV Setting
+    sequence: 
+    # Change to FireTV input
+    - service: media_player.select_source
+      target:
+        entity_id: media_player.living_room_tv
+      data:
+        source: "Amazon Fire TV stick"      
+    # Set Picture Mode to a Dim One
+    - service: samsungtv_smart.select_picture_mode
+      data:
+        entity_id: media_player.living_room_tv
+        picture_mode: Natural
 ###############################################
 #
 # Automations:
@@ -132,45 +166,19 @@ automation:
 ###############################################
 # Heating Automation based on motion sensors
 ###############################################
-- alias: H-LR Living Room Heating Set to 22 If Person Present
+- alias: H-LR Living Room Heating On If Person Present
   id: "1599611100701"
   description: "automation.living_room_heating_on_if_people_present"
-  trigger:
-    - entity_id: binary_sensor.living_room_sofa_motion_sensor_motion
-      platform: state
-      from: "off"
-      to: "on"
-  # Queued mode guarentees race condition are in series
-  mode: queued
-  action:
-    # Resolve race on multiple triggers - only execute instances that
-    # turned on heating and turned off the automation.
-    - condition: state
-      entity_id: automation.living_room_heating_on_if_people_present
-      state: "on"
-    # Turn on heating on repeated short presence or longer presence
-    - choose:
-        # IF - first time entering, set the flag
-        #      Longer presence will turn on heating
-        - conditions:
-            # Wait for 1.5 min if it is the first time of presence
-            - condition: state
-              entity_id: input_boolean.living_room_short_presence
-              state: "off"
-          sequence:
-            # set the short presence flag
-            - service: input_boolean.turn_on
-              entity_id: input_boolean.living_room_short_presence
-            # Delay 1.5 min and test motion sensor
-            - delay: 00:01:45
-            - condition: state
-              entity_id: binary_sensor.living_room_sofa_motion_sensor_motion
-              state: "on"
-            # Longer presence will turn on heating
-            - service: script.living_room_set_heating_temp_with_state_maintaince
-      # ELSE - Repeated short presence will turn on heating
-      default:
-        - service: script.living_room_set_heating_temp_with_state_maintaince
+  use_blueprint:
+    path: room_delayed_heating.yaml
+    input:
+      binary_sensor_motion_sensor_list:       
+        - binary_sensor.living_room_sofa_motion_sensor_motion
+        - binary_sensor.living_room_tv_motion_sensor_motion    
+      input_boolean_short_presence:      input_boolean.living_room_short_presence
+      automation_this_automation_entity: automation.living_room_heating_on_if_people_present
+      script_heating_scheduler:          script.living_room_heating_scheduler
+
 
 - alias: H-LR Living Room Heating Off If No Person
   id: "1599611453836"
@@ -187,20 +195,15 @@ automation:
     - condition: state
       entity_id: binary_sensor.living_room_sofa_motion_sensor_motion
       for: 00:05:00
-      state: "off"
+      state: "off"    
   action:
     # turn off heating
     - service: climate.set_hvac_mode
       entity_id: climate.living_room
       data:
         hvac_mode: auto
-    - data: {}
-      entity_id: automation.living_room_heating_on_if_people_present
+    - entity_id: automation.living_room_heating_on_if_people_present
       service: automation.turn_on
-    # clear the short presence flag
-    - service: input_boolean.turn_off
-      entity_id: input_boolean.living_room_short_presence
-
 
 ###############################################
 # Lighting Automation based on motion sensors
@@ -274,6 +277,49 @@ automation:
       entity_id: switch.garden_wall_light
 
 # Living Room
+- alias: L-LR Living Room TV Slideshow When Person Present
+  id: "1599632300702"
+  description: "automation.living_room_tv_slideshow"
+  trigger:
+    - entity_id: binary_sensor.living_room_sofa_motion_sensor_motion
+      platform: state
+      from: "off"
+      to: "on"
+    - entity_id: binary_sensor.living_room_tv_motion_sensor_motion
+      platform: state
+      from: "off"
+      to: "on"    
+  action:
+    # TV is off
+    - condition: state
+      entity_id: media_player.living_room_tv
+      state: "off"
+    # Mute TV
+    - service: media_player.volume_mute
+      target:
+        entity_id: media_player.living_room_sonos
+      data:
+        is_volume_muted: true    
+    # Play Slideshow on FireTV
+    - service: media_player.play_media
+      target:
+        entity_id: media_player.living_room_fire_tv
+      data:
+        media_content_type: routine
+        media_content_id: LivingRoomSlideshow
+    - alias: "Repeat turning on tv until tv is switched its input to fire tv"
+      repeat:
+        sequence:
+        - service: script.turn_on
+          entity_id: script.living_room_tv_turn_on
+        - service: script.turn_on
+          entity_id: script.living_room_slideshow_update_tv_setting
+        - delay: "00:00:03"            
+        until:
+          - condition: template
+            value_template: "{{state_attr('media_player.living_room_tv', 'source') == 'Amazon Fire TV stick'}}"
+
+
 - alias: L-LR Living Room Lights On If Person Present
   id: "1603640031661"
   description: "automation.l_lr_living_room_lights_on_if_person_present"
@@ -308,7 +354,22 @@ automation:
               condition: numeric_state
               below: "100"
   action:
-    - service: script.living_room_landing_lights_turn_on
+    - choose:
+        - conditions:
+            - condition: time
+              after:  input_datetime.early_daylight_start
+              before: input_datetime.midnight_start
+          sequence:
+            - service: script.living_room_landing_lights_turn_on
+    - choose:
+        - conditions:
+            - condition: numeric_state
+              entity_id: sensor.master_room_light_meter
+              below: "300"
+          sequence:
+            - service: light.turn_on
+              entity_id: light.living_room_led
+
 
 
 - alias: L-LR Living Room Lights Off If No Person For 10 Min
@@ -338,6 +399,16 @@ automation:
       state: "off"
   action:
     - service: script.living_room_all_lights_turn_off
+    # Turn Off TV
+    - alias: "Repeat turning off tv until tv is off"
+      repeat:
+        sequence:
+        - service: script.turn_on
+          entity_id: script.living_room_tv_turn_off
+        - delay: "00:00:03"  
+        until:
+          - condition: template
+            value_template: "{{states('media_player.living_room_tv') == 'off'}}"
 
 
 - alias: L-LR Boiler Room Lights On If Door Opens

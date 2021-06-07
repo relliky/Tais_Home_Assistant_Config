@@ -1,0 +1,118 @@
+blueprint:
+  name: Room Delayed Heating
+  description: Turn on heating once people present in the room for a while
+  domain: automation
+  input:
+  
+    binary_sensor_motion_sensor_list:
+      name: Motion sensor list
+        
+    room_name:
+      name: Room name
+
+    automation_heating_scheduler:
+      name: Automation enabled for heating scheduler
+      description: If true, automation.<room_name>_heating_scheduler will be called
+      default: false
+
+    script_heating_scheduler:
+      name: Script enabled for heating scheduler
+      description: If true, script.<room_name>_heating_scheduler will be called
+      default: false
+
+
+variables:
+  t_room_name:                    !input room_name
+  t_automation_heating_scheduler: !input automation_heating_scheduler
+  t_script_heating_scheduler:     !input script_heating_scheduler
+
+trigger:
+  - entity_id: 
+      !input binary_sensor_motion_sensor_list
+    platform: state
+    from: "off"
+    to: "on"
+
+mode: queued
+action:    
+    # Resolve race on multiple triggers - only execute instances that
+    # turned on heating and turned off the automation.
+    - condition: template
+      value_template: >
+        {{ states('automation.' ~ t_room_name ~ '_heating_on_if_people_present') == 'on' }}
+
+    # Turn on heating on repeated short presence or longer presence
+    - choose:
+        # IF - first time entering, set the flag
+        #      Longer presence will turn on heating
+        - conditions:
+            # Wait for 1.5 min if it is the first time of presence
+            - condition: template
+              value_template: >
+                {{ states('input_boolean.' ~ t_room_name ~ '_short_presence') == 'off' }}
+          sequence:
+#            # set the short presence flag
+#            - service: input_boolean.turn_on
+#              entity_id: >
+#                {{ 'input_boolean.' ~ t_room_name ~ '_short_presence' }}
+#
+#            # Delay 2 min 
+#            - delay: 00:02:00
+#            # Test motion sensor - not all motion sensors are off
+#            - condition: not
+#              conditions:
+#                - condition: state
+#                  entity_id: 
+#                    !input binary_sensor_motion_sensor_list
+#                  state: "off"       
+#            # Longer presence will turn on heating
+#            #------------------------------------------------
+#            # Set Heating Temperature With State Maintaince
+#            #------------------------------------------------
+#            # Clear flags
+#            - service: input_boolean.turn_off
+#              entity_id: "{{t_room_name ~ '_short_presence'}}"
+#            # Turn on Heating
+#            - choose:
+#                # IF - in the nighttime, also turn on corridor lights
+#                - conditions:
+#                    - condition: template
+#                      value_template: "{{t_automation_heating_scheduler == 'true'}}"
+#                  sequence:
+#                    - service: automation.trigger
+#                      entity_id: "{{'automation.' ~ t_room_name ~ '_heating_scheduler'}}"
+#                    - service: automation.turn_on
+#                      entity_id: "{{'automation.' ~ t_room_name ~ '_heating_scheduler'}}"
+#            - choose:
+#                # IF - in the nighttime, also turn on corridor lights
+#                - conditions:
+#                    - condition: template
+#                      value_template: "{{t_script_heating_scheduler == 'true'}}"
+#                  sequence:
+#                    - service: script.turn_on   
+#                      entity_id: "{{'script.' ~ t_room_name ~ '_heating_scheduler'}}"
+#            # Turn off current automation          
+#            - service: automation.turn_off
+#              entity_id: "{{'automation.' ~ t_room_name ~ '_heating_on_if_people_present'}}"
+#              data:
+#                stop_actions: false           
+#      # ELSE - Repeated short presence will turn on heating
+#      default:
+#      #------------------------------------------------
+#      # Set Heating Temperature With State Maintaince
+#      #------------------------------------------------
+#      # Clear flags
+#      - service: input_boolean.turn_off
+#        entity_id: "{{t_room_name ~ '_short_presence'}}"
+#      # Turn on Heating
+#      - service: automation.trigger
+#        entity_id: "{{'automation.' ~ t_room_name ~ '_heating_scheduler'}}"
+#      - service: automation.turn_on
+#        entity_id: "{{'automation.' ~ t_room_name ~ '_heating_scheduler'}}"
+#      - service: scirpt.turn_on
+#        entity_id: "{{'script.'     ~ t_room_name ~ '_heating_scheduler'}}"
+#      - service: automation.turn_off
+#        entity_id: "{{'automation.' ~ t_room_name ~ '_heating_on_if_people_present'}}"
+#        data:
+#          stop_actions: false            
+#

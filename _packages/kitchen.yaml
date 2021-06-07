@@ -19,19 +19,10 @@ light:
 
 # Custom Variables
 input_boolean:
-
   kitchen_short_presence: # done
     name: "Kitchen Short Presence"
     initial: "off"
 
-
-# HA_On_VMs does not have BLE (bluetooth v4)
-  # Xiaomi BLE Round Fast Update Temperature Sensor
-sensor xiaomi_ble_fast:      
-  - platform: mitemp_bt
-    period: 10 # seconds for refresh interval
-    sensor_names:
-      '58:2d:34:3b:6a:27': 'Kitchen Hob Temperature Sensor'
 
 
 ###############################################
@@ -146,32 +137,13 @@ script:
       - service: light.turn_on
         entity_id: light.kitchen_ceiling_light
         data:
-          brightness: 255
           kelvin: 3000
       - service: light.turn_on
         entity_id: light.kitchen_dining_light
         data:
-          brightness: 255
           kelvin: 3000
 
-  kitchen_set_cool_white_light:
-    alias: Master Toilet Set Cool White Light
-    mode: single
-    sequence:
-      - service: script.kitchen_worktop_lights_turn_on
-      - service: switch.turn_off
-        entity_id: switch.kitchen_floor_led
-      - service: light.turn_on
-        entity_id: light.kitchen_ceiling_light
-        data:
-          brightness: 255
-          kelvin: 4000
-      - service: light.turn_on
-        entity_id: light.kitchen_dining_light
-        data:
-          brightness: 255
-          kelvin: 4000
-          
+
   kitchen_extractor_turn_off:
     alias: Kitchen Extractor Turn Off
     max: 100
@@ -211,6 +183,49 @@ script:
         service: automation.turn_off
 
 
+  kitchen_tv_turn_on:
+    alias: Kitchen Turn On TV
+    sequence: 
+    # Turn on TV
+    - service: media_player.turn_on
+      target:
+        entity_id: media_player.kitchen_tv
+    - service: media_player.play_media
+      target:
+        entity_id: media_player.kitchen_fire_tv
+      data:
+        media_content_type: routine
+        media_content_id: TurnOnKitchenRoomTV     
+
+  kitchen_tv_turn_off:
+    alias: Kitchen Turn Off TV
+    sequence: 
+    - service: media_player.turn_off
+      target:
+        entity_id: media_player.kitchen_tv
+
+  kitchen_slideshow_update_tv_setting:
+    alias: Kitchen Slideshow Update TV Setting
+    sequence: 
+    # Mute TV
+    - service: media_player.volume_set
+      data:
+        volume_level: 0
+      target:
+        entity_id: media_player.kitchen_tv    
+    # Change to FireTV input
+    - service: media_player.select_source
+      target:
+        entity_id: media_player.kitchen_tv
+      data:
+        source: "Amazon Fire TV stick"      
+    # Set Picture Mode to a Dim One
+    - service: samsungtv_smart.select_picture_mode
+      data:
+        entity_id: media_player.kitchen_tv
+        picture_mode: Natural
+
+        
 ###############################################
 #
 # Automations:
@@ -225,7 +240,6 @@ automation:
 ###############################################
 # Heating Automation based on motion sensors
 ###############################################
-
 - alias: H-KC Kitchen Heating And Drinking Hot Water On If Person Present
   id: "1599609685194"
   description: "automation.kitchen_heating_on_if_people_present"
@@ -275,6 +289,7 @@ automation:
         - service: switch.turn_on
           entity_id: switch.kitchen_drinking_hot_water
 
+
 - alias: H-KC Kitchen Heating And Drinking Hot Water Off If No Person
   id: "1599609374841"
   description: "automation.kitchen_heating_off_when_no_person"
@@ -310,7 +325,7 @@ automation:
 ###############################################
 # Lighting Automation based on motion sensors
 ###############################################
-- alias: L-KC Kitchen Lights On If Person Present and Dark In Daytime
+- alias: L-KC Kitchen Lights On If Person Present and Dim In Daytime
   id: "1603640029617"
   description: "automation.kitchen_lights_on_if_person_present_and_dark_in_daytime"
   trigger:
@@ -335,6 +350,7 @@ automation:
   action:
     - service: script.kitchen_set_bright_warm_light
 
+
 - alias: L-KC Kitchen Lights On If Person Present In Nighttime
   id: "1603640029618"
   description: ""
@@ -356,6 +372,44 @@ automation:
       entity_id: 
        - light.kitchen_ceiling_light
        - light.kitchen_dining_light
+
+
+
+- alias: L-KC Kitchen TV Slideshow When People Present
+  id: "1583407343079"
+  description: "automation.kitchen_tv_slideshow"
+  trigger:
+    - entity_id: binary_sensor.kitchen_table_motion_sensor_motion
+      platform: state
+      from: "off"
+      to: "on"    
+  action:    
+    # TV is off
+    - condition: state
+      entity_id: media_player.kitchen_tv
+      state: "off"
+    # Play Slideshow on FireTV after
+    - service: media_player.play_media
+      target:
+        entity_id: media_player.kitchen_fire_tv
+      data:
+        media_content_type: routine
+        media_content_id: KitchenSlideshow
+    - delay: "00:00:02"
+    # Turn on TV and change settings    
+    - alias: "Repeat turning on tv until tv is switched its input to fire tv"
+      repeat:
+        sequence:
+        - service: script.turn_on
+          entity_id: script.kitchen_tv_turn_on
+        - service: script.turn_on
+          entity_id: script.kitchen_slideshow_update_tv_setting
+        - delay: "00:00:03"            
+        until:
+          - condition: template
+            value_template: "{{state_attr('media_player.kitchen_tv', 'source') == 'Amazon Fire TV stick'}}"
+
+
 
 - alias: L-KC Kitchen All Lights and Appliances Off If No Person For 10 Min
   id: "1593556938732"
@@ -386,6 +440,16 @@ automation:
           for: 00:10:00
   action:
     - service: script.kitchen_all_lights_and_appliances_turn_off
+    # Turn Off TV
+    - alias: "Repeat turning off tv until tv is off"
+      repeat:
+        sequence:
+        - service: script.turn_on
+          entity_id: script.kitchen_tv_turn_off
+        - delay: "00:00:03"  
+        until:
+          - condition: template
+            value_template: "{{states('media_player.kitchen_tv') == 'off'}}"
 
 
 - alias: L-KC Kitchen Cool White Lights On If Person Present In Worktop In Daytime
@@ -401,9 +465,19 @@ automation:
       before: "00:00:00"
       condition: time
   action:
-    - service: script.kitchen_set_cool_white_light
+    - service: script.kitchen_worktop_lights_turn_on
+    - service: switch.turn_off
+      entity_id: switch.kitchen_floor_led
+    - service: light.turn_on
+      entity_id: light.kitchen_ceiling_light
+      data:
+        kelvin: 4000
+    - service: light.turn_on
+      entity_id: light.kitchen_dining_light
+      data:
+        kelvin: 4000
 
-
+          
 - alias: L-KC Kitchen To Warm White If No Person Present In Worktop In Daytime
   description: ""
   trigger:
@@ -426,14 +500,20 @@ automation:
     # Remove race conditon of the turn-off automation
     - delay: 00:00:15
     # And some light are still on
-    - condition: not
+    - condition: or
       conditions:
         - condition: state
           entity_id:
             - switch.kitchen_floor_led
+          state: "on"
+        - condition: state
+          entity_id:
             - light.kitchen_dining_light
+          state: "on"
+        - condition: state
+          entity_id:
             - light.kitchen_ceiling_light
-          state: "off"
+          state: "on"
     # Set Kitchen to warm whites
     - service: script.kitchen_set_bright_warm_light
     - service: script.kitchen_worktop_lights_turn_off
@@ -501,14 +581,14 @@ automation:
   trigger:
     - platform: template
       value_template:  >
-        {% if states.weather.home.attributes.temperature|float < 6 %}
-          {% if states.sensor.mi_temperature_kitchen_hob_temperature_sensor|float > 25 %}
+        {% if states('sensor.cambridge_city_airport_temperature')|float < 6 %}
+          {% if states('sensor.mi_temperature_kitchen_hob_temperature_sensor')|float > 25 %}
             ture
           {% else %}
             false
           {% endif %}  
         {% else %}
-          {% if states.sensor.mi_temperature_kitchen_hob_temperature_sensor|float > ((states.weather.home.attributes.temperature - 6)/4 + 25) %}
+          {% if states('sensor.mi_temperature_kitchen_hob_temperature_sensor')|float > ((states('sensor.cambridge_city_airport_temperature')|int - 6)/4 + 25) %}
             ture
           {% else %}
             false
