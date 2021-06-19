@@ -22,8 +22,9 @@ input_boolean:
   kitchen_short_presence: # done
     name: "Kitchen Short Presence"
     initial: "off"
-
-
+  
+  kitchen_slideshow_enable:
+    name: "Kitchen Slideshow Enable"
 
 ###############################################
 #
@@ -223,9 +224,13 @@ script:
     - service: samsungtv_smart.select_picture_mode
       data:
         entity_id: media_player.kitchen_tv
-        picture_mode: Natural
-
-        
+        picture_mode: >
+          {% if states('sensor.master_room_light_meter')|int > 200 %}  
+            Standard
+          {% else %}
+            Natural
+          {% endif %}
+          
 ###############################################
 #
 # Automations:
@@ -384,6 +389,10 @@ automation:
       from: "off"
       to: "on"    
   action:    
+    # Slideshow is enabled
+    - condition: state
+      entity_id: input_boolean.kitchen_slideshow_enable
+      state: "on"    
     # TV is off
     - condition: state
       entity_id: media_player.kitchen_tv
@@ -408,6 +417,16 @@ automation:
         until:
           - condition: template
             value_template: "{{state_attr('media_player.kitchen_tv', 'source') == 'Amazon Fire TV stick'}}"
+    # Set that again to make sure any abnormalities are flushed
+    - delay: "00:00:03"
+    - service: script.turn_on
+      entity_id: script.kitchen_slideshow_update_tv_setting
+    - service: media_player.play_media
+      target:
+        entity_id: media_player.kitchen_fire_tv
+      data:
+        media_content_type: routine
+        media_content_id: KitchenSlideshow
 
 
 

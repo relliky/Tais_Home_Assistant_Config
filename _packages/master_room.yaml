@@ -151,6 +151,8 @@ input_boolean:
     name: "Master Room Lamp Outstanding Setting Update"
     initial: "off"
     
+  master_room_slideshow_enable:
+    name: "Master Room Slideshow Enable"  
 ###############################################
 #
 # Scripts
@@ -404,8 +406,12 @@ script:
     - service: samsungtv_smart.select_picture_mode
       data:
         entity_id: media_player.master_room_tv
-        picture_mode: Movie
-
+        picture_mode: >
+          {% if states('sensor.master_room_light_meter')|int > 200 %}  
+            Standard
+          {% else %}
+            Movie
+          {% endif %}
 ###############################################
 #
 # Automations
@@ -577,19 +583,16 @@ automation:
   id: "1543510386760"  
   description: "automation.master_room_heating_on_if_people_present"
   use_blueprint:
-    path: room_delayed_heating.yaml
+    path: room_delayed_action.yaml
     input:
       binary_sensor_motion_sensor_list:       
         - binary_sensor.master_room_bed_motion_sensor_motion
         - binary_sensor.master_room_dressing_table_motion_sensor_motion
         - binary_sensor.master_room_tv_motion_sensor_motion
         - binary_sensor.master_room_drawer_motion_sensor_motion
-#      room_name: master_room
-#      automation_heating_scheduler: true
-#      script_heating_scheduler: true          
       input_boolean_short_presence:      input_boolean.master_room_short_presence
       automation_this_automation_entity: automation.master_room_heating_on_if_people_present
-      automation_heating_scheduler:      automation.master_room_heating_scheduler
+      automation_to_be_triggered:        automation.master_room_heating_scheduler
 
 
 - alias: H-MR Master Room Heating Scheduler
@@ -731,6 +734,10 @@ automation:
   description: "automation.master_room_tv_slideshow"
   trigger:
   action:    
+    # Slideshow is enabled
+    - condition: state
+      entity_id: input_boolean.master_room_slideshow_enable
+      state: "on"    
     # TV is off
     - condition: state
       entity_id: media_player.master_room_tv
@@ -751,10 +758,21 @@ automation:
           entity_id: script.master_room_tv_turn_on
         - service: script.turn_on
           entity_id: script.master_room_slideshow_update_tv_setting
-        - delay: "00:00:03"            
+        - delay: "00:00:05"            
         until:
           - condition: template
             value_template: "{{state_attr('media_player.master_room_tv', 'source') == 'Amazon Fire TV stick'}}"
+    ## Set that again to make sure any abnormalities are flushed
+    #- delay: "00:00:05"
+    #- service: script.turn_on
+    #  entity_id: script.master_room_slideshow_update_tv_setting
+    #- delay: "00:00:10"        
+    #- service: media_player.play_media
+    #  target:
+    #    entity_id: media_player.master_room_fire_tv
+    #  data:
+    #    media_content_type: routine
+    #    media_content_id: MasterRoomSlideshow
 
 
 
