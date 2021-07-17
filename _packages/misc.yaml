@@ -244,7 +244,7 @@ automation:
        - light.master_toilet_dressing_room_light
        - light.first_corridor_ble_light         
       data:
-        brightness: 1
+        brightness: 10
         kelvin: 3000
     - service: light.turn_on
       entity_id: 
@@ -394,4 +394,75 @@ automation:
     - service:   automation.turn_on
       entity_id: automation.master_room_thermostat_state_are_mutually_exclusive_from_aircon
 
+####################################################
+#
+# Restart HA if certain entities becomes unavailable
+#
+####################################################
+- alias: T- Restart HA When Some Devices Are Offline
+  id: "1599910317895"
+  description: ""
+  trigger:
+    - minutes: /10
+      platform: time_pattern
+  action:
+    - choose:
+        # Check LR Zigbee
+        - conditions:
+            - condition: state
+              entity_id: binary_sensor.ground_toilet_motion_sensor_motion
+              state: "unavailable"
+          sequence:
+            - service: notify.notify
+              data:
+                title: "Restarting HA in 1 Min"
+                message: "LR Ground Toilet Sensor Is Offline. Restarting HA"
+            - delay: "00:01:00"
+            - service: homeassistant.restart
+        # Check MR Zigbee
+        - conditions:
+            - condition: state
+              entity_id: binary_sensor.master_toilet_basin_motion_sensor_motion
+              state: "unavailable"
+          sequence:
+            - service: notify.notify
+              data:
+                title: "Restarting HA in 1 Min"
+                message: "MR Master Toilet Sensor Is Offline. Restarting HA"
+            - delay: "00:01:00"
+            - service: homeassistant.restart
+        # Check BLE devices
+        - conditions:
+            - condition: state
+              entity_id: light.master_room_entrance_led_light
+              state: "unavailable"
+          sequence:
+            - service: notify.notify
+              data:
+                title: "Restarting HA in 1 Min"
+                message: "BLE Master Room Entrance Light Is Offline. Restarting HA"
+            - delay: "00:01:00"
+            - service: homeassistant.restart
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
 
