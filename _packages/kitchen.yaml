@@ -8,21 +8,27 @@ light:
   - platform: group
     name: Kitchen Ceiling Light
     entities:
-      - light.kitchen_spotlight_bulb_1_localtuya
-      - light.kitchen_spotlight_bulb_2_localtuya
-      - light.kitchen_spotlight_bulb_3_localtuya
-      - light.kitchen_spotlight_bulb_4_localtuya
-      - light.kitchen_spotlight_bulb_5_localtuya
-      - light.kitchen_spotlight_bulb_6_localtuya
-      - light.kitchen_spotlight_bulb_7_localtuya
-
+      #- light.kitchen_spotlight_bulb_1_localtuya
+      #- light.kitchen_spotlight_bulb_2_localtuya
+      #- light.kitchen_spotlight_bulb_3_localtuya
+      #- light.kitchen_spotlight_bulb_4_localtuya
+      #- light.kitchen_spotlight_bulb_5_localtuya
+      #- light.kitchen_spotlight_bulb_6_localtuya
+      #- light.kitchen_spotlight_bulb_7_localtuya
+      - light.kitchen_ceiling_light_1_hue
+      - light.kitchen_ceiling_light_2_hue
+      - light.kitchen_ceiling_light_3_hue
+      - light.kitchen_ceiling_light_4_hue
+      - light.kitchen_ceiling_light_5_hue
+      - light.kitchen_ceiling_light_6_hue
+      - light.kitchen_ceiling_light_7_hue
 
 # Custom Variables
 input_boolean:
   kitchen_short_presence: # done
     name: "Kitchen Short Presence"
     initial: "off"
-  
+
   kitchen_slideshow_enable:
     name: "Kitchen Slideshow Enable"
 
@@ -30,7 +36,7 @@ input_boolean:
 #
 # Scripts
 #
-###############################################  
+###############################################
 script:
   kitchen_all_lights_turn_off:
     alias: Kitchen All Lights Turn Off
@@ -122,9 +128,9 @@ script:
     mode: single
     sequence:
       - service: light.turn_on
-        entity_id: 
-         - light.kitchen_ceiling_light
-         - light.kitchen_dining_light
+        entity_id:
+          - light.kitchen_ceiling_light
+          - light.kitchen_dining_light
         data:
           brightness: 1
           kelvin: 3000
@@ -143,7 +149,6 @@ script:
         entity_id: light.kitchen_dining_light
         data:
           kelvin: 3000
-
 
   kitchen_extractor_turn_off:
     alias: Kitchen Extractor Turn Off
@@ -183,54 +188,59 @@ script:
         entity_id: automation.kitchen_heating_on_if_people_present
         service: automation.turn_off
 
-
   kitchen_tv_turn_on:
     alias: Kitchen Turn On TV
-    sequence: 
-    # Turn on TV
-    - service: media_player.turn_on
-      target:
-        entity_id: media_player.kitchen_tv
-    - service: media_player.play_media
-      target:
-        entity_id: media_player.kitchen_fire_tv
-      data:
-        media_content_type: routine
-        media_content_id: TurnOnKitchenRoomTV     
+    sequence:
+      # Turn on TV
+      - service: media_player.turn_on
+        target:
+          entity_id: media_player.kitchen_tv
+      - service: media_player.play_media
+        target:
+          entity_id: media_player.kitchen_fire_tv
+        data:
+          media_content_type: routine
+          media_content_id: TurnOnKitchenRoomTV
+      - service: switch.turn_on
+        target:
+          entity_id: switch.kitchen_tv
 
   kitchen_tv_turn_off:
     alias: Kitchen Turn Off TV
-    sequence: 
-    - service: media_player.turn_off
-      target:
-        entity_id: media_player.kitchen_tv
+    sequence:
+      - service: media_player.turn_off
+        target:
+          entity_id: media_player.kitchen_tv
+      - service: switch.turn_off
+        target:
+          entity_id: switch.kitchen_tv
 
   kitchen_slideshow_update_tv_setting:
     alias: Kitchen Slideshow Update TV Setting
-    sequence: 
-    # Mute TV
-    - service: media_player.volume_set
-      data:
-        volume_level: 0
-      target:
-        entity_id: media_player.kitchen_tv    
-    # Change to FireTV input
-    - service: media_player.select_source
-      target:
-        entity_id: media_player.kitchen_tv
-      data:
-        source: "Amazon Fire TV stick"      
-    # Set Picture Mode to a Dim One
-    - service: samsungtv_smart.select_picture_mode
-      data:
-        entity_id: media_player.kitchen_tv
-        picture_mode: >
-          {% if states('sensor.master_room_light_meter')|int > 200 %}  
-            Standard
-          {% else %}
-            Natural
-          {% endif %}
-          
+    sequence:
+      # Mute TV
+      - service: media_player.volume_set
+        data:
+          volume_level: 0
+        target:
+          entity_id: media_player.kitchen_tv
+      # Change to FireTV input
+      - service: media_player.select_source
+        target:
+          entity_id: media_player.kitchen_tv
+        data:
+          source: "Amazon Fire TV stick"
+      # Set Picture Mode to a Dim One
+      - service: samsungtv_smart.select_picture_mode
+        data:
+          entity_id: media_player.kitchen_tv
+          picture_mode: >
+            {% if states('sensor.master_room_light_meter')|int > 200 %}  
+              Standard
+            {% else %}
+              Natural
+            {% endif %}
+
 ###############################################
 #
 # Automations:
@@ -242,512 +252,499 @@ script:
 #
 ###############################################
 automation:
-###############################################
-# Heating Automation based on motion sensors
-###############################################
-- alias: H-KC Kitchen Heating And Drinking Hot Water On If Person Present
-  id: "1599609685194"
-  description: "automation.kitchen_heating_on_if_people_present"
-  trigger:
-    - entity_id:
-        - binary_sensor.kitchen_table_motion_sensor_motion
-        - binary_sensor.kitchen_worktop_motion_sensor_motion
-      platform: state
-      from: "off"
-      to: "on"
-  # Queued mode guarentees no race
-  mode: queued
-  action:
-    # Remove instances due to race conditions
-    - condition: state
-      entity_id: automation.kitchen_heating_on_if_people_present
-      state: "on"
-    # Turn on heating on repeated short presence or longer presence
-    - choose:
-        # IF - first time entering, set the flag
-        #      Longer presence will turn on heating
-        - conditions:
-            - condition: state
-              entity_id: input_boolean.kitchen_short_presence
-              state: "off"
+  ###############################################
+  # Heating Automation based on motion sensors
+  ###############################################
+  - alias: H-KC Kitchen Heating And Drinking Hot Water On If Person Present
+    id: "1599609685194"
+    description: "automation.kitchen_heating_on_if_people_present"
+    trigger:
+      - entity_id:
+          - binary_sensor.kitchen_dining_motion_sensor_motion
+          - binary_sensor.kitchen_worktop_motion_sensor_motion
+        platform: state
+        from: "off"
+        to: "on"
+    # Queued mode guarentees no race
+    mode: queued
+    action:
+      # Remove instances due to race conditions
+      - condition: state
+        entity_id: automation.kitchen_heating_on_if_people_present
+        state: "on"
+      # Turn on heating on repeated short presence or longer presence
+      - choose:
+          # IF - first time entering, set the flag
+          #      Longer presence will turn on heating
+          - conditions:
+              - condition: state
+                entity_id: input_boolean.kitchen_short_presence
+                state: "off"
+            sequence:
+              # set the short presence flag
+              - service: input_boolean.turn_on
+                entity_id: input_boolean.kitchen_short_presence
+              # Delay 1.5 min and test motion sensor
+              - delay: 00:01:45
+              - condition: or
+                conditions:
+                  - condition: state
+                    entity_id: binary_sensor.kitchen_dining_motion_sensor_motion
+                    state: "on"
+                  - condition: state
+                    entity_id: binary_sensor.kitchen_worktop_motion_sensor_motion
+                    state: "on"
+              # Longer presence will turn on heating
+              - service: script.kitchen_set_heating_temp_with_state_maintaince
+              - service: switch.turn_on
+                entity_id: switch.kitchen_drinking_hot_water
+        # ELSE - Repeated short presence will turn on heating
+        default:
+          - service: script.kitchen_set_heating_temp_with_state_maintaince
+          - service: switch.turn_on
+            entity_id: switch.kitchen_drinking_hot_water
+
+  - alias: H-KC Kitchen Heating And Drinking Hot Water Off If No Person
+    id: "1599609374841"
+    description: "automation.kitchen_heating_off_when_no_person"
+    trigger:
+      - entity_id: binary_sensor.kitchen_dining_motion_sensor_motion
+        platform: state
+        from: "on"
+        to: "off"
+        for: 00:05:00
+      - minutes: /5
+        platform: time_pattern
+    condition:
+      - condition: state
+        entity_id: binary_sensor.kitchen_dining_motion_sensor_motion
+        for: 00:05:00
+        state: "off"
+    action:
+      # turn off heating
+      - service: climate.set_hvac_mode
+        entity_id: climate.kitchen
+        data:
+          hvac_mode: auto
+      - service: automation.turn_on
+        entity_id: automation.kitchen_heating_on_if_people_present
+      # turn on drinking hot water
+      - service: switch.turn_off
+        entity_id: switch.kitchen_drinking_hot_water
+      # Clear flags
+      - service: input_boolean.turn_off
+        entity_id: input_boolean.kitchen_short_presence
+
+  ###############################################
+  # Lighting Automation based on motion sensors
+  ###############################################
+  - alias: L-KC Kitchen Lights On If Person Present and Dim In Daytime
+    id: "1603640029617"
+    description: "automation.kitchen_lights_on_if_person_present_and_dark_in_daytime"
+    trigger:
+      - entity_id: binary_sensor.kitchen_dining_motion_sensor_motion
+        platform: state
+        from: "off"
+        to: "on"
+    condition:
+      # Do not need light condition for turning on kitchen lights
+      #- condition: and
+      #  conditions:
+      #    - condition: and
+      #      conditions:
+      #        - entity_id: binary_sensor.kitchen_dining_motion_sensor_motion
+      #          condition: state
+      #          state: "on"
+      #        - entity_id: sensor.kitchen_dining_motion_sensor_light
+      #          condition: numeric_state
+      #          below: "200"
+      - after: "06:00:00"
+        before: "00:00:00"
+        condition: time
+    action:
+      - service: script.kitchen_set_bright_warm_light
+
+  - alias: L-KC Kitchen Lights On If Person Present In Nighttime
+    id: "1603640029618"
+    description: ""
+    trigger:
+      - entity_id: binary_sensor.kitchen_dining_motion_sensor_motion
+        platform: state
+        from: "off"
+        to: "on"
+      - entity_id: binary_sensor.kitchen_worktop_motion_sensor_motion
+        platform: state
+        from: "off"
+        to: "on"
+    condition:
+      - after: "00:00:00"
+        before: "06:00:00"
+        condition: time
+    action:
+      - service: light.turn_on
+        entity_id:
+          - light.kitchen_ceiling_light
+          - light.kitchen_dining_light
+
+  - alias: L-KC Kitchen TV Slideshow When People Present
+    id: "1583407343079"
+    description: "automation.kitchen_tv_slideshow"
+    trigger:
+      - entity_id: binary_sensor.kitchen_dining_motion_sensor_motion
+        platform: state
+        from: "off"
+        to: "on"
+    action:
+      # Slideshow is enabled
+      - condition: state
+        entity_id: input_boolean.kitchen_slideshow_enable
+        state: "on"
+      # TV is off
+      - condition: state
+        entity_id: switch.kitchen_tv
+        state: "off"
+      # Play Slideshow on FireTV after
+      - service: media_player.play_media
+        target:
+          entity_id: media_player.kitchen_fire_tv
+        data:
+          media_content_type: routine
+          media_content_id: KitchenSlideshow
+      - delay: "00:00:02"
+      # Turn on TV and change settings
+      - alias: "Repeat turning on tv until tv is switched its input to fire tv"
+        repeat:
           sequence:
-            # set the short presence flag
-            - service: input_boolean.turn_on
-              entity_id: input_boolean.kitchen_short_presence
-            # Delay 1.5 min and test motion sensor
-            - delay: 00:01:45
-            - condition: or
-              conditions:
-                - condition: state
-                  entity_id: binary_sensor.kitchen_table_motion_sensor_motion
-                  state: "on"
-                - condition: state
-                  entity_id: binary_sensor.kitchen_worktop_motion_sensor_motion
-                  state: "on"
-            # Longer presence will turn on heating
-            - service: script.kitchen_set_heating_temp_with_state_maintaince
-            - service: switch.turn_on
-              entity_id: switch.kitchen_drinking_hot_water
-      # ELSE - Repeated short presence will turn on heating
-      default:
-        - service: script.kitchen_set_heating_temp_with_state_maintaince
-        - service: switch.turn_on
-          entity_id: switch.kitchen_drinking_hot_water
+            - service: script.turn_on
+              entity_id: script.kitchen_tv_turn_on
+            - service: script.turn_on
+              entity_id: script.kitchen_slideshow_update_tv_setting
+            - delay: "00:00:03"
+          until:
+            - condition: template
+              value_template: "{{state_attr('media_player.kitchen_tv', 'source') == 'Amazon Fire TV stick'}}"
+      # Set that again to make sure any abnormalities are flushed
+      #- delay: "00:00:03"
+      #- service: script.turn_on
+      #  entity_id: script.kitchen_slideshow_update_tv_setting
+      #- service: media_player.play_media
+      #  target:
+      #    entity_id: media_player.kitchen_fire_tv
+      #  data:
+      #    media_content_type: routine
+      #    media_content_id: KitchenSlideshow
 
+  - alias: L-KC Kitchen All Lights and Appliances Off If No Person For 10 Min
+    id: "1593556938732"
+    description: "automation.kitchen_all_lights_and_appliances_off_if_no_person"
+    trigger:
+      - minutes: /5
+        platform: time_pattern
+      - entity_id: binary_sensor.kitchen_dining_motion_sensor_motion
+        platform: state
+        from: "on"
+        to: "off"
+        for: 00:10:00
+      - entity_id: binary_sensor.kitchen_worktop_motion_sensor_motion
+        platform: state
+        from: "on"
+        to: "off"
+        for: 00:10:00
+    condition:
+      - condition: and
+        conditions:
+          - condition: state
+            entity_id: binary_sensor.kitchen_dining_motion_sensor_motion
+            state: "off"
+            for: 00:10:00
+          - condition: state
+            entity_id: binary_sensor.kitchen_worktop_motion_sensor_motion
+            state: "off"
+            for: 00:10:00
+    action:
+      - service: script.kitchen_all_lights_and_appliances_turn_off
+      # Turn Off TV if TV is on
+      - condition: state
+        entity_id: media_player.kitchen_tv
+        state: "on"
+      - alias: "Repeat turning off tv until tv is off"
+        repeat:
+          sequence:
+            - service: script.turn_on
+              entity_id: script.kitchen_tv_turn_off
+            - delay: "00:00:03"
+          until:
+            - condition: template
+              value_template: "{{states('media_player.kitchen_tv') == 'off'}}"
 
-- alias: H-KC Kitchen Heating And Drinking Hot Water Off If No Person
-  id: "1599609374841"
-  description: "automation.kitchen_heating_off_when_no_person"
-  trigger:
-    - entity_id: binary_sensor.kitchen_table_motion_sensor_motion
-      platform: state
-      from: "on"
-      to: "off"
-      for: 00:05:00
-    - minutes: /5
-      platform: time_pattern
-  condition:
-    - condition: state
-      entity_id: binary_sensor.kitchen_table_motion_sensor_motion
-      for: 00:05:00
-      state: "off"
-  action:
-    # turn off heating
-    - service: climate.set_hvac_mode
-      entity_id: climate.kitchen
-      data:
-        hvac_mode: auto
-    - service: automation.turn_on
-      entity_id: automation.kitchen_heating_on_if_people_present
-    # turn on drinking hot water
-    - service: switch.turn_off
-      entity_id: switch.kitchen_drinking_hot_water
-    # Clear flags
-    - service: input_boolean.turn_off
-      entity_id: input_boolean.kitchen_short_presence
+  - alias: L-KC Kitchen Cool White Lights On If Person Present In Worktop In Daytime
+    id: "1603640020051"
+    description: ""
+    trigger:
+      - entity_id: binary_sensor.kitchen_worktop_motion_sensor_motion
+        platform: state
+        from: "off"
+        to: "on"
+    condition:
+      - after: "06:00:00"
+        before: "00:00:00"
+        condition: time
+    action:
+      - service: script.kitchen_worktop_lights_turn_on
+      - service: switch.turn_off
+        entity_id: switch.kitchen_floor_led
+      - service: light.turn_on
+        entity_id: light.kitchen_ceiling_light
+        data:
+          kelvin: 4000
+      - service: light.turn_on
+        entity_id: light.kitchen_dining_light
+        data:
+          kelvin: 4000
 
+  - alias: L-KC Kitchen To Warm White If No Person Present In Worktop In Daytime
+    description: ""
+    trigger:
+      - entity_id: binary_sensor.kitchen_worktop_motion_sensor_motion
+        platform: state
+        from: "on"
+        to: "off"
+        for: 00:05:00
+      - minutes: /5
+        platform: time_pattern
+    condition:
+      - condition: state
+        entity_id: binary_sensor.kitchen_worktop_motion_sensor_motion
+        for: 00:05:00
+        state: "off"
+      - after: "06:00:00"
+        before: "00:00:00"
+        condition: time
+    action:
+      # Remove race conditon of the turn-off automation
+      - delay: 00:00:15
+      # And some light are still on
+      - condition: or
+        conditions:
+          - condition: state
+            entity_id:
+              - switch.kitchen_floor_led
+            state: "on"
+          - condition: state
+            entity_id:
+              - light.kitchen_dining_light
+            state: "on"
+          - condition: state
+            entity_id:
+              - light.kitchen_ceiling_light
+            state: "on"
+      # Set Kitchen to warm whites
+      - service: script.kitchen_set_bright_warm_light
+      - service: script.kitchen_worktop_lights_turn_off
 
-###############################################
-# Lighting Automation based on motion sensors
-###############################################
-- alias: L-KC Kitchen Lights On If Person Present and Dim In Daytime
-  id: "1603640029617"
-  description: "automation.kitchen_lights_on_if_person_present_and_dark_in_daytime"
-  trigger:
-    - entity_id: binary_sensor.kitchen_table_motion_sensor_motion
-      platform: state
-      from: "off"
-      to: "on"
-  condition:
-    - condition: and
-      conditions:
-        - condition: and
-          conditions:
-            - entity_id: binary_sensor.kitchen_table_motion_sensor_motion
-              condition: state
-              state: "on"
-            - entity_id: sensor.kitchen_table_motion_sensor_light
-              condition: numeric_state
-              below: "200"
-        - after: "06:00:00"
-          before: "00:00:00"
-          condition: time
-  action:
-    - service: script.kitchen_set_bright_warm_light
+  ###############################################
+  # Actions based on buttons
+  ###############################################
+  - alias: B-KC Kitchen Turn Off Worktop LED When Turning Off Kitchen Ceiling Lights
+    description: ""
+    trigger:
+      - entity_id: light.kitchen_ceiling_light
+        platform: state
+        from: "on"
+        to: "off"
+    action:
+      - entity_id: script.kitchen_worktop_lights_turn_off
+        service: script.turn_on
 
+  - alias: B-KC Kitchen Button Single Press - Toggle Extractor and Disable Turn On Automation For Some Time
+    trigger:
+      - platform: state
+        entity_id: sensor.kitchen_worktop_button
+        to: single
+    action:
+      - entity_id: switch.kitchen_extractor
+        service: switch.toggle
+    mode: restart
 
-- alias: L-KC Kitchen Lights On If Person Present In Nighttime
-  id: "1603640029618"
-  description: ""
-  trigger:
-    - entity_id: binary_sensor.kitchen_table_motion_sensor_motion
-      platform: state
-      from: "off"
-      to: "on"
-    - entity_id: binary_sensor.kitchen_worktop_motion_sensor_motion
-      platform: state
-      from: "off"
-      to: "on"
-  condition:
-    - after: "00:00:00"
-      before: "06:00:00"
-      condition: time
-  action:
-    - service: light.turn_on
-      entity_id: 
-       - light.kitchen_ceiling_light
-       - light.kitchen_dining_light
-
-
-
-- alias: L-KC Kitchen TV Slideshow When People Present
-  id: "1583407343079"
-  description: "automation.kitchen_tv_slideshow"
-  trigger:
-    - entity_id: binary_sensor.kitchen_table_motion_sensor_motion
-      platform: state
-      from: "off"
-      to: "on"    
-  action:    
-    # Slideshow is enabled
-    - condition: state
-      entity_id: input_boolean.kitchen_slideshow_enable
-      state: "on"    
-    # TV is off
-    - condition: state
-      entity_id: media_player.kitchen_tv
-      state: "off"
-    # Play Slideshow on FireTV after
-    - service: media_player.play_media
-      target:
-        entity_id: media_player.kitchen_fire_tv
-      data:
-        media_content_type: routine
-        media_content_id: KitchenSlideshow
-    - delay: "00:00:02"
-    # Turn on TV and change settings    
-    - alias: "Repeat turning on tv until tv is switched its input to fire tv"
-      repeat:
-        sequence:
-        - service: script.turn_on
-          entity_id: script.kitchen_tv_turn_on
-        - service: script.turn_on
-          entity_id: script.kitchen_slideshow_update_tv_setting
-        - delay: "00:00:03"            
-        until:
-          - condition: template
-            value_template: "{{state_attr('media_player.kitchen_tv', 'source') == 'Amazon Fire TV stick'}}"
-    # Set that again to make sure any abnormalities are flushed
-    - delay: "00:00:03"
-    - service: script.turn_on
-      entity_id: script.kitchen_slideshow_update_tv_setting
-    - service: media_player.play_media
-      target:
-        entity_id: media_player.kitchen_fire_tv
-      data:
-        media_content_type: routine
-        media_content_id: KitchenSlideshow
-
-
-
-- alias: L-KC Kitchen All Lights and Appliances Off If No Person For 20 Min
-  id: "1593556938732"
-  description: "automation.kitchen_all_lights_and_appliances_off_if_no_person"
-  trigger:
-    - minutes: /5
-      platform: time_pattern
-    - entity_id: binary_sensor.kitchen_table_motion_sensor_motion
-      platform: state
-      from: "on"
-      to: "off"
-      for: 00:20:00
-    - entity_id: binary_sensor.kitchen_worktop_motion_sensor_motion
-      platform: state
-      from: "on"
-      to: "off"
-      for: 00:20:00
-  condition:
-    - condition: and
-      conditions:
-        - condition: state
-          entity_id: binary_sensor.kitchen_table_motion_sensor_motion
-          state: "off"
-          for: 00:20:00
-        - condition: state
-          entity_id: binary_sensor.kitchen_worktop_motion_sensor_motion
-          state: "off"
-          for: 00:20:00
-  action:
-    - service: script.kitchen_all_lights_and_appliances_turn_off
-    # Turn Off TV
-    - alias: "Repeat turning off tv until tv is off"
-      repeat:
-        sequence:
-        - service: script.turn_on
-          entity_id: script.kitchen_tv_turn_off
-        - delay: "00:00:03"  
-        until:
-          - condition: template
-            value_template: "{{states('media_player.kitchen_tv') == 'off'}}"
-
-
-- alias: L-KC Kitchen Cool White Lights On If Person Present In Worktop In Daytime
-  id: "1603640020051"
-  description: ""
-  trigger:
-    - entity_id: binary_sensor.kitchen_worktop_motion_sensor_motion
-      platform: state
-      from: "off"
-      to: "on"
-  condition:
-    - after: "06:00:00"
-      before: "00:00:00"
-      condition: time
-  action:
-    - service: script.kitchen_worktop_lights_turn_on
-    - service: switch.turn_off
-      entity_id: switch.kitchen_floor_led
-    - service: light.turn_on
+  - alias: B-KC Kitchen Light - Left Press - Toggle Ceiling Light
+    trigger:
+      - platform: state
+        entity_id: sensor.kitchen_light_wall_button
+        to: button_1_single
+    action:
+      service: light.toggle
       entity_id: light.kitchen_ceiling_light
-      data:
-        kelvin: 4000
-    - service: light.turn_on
-      entity_id: light.kitchen_dining_light
-      data:
-        kelvin: 4000
 
-          
-- alias: L-KC Kitchen To Warm White If No Person Present In Worktop In Daytime
-  description: ""
-  trigger:
-    - entity_id: binary_sensor.kitchen_worktop_motion_sensor_motion
-      platform: state
-      from: "on"
-      to: "off"
-      for: 00:05:00
-    - minutes: /5
-      platform: time_pattern
-  condition:
-    - condition: state
-      entity_id: binary_sensor.kitchen_worktop_motion_sensor_motion
-      for: 00:05:00
-      state: "off"
-    - after: "06:00:00"
-      before: "00:00:00"
-      condition: time
-  action:
-    # Remove race conditon of the turn-off automation
-    - delay: 00:00:15
-    # And some light are still on
-    - condition: or
-      conditions:
-        - condition: state
-          entity_id:
-            - switch.kitchen_floor_led
-          state: "on"
-        - condition: state
-          entity_id:
-            - light.kitchen_dining_light
-          state: "on"
-        - condition: state
-          entity_id:
-            - light.kitchen_ceiling_light
-          state: "on"
-    # Set Kitchen to warm whites
-    - service: script.kitchen_set_bright_warm_light
-    - service: script.kitchen_worktop_lights_turn_off
+  - alias: B-KC Kitchen Light - Right/Double Press - Turn off all kitchen lights and appliance
+    trigger:
+      #- platform: state
+      #  entity_id: sensor.kitchen_light_wall_button
+      #  to: button_3_single
+      - platform: state
+        entity_id: sensor.kitchen_light_wall_button
+        to: button_1_double
+      - platform: state
+        entity_id: sensor.kitchen_light_wall_button
+        to: button_2_double
+      - platform: state
+        entity_id: sensor.kitchen_light_wall_button
+        to: button_3_double
+    action:
+      service: automation.trigger
+      entity_id: automation.kitchen_all_lights_and_appliances_off_if_no_person
 
+  ###############################################
+  # Extractor auotmation based on temperature
+  ###############################################
 
-###############################################
-# Actions based on buttons
-###############################################  
+  - alias: E-KC Kitchen Extractor On If Temperature Is High
+    trigger:
+      - platform: template
+        value_template: >
+          {% if states('sensor.cambridge_city_airport_temperature')|float < 6 %}
+            {% if states('sensor.mi_temperature_kitchen_hob_temperature_sensor')|float > 25 %}
+              ture
+            {% else %}
+              false
+            {% endif %}  
+          {% else %}
+            {% if states('sensor.mi_temperature_kitchen_hob_temperature_sensor')|float > ((states('sensor.cambridge_city_airport_temperature')|int - 6)/4 + 25) %}
+              ture
+            {% else %}
+              false
+            {% endif %}  
+          {% endif %}
+    action:
+      - service: switch.turn_on
+        entity_id: switch.kitchen_extractor
+      # Ignore any trigger within 2 hour as the mode is single
+      # the second action will be ignored until this action is finished.
+      - delay: 02:00:00
 
-- alias: B-KC Kitchen Turn Off Worktop LED When Turning Off Kitchen Ceiling Lights
-  description: ""
-  trigger:
-    - entity_id: light.kitchen_ceiling_light
-      platform: state
-      from: "on"
-      to: "off"
-  action:
-    - data: {}
-      entity_id: script.kitchen_worktop_lights_turn_off
-      service: script.turn_on
+  #- alias: T-KC Kitchen Light Update Colour At Night
+  #  trigger:
+  #    - at: "00:00:00"
+  #      platform: time
+  #  action:
+  #    - choose:
+  #        # If the light is already on - change colour temperature only
+  #        - conditions:
+  #            - condition: state
+  #              entity_id: light.kitchen_ceiling_light
+  #              state: "on"
+  #          sequence:
+  #            - service: script.kitchen_set_dark_warm_light
+  #      # ELSE - change colour temperature and turn it off
+  #      default:
+  #        - service: script.kitchen_set_dark_warm_light
+  #        - delay: "00:00:05"
+  #        - service: light.turn_off
+  #          entity_id:
+  #           - light.kitchen_ceiling_light
+  #           - light.kitchen_dining_light
 
-- alias: B-KC Kitchen Button Single Press - Toggle Extractor and Disable Turn On Automation For Some Time
-  trigger:
-    - platform: state
-      entity_id: sensor.kitchen_worktop_button
-      to: single
-  action:
-    - entity_id: switch.kitchen_extractor
-      service: switch.toggle
-  mode: restart
+  #################################################################
+  # Sonos Speakers Grouping/Ungrouping Based On Motion Sensor
+  #################################################################
 
-- alias: B-KC Kitchen Light - Left Press - Toggle Ceiling Light
-  trigger:
-    - platform: state
-      entity_id: sensor.kitchen_light_wall_button
-      to: button_1_single
-  action:
-    service: light.toggle
-    entity_id: light.kitchen_ceiling_light
-
-- alias: B-KC Kitchen Light - Right/Double Press - Turn off all kitchen lights
-  trigger:
-    - platform: state
-      entity_id: sensor.kitchen_light_wall_button
-      to: button_3_single
-    - platform: state
-      entity_id: sensor.kitchen_light_wall_button
-      to: button_1_double
-    - platform: state
-      entity_id: sensor.kitchen_light_wall_button
-      to: button_2_double
-    - platform: state
-      entity_id: sensor.kitchen_light_wall_button
-      to: button_3_double
-  action:
-    service: script.kitchen_all_lights_and_appliances_turn_off
-
-
-
-###############################################
-# Extractor auotmation based on temperature
-###############################################
-
-- alias: E-KC Kitchen Extractor On If Temperature Is High
-  trigger:
-    - platform: template
-      value_template:  >
-        {% if states('sensor.cambridge_city_airport_temperature')|float < 6 %}
-          {% if states('sensor.mi_temperature_kitchen_hob_temperature_sensor')|float > 25 %}
-            ture
+  - alias: S-KC Kitchen Group Its Speaker If People Present
+    trigger:
+      - platform: state
+        from: "off"
+        to: "on"
+        entity_id:
+          - binary_sensor.kitchen_dining_motion_sensor_motion
+          - binary_sensor.kitchen_worktop_motion_sensor_motion
+    condition:
+      - condition: state
+        entity_id: input_boolean.follow_music
+        state: "on"
+      # The controller player must be playing music (not paused)
+      - condition: template
+        value_template: >
+          {% if states('media_player.' + states('input_select.music_controller')) == 'playing' %}
+            true
           {% else %}
             false
-          {% endif %}  
-        {% else %}
-          {% if states('sensor.mi_temperature_kitchen_hob_temperature_sensor')|float > ((states('sensor.cambridge_city_airport_temperature')|int - 6)/4 + 25) %}
-            ture
-          {% else %}
-            false
-          {% endif %}  
-        {% endif %}
-  action:
-    - service: switch.turn_on
-      entity_id: switch.kitchen_extractor
-    # Ignore any trigger within 2 hour as the mode is single
-    # the second action will be ignored until this action is finished.
-    - delay: 02:00:00
+          {% endif %}
+    action:
+      # Add this room speaker into the group
+      - service: script.add_sonos_into_speaker_group
+        data:
+          target_player: media_player.kitchen_sonos
 
-#- alias: T-KC Kitchen Light Update Colour At Night
-#  trigger:
-#    - at: "00:00:00"
-#      platform: time
-#  action:
-#    - choose:
-#        # If the light is already on - change colour temperature only
-#        - conditions:
-#            - condition: state
-#              entity_id: light.kitchen_ceiling_light
-#              state: "on"
-#          sequence:
-#            - service: script.kitchen_set_dark_warm_light
-#      # ELSE - change colour temperature and turn it off 
-#      default:
-#        - service: script.kitchen_set_dark_warm_light
-#        - delay: "00:00:05"
-#        - service: light.turn_off
-#          entity_id: 
-#           - light.kitchen_ceiling_light
-#           - light.kitchen_dining_light         
+  - alias: S-KC Kitchen Ungroup/Pause Its Speaker If No People
+    trigger:
+      - platform: state
+        from: "on"
+        to: "off"
+        for: 00:10:00
+        entity_id:
+          - binary_sensor.kitchen_dining_motion_sensor_motion
+          - binary_sensor.kitchen_worktop_motion_sensor_motion
+      - minutes: /5
+        platform: time_pattern
+    condition:
+      - condition: state
+        entity_id:
+          - binary_sensor.kitchen_dining_motion_sensor_motion
+          - binary_sensor.kitchen_worktop_motion_sensor_motion
+        for: 00:10:00
+        state: "off"
+    action:
+      - choose:
+          # IF - music follower is on
+          - conditions:
+              - condition: state
+                entity_id: input_boolean.follow_music
+                state: "on"
+            sequence:
+              # Remove this room speaker from the group
+              - service: script.remove_sonos_from_speaker_group
+                data:
+                  target_player: media_player.kitchen_sonos
+      # Pause this room speaker in case it is the last item in the group
+      # or music follower is off
+      - service: script.pause_sonos_if_sole_speaker_group
+        data:
+          target_player: media_player.kitchen_sonos
 
-#################################################################
-# Sonos Speakers Grouping/Ungrouping Based On Motion Sensor
-#################################################################
+  #################################################################
+  # TV auto turn-off based on motion sensor
+  #################################################################
+  #- alias: TV-KC Kitchen Turn Off TV If No Person
+  #  trigger:
+  #    - platform: state
+  #      from: "on"
+  #      to: "off"
+  #      for: 00:20:00
+  #      entity_id:
+  #        - binary_sensor.kitchen_dining_motion_sensor_motion
+  #        - binary_sensor.kitchen_worktop_motion_sensor_motion
+  #    - minutes: /5
+  #      platform: time_pattern
+  #  condition:
+  #    - condition: state
+  #      entity_id:
+  #        - binary_sensor.kitchen_dining_motion_sensor_motion
+  #        - binary_sensor.kitchen_worktop_motion_sensor_motion
+  #      for: 00:20:00
+  #      state: "off"
+  #  action:
+  #    # Switch Off TV
+  #    - service: switch.turn_off
+  #      entity_id: switch.kitchen_tv
 
-- alias: S-KC Kitchen Group Its Speaker If People Present
-  trigger:
-    - platform: state
-      from: "off"
-      to: "on"
-      entity_id:
-        - binary_sensor.kitchen_table_motion_sensor_motion
-        - binary_sensor.kitchen_worktop_motion_sensor_motion
-  condition:
-    - condition: state
-      entity_id: input_boolean.follow_music
-      state: "on"
-    # The controller player must be playing music (not paused)
-    - condition: template
-      value_template: >
-        {% if states('media_player.' + states('input_select.music_controller')) == 'playing' %}
-          true
-        {% else %}
-          false
-        {% endif %}
-  action:
-    # Add this room speaker into the group
-    - service: script.add_sonos_into_speaker_group
-      data:
-        target_player: media_player.kitchen_sonos
+  ###############################################
+  # Vacuum based on time
+  ###############################################
 
-- alias: S-KC Kitchen Ungroup/Pause Its Speaker If No People
-  trigger:
-    - platform: state
-      from: "on"
-      to: "off"
-      for: 00:10:00
-      entity_id:
-        - binary_sensor.kitchen_table_motion_sensor_motion
-        - binary_sensor.kitchen_worktop_motion_sensor_motion
-    - minutes: /5
-      platform: time_pattern
-  condition:
-    - condition: state
-      entity_id:
-        - binary_sensor.kitchen_table_motion_sensor_motion
-        - binary_sensor.kitchen_worktop_motion_sensor_motion
-      for: 00:10:00
-      state: "off"
-  action:
-    - choose:
-        # IF - music follower is on
-        - conditions:
-            - condition: state
-              entity_id: input_boolean.follow_music
-              state: "on"
-          sequence:
-            # Remove this room speaker from the group
-            - service: script.remove_sonos_from_speaker_group
-              data:
-                target_player: media_player.kitchen_sonos
-    # Pause this room speaker in case it is the last item in the group
-    # or music follower is off
-    - service: script.pause_sonos_if_sole_speaker_group
-      data:
-        target_player: media_player.kitchen_sonos
-
-
-
-#################################################################
-# TV auto turn-off based on motion sensor
-#################################################################
-#- alias: TV-KC Kitchen Turn Off TV If No Person
-#  trigger:
-#    - platform: state
-#      from: "on"
-#      to: "off"
-#      for: 00:20:00
-#      entity_id:
-#        - binary_sensor.kitchen_table_motion_sensor_motion
-#        - binary_sensor.kitchen_worktop_motion_sensor_motion
-#    - minutes: /5
-#      platform: time_pattern
-#  condition:
-#    - condition: state
-#      entity_id:
-#        - binary_sensor.kitchen_table_motion_sensor_motion
-#        - binary_sensor.kitchen_worktop_motion_sensor_motion
-#      for: 00:20:00
-#      state: "off"
-#  action:
-#    # Switch Off TV
-#    - service: switch.turn_off
-#      entity_id: switch.kitchen_tv
-
-###############################################
-# Vacuum based on time
-###############################################
-
-- alias: T-KC Kitchen Vacuum Starts At 4am
-  description: ""
-  trigger:
-    - at: 04:00:00
-      platform: time
-  condition:
-  action:
-    - service: vacuum.start
-      entity_id: vacuum.xiaomi_vacuum_cleaner
-
-
+  - alias: T-KC Kitchen Vacuum Starts At 4am
+    description: ""
+    trigger:
+      - at: 04:00:00
+        platform: time
+    condition:
+    action:
+      - service: vacuum.start
+        entity_id: vacuum.xiaomi_vacuum_cleaner

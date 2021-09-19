@@ -3,17 +3,6 @@
 # Custom Entities
 #
 ###########################################
-# System Sensors
-sensor system:
-  - platform: systemmonitor
-    resources:
-      - type: disk_use
-        arg: /
-      - type: memory_use
-      - type: load_1m
-      - type: processor_use
-
-
 sensor time:
   # Time
   - platform: time_date
@@ -23,7 +12,6 @@ sensor time:
 
 # Custom Variables
 input_boolean:
-
   log_enable:
     name: "Log Enable"
 
@@ -39,33 +27,31 @@ input_datetime:
   log_disable_time:
     name: "Log Disable Time"
     has_date: true
-    has_time: true    
+    has_time: true
 
   early_daylight_start:
     name: "Early Daylight Start"
     has_date: false
-    has_time: true    
+    has_time: true
     initial: "05:59:50"
 
   late_daylight_start:
     name: "Late Daylight Start"
     has_date: false
-    has_time: true    
+    has_time: true
     initial: "09:59:50"
 
   nighttime_start:
     name: "Nighttime Start"
     has_date: false
-    has_time: true    
+    has_time: true
     initial: "17:59:50"
 
   midnight_start:
     name: "Midnight Start"
     has_date: false
-    has_time: true    
+    has_time: true
     initial: "22:59:50"
-
-
 
 # Lights Temperature Changed for Flux
 #switch flux:
@@ -87,41 +73,37 @@ input_datetime:
 #    transition: 30
 #    interval: 60
 
-
 ## Avoid race condition with /5 time pattern trigger
 #input_datetime:
 #  toilet_daytime_early_start:
 #    name: Toilet Daytime Early Start
 #    has_date: false
-#    has_time: true 
-#    initial: "06:01:00"   
+#    has_time: true
+#    initial: "06:01:00"
 #
 #  toilet_daytime_late_start:
 #    name: Toilet Daytime Late Start
 #    has_date: false
-#    has_time: true 
-#    initial: "10:01:00"   
+#    has_time: true
+#    initial: "10:01:00"
 #
 #  toilet_nighttime_start:
 #    name: Toilet Nighttime Start
 #    has_date: false
-#    has_time: true 
-#    initial: "18:01:00"   
+#    has_time: true
+#    initial: "18:01:00"
 #
 #  toilet_midnight_start:
 #    name: Toilet Midnight Start
 #    has_date: false
-#    has_time: true 
-#    initial: "00:01:00"   
-
-
-
+#    has_time: true
+#    initial: "00:01:00"
 
 ###############################################
 #
 # Scripts
 #
-###############################################  
+###############################################
 script:
   hassio_restart:
     alias: Restart Home Assistant
@@ -131,7 +113,7 @@ script:
   do_nothing:
     alias: Do nothing
     sequence:
-      
+
 ###############################################
 #
 # Automations:
@@ -141,328 +123,304 @@ script:
 #
 ###############################################
 automation:
-- alias: Do nothing
-  id: '1596919926917'
-  trigger:
-  action:
+  - alias: Do nothing
+    id: "1596919926917"
+    trigger:
+    action:
 
-########################################################################################################################
-# Non-bedroom light colour design
-# 1. T- (10am-6pm) Starting from daylight, uses 4000k white, full brightness
-# 2. T- (6pm-11pm)  Starting from nighttime, uses 3000k white, full brightness
-# 3. B- (6pm-11pm)  During nighttime, Switch to 4000k white (with floor led off if possible) if mirror light is on 
-# 4. B- (6pm-11pm)  During nighttime, Switch to 3000k white (with floor led on  if possible) if mirror light is off
-# 5. T- (11pm-10am) Starting from midnight, uses 3000k white, 1% brightness
-########################################################################################################################
-- alias: T- Set light starting from early daylight, uses 4000k white, full brightness
-  trigger:
-    - at: input_datetime.early_daylight_start
-      platform: time
-  action:
-    - service: light.turn_on
-      entity_id: 
-       - light.kitchen_ceiling_light
-       - light.kitchen_dining_light
-       - light.en_suite_toilet_ceiling_light
-       - light.guest_toilet_ceiling_light
-       - light.ground_toilet_ceiling_light
-       - light.guest_room_lamps
-       - light.study_lamps
-       - light.ground_corridor_ble_light
-       - light.first_corridor_ble_light         
-       - light.master_room_entrance_led_light
-       - light.living_room_landing_light
-      data:
-        brightness: 255
-        kelvin: 4000
-    # Update bedroom lights update status so that it will change setting next time when lights on
-    - service: input_boolean.turn_on
-      entity_id: 
-        - input_boolean.en_suite_room_outstanding_setting_update
-        - input_boolean.tais_desk_outstanding_setting_update
-        - input_boolean.kes_desk_outstanding_setting_update
-        - input_boolean.master_room_ceiling_light_outstanding_setting_update
-        - input_boolean.master_room_lamp_outstanding_setting_update
-        
-    
-- alias: T- Set light starting from late daylight, uses 4000k white, full brightness
-  trigger:
-    - at: input_datetime.late_daylight_start
-      platform: time
-  action:
-    - service: light.turn_on
-      entity_id: 
-       - light.master_toilet_ceiling_light
-       - light.master_toilet_dressing_room_light
-      data:
-        brightness: 255
-        kelvin: 4000
+  ########################################################################################################################
+  # Non-bedroom light colour design
+  # 1. T- (10am-6pm) Starting from daylight, uses 4000k white, full brightness
+  # 2. T- (6pm-11pm)  Starting from nighttime, uses 3000k white, full brightness
+  # 3. B- (6pm-11pm)  During nighttime, Switch to 4000k white (with floor led off if possible) if mirror light is on
+  # 4. B- (6pm-11pm)  During nighttime, Switch to 3000k white (with floor led on  if possible) if mirror light is off
+  # 5. T- (11pm-10am) Starting from midnight, uses 3000k white, 1% brightness
+  ########################################################################################################################
+  - alias: T- Set light starting from early daylight, uses 4000k white, full brightness
+    id: "1512912317895"
+    trigger:
+      - at: input_datetime.early_daylight_start
+        platform: time
+    action:
+      - service: light.turn_on
+        entity_id:
+          - light.kitchen_ceiling_light
+          - light.kitchen_dining_light
+          - light.en_suite_toilet_ceiling_light
+          - light.guest_toilet_ceiling_light
+          - light.ground_toilet_ceiling_light
+          - light.guest_room_lamps
+          - light.study_lamps
+          - light.ground_corridor_ble_light
+          - light.first_corridor_ble_light
+          - light.master_room_entrance_led_light
+          - light.living_room_landing_light
+        data:
+          brightness: 255
+          kelvin: 4000
+      # Update bedroom lights update status so that it will change setting next time when lights on
+      - service: input_boolean.turn_on
+        entity_id:
+          - input_boolean.en_suite_room_outstanding_setting_update
+          - input_boolean.tais_desk_outstanding_setting_update
+          - input_boolean.kes_desk_outstanding_setting_update
+          - input_boolean.master_room_ceiling_light_outstanding_setting_update
+          - input_boolean.master_room_lamp_outstanding_setting_update
 
-  
-- alias: T- Set light starting from nighttime, uses 3000k white, full brightness
-  trigger:
-    - at: input_datetime.nighttime_start
-      platform: time
-  action:
-    - service: light.turn_on
-      entity_id: 
-      - light.kitchen_ceiling_light
-      - light.kitchen_dining_light
-      - light.master_toilet_ceiling_light
-      - light.en_suite_toilet_ceiling_light
-      - light.guest_toilet_ceiling_light
-      - light.ground_toilet_ceiling_light
-      - light.master_toilet_dressing_room_light
-      - light.guest_room_lamps
-      - light.study_lamps
-      - light.ground_corridor_ble_light
-      - light.first_corridor_ble_light         
-      - light.master_room_entrance_led_light
-      - light.living_room_landing_light
-      data:
-        brightness: 255
-        kelvin: 3000
-    - service: input_boolean.turn_on
-      entity_id: 
-        - input_boolean.en_suite_room_outstanding_setting_update
-        - input_boolean.tais_desk_outstanding_setting_update
-        - input_boolean.kes_desk_outstanding_setting_update
-        - input_boolean.master_room_ceiling_light_outstanding_setting_update
-        - input_boolean.master_room_lamp_outstanding_setting_update
-           
+  - alias: T- Set light starting from late daylight, uses 4000k white, full brightness
+    trigger:
+      - at: input_datetime.late_daylight_start
+        platform: time
+    action:
+      - service: light.turn_on
+        entity_id:
+          - light.master_toilet_ceiling_light
+          - light.master_toilet_dressing_room_light
+        data:
+          brightness: 255
+          kelvin: 4000
 
-- alias: T- Set light starting from midnight, uses 3000k white, 1% brightness
-  trigger:
-    - at: input_datetime.midnight_start
-      platform: time
-  action:
-    - service: light.turn_on
-      entity_id: 
-       - light.master_toilet_ceiling_light
-       - light.en_suite_toilet_ceiling_light
-       - light.guest_toilet_ceiling_light
-       - light.master_toilet_dressing_room_light
-       - light.first_corridor_ble_light         
-      data:
-        brightness: 10
-        kelvin: 3000
-    - service: light.turn_on
-      entity_id: 
-       - light.kitchen_ceiling_light
-       - light.kitchen_dining_light
-       - light.ground_toilet_ceiling_light
-       - light.master_room_entrance_led_light
-       - light.living_room_landing_light
-      data:
-        brightness: 25
-        kelvin: 3000
-    - service: light.turn_on
-      entity_id: 
-      - light.ground_corridor_ble_light
-      data:
-        brightness: 76
-        kelvin: 3000
-    - service: input_boolean.turn_on
-      entity_id: 
-        - input_boolean.en_suite_room_outstanding_setting_update
-        - input_boolean.tais_desk_outstanding_setting_update
-        - input_boolean.kes_desk_outstanding_setting_update
-        - input_boolean.master_room_ceiling_light_outstanding_setting_update
-        - input_boolean.master_room_lamp_outstanding_setting_update
-       
-    
-# - Restart HA on time
-- alias: 'Restart HA at 4am and 5am'
-  id: '1602722452776'
-  description: ''
-  trigger:
-  - at: 04:00:00
-    platform: time
-  - at: 05:00:00
-    platform: time
-  action:
-  - service: homeassistant.restart
+  - alias: T- Set light starting from nighttime, uses 3000k white, full brightness
+    trigger:
+      - at: input_datetime.nighttime_start
+        platform: time
+    action:
+      - service: light.turn_on
+        entity_id:
+          - light.kitchen_ceiling_light
+          - light.kitchen_dining_light
+          - light.master_toilet_ceiling_light
+          - light.en_suite_toilet_ceiling_light
+          - light.guest_toilet_ceiling_light
+          - light.ground_toilet_ceiling_light
+          - light.master_toilet_dressing_room_light
+          - light.guest_room_lamps
+          - light.study_lamps
+          - light.ground_corridor_ble_light
+          - light.first_corridor_ble_light
+          - light.master_room_entrance_led_light
+          - light.living_room_landing_light
+        data:
+          brightness: 255
+          kelvin: 3000
+      - service: input_boolean.turn_on
+        entity_id:
+          - input_boolean.en_suite_room_outstanding_setting_update
+          - input_boolean.tais_desk_outstanding_setting_update
+          - input_boolean.kes_desk_outstanding_setting_update
+          - input_boolean.master_room_ceiling_light_outstanding_setting_update
+          - input_boolean.master_room_lamp_outstanding_setting_update
 
+  - alias: T- Set light starting from midnight, uses 3000k white, 1% brightness
+    trigger:
+      - at: input_datetime.midnight_start
+        platform: time
+    action:
+      - service: light.turn_on
+        entity_id:
+          - light.master_toilet_ceiling_light
+          - light.en_suite_toilet_ceiling_light
+          - light.guest_toilet_ceiling_light
+          - light.master_toilet_dressing_room_light
+          - light.first_corridor_ble_light
+        data:
+          brightness: 10
+          kelvin: 3000
+      - service: light.turn_on
+        entity_id:
+          - light.kitchen_ceiling_light
+          - light.kitchen_dining_light
+          - light.ground_toilet_ceiling_light
+          - light.master_room_entrance_led_light
+          - light.living_room_landing_light
+        data:
+          brightness: 25
+          kelvin: 3000
+      - service: light.turn_on
+        entity_id:
+          - light.ground_corridor_ble_light
+        data:
+          brightness: 76
+          kelvin: 3000
+      - service: input_boolean.turn_on
+        entity_id:
+          - input_boolean.en_suite_room_outstanding_setting_update
+          - input_boolean.tais_desk_outstanding_setting_update
+          - input_boolean.kes_desk_outstanding_setting_update
+          - input_boolean.master_room_ceiling_light_outstanding_setting_update
+          - input_boolean.master_room_lamp_outstanding_setting_update
 
-# - Starts Log Enable and set timeout
-- alias: Enable/Disable Logging By The State of The Log Enable and Set Timeout for 24 Hours
-  id: '1607918439986'
-  trigger:
-    - platform: state
-      entity_id: input_boolean.log_enable
-      to:
-        - "on"
-        - "off"
-  action:
-    - service: >
-        {% if states('input_boolean.log_enable') == 'on' %}
-          recorder.enable
-        {% else %}
-          recorder.disable
-        {% endif %}           
-        
-    - condition: state
-      entity_id: input_boolean.log_enable
-      state: "on"
-    - service: input_datetime.set_datetime
-      entity_id: input_datetime.log_disable_time
-      # Make the timeout to next day
-      data_template:
-        datetime: "{{ (now().timestamp() + 60*60*24)| timestamp_custom('%Y-%m-%d %H:%M:%S', true) }}"      
+  # All living room Router/AP/Hubs (tado/hue/LR gateway 3/Xiaomi AP)
+  # will be restart at 4.30am by a timer plug.
+  # HA instance and other AP/hubs (AQ/MR gateway/TPlink AP) will be
+  # restarted by the instance below.
+  - alias: "Restart HA at midnight"
+    id: "1602722452776"
+    description: ""
+    trigger:
+      - at: 04:20:00
+        platform: time
+      - at: 04:40:00
+        platform: time
+      - at: 05:00:00
+        platform: time
+    action:
+      # Restart hubs in other rooms
+      - delay: "00:01:00"
+      - service: homeassistant.restart
 
-
-- alias: Turn Off Logging By The Timeout
-  id: '1607918439987'
-  trigger:
-    - platform: time_pattern
-      minutes: "/5"
-  action:
-  # Time condition does not work with input_datetime so have to use template to work aorund
-  - condition: template
-    value_template: "{{now().timestamp() > state_attr('input_datetime.log_disable_time', 'timestamp')}}"
-  - service:   input_boolean.turn_off
-    entity_id: input_boolean.log_enable
-  - service:   recorder.disable
-
-
-
-# Air cond automation
-- alias: H-MR Master Room Thermostat State Are Mutually Exclusive From Aircon
-  id: '1596916933135'
-  description: "automation.master_room_thermostat_state_are_mutually_exclusive_from_aircon"
-  trigger:
-    - platform: state
-      entity_id: climate.master_room_thermostat
-      to:
-        - "off"
-        - "heat"
-    - platform: state
-      entity_id: climate.en_suite_room_thermostat
-      to:
-        - "off"
-        - "heat"        
-  action:
-    - service:   automation.turn_off
-      entity_id: automation.master_room_aircon_state_are_mutually_exclusive_from_thermostat
-    - entity_id: 
-       - climate.master_room_air_conditioner
-       - climate.en_suite_room_air_conditioner
-      service: climate.set_hvac_mode
-      data:
-        hvac_mode: >
-          {% if states('climate.master_room_thermostat') == 'heat' %}
-            off
-          {% elif states('climate.en_suite_room_thermostat') == 'heat' %}
-            off
+  # - Starts Log Enable and set timeout
+  - alias: Enable/Disable Logging By The State of The Log Enable and Set Timeout for 24 Hours
+    id: "1607918439986"
+    trigger:
+      - platform: state
+        entity_id: input_boolean.log_enable
+        to:
+          - "on"
+          - "off"
+    action:
+      - service: >
+          {% if states('input_boolean.log_enable') == 'on' %}
+            recorder.enable
           {% else %}
-            cool
-          {% endif %}            
-    - service:   automation.turn_on
-      entity_id: automation.master_room_aircon_state_are_mutually_exclusive_from_thermostat
+            recorder.disable
+          {% endif %}
 
+      - condition: state
+        entity_id: input_boolean.log_enable
+        state: "on"
+      - service: input_datetime.set_datetime
+        entity_id: input_datetime.log_disable_time
+        # Make the timeout to 2 days later
+        data_template:
+          datetime: "{{ (now().timestamp() + 60*60*48)| timestamp_custom('%Y-%m-%d %H:%M:%S', true) }}"
 
-- alias: H-MR Master Room Aircon State Are Mutually Exclusive From Thermostat
-  id: '1596916933136'
-  description: "automation.master_room_aircon_state_are_mutually_exclusive_from_thermostat"
-  trigger:
-    - platform: state
-      entity_id: climate.master_room_air_conditioner
-      to:
-        - "off"
-        - "cool"
-    - platform: state
-      entity_id: climate.en_suite_room_air_conditioner
-      to:
-        - "off"
-        - "cool"        
-  action:
-    - service:   automation.turn_on
-      entity_id: automation.master_room_thermostat_state_are_mutually_exclusive_from_aircon
-    - entity_id: 
-       - climate.master_room_thermostat
-       - climate.en_suite_room_thermostat
-      service: climate.set_hvac_mode
-      data:
-        hvac_mode: >
-          {% if states('climate.master_room_air_conditioner') == 'cool' %}
-            off
-          {% elif states('climate.en_suite_room_air_conditioner') == 'cool' %}
-            off
-          {% else %}
-            heat
-          {% endif %}            
-    - service:   automation.turn_on
-      entity_id: automation.master_room_thermostat_state_are_mutually_exclusive_from_aircon
+  - alias: Turn Off Logging By The Timeout
+    id: "1607918439987"
+    trigger:
+      - platform: time_pattern
+        minutes: "/5"
+    action:
+      # Time condition does not work with input_datetime so have to use template to work aorund
+      - condition: template
+        value_template: "{{now().timestamp() > state_attr('input_datetime.log_disable_time', 'timestamp')}}"
+      - service: input_boolean.turn_off
+        entity_id: input_boolean.log_enable
+      - service: recorder.disable
 
-####################################################
-#
-# Restart HA if certain entities becomes unavailable
-#
-####################################################
-- alias: T- Restart HA When Some Devices Are Offline
-  id: "1599910317895"
-  description: ""
-  trigger:
-    - minutes: /10
-      platform: time_pattern
-  action:
-    - choose:
-        # Check LR Zigbee
-        - conditions:
-            - condition: state
-              entity_id: binary_sensor.ground_toilet_motion_sensor_motion
-              state: "unavailable"
-          sequence:
-            - service: notify.notify
-              data:
-                title: "Restarting HA in 1 Min"
-                message: "LR Ground Toilet Sensor Is Offline. Restarting HA"
-            - delay: "00:01:00"
-            - service: homeassistant.restart
-        # Check MR Zigbee
-        - conditions:
-            - condition: state
-              entity_id: binary_sensor.master_toilet_basin_motion_sensor_motion
-              state: "unavailable"
-          sequence:
-            - service: notify.notify
-              data:
-                title: "Restarting HA in 1 Min"
-                message: "MR Master Toilet Sensor Is Offline. Restarting HA"
-            - delay: "00:01:00"
-            - service: homeassistant.restart
-        # Check BLE devices
-        - conditions:
-            - condition: state
-              entity_id: light.master_room_entrance_led_light
-              state: "unavailable"
-          sequence:
-            - service: notify.notify
-              data:
-                title: "Restarting HA in 1 Min"
-                message: "BLE Master Room Entrance Light Is Offline. Restarting HA"
-            - delay: "00:01:00"
-            - service: homeassistant.restart
-                
-                
-                
-                
-                
-                
-                
-                
-                
-                
-                
-                
-                
-                
-                
-                
-                
-                
-                
-                
-                
-                
+  # Air cond automation
+  - alias: H-MR Master Room Thermostat State Are Mutually Exclusive From Aircon
+    id: "1596916933135"
+    description: "automation.master_room_thermostat_state_are_mutually_exclusive_from_aircon"
+    trigger:
+      - platform: state
+        entity_id: climate.master_room
+        to:
+          - "off"
+          - "heat"
+      - platform: state
+        entity_id: climate.en_suite_room_thermostat
+        to:
+          - "off"
+          - "heat"
+    action:
+      - service: automation.turn_off
+        entity_id: automation.master_room_aircon_state_are_mutually_exclusive_from_thermostat
+      - entity_id:
+          - climate.master_room_air_conditioner
+          - climate.en_suite_room_air_conditioner
+        service: climate.set_hvac_mode
+        data:
+          hvac_mode: >
+            {% if states('climate.master_room') == 'heat' %}
+              off
+            {% elif states('climate.en_suite_room_thermostat') == 'heat' %}
+              off
+            {% else %}
+              cool
+            {% endif %}
+      - service: automation.turn_on
+        entity_id: automation.master_room_aircon_state_are_mutually_exclusive_from_thermostat
 
+  #  - alias: H-MR Master Room Aircon State Are Mutually Exclusive From Thermostat
+  #    id: "1596916933136"
+  #    description: "automation.master_room_aircon_state_are_mutually_exclusive_from_thermostat"
+  #    trigger:
+  #      - platform: state
+  #        entity_id: climate.master_room_air_conditioner
+  #        to:
+  #          - "off"
+  #          - "cool"
+  #      - platform: state
+  #        entity_id: climate.en_suite_room_air_conditioner
+  #        to:
+  #          - "off"
+  #          - "cool"
+  #    action:
+  #      - service: automation.turn_on
+  #        entity_id: automation.master_room_thermostat_state_are_mutually_exclusive_from_aircon
+  #      - entity_id:
+  #          - climate.master_room
+  #          - climate.en_suite_room_thermostat
+  #        service: climate.set_hvac_mode
+  #        data:
+  #          hvac_mode: >
+  #            {% if states('climate.master_room_air_conditioner') == 'cool' %}
+  #              off
+  #            {% elif states('climate.en_suite_room_air_conditioner') == 'cool' %}
+  #              off
+  #            {% else %}
+  #              heat
+  #            {% endif %}
+  #      - service: automation.turn_on
+  #        entity_id: automation.master_room_thermostat_state_are_mutually_exclusive_from_aircon
+
+  ####################################################
+  #
+  # Restart HA if certain entities becomes unavailable
+  #
+  ####################################################
+  - alias: T- Restart HA When Some Devices Are Offline
+    id: "1599910317895"
+    description: ""
+    trigger:
+      - minutes: /10
+        platform: time_pattern
+    action:
+      - choose:
+          # Check LR Zigbee
+          - conditions:
+              - condition: state
+                entity_id: binary_sensor.ground_toilet_motion_sensor_motion
+                state: "unavailable"
+            sequence:
+              - service: notify.notify
+                data:
+                  title: "Restarting HA in 1 Min"
+                  message: "LR Ground Toilet Sensor Is Offline. Restarting HA"
+              - delay: "00:01:00"
+              - service: homeassistant.restart
+          # Check MR Zigbee
+          - conditions:
+              - condition: state
+                entity_id: binary_sensor.master_toilet_basin_motion_sensor_motion
+                state: "unavailable"
+            sequence:
+              - service: notify.notify
+                data:
+                  title: "Restarting HA in 1 Min"
+                  message: "MR Master Toilet Sensor Is Offline. Restarting HA"
+              - delay: "00:01:00"
+              - service: homeassistant.restart
+          # Check BLE devices
+          - conditions:
+              - condition: state
+                entity_id: light.master_room_entrance_led_light
+                state: "unavailable"
+            sequence:
+              - service: notify.notify
+                data:
+                  title: "Restarting HA in 1 Min"
+                  message: "BLE Master Room Entrance Light Is Offline. Restarting HA"
+              - delay: "00:01:00"
+              - service: homeassistant.restart

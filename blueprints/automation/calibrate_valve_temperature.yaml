@@ -1,0 +1,76 @@
+blueprint:
+  name: Calibrate Valve Temperature
+  description: Use an external temperature sensor to calibrate tado valve temperature
+  domain: automation
+  input:
+    tado_valve_entity:
+      name: Tado Valve Entity
+
+    external_temperature_sensor_entity:
+      name: External Temperature Sensor Entity
+
+    log_input_text_entity:
+      name: Log Input Text Entity
+
+    # current_offset_entity:
+    #   name: Current Offset Entity
+
+variables:
+  tado_valve_entity: !input tado_valve_entity
+  external_temperature_sensor_entity: !input external_temperature_sensor_entity
+  actual_temp: "{{ states(external_temperature_sensor_entity) | float}}"
+  tado_temp: "{{ state_attr(tado_valve_entity, 'current_temperature') | float }}"
+  cur_offset: "{{ state_attr(tado_valve_entity, 'offset_celsius') | float}}"
+  # room_temp  = new_tado_temp = cur_tado_temp_raw + new_offset
+  cur_tado_temp_raw: "{{ (tado_temp - cur_offset) | float | round(1) }}"
+  # new_offset = room_temp - cur_tado_temp_raw
+  offset_calibrated: "{{ (actual_temp - cur_tado_temp_raw) | float | round(1) }}"
+  temp_error: "{{ (actual_temp - tado_temp) | abs | round(1) }}"
+
+# Only Xiaomi temperature sensor as it updates very slowly, every 10 min
+# to reuse the frequency of calling this automation
+trigger:
+  - platform: state
+    entity_id: !input tado_valve_entity
+    attribute: current_temperature
+  - platform: state
+    entity_id: !input external_temperature_sensor_entity
+
+mode: single
+# Slient the repetivie automation
+max_exceeded: silent
+
+action:
+  # Log data for this valve
+  - service: input_text.set_value
+    target:
+      entity_id: !input log_input_text_entity
+    data:
+      value: >
+        actual_temp {{ actual_temp }}
+        tado_temp_raw {{ cur_tado_temp_raw }}
+        tado_temp {{ tado_temp }}
+        cur_oft {{ cur_offset }}
+        oft_cal {{ offset_calibrated }}
+        temp_err {{ temp_error }}
+
+  # Every time calling "tado.set_climate_temperature_offset", the tado valve
+  # will have to re-calibrate and waste energy in the battery and makes noise
+  # Only set a new offset when current offset has a large error compare to the new one
+  - condition: template
+    value_template: " {{ temp_error > 0.4 }}"
+  # Make sure only calibrate if temperature data is read correctly
+  - condition: template
+    value_template: "{{ actual_temp != 0 }}"
+
+  # Work out what the new offset should be (tado temp less the room temp but add
+  # the current offset value) and turn that to a negative value for setting as the new offset
+  - service: tado.set_climate_temperature_offset
+    target:
+      entity_id: !input tado_valve_entity
+    data:
+      offset: "{{ offset_calibrated }}"
+
+  # As tado is a cloud based integeration, it will take about 4-7 minutes
+  # for new offset to be synced up back to HA.
+  - delay: "00:09:00"

@@ -1,0 +1,98 @@
+blueprint:
+  name: Room Delayed Heating
+  description: Turn on heating once people present in the room for a while
+  domain: automation
+  input:
+  
+    binary_sensor_motion_sensor_list:
+      name: Motion sensor list
+
+    input_boolean_short_presence:
+      name: Current room short presence variable
+    
+    automation_this_automation_entity:
+      name: Current automation
+          
+    automation_to_be_triggered:
+      name: Automation called for heating scheduler
+      default: automation.do_nothing
+
+    script_to_be_run:
+      name: Script called for heating scheduler
+      default: script.do_nothing
+
+trigger:
+  - entity_id: 
+      !input binary_sensor_motion_sensor_list
+    platform: state
+    from: "off"
+    to: "on"
+
+mode: queued
+action:    
+    # Resolve race on multiple triggers - only execute instances that
+    # turned on heating and turned off the automation.
+    - condition: state
+      entity_id: !input automation_this_automation_entity
+      state: "on"
+    # Turn on heating on repeated short presence or longer presence
+    - choose:
+        # IF - first time entering, set the flag
+        #      Longer presence will turn on heating
+        - conditions:
+            # Wait for 1.5 min if it is the first time of presence
+            - condition: state
+              entity_id: !input input_boolean_short_presence
+              state: "off"
+          sequence:
+            # set the short presence flag
+            - service: input_boolean.turn_on
+              entity_id: !input input_boolean_short_presence
+            # Delay 2 min 
+            - delay: 00:02:00
+            # Test motion sensor - not all motion sensors are off
+            - condition: not
+              conditions:
+                - condition: state
+                  entity_id: 
+                    !input binary_sensor_motion_sensor_list
+                  state: "off"       
+            # Longer presence will turn on heating
+            #------------------------------------------------
+            # Set Heating Temperature With State Maintaince
+            #------------------------------------------------
+            # Clear flags
+            - service: input_boolean.turn_off
+              entity_id: !input input_boolean_short_presence
+            # Turn on Heating
+            - service: automation.trigger
+              entity_id: !input automation_to_be_triggered
+            - service: automation.turn_on
+              entity_id: !input automation_to_be_triggered
+            # Turn on entity that needs to be on along with automation heating scheduler
+            - service: script.turn_on
+              entity_id: !input script_to_be_run
+            - service: automation.turn_off
+              entity_id: !input automation_this_automation_entity
+              data:
+                stop_actions: false           
+      # ELSE - Repeated short presence will turn on heating
+      default:
+      #------------------------------------------------
+      # Set Heating Temperature With State Maintaince
+      #------------------------------------------------
+      # Clear flags
+      - service: input_boolean.turn_off
+        entity_id: !input input_boolean_short_presence
+      # Turn on Heating
+      - service: automation.trigger
+        entity_id: !input automation_to_be_triggered
+      - service: automation.turn_on
+        entity_id: !input automation_to_be_triggered
+      # Turn on entity that needs to be on along with automation heating scheduler
+      - service: script.turn_on
+        entity_id: !input script_to_be_run
+      - service: automation.turn_off
+        entity_id: !input automation_this_automation_entity
+        data:
+          stop_actions: false            

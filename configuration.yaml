@@ -1,7 +1,6 @@
 # Configure a default setup of Home Assistant (frontend, api, etc)
 default_config:
 
-
 # TODO:
 # !!!!! En-suite Toilet Door Has the wrong device !!!
 # * bedside lights colour control by button
@@ -14,24 +13,48 @@ default_config:
 # * Garden bike shed sensor can be easily triggered by grass movement. Move it to a proper place to avoid that. Currently disabled this sensor.
 
 homeassistant:
-  customize:     !include           customize.yaml
-  packages:      !include_dir_named _packages/
-  internal_url:  http://192.168.1.13:8123/
-  external_url:  https://relliky-ha.duckdns.org
-  
+  customize: !include customize.yaml
+  packages: !include_dir_named _packages/
+  internal_url: http://homeassistant.local:8123
+  # Rpi address
+  # external_url:  https://relliky.duckdns.org:48123
+  # VM address
+  external_url: https://relliky.duckdns.org:38123
+
+# This sensor capture DNS public IP
+sensor:
+  - platform: dnsip
+
+# System Sensors
+sensor system:
+  - platform: systemmonitor
+    resources:
+      - type: disk_use
+        arg: /
+      - type: memory_use
+      - type: load_1m
+      - type: processor_use
+
+# Remove Acccess via HTTPS
 http:
   ssl_certificate: /ssl/fullchain.pem
   ssl_key: /ssl/privkey.pem
   ip_ban_enabled: true
-  login_attempts_threshold: 30  
-  
-automation gui: !include automations.yaml
-script gui:     !include scripts.yaml
+  login_attempts_threshold: 10
 
+automation gui: !include automations.yaml
+script gui: !include scripts.yaml
+
+# Main DDNS - DuckDNS
+# Alt. DDNS - No-ip (needs to renew every 30 days)
+no_ip:
+  domain: relliky.ddns.net
+  username: !secret no_ip_account
+  password: !secret no_ip_password
 
 # Database logging config
 recorder:
-  purge_keep_days: 1
+  purge_keep_days: 2
   auto_purge: true
   commit_interval: 15 # updates log every 15s
   #db_url: mysql://hass_user:hass_pass@core-mariadb/homeassistant?charset=utf8mb4
@@ -46,36 +69,28 @@ recorder:
 #             or is_state('binary_sensor.kes_desk_motion_sensor_motion', 'on')
 #             or is_state('binary_sensor.tais_desk_motion_sensor_motion ', 'on')
 #          }}
-           
-# HA_On_VMs does not have BLE (bluetooth v4)
-  # Xiaomi BLE Round Fast Update Temperature Sensor
-#sensor xiaomi_ble_fast:      
+
+
+# HA_On_VMs needs to enable USB->Bluetooh
+# Xiaomi BLE Round Fast Update Temperature Sensor
+#sensor xiaomi_ble_fast:
 #  - platform: mitemp_bt
 #    period: 10 # seconds for refresh interval
 #    sensor_names:
 #      '58:2d:34:3b:6a:27': 'Kitchen Hob Temperature Sensor'
-
-
 
 #xiaomi_aqara:
 #  discovery_retry: 5
 #  gateways: # XiaoMi Gateway
 #    - key: 153EEFE707B24CFB
 #      mac: 34CE008D7558
-       
-# Debug Homekit Integration
-#logger:
-#  default: warning
-#  logs:
-##    homeassistant.components.homekit: debug
-#    homeassistant.components.tado: debug
-#    pyhap: debug
 
+# Debug Homekit Integration
 
 # Install Mini Media Player
 #resources:
 #  - url: /local/mini-media-player-bundle.js?v=1.11.0
-#    type: module       
+#    type: module
 
 ###########################################
 # Light/Cover/Switch Groups
@@ -99,9 +114,8 @@ recorder:
 #      - switch.master_room_bed_ceiling_light
 #      - switch.master_room_landing_ceiling_light
 
-
 #  # XiaoMi BLE Temperature Sensor
-#sensor xiaomi_ble_slow:      
+#sensor xiaomi_ble_slow:
 #  - platform: mitemp_bt
 #    period: 60
 #    encryptors:
@@ -120,6 +134,3 @@ recorder:
 #               # Kitchen Worktop Temperature Sensor
 #               #'58:2d:34:3b:6a:27'
 
-
-
-    
