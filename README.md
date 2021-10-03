@@ -3,7 +3,8 @@ This is my configuration of Home Assistant used in the house.
 Whole home supports automation about
 - Heating/Lighting/Curtain/TV photo slideshow on-off based on motion sensors
 - Heating Valve Calibration using external temperature sensor
-- Lighting/TV off based on time
+- Lighting/Curtain/TV off at midnight
+- Lighting temperature changes throughout the day
 - Sonos Speakers Grouping/Ungrouping Based On Motion Sensor
 - Light/Curtain/TV/Scene on-off using physical remote buttons
 
