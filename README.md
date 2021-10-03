@@ -8,7 +8,6 @@ My whole home supports automations on
 - Sonos Speakers Grouping/Ungrouping Based On Motion Sensor to achieve music following people 
 - Light/Curtain/TV/Scene on-off using physical remote buttons
 
-
 UI to control:
 - Homekit
 - Lovelace (with extra TV remote)
@@ -22,3 +21,6 @@ Remote Control:
 
 
 
+Other smart home features but not done in Home Assistant:
+- VNC server (on home server)
+- Plex server (on home server)
