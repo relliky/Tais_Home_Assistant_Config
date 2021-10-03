@@ -4,8 +4,8 @@ My whole home supports automations on
 - Heating/Lighting/Curtain/TV photo slideshow on-off based on motion sensors
 - Heating Valve Calibration using external temperature sensor
 - Lighting/Curtain/TV off at midnight
-- Lighting temperature changes throughout the day
-- Sonos Speakers Grouping/Ungrouping Based On Motion Sensor to achieve music following people movement
+- Lighting temperature/colour changes throughout the day
+- Sonos Speakers Grouping/Ungrouping Based On Motion Sensor to achieve music following people 
 - Light/Curtain/TV/Scene on-off using physical remote buttons
 
 
