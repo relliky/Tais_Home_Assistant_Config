@@ -12,56 +12,49 @@ blueprint:
     input_datetime_daylight_start:
       name: Datlight Start Time
       default: input_datetime.early_daylight_start
-      
+
 trigger:
-  - entity_id: 
-      !input target_light_list
+  - entity_id: !input target_light_list
     platform: state
     from: "off"
     to: "on"
-    
+
 condition:
   - entity_id: !input input_boolean_outstanding_setting_update
     condition: state
     state: "on"
 
-action:    
+action:
   - choose:
       # Daylight setting
       - conditions:
           - condition: time
-            after:  !input input_datetime_daylight_start
-            before: input_datetime.nighttime_start 
+            after: !input input_datetime_daylight_start
+            before: input_datetime.nighttime_start
         sequence:
           - service: light.turn_on
-            entity_id: 
-              !input target_light_list
-            data: 
+            entity_id: !input target_light_list
+            data:
               brightness: 255
-              kelvin: 5000      
+              kelvin: 5000
       # Nighttime setting setting
       - conditions:
           - condition: time
-            after:  input_datetime.nighttime_start
+            after: input_datetime.nighttime_start
             before: input_datetime.midnight_start
         sequence:
           - service: light.turn_on
-            entity_id: 
-              !input target_light_list
-            data: 
+            entity_id: !input target_light_list
+            data:
               brightness: 255
-              kelvin: 3000      
+              kelvin: 3000
     # ELSE - Midnight setting
     default:
       - service: light.turn_on
-        entity_id: 
-          !input target_light_list
-        data: 
+        entity_id: !input target_light_list
+        data:
           brightness: 65
-          kelvin: 3000     
-  # Clear the flag        
+          kelvin: 3000
+  # Clear the flag
   - service: input_boolean.turn_off
     entity_id: !input input_boolean_outstanding_setting_update
-   
-   
-   

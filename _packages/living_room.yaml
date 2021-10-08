@@ -28,7 +28,7 @@ light:
   - platform: group
     name: Living Room Landing Light
     entities:
-      - light.living_room_landing_light_1_hue
+      - light.living_room_landing_light_1
       - light.living_room_landing_light_2_localtuya
 
   - platform: group
@@ -36,6 +36,19 @@ light:
     entities:
       - light.living_room_tv_led
       - light.living_room_sofa_led
+
+group:
+  living_room_motion:
+    name: Living Room Motion
+    entities:
+      - binary_sensor.living_room_sofa_motion_sensor_motion
+      - binary_sensor.living_room_tv_motion_sensor_motion
+
+  garden_motion:
+    name: Garden Motion
+    entities:
+      - binary_sensor.garden_sliding_door_motion_sensor_motion
+      - binary_sensor.garden_bike_shed_motion_sensor_motion
 
 # Custom Variables
 input_boolean:
@@ -57,6 +70,28 @@ input_number:
     min: -30
     max: 40
     step: 0.1
+
+# TV picture mode
+input_select:
+  living_room_tv_picture_mode:
+    name: Living Room TV Picture Mode
+    options:
+      - Dynamic
+      - Standard
+      - Natural
+      - Movie
+
+# TV power
+switch:
+  - platform: template
+    switches:
+      living_room_tv_power:
+        value_template: "{{ is_state('media_player.living_room_tv', 'on') }}"
+        turn_on:
+          - service: script.living_room_tv_turn_on
+        turn_off:
+          - service: script.living_room_tv_turn_off
+
 ###############################################
 #
 # Scripts
@@ -144,7 +179,7 @@ script:
       #    entity_id: media_player.living_room_tv
       #- service: media_player.play_media
       #  target:
-      #    entity_id: media_player.living_room_fire_tv
+      #    entity_id: media_player.living_room_fire_tv_echo
       #  data:
       #    media_content_type: routine
       #    media_content_id: TurnOnLivingRoomTV
@@ -180,6 +215,25 @@ script:
               Natural
             {% endif %}
 
+automation tv:
+  - alias: M-LR Living Room TV Picture Mode Based On Dropdown Menu
+    id: "1014901346079"
+    description: "automation.living_room_tv_picture_mode"
+    use_blueprint:
+      path: tv_pic_mode_on_ha_input.yaml
+      input:
+        input_select_tv_picture_mode: input_select.living_room_tv_picture_mode
+        tv_entity: media_player.living_room_tv
+
+  - alias: M-LR Living Room TV Picture Mode Dropdown Menu Sync With TV
+    id: "1015301347071"
+    use_blueprint:
+      path: tv_pic_mode_sync_from_tv.yaml
+      input:
+        input_select_tv_picture_mode: input_select.living_room_tv_picture_mode
+        tv_entity: media_player.living_room_tv
+        automation_tv_pic_on_ha: automation.living_room_tv_picture_mode
+
 ###############################################
 #
 # Automations:
@@ -200,13 +254,15 @@ automation:
     use_blueprint:
       path: room_delayed_action.yaml
       input:
-        binary_sensor_motion_sensor_list:
+        binary_sensor_motion_sensors:
           - binary_sensor.living_room_sofa_motion_sensor_motion
           - binary_sensor.living_room_tv_motion_sensor_motion
         input_boolean_short_presence: input_boolean.living_room_short_presence
         automation_this_automation_entity: automation.living_room_heating_on_if_people_present
-        script_to_be_run: script.living_room_heating_scheduler
-        automation_to_be_triggered: automation.living_room_tv_slideshow
+        scripts_to_be_run:
+          - script.living_room_heating_scheduler
+        automations_to_be_triggered_and_on:
+          - automation.living_room_tv_slideshow
 
   - alias: H-LR Living Room Heating Off If No Person
     id: "1599611453836"
@@ -229,7 +285,7 @@ automation:
       - service: climate.set_hvac_mode
         entity_id: climate.living_room
         data:
-          hvac_mode: auto
+          hvac_mode: "off"
       - entity_id: automation.living_room_heating_on_if_people_present
         service: automation.turn_on
 
@@ -262,7 +318,7 @@ automation:
       # Play Slideshow on FireTV
       - service: media_player.play_media
         target:
-          entity_id: media_player.living_room_fire_tv
+          entity_id: media_player.living_room_fire_tv_echo
         data:
           media_content_type: routine
           media_content_id: LivingRoomSlideshow
@@ -297,14 +353,14 @@ automation:
       #- delay: "00:00:10"
       #- service: media_player.play_media
       #  target:
-      #    entity_id: media_player.living_room_fire_tv
+      #    entity_id: media_player.living_room_fire_tv_echo
       #  data:
       #    media_content_type: routine
       #    media_content_id: LivingRoomSlideshow
 
   - alias: L-LR Living Room Lights On If Person Present
     id: "1603640031661"
-    description: "automation.l_lr_living_room_lights_on_if_person_present"
+    description: "automation.living_room_lights_on_if_person_present"
     trigger:
       - entity_id: binary_sensor.living_room_sofa_motion_sensor_motion
         platform: state
@@ -352,6 +408,9 @@ automation:
             sequence:
               - service: light.turn_on
                 entity_id: light.living_room_led
+      # Turn off auto light automation
+      - service: automation.turn_off
+        entity_id: automation.living_room_lights_on_if_person_present
 
   - alias: L-LR Living Room Lights Off If No Person For 10 Min
     id: "1603640031662"
@@ -380,6 +439,9 @@ automation:
         state: "off"
     action:
       - service: script.living_room_all_lights_turn_off
+      # Turn on auto light automation
+      - service: automation.turn_on
+        entity_id: automation.living_room_lights_on_if_person_present
       # Turn Off TV if Living Room TV is on
       - condition: state
         entity_id: media_player.living_room_tv
@@ -550,25 +612,25 @@ automation:
           # IF movie scene is off, turn off lights and its automation for 2 hours for movie scene
           - conditions:
               - condition: state
-                entity_id: automation.l_lr_living_room_lights_on_if_person_present
+                entity_id: automation.living_room_lights_on_if_person_present
                 state: "on"
             sequence:
               # Turn off auto light automation and lights
               - service: automation.turn_off
-                entity_id: automation.l_lr_living_room_lights_on_if_person_present
+                entity_id: automation.living_room_lights_on_if_person_present
               - service: script.living_room_landing_lights_turn_off
               - entity_id: switch.living_room_ceiling_light
                 service: switch.turn_off
               # Delay of some time and turn on back auto lights up
               - delay: "02:00:00"
               - service: automation.turn_on
-                entity_id: automation.l_lr_living_room_lights_on_if_person_present
+                entity_id: automation.living_room_lights_on_if_person_present
 
         # ELSE - if movie scene is on, turn off movie scene and turn on lights and its automation
         default:
           - service: script.living_room_landing_lights_turn_on
           - service: automation.turn_on
-            entity_id: automation.l_lr_living_room_lights_on_if_person_present
+            entity_id: automation.living_room_lights_on_if_person_present
     mode: restart
 
   # Linked Switches

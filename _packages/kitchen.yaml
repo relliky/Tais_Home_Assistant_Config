@@ -23,6 +23,14 @@ light:
       - light.kitchen_ceiling_light_6_hue
       - light.kitchen_ceiling_light_7_hue
 
+# Room Motion
+group:
+  kitchen_motion:
+    name: Kitchen Motion
+    entities:
+      - binary_sensor.kitchen_worktop_motion_sensor_motion
+      - binary_sensor.kitchen_dining_motion_sensor_motion
+
 # Custom Variables
 input_boolean:
   kitchen_short_presence: # done
@@ -31,6 +39,27 @@ input_boolean:
 
   kitchen_slideshow_enable:
     name: "Kitchen Slideshow Enable"
+
+# TV picture mode
+input_select:
+  kitchen_tv_picture_mode:
+    name: Kitchen TV Picture Mode
+    options:
+      - Dynamic
+      - Standard
+      - Natural
+      - Movie
+
+# TV power
+switch:
+  - platform: template
+    switches:
+      kitchen_tv_power:
+        value_template: "{{ is_state('media_player.kitchen_tv', 'on') }}"
+        turn_on:
+          - service: script.kitchen_tv_turn_on
+        turn_off:
+          - service: script.kitchen_tv_turn_off
 
 ###############################################
 #
@@ -197,7 +226,7 @@ script:
           entity_id: media_player.kitchen_tv
       - service: media_player.play_media
         target:
-          entity_id: media_player.kitchen_fire_tv
+          entity_id: media_player.kitchen_fire_tv_echo
         data:
           media_content_type: routine
           media_content_id: TurnOnKitchenRoomTV
@@ -240,6 +269,25 @@ script:
             {% else %}
               Natural
             {% endif %}
+
+automation tv:
+  - alias: M-KC Kitchen TV Picture Mode Based On Dropdown Menu
+    id: "1024901346079"
+    description: "automation.kitchen_tv_picture_mode"
+    use_blueprint:
+      path: tv_pic_mode_on_ha_input.yaml
+      input:
+        input_select_tv_picture_mode: input_select.kitchen_tv_picture_mode
+        tv_entity: media_player.kitchen_tv
+
+  - alias: M-KC Kitchen TV Picture Mode Dropdown Menu Sync With TV
+    id: "1025301347071"
+    use_blueprint:
+      path: tv_pic_mode_sync_from_tv.yaml
+      input:
+        input_select_tv_picture_mode: input_select.kitchen_tv_picture_mode
+        tv_entity: media_player.kitchen_tv
+        automation_tv_pic_on_ha: automation.kitchen_tv_picture_mode
 
 ###############################################
 #
@@ -325,7 +373,7 @@ automation:
       - service: climate.set_hvac_mode
         entity_id: climate.kitchen
         data:
-          hvac_mode: auto
+          hvac_mode: "off"
       - service: automation.turn_on
         entity_id: automation.kitchen_heating_on_if_people_present
       # turn on drinking hot water
@@ -406,7 +454,7 @@ automation:
       # Play Slideshow on FireTV after
       - service: media_player.play_media
         target:
-          entity_id: media_player.kitchen_fire_tv
+          entity_id: media_player.kitchen_fire_tv_echo
         data:
           media_content_type: routine
           media_content_id: KitchenSlideshow
@@ -429,7 +477,7 @@ automation:
       #  entity_id: script.kitchen_slideshow_update_tv_setting
       #- service: media_player.play_media
       #  target:
-      #    entity_id: media_player.kitchen_fire_tv
+      #    entity_id: media_player.kitchen_fire_tv_echo
       #  data:
       #    media_content_type: routine
       #    media_content_id: KitchenSlideshow

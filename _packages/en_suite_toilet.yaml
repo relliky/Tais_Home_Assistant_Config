@@ -7,23 +7,28 @@ light:
   - platform: group
     name: En-suite Toilet Ceiling Light
     entities:
-      - light.en_suite_toilet_spotlight_bulb_1_localtuya
-      - light.en_suite_toilet_spotlight_bulb_2_localtuya
-      - light.en_suite_toilet_spotlight_bulb_3_localtuya
+      - light.en_suite_toilet_spotlight_bulb_1 #_localtuya
+      - light.en_suite_toilet_spotlight_bulb_2 #_localtuya
+      - light.en_suite_toilet_spotlight_bulb_3 #_localtuya
+
+group:
+  en_suite_toilet_motion:
+    name: En-suite Toilet Motion
+    entities:
+      - binary_sensor.en_suite_toilet_motion_sensor_motion
 
 # Custom Variables
 input_boolean:
-
   # First Time Presence in a Room
   en_suite_toilet_short_presence:
     name: "En-suite Toilet Short Presence"
     initial: "off"
-    
+
 ###############################################
 #
 # Scripts
 #
-###############################################  
+###############################################
 script:
   en_suite_toilet_all_lights_turn_on:
     alias: En-suite Toilet All Lights Turn On
@@ -61,7 +66,6 @@ script:
           brightness: 1
           kelvin: 3000
 
-
 ###############################################
 #
 # Automations:
@@ -71,156 +75,147 @@ script:
 #
 ###############################################
 automation:
-###############################################
-# Heating Automation based on motion sensors
-###############################################
-- alias: H-ET En-suite Toilet Heating Off If No Person
-  trigger:
-  - entity_id: binary_sensor.en_suite_toilet_motion_sensor_motion
-    platform: state
-    from: 'on'
-    to: 'off'
-    for: 00:05:00
-  - minutes: /5
-    platform: time_pattern
-  condition:
-  - condition: state
-    entity_id: binary_sensor.en_suite_toilet_motion_sensor_motion
-    for: 00:05:00
-    state: 'off'
-  action:
-  # Clear flags
-  - service: input_boolean.turn_off
-    entity_id: input_boolean.en_suite_toilet_short_presence
-  # Turn Off Room Tado and Turn On Auto Heating
-  - service: automation.turn_off
-    entity_id: automation.en_suite_toilet_heating_scheduler  
-  - service: climate.set_temperature
-    entity_id: climate.en_suite_toilet
-    data:
-      temperature: 5
-  - service: automation.turn_on
-    entity_id: automation.en_suite_toilet_heating_on_if_person_present
+  ###############################################
+  # Heating Automation based on motion sensors
+  ###############################################
+  - alias: H-ET En-suite Toilet Heating Off If No Person
+    trigger:
+      - entity_id: binary_sensor.en_suite_toilet_motion_sensor_motion
+        platform: state
+        from: "on"
+        to: "off"
+        for: 00:05:00
+      - minutes: /5
+        platform: time_pattern
+    condition:
+      - condition: state
+        entity_id: binary_sensor.en_suite_toilet_motion_sensor_motion
+        for: 00:05:00
+        state: "off"
+    action:
+      # Clear flags
+      - service: input_boolean.turn_off
+        entity_id: input_boolean.en_suite_toilet_short_presence
+      # Turn Off Room Tado and Turn On Auto Heating
+      - service: automation.turn_off
+        entity_id: automation.en_suite_toilet_heating_scheduler
+      - service: climate.set_hvac_mode
+        entity_id: climate.en_suite_toilet
+        data:
+          hvac_mode: "off"
+      - service: automation.turn_on
+        entity_id: automation.en_suite_toilet_heating_on_if_person_present
 
+  # En-suite Toilet
+  - alias: H-ER En-suite Toilet Heating On If Person Present
+    id: "1599909943194"
+    description: "automation.en_suite_toilet_heating_on_if_person_present"
+    use_blueprint:
+      path: room_delayed_heating.yaml
+      input:
+        binary_sensor_motion_sensors:
+          - binary_sensor.en_suite_toilet_motion_sensor_motion
+        input_boolean_short_presence: input_boolean.en_suite_toilet_short_presence
+        automation_this_automation_entity: automation.en_suite_toilet_heating_on_if_person_present
+        automation_heating_scheduler: automation.en_suite_toilet_heating_scheduler
 
-# En-suite Toilet
-- alias: H-ER En-suite Toilet Heating On If Person Present
-  id: '1599909943194'
-  description: 'automation.en_suite_toilet_heating_on_if_person_present'
-  use_blueprint:
-    path: room_delayed_heating.yaml
-    input:
-      binary_sensor_motion_sensor_list:       
-        - binary_sensor.en_suite_toilet_motion_sensor_motion
-      input_boolean_short_presence:      input_boolean.en_suite_toilet_short_presence
-      automation_this_automation_entity: automation.en_suite_toilet_heating_on_if_person_present
-      automation_heating_scheduler:      automation.en_suite_toilet_heating_scheduler
+  - alias: H-ER En-suite Toilet Heating Schedule
+    id: "1600014325409"
+    description: "automation.en_suite_toilet_heating_scheduler"
+    trigger:
+      # Never trigger
+      - entity_id: input_boolean.always_off_constant
+        platform: state
+        to: "on"
+    action:
+      - data:
+          hvac_mode: heat
+        entity_id: climate.en_suite_toilet
+        service: climate.set_hvac_mode
+      - data:
+          temperature: 21
+        entity_id: climate.en_suite_toilet
+        service: climate.set_temperature
 
+  ###############################################
+  # Lighting Automation based on motion sensors
+  ###############################################
+  # En-suite Toilet Lights
+  - alias: L-ET En-suite Toilet Lights On If Person Present and Dark
+    id: "1603640030013"
+    description: ""
+    trigger:
+      - entity_id: binary_sensor.en_suite_toilet_motion_sensor_motion
+        platform: state
+        from: "off"
+        to: "on"
+    condition:
+      - entity_id: binary_sensor.en_suite_toilet_motion_sensor_motion
+        condition: state
+        state: "on"
+      - entity_id: sensor.en_suite_toilet_motion_sensor_light
+        condition: numeric_state
+        below: "250"
+    action:
+      - entity_id: light.en_suite_toilet_ceiling_light
+        service: light.turn_on
 
-- alias: H-ER En-suite Toilet Heating Schedule
-  id: "1600014325409"
-  description: "automation.en_suite_toilet_heating_scheduler"
-  trigger:
-    # Never trigger
-    - entity_id: input_boolean.always_off_constant
-      platform: state
-      to: "on"
-  action:
-    - data:
-        hvac_mode: heat
-      entity_id: climate.en_suite_toilet
-      service: climate.set_hvac_mode
-    - data:
-        temperature: 21
-      entity_id: climate.en_suite_toilet
-      service: climate.set_temperature
+  - alias: L-ET En-suite Toilet Lights Off If No Person For 10 Min
+    id: "1603640030014"
+    description: ""
+    trigger:
+      - entity_id: binary_sensor.en_suite_toilet_motion_sensor_motion
+        platform: state
+        from: "on"
+        to: "off"
+        for: 00:10:00
+      - minutes: /5
+        platform: time_pattern
+    condition:
+      - condition: state
+        entity_id: binary_sensor.en_suite_toilet_motion_sensor_motion
+        state: "off"
+        for: 00:10:00
+    action:
+      - data: {}
+        entity_id: light.en_suite_toilet_ceiling_light
+        service: light.turn_off
 
+  - alias: L-ET En-suite Toilet Lights Off If No Person For 2 Min And Door Open
+    id: "1603640030015"
+    description: ""
+    trigger:
+      - entity_id: binary_sensor.en_suite_toilet_motion_sensor_motion
+        platform: state
+        from: "on"
+        to: "off"
+        for: 00:02:00
+      - minutes: /5
+        platform: time_pattern
+    condition:
+      - condition: and
+        conditions:
+          - entity_id: binary_sensor.en_suite_toilet_door
+            condition: state
+            state: "on"
+          - entity_id: binary_sensor.en_suite_toilet_motion_sensor_motion
+            condition: state
+            state: "off"
+            for: 00:02:00
+    action:
+      - data: {}
+        entity_id: light.en_suite_toilet_ceiling_light
+        service: light.turn_off
 
-###############################################
-# Lighting Automation based on motion sensors
-###############################################
-# En-suite Toilet Lights
-- alias: L-ET En-suite Toilet Lights On If Person Present and Dark
-  id: '1603640030013'
-  description: ''
-  trigger:
-  - entity_id: binary_sensor.en_suite_toilet_motion_sensor_motion
-    platform: state
-    from: 'off'
-    to: 'on'
-  condition:
-  - entity_id: binary_sensor.en_suite_toilet_motion_sensor_motion
-    condition: state
-    state: 'on'
-  - entity_id: sensor.en_suite_toilet_motion_sensor_light
-    condition: numeric_state
-    below: '250'
-  action:
-  - entity_id: light.en_suite_toilet_ceiling_light
-    service: light.turn_on
+  ###############################################
+  # Actions based on buttons
+  ###############################################
 
-
-
-- alias: L-ET En-suite Toilet Lights Off If No Person For 10 Min
-  id: '1603640030014'
-  description: ''
-  trigger:
-  - entity_id: binary_sensor.en_suite_toilet_motion_sensor_motion
-    platform: state
-    from: 'on'
-    to: 'off'
-    for: 00:10:00
-  - minutes: /5
-    platform: time_pattern
-  condition:
-  - condition: state
-    entity_id: binary_sensor.en_suite_toilet_motion_sensor_motion
-    state: 'off'
-    for: 00:10:00
-  action:
-  - data: {}
-    entity_id: light.en_suite_toilet_ceiling_light
-    service: light.turn_off
-
-
-
-- alias: L-ET En-suite Toilet Lights Off If No Person For 2 Min And Door Open
-  id: '1603640030015'
-  description: ''
-  trigger:
-  - entity_id: binary_sensor.en_suite_toilet_motion_sensor_motion
-    platform: state
-    from: 'on'
-    to: 'off'
-    for: 00:02:00
-  - minutes: /5
-    platform: time_pattern
-  condition:
-  - condition: and
-    conditions:
-    - entity_id: binary_sensor.en_suite_toilet_door
-      condition: state
-      state: 'on'
-    - entity_id: binary_sensor.en_suite_toilet_motion_sensor_motion
-      condition: state
-      state: 'off'
-      for: 00:02:00
-  action:
-  - data: {}
-    entity_id: light.en_suite_toilet_ceiling_light
-    service: light.turn_off
-
-
-###############################################
-# Actions based on buttons
-###############################################
-
-- alias: B-ET En-suite Toilet Wall Button - Single Press - Toggle Toilet Lights
-  trigger:
-  - platform: state
-    entity_id: sensor.en_suite_toilet_light_wall_button
-    to: single
-  action:
-  - service:   light.toggle
-    entity_id: light.en_suite_toilet_ceiling_light
-
+  - alias: B-ET En-suite Toilet Wall Button - Single Press - Toggle Toilet Lights
+    trigger:
+      - platform: state
+        entity_id: sensor.en_suite_toilet_light_wall_button
+        to: single
+    action:
+      - service: light.toggle
+        entity_id: light.en_suite_toilet_ceiling_light

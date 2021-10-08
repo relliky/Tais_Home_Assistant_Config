@@ -1,0 +1,37 @@
+blueprint:
+  name: TV Picture Mode Sync From TV
+  domain: automation
+  input:
+    input_select_tv_picture_mode:
+      name: Input Select TV Pic Mode
+    tv_entity:
+      name: TV entity
+    automation_tv_pic_on_ha:
+      name: Automation controls TV Picture Based On HA input
+
+trigger:
+  - platform: state
+    entity_id: !input tv_entity
+    attribute: picture_mode
+
+variables:
+  tv_entity_var: !input tv_entity
+  tv_pic_mode: "{{state_attr(tv_entity_var, 'picture_mode')}}"
+
+mode: restart
+# Slient the repetivie automation
+max_exceeded: silent
+
+action:
+  - delay: "00:00:20"
+  - service: automation.turn_off
+    entity_id: !input automation_tv_pic_on_ha
+  - delay: "00:00:01"
+  - service: input_select.select_option
+    target:
+      entity_id: !input input_select_tv_picture_mode
+    data:
+      option: "{{ tv_pic_mode }}"
+  - delay: "00:00:01"
+  - service: automation.turn_on
+    entity_id: !input automation_tv_pic_on_ha

@@ -1,21 +1,6 @@
 ###########################################
 # Custom Entities
 ###########################################
-input_boolean:
-  # First Time Presence in a Room
-  master_toilet_short_presence: # done
-    name: "Master Toilet Short Presence"
-    initial: "off"
-    
-# Customize Mirror Light
-binary_sensor:
-  - platform: template
-    sensors:
-      master_toilet_mirror_light:
-        friendly_name: "Master Toilet Mirror Light"
-        value_template: >-
-          {{ states('sensor.master_toilet_mirror_light_meter')|int > 1000 }}
-
 light:
   - platform: group
     name: Master Toilet Ceiling Light
@@ -29,6 +14,35 @@ light:
       #- light.master_toilet_spotlight_bulb_3_localtuya
       #- light.master_toilet_spotlight_bulb_4_localtuya
 
+
+input_boolean:
+  # First Time Presence in a Room
+  master_toilet_short_presence: # done
+    name: "Master Toilet Short Presence"
+    initial: "off"
+    
+# Helper Sensors          
+template:
+  # Customize Mirror Light
+  - binary_sensor:
+      - name: "Master Toilet Mirror Light"
+        state: >
+          {{ states('sensor.master_toilet_mirror_light_meter')|int > 1000 }}
+
+  - binary_sensor:
+      - name: "Master Toilet Presence"
+        state: >
+          {{ states('binary_sensor.master_toilet_basin_motion_sensor_motion' ) or
+             states('binary_sensor.master_toilet_shower_motion_sensor_motion')   }}
+
+group:
+  master_toilet_motion:
+    name: Master Toilet Motion
+    entities: 
+      - binary_sensor.master_toilet_basin_motion_sensor_motion
+      - binary_sensor.master_toilet_shower_motion_sensor_motion
+      - binary_sensor.master_toilet_dressing_room_motion_sensor_motion
+      
 ###############################################
 # Scripts
 ###############################################  
@@ -228,7 +242,7 @@ automation:
     - service: climate.set_hvac_mode
       entity_id: climate.master_toilet
       data:
-        hvac_mode: auto
+        hvac_mode: 'off'
     - data: {}
       entity_id: automation.master_toilet_heating_on_if_person_present
       service: automation.turn_on

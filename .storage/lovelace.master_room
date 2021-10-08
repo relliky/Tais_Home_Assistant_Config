@@ -7,7 +7,7 @@
                 {
                     "title": "Master Room",
                     "path": "master-room",
-                    "theme": "ios-dark-mode-light-green",
+                    "theme": "ios-light-mode-dark-green",
                     "badges": [],
                     "cards": [
                         {
@@ -17,40 +17,26 @@
                                     "type": "vertical-stack",
                                     "cards": [
                                         {
-                                            "type": "entities",
-                                            "entities": [
-                                                {
-                                                    "entity": "sensor.cambridge_city_airport_temperature",
-                                                    "name": "Outside"
-                                                }
-                                            ]
+                                            "type": "button",
+                                            "tap_action": {
+                                                "action": "navigate",
+                                                "navigation_path": "/lovelace/home"
+                                            },
+                                            "entity": "input_boolean.placeholder",
+                                            "icon": "mdi:keyboard-return",
+                                            "name": "Home",
+                                            "icon_height": "80px"
                                         },
                                         {
-                                            "type": "horizontal-stack",
-                                            "cards": [
-                                                {
-                                                    "type": "button",
-                                                    "tap_action": {
-                                                        "action": "navigate",
-                                                        "navigation_path": "/lovelace/home"
-                                                    },
-                                                    "entity": "input_boolean.placeholder",
-                                                    "icon": "mdi:keyboard-return",
-                                                    "name": "Home",
-                                                    "icon_height": "80px"
-                                                },
-                                                {
-                                                    "type": "button",
-                                                    "tap_action": {
-                                                        "action": "navigate",
-                                                        "navigation_path": "/master-room/master-room-tv"
-                                                    },
-                                                    "entity": "input_boolean.placeholder",
-                                                    "icon": "mdi:remote-tv",
-                                                    "name": "TV",
-                                                    "icon_height": "80px"
-                                                }
-                                            ]
+                                            "type": "button",
+                                            "tap_action": {
+                                                "action": "navigate",
+                                                "navigation_path": "/master-room/master-room-tv"
+                                            },
+                                            "entity": "input_boolean.placeholder",
+                                            "icon": "mdi:remote-tv",
+                                            "name": "TV",
+                                            "icon_height": "80px"
                                         }
                                     ]
                                 },
@@ -75,13 +61,13 @@
                                 },
                                 {
                                     "type": "light",
-                                    "entity": "light.master_room_lamp_1_hue",
+                                    "entity": "light.master_room_lamp_1",
                                     "name": "Left Lamp",
                                     "icon": "hass:lamp"
                                 },
                                 {
                                     "type": "light",
-                                    "entity": "light.master_room_lamp_2_hue",
+                                    "entity": "light.master_room_lamp_2",
                                     "name": "Right Lamp",
                                     "icon": "hass:lamp"
                                 },
@@ -163,21 +149,36 @@
                     "title": "TV",
                     "path": "master-room-tv",
                     "icon": "mdi:remote-tv",
-                    "theme": "ios-dark-mode-blue-red",
+                    "theme": "ios-light-mode-blue-red",
                     "badges": [],
                     "cards": [
                         {
                             "type": "grid",
                             "cards": [
                                 {
-                                    "type": "button",
-                                    "tap_action": {
-                                        "action": "navigate",
-                                        "navigation_path": "/master-room/master-room"
-                                    },
-                                    "entity": "input_boolean.placeholder",
-                                    "icon": "mdi:keyboard-return",
-                                    "name": "Master Room"
+                                    "type": "vertical-stack",
+                                    "cards": [
+                                        {
+                                            "type": "button",
+                                            "tap_action": {
+                                                "action": "navigate",
+                                                "navigation_path": "/master-room/master-room"
+                                            },
+                                            "entity": "input_boolean.placeholder",
+                                            "icon": "mdi:keyboard-return",
+                                            "name": "Master Room"
+                                        },
+                                        {
+                                            "type": "button",
+                                            "tap_action": {
+                                                "action": "toggle"
+                                            },
+                                            "entity": "script.master_room_tv_sleep_timer_start",
+                                            "name": "TV Sleep Mode",
+                                            "icon_height": "50px",
+                                            "icon": "mdi:power-sleep"
+                                        }
+                                    ]
                                 },
                                 {
                                     "type": "vertical-stack",
@@ -197,27 +198,14 @@
                                             "tap_action": {
                                                 "action": "toggle"
                                             },
-                                            "entity": "script.master_room_tv_sleep_timer_start",
-                                            "name": "TV Sleep Mode",
-                                            "icon_height": "50px",
-                                            "icon": "mdi:power-sleep"
+                                            "icon": "mdi:power",
+                                            "name": "TV Power",
+                                            "entity": "switch.master_room_tv_power"
                                         }
                                     ]
                                 }
                             ],
                             "columns": 2
-                        },
-                        {
-                            "type": "custom:mini-media-player",
-                            "entity": "media_player.master_room_tv",
-                            "name": "TV",
-                            "group": false,
-                            "volume_stateless": false,
-                            "source": "icon",
-                            "toggle_power": true,
-                            "artwork": "none",
-                            "info": "short",
-                            "sound_mode": "icon"
                         },
                         {
                             "type": "grid",
@@ -410,8 +398,140 @@
                                     "hold_action": {
                                         "action": "more-info"
                                     }
+                                },
+                                {
+                                    "type": "button",
+                                    "tap_action": {
+                                        "action": "call-service",
+                                        "service": "script.fire_tv_starts_app",
+                                        "service_data": {
+                                            "room": "master_room",
+                                            "app": "bilibili"
+                                        }
+                                    },
+                                    "entity": "input_boolean.placeholder",
+                                    "icon": "mdi:alpha-b-circle",
+                                    "name": "Bilibili",
+                                    "show_state": false,
+                                    "show_icon": true,
+                                    "show_name": true,
+                                    "hold_action": {
+                                        "action": "more-info"
+                                    }
+                                },
+                                {
+                                    "type": "button",
+                                    "tap_action": {
+                                        "action": "call-service",
+                                        "service": "script.fire_tv_starts_app",
+                                        "service_data": {
+                                            "room": "master_room",
+                                            "app": "youtube"
+                                        }
+                                    },
+                                    "entity": "input_boolean.placeholder",
+                                    "icon": "mdi:youtube",
+                                    "name": "Youtube",
+                                    "show_state": false,
+                                    "show_icon": true,
+                                    "show_name": true,
+                                    "hold_action": {
+                                        "action": "more-info"
+                                    }
+                                },
+                                {
+                                    "type": "button",
+                                    "tap_action": {
+                                        "action": "call-service",
+                                        "service": "script.fire_tv_starts_app",
+                                        "service_data": {
+                                            "room": "master_room",
+                                            "app": "plex"
+                                        }
+                                    },
+                                    "entity": "input_boolean.placeholder",
+                                    "icon": "mdi:plex",
+                                    "name": "Plex",
+                                    "show_state": false,
+                                    "show_icon": true,
+                                    "show_name": true,
+                                    "hold_action": {
+                                        "action": "more-info"
+                                    }
+                                },
+                                {
+                                    "type": "button",
+                                    "tap_action": {
+                                        "action": "call-service",
+                                        "service": "script.fire_tv_starts_app",
+                                        "service_data": {
+                                            "room": "master_room",
+                                            "app": "netflix"
+                                        }
+                                    },
+                                    "entity": "input_boolean.placeholder",
+                                    "icon": "mdi:netflix",
+                                    "name": "Netflix",
+                                    "show_state": false,
+                                    "show_icon": true,
+                                    "show_name": true,
+                                    "hold_action": {
+                                        "action": "more-info"
+                                    }
+                                },
+                                {
+                                    "type": "button",
+                                    "tap_action": {
+                                        "action": "call-service",
+                                        "service": "androidtv.adb_command",
+                                        "service_data": {
+                                            "entity_id": "media_player.master_room_fire_tv",
+                                            "command": "HOME"
+                                        }
+                                    },
+                                    "entity": "input_boolean.placeholder",
+                                    "icon": "mdi:home",
+                                    "name": "Fire TV Home",
+                                    "show_state": false,
+                                    "show_icon": true,
+                                    "show_name": true,
+                                    "hold_action": {
+                                        "action": "more-info"
+                                    }
+                                },
+                                {
+                                    "type": "button",
+                                    "tap_action": {
+                                        "action": "call-service",
+                                        "service": "androidtv.adb_command",
+                                        "service_data": {
+                                            "entity_id": "media_player.master_room_fire_tv",
+                                            "command": "MENU"
+                                        }
+                                    },
+                                    "entity": "input_boolean.placeholder",
+                                    "icon": "mdi:menu",
+                                    "name": "Fire TV Menu",
+                                    "show_state": false,
+                                    "show_icon": true,
+                                    "show_name": true,
+                                    "hold_action": {
+                                        "action": "more-info"
+                                    }
                                 }
                             ]
+                        },
+                        {
+                            "type": "custom:mini-media-player",
+                            "entity": "media_player.master_room_tv",
+                            "name": "TV",
+                            "group": false,
+                            "volume_stateless": false,
+                            "source": "icon",
+                            "toggle_power": true,
+                            "artwork": "none",
+                            "info": "short",
+                            "sound_mode": "icon"
                         }
                     ]
                 },
@@ -419,7 +539,7 @@
                     "title": "Toilet",
                     "path": "master-toilet",
                     "icon": "mdi:shower-head",
-                    "theme": "ios-dark-mode-light-blue",
+                    "theme": "ios-light-mode-dark-blue",
                     "badges": [],
                     "cards": [
                         {
@@ -431,20 +551,20 @@
                                         {
                                             "type": "button",
                                             "tap_action": {
-                                                "action": "none"
-                                            },
-                                            "entity": "binary_sensor.master_toilet_mirror_light",
-                                            "icon": "mdi:mirror"
-                                        },
-                                        {
-                                            "type": "button",
-                                            "tap_action": {
                                                 "action": "navigate",
                                                 "navigation_path": "/lovelace/home"
                                             },
                                             "entity": "input_boolean.placeholder",
                                             "icon": "mdi:keyboard-return",
                                             "name": "Home"
+                                        },
+                                        {
+                                            "type": "button",
+                                            "tap_action": {
+                                                "action": "none"
+                                            },
+                                            "entity": "binary_sensor.master_toilet_mirror_light",
+                                            "icon": "mdi:mirror"
                                         }
                                     ]
                                 },

@@ -1,0 +1,29 @@
+blueprint:
+  name: TV Picture Mode On HA Input
+  domain: automation
+  input:
+    input_select_tv_picture_mode:
+      name: Input Select TV Pic Mode
+    tv_entity:
+      name: TV entity
+
+trigger:
+  - entity_id: !input input_select_tv_picture_mode
+    platform: state
+
+variables:
+  input_select_tv_picture_mode_var: !input input_select_tv_picture_mode
+  expected_pic_mode: "{{ states(input_select_tv_picture_mode_var) }}"
+
+mode: single
+# Slient the repetivie automation
+max_exceeded: silent
+
+action:
+  - condition: state
+    entity_id: !input tv_entity
+    state: "on"
+  - service: samsungtv_smart.select_picture_mode
+    data:
+      entity_id: !input tv_entity
+      picture_mode: "{{ expected_pic_mode }}"

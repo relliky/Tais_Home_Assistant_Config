@@ -10,6 +10,113 @@ light:
       - light.ground_corridor_ble_light
       - light.first_corridor_ble_light
 
+group:
+  always_on_switch:
+    name: Always On Switch
+    entities:
+      - switch.front_door_light_switch
+      - switch.ground_corridor_light_switch
+      - switch.first_corridor_light_switch
+      - switch.master_room_entrance_light_switch
+      - switch.master_room_bed_ceiling_light
+      - switch.master_room_landing_ceiling_light
+      - switch.master_toilet_light
+      - switch.master_toilet_dressing_room_light
+      - switch.kitchen_ceiling_light
+      - switch.kitchen_dining_light
+      - switch.study_ceiling_light
+      - switch.guest_room_ceiling_light
+      - switch.en_suite_toilet_light
+      - switch.en_suite_room_ceiling_light
+      - switch.ground_toilet_light
+      - automation.always_on_switches_stays_on
+
+  corridor_motion:
+    name: Corridor Motion
+    entities:
+      - binary_sensor.ground_corridor_motion_sensor_motion
+      - binary_sensor.first_corridor_motion_sensor_motion
+
+  whole_home_motion:
+    name: Whole Home Motion
+    entities:
+      - group.living_room_motion
+      - group.garden_motion
+      - group.kitchen_motion
+      - group.corridor_motion
+      - group.study_motion
+      - group.ground_toilet_motion
+      - group.master_room_motion
+      - group.master_toilet_motion
+      - group.en_suite_room_motion
+      - group.en_suite_toilet_motion
+      - group.guest_room_motion
+      - group.guest_toilet_motion
+
+  whole_home_tv_slideshow:
+    name: Whole Home TV Slideshow
+    entities:
+      - input_boolean.living_room_slideshow_enable
+      - input_boolean.master_room_slideshow_enable
+      - input_boolean.kitchen_slideshow_enable
+
+# Helper sensors for detecting requirement for downstairs/upstairs heating
+template:
+  - binary_sensor:
+      - name: "Upstairs Heating Required"
+        state: >
+          {{ ((states.climate.master_toilet.attributes.temperature         >= 
+               states.climate.master_toilet.attributes.current_temperature     )  and 
+              (states.climate.master_toilet.state != 'off')                          ) or
+
+             ((states.climate.master_room.attributes.temperature         >= 
+               states.climate.master_room.attributes.current_temperature     )  and 
+              (states.climate.master_room.state != 'off')                          ) or
+             
+             ((states.climate.study.attributes.temperature         >= 
+               states.climate.study.attributes.current_temperature     )  and 
+              (states.climate.study.state != 'off')                          ) or
+              
+             ((states.climate.guest_toilet.attributes.temperature         >= 
+               states.climate.guest_toilet.attributes.current_temperature     )  and 
+              (states.climate.guest_toilet.state != 'off')                          ) or
+
+             ((states.climate.guest_room.attributes.temperature         >= 
+               states.climate.guest_room.attributes.current_temperature     )  and 
+              (states.climate.guest_room.state != 'off')                          ) or
+
+             ((states.climate.en_suite_toilet.attributes.temperature         >= 
+               states.climate.en_suite_toilet.attributes.current_temperature     )  and 
+              (states.climate.en_suite_toilet.state != 'off')                          ) or
+
+             ((states.climate.en_suite_room.attributes.temperature         >= 
+               states.climate.en_suite_room.attributes.current_temperature     )  and 
+              (states.climate.en_suite_room.state != 'off')                          ) 
+          }}
+
+  - binary_sensor:
+      - name: "Downstairs Heating Required"
+        state: >
+          {{ ((states.climate.kitchen.attributes.temperature         >= 
+               states.climate.kitchen.attributes.current_temperature     )  and 
+              (states.climate.kitchen.state != 'off')                          ) or
+
+             ((states.climate.living_room.attributes.temperature         >= 
+               states.climate.living_room.attributes.current_temperature     )  and 
+              (states.climate.living_room.state != 'off')                          ) or
+             
+             ((states.climate.ground_toilet.attributes.temperature         >= 
+               states.climate.ground_toilet.attributes.current_temperature     )  and 
+              (states.climate.ground_toilet.state != 'off')                          ) or
+              
+             ((states.climate.ground_corridor.attributes.temperature         >= 
+               states.climate.ground_corridor.attributes.current_temperature     )  and 
+              (states.climate.ground_corridor.state != 'off')                          ) 
+          }}
+
+# Door sensor
+#.         - binary_sensor.master_room_balcony_door
+
 ###############################################
 #
 # Scripts
@@ -56,11 +163,11 @@ automation:
     action:
       - data:
           hvac_mode: heat
-        entity_id: climate.ground_floor_corridor
+        entity_id: climate.ground_corridor
         service: climate.set_hvac_mode
       - data:
           temperature: 20
-        entity_id: climate.ground_floor_corridor
+        entity_id: climate.ground_corridor
         service: climate.set_temperature
 
   - alias: H-GC Ground Corridor Heating Off If No Person For 20 Min
@@ -87,178 +194,46 @@ automation:
             state: "off"
     action:
       - service: climate.set_hvac_mode
-        entity_id: climate.ground_floor_corridor
+        entity_id: climate.ground_corridor
         data:
-          hvac_mode: 'off'
+          hvac_mode: "off"
 
   - alias: H-DS Downstairs Zone Heating On When Heating Required
     id: "1599612133872"
-    description: ""
     trigger:
-      - minutes: /5
-        platform: time_pattern
       - platform: state
-        from: "off"
+        entity_id: binary_sensor.downstairs_heating_required
         to: "on"
-        entity_id:
-          - binary_sensor.ground_corridor_motion_sensor_motion
-          - binary_sensor.first_corridor_motion_sensor_motion
-          - binary_sensor.ground_toilet_motion_sensor_motion
-          - binary_sensor.living_room_sofa_motion_sensor_motion
-          - binary_sensor.living_room_tv_motion_sensor_motion
-          - binary_sensor.kitchen_dining_motion_sensor_motion
-          - binary_sensor.kitchen_worktop_motion_sensor_motion
-          - binary_sensor.master_toilet_basin_motion_sensor_motion
-          - binary_sensor.master_toilet_shower_motion_sensor_motion
-          - binary_sensor.master_room_bed_motion_sensor_motion
-          - binary_sensor.study_motion_sensor_motion
-          - binary_sensor.guest_toilet_motion_sensor_motion
-          - binary_sensor.guest_room_radiator_motion_sensor_motion
-          - binary_sensor.guest_room_bed_motion_sensor_motion
-          - binary_sensor.en_suite_toilet_motion_sensor_motion
-          - binary_sensor.en_suite_room_motion_sensor_motion
-    condition:
-      - condition: or
-        conditions:
-          - condition: template
-            value_template: "{{ states.climate.kitchen.attributes.temperature         > states.climate.kitchen.attributes.current_temperature}}"
-          - condition: template
-            value_template: "{{ states.climate.living_room.attributes.temperature     > states.climate.living_room.attributes.current_temperature}}"
-          - condition: template
-            value_template: "{{ states.climate.ground_toilet.attributes.temperature   > states.climate.ground_toilet.attributes.current_temperature}}"
-          #- condition: template
-          #  value_template: "{{ states.climate.ground_corridor.attributes.temperature > states.climate.ground_corridor.attributes.current_temperature}}"
     action:
       - service: switch.turn_on
         entity_id: switch.downstairs_heating
 
   - alias: H-DS Downstairs Zone Heating Off When No Heating Required
     id: "1599653387645"
-    description: ""
     trigger:
-      - minutes: /5
-        platform: time_pattern
       - platform: state
-        from: "off"
-        to: "on"
-        entity_id:
-          - binary_sensor.ground_corridor_motion_sensor_motion
-          - binary_sensor.first_corridor_motion_sensor_motion
-          - binary_sensor.ground_toilet_motion_sensor_motion
-          - binary_sensor.living_room_sofa_motion_sensor_motion
-          - binary_sensor.living_room_tv_motion_sensor_motion
-          - binary_sensor.kitchen_dining_motion_sensor_motion
-          - binary_sensor.kitchen_worktop_motion_sensor_motion
-          - binary_sensor.master_toilet_basin_motion_sensor_motion
-          - binary_sensor.master_toilet_shower_motion_sensor_motion
-          - binary_sensor.master_room_bed_motion_sensor_motion
-          - binary_sensor.study_motion_sensor_motion
-          - binary_sensor.guest_toilet_motion_sensor_motion
-          - binary_sensor.guest_room_radiator_motion_sensor_motion
-          - binary_sensor.guest_room_bed_motion_sensor_motion
-          - binary_sensor.en_suite_toilet_motion_sensor_motion
-          - binary_sensor.en_suite_room_motion_sensor_motion
-    condition:
-      - condition: template
-        value_template: "{{ states.climate.kitchen.attributes.temperature         < states.climate.kitchen.attributes.current_temperature}}"
-      - condition: template
-        value_template: "{{ states.climate.living_room.attributes.temperature     < states.climate.living_room.attributes.current_temperature}}"
-      - condition: template
-        value_template: "{{ states.climate.ground_toilet.attributes.temperature   < states.climate.ground_toilet.attributes.current_temperature}}"
-      #- condition: template
-      #  value_template: "{{ states.climate.ground_corridor.attributes.temperature < states.climate.ground_corridor.attributes.current_temperature}}"
+        entity_id: binary_sensor.downstairs_heating_required
+        to: "off"
     action:
       - service: switch.turn_off
         entity_id: switch.downstairs_heating
 
   - alias: H-US Upstairs Zone Heating On When Heating Required
     id: "1600016150575"
-    description: ""
     trigger:
-      - minutes: /5
-        platform: time_pattern
       - platform: state
-        from: "off"
+        entity_id: binary_sensor.upstairs_heating_required
         to: "on"
-        entity_id:
-          - binary_sensor.ground_corridor_motion_sensor_motion
-          - binary_sensor.first_corridor_motion_sensor_motion
-          - binary_sensor.ground_toilet_motion_sensor_motion
-          - binary_sensor.living_room_sofa_motion_sensor_motion
-          - binary_sensor.living_room_tv_motion_sensor_motion
-          - binary_sensor.kitchen_dining_motion_sensor_motion
-          - binary_sensor.kitchen_worktop_motion_sensor_motion
-          - binary_sensor.master_toilet_basin_motion_sensor_motion
-          - binary_sensor.master_toilet_shower_motion_sensor_motion
-          - binary_sensor.master_room_bed_motion_sensor_motion
-          - binary_sensor.study_motion_sensor_motion
-          - binary_sensor.guest_toilet_motion_sensor_motion
-          - binary_sensor.guest_room_radiator_motion_sensor_motion
-          - binary_sensor.guest_room_bed_motion_sensor_motion
-          - binary_sensor.en_suite_toilet_motion_sensor_motion
-          - binary_sensor.en_suite_room_motion_sensor_motion
-    condition:
-      - condition: or
-        conditions:
-          - condition: template
-            value_template: "{{ states.climate.master_toilet.attributes.temperature   > states.climate.master_toilet.attributes.current_temperature}}"
-          - condition: template
-            value_template: "{{ states.climate.master_room.attributes.temperature> states.climate.master_room.attributes.current_temperature}}"
-          - condition: template
-            value_template: "{{ states.climate.study.attributes.temperature           > states.climate.study.attributes.current_temperature}}"
-          - condition: template
-            value_template: "{{ states.climate.guest_toilet.attributes.temperature    > states.climate.guest_toilet.attributes.current_temperature}}"
-          - condition: template
-            value_template: "{{ states.climate.guest_room.attributes.temperature      > states.climate.guest_room.attributes.current_temperature}}"
-          - condition: template
-            value_template: "{{ states.climate.en_suite_toilet.attributes.temperature > states.climate.en_suite_toilet.attributes.current_temperature}}"
-          - condition: template
-            value_template: "{{ states.climate.en_suite_room.attributes.temperature   > states.climate.en_suite_room.attributes.current_temperature}}"
     action:
       - service: switch.turn_on
         entity_id: switch.upstairs_heating
 
   - alias: H-US Upstairs Zone Heating Off When No Heating Required
     id: "1600017150562"
-    description: ""
     trigger:
-      - minutes: /5
-        platform: time_pattern
       - platform: state
-        from: "off"
-        to: "on"
-        entity_id:
-          - binary_sensor.ground_corridor_motion_sensor_motion
-          - binary_sensor.first_corridor_motion_sensor_motion
-          - binary_sensor.ground_toilet_motion_sensor_motion
-          - binary_sensor.living_room_sofa_motion_sensor_motion
-          - binary_sensor.living_room_tv_motion_sensor_motion
-          - binary_sensor.kitchen_dining_motion_sensor_motion
-          - binary_sensor.kitchen_worktop_motion_sensor_motion
-          - binary_sensor.master_toilet_basin_motion_sensor_motion
-          - binary_sensor.master_toilet_shower_motion_sensor_motion
-          - binary_sensor.master_room_bed_motion_sensor_motion
-          - binary_sensor.study_motion_sensor_motion
-          - binary_sensor.guest_toilet_motion_sensor_motion
-          - binary_sensor.guest_room_radiator_motion_sensor_motion
-          - binary_sensor.guest_room_bed_motion_sensor_motion
-          - binary_sensor.en_suite_toilet_motion_sensor_motion
-          - binary_sensor.en_suite_room_motion_sensor_motion
-    condition:
-      - condition: template
-        value_template: "{{ states.climate.master_toilet.attributes.temperature   < states.climate.master_toilet.attributes.current_temperature}}"
-      - condition: template
-        value_template: "{{ states.climate.master_room.attributes.temperature< states.climate.master_room.attributes.current_temperature}}"
-      - condition: template
-        value_template: "{{ states.climate.study.attributes.temperature           < states.climate.study.attributes.current_temperature}}"
-      - condition: template
-        value_template: "{{ states.climate.guest_toilet.attributes.temperature    < states.climate.guest_toilet.attributes.current_temperature}}"
-      - condition: template
-        value_template: "{{ states.climate.guest_room.attributes.temperature      < states.climate.guest_room.attributes.current_temperature}}"
-      - condition: template
-        value_template: "{{ states.climate.en_suite_toilet.attributes.temperature < states.climate.en_suite_toilet.attributes.current_temperature}}"
-      - condition: template
-        value_template: "{{ states.climate.en_suite_room.attributes.temperature   < states.climate.en_suite_room.attributes.current_temperature}}"
+        entity_id: binary_sensor.upstairs_heating_required
+        to: "off"
     action:
       - service: switch.turn_off
         entity_id: switch.upstairs_heating
@@ -304,8 +279,8 @@ automation:
       # does not get turn off by schedule until the water
       # has been heated for 2 hours
       - delay: 02:00:00
-      - service: automation.turn_on
-        entity_id: automation.water_heater_on_schedule
+      - service: switch.turn_on
+        entity_id: switch.schedule_water_heater
 
   - alias: W-DS Water Heater Schedule Off If People On Journey
     id: "1600016351671"
@@ -335,37 +310,10 @@ automation:
           - binary_sensor.en_suite_toilet_motion_sensor_motion
           #- binary_sensor.en_suite_room_motion_sensor_motion
     action:
-      - service: automation.turn_off
-        entity_id: automation.water_heater_on_schedule
+      - service: switch.turn_off
+        entity_id: switch.schedule_water_heater
       - service: automation.turn_on
         entity_id: automation.water_heater_start_and_schedule_on_if_people_back_from_journey
-
-  - alias: W-DS Water Heater On Schedule
-    id: "1600016351672"
-    description: "automation.water_heater_on_schedule"
-    trigger:
-      - minutes: /5
-        platform: time_pattern
-    condition: []
-    action:
-      - choose:
-          # Turn on water heater in the scheduled ON time
-          - conditions:
-              - condition: or
-                conditions:
-                  - after: "05:00:00"
-                    before: "06:00:00"
-                    condition: time
-                  - after: "16:00:00"
-                    before: "17:00:00"
-                    condition: time
-            sequence:
-              - service: switch.turn_on
-                entity_id: switch.water_heater
-        # ELSE - turn off water heater out of the scheduled ON time
-        default:
-          - service: switch.turn_off
-            entity_id: switch.water_heater
 
   ###############################################
   # Lighting Automation based on motion sensors
