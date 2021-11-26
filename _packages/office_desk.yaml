@@ -14,7 +14,7 @@ light:
     name: Kes Desk Lamps
     entities:
       - light.kes_desk_lamp_1_hue
-      - light.kes_desk_lamp_2
+      - light.kes_desk_lamp_1_tuya
 
 input_boolean:
   # Use for detecting if there is an outstanding setting update scheduled
@@ -36,7 +36,7 @@ input_boolean:
 automation:
   # Tais Desk
   # Lighting Automation based on motion sensors
-  - alias: L-OD Tai's Desk light On If Person Present Sits In the Chair
+  - alias: L-OD Tai's Desk light On If People Present Sits In the Chair
     description: ""
     trigger:
       #- entity_id: sensor.tais_desk_chair_movement_sensor
@@ -100,7 +100,7 @@ automation:
   #      # Daylight setting
   #      - conditions:
   #          - condition: time
-  #            after: input_datetime.early_daylight_start
+  #            after: input_datetime.beginning_of_early_morning
   #        sequence:
   #          - service: light.turn_on
   #            entity_id: light.tais_desk_lamps
@@ -110,8 +110,8 @@ automation:
   #      # Nighttime setting setting
   #      - conditions:
   #          - condition: time
-  #            after:  input_datetime.nighttime_start
-  #            before: input_datetime.midnight_start
+  #            after:  input_datetime.beginning_of_evening
+  #            before: input_datetime.beginning_of_midnight
   #        sequence:
   #          - service: light.turn_on
   #            entity_id: light.tais_desk_lamps
@@ -185,7 +185,7 @@ automation:
         input_boolean_outstanding_setting_update: input_boolean.kes_desk_outstanding_setting_update
 
   # Lighting Automation based on buttons
-  - alias: B-BR Guest Room Button Double Press - Toggle Tai's Desk Screen LED/Desk Lamps
+  - alias: B-GR Guest Room Button Double Press - Toggle Tai's Desk Screen LED/Desk Lamps
     trigger:
       - platform: state
         entity_id: sensor.guest_room_button
@@ -214,3 +214,16 @@ automation:
         entity_id: switch.kes_desk_screen_led
       - service: light.toggle
         entity_id: light.kes_desk_lamps
+
+  - alias: L-ER Turn on En-suite Room Ceiling Light if desk light is on
+    trigger:
+      - platform: state
+        entity_id: switch.tais_desk_screen_led
+        to: 'on'
+      - platform: state
+        entity_id: switch.kes_desk_screen_led
+        to: 'on'
+    action:
+      - service: light.turn_on
+        entity_id: light.en_suite_room_ceiling_light
+

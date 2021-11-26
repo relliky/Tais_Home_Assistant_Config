@@ -1,0 +1,148 @@
+# System Sensors
+sensor:
+  # This sensor capture DNS public IP
+  - platform: dnsip
+    name: Public IP
+    
+  # System resource 
+  - platform: systemmonitor
+    resources:
+      - type: disk_use
+        arg: /
+      - type: memory_use
+      - type: memory_free
+      - type: swap_use
+      - type: swap_free      
+      - type: load_1m
+      - type: processor_use 
+      - type: processor_temperature
+  
+  # CPU Clock Frequency
+  - platform: command_line
+    name: "CPU Clock Frequency"
+    command: 'cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq'
+    unit_of_measurement: 'MHz'
+    value_template: '{{ value | multiply(0.001) }}'
+  
+  # Uptime
+  - platform: uptime
+    name: Boot Time
+  - platform: template
+    sensors:
+      uptime:
+        friendly_name: "Uptime"
+        value_template: >-
+          {% set t = now() %}
+          {{ relative_time(strptime(states('sensor.boot_time'), '%Y-%m-%dT%H:%M:%S.%f%z')) }}
+
+  # Bad Login Attempts
+  - platform: command_line
+    name: badlogin
+    command: "grep -c 'Login attempt' /home/hass/.homeassistant/home-assistant.log"
+  
+  # QNAP NAS
+  - platform: qnap
+    host: 10.1.1.25
+    username: admin
+    password: admin
+    monitored_conditions:
+      - status
+      - cpu_usage
+      - memory_percent_used
+      - network_tx
+      - volume_percentage_used
+      - volume_size_free
+    
+# Remove Acccess via HTTPS
+http:
+  ssl_certificate: /ssl/fullchain.pem
+  ssl_key: /ssl/privkey.pem
+  ip_ban_enabled: true
+  login_attempts_threshold: 10
+
+# Main DDNS - DuckDNS (needs to renew every 3 months mannually if auto-renew fails)
+# Alt. DDNS - No-ip   (needs to renew every 1  month mannually)
+no_ip:
+  domain: relliky.ddns.net
+  username: !secret no_ip_account
+  password: !secret no_ip_password
+
+# Database logging config
+recorder:
+  purge_keep_days: 1
+  auto_purge: true
+  commit_interval: 15 # updates log every 15s
+  #db_url: mysql://hass_user:hass_pass@core-mariadb/homeassistant?charset=utf8mb4
+  
+  
+# WOL switch on PCs
+switch:
+  - platform: wake_on_lan
+    mac: b8:88:e3:33:cf:17
+    name: Old Laptop
+    host: 10.1.1.5
+    broadcast_address: 10.1.1.255
+    
+  - platform: wake_on_lan
+    mac: 8c:16:45:69:fe:4d
+    name: Home Server
+    host: 192.168.1.7
+    broadcast_address: 192.168.1.255
+    
+  - platform: wake_on_lan
+    mac: 24:5E:BE:09:3D:E0
+    name: NAS
+    host: 10.1.1.25
+    broadcast_address: 192.168.1.255
+    
+
+input_datetime:
+  log_disable_time:
+    name: "Log Disable Time"
+    has_date: true
+    has_time: true
+    
+automation:
+  # - Starts Log Enable and set timeout
+  - alias: Enable/Disable Logging By The State of The Log Enable and Set Timeout for 48 Hours
+    id: "1607918439986"
+    trigger:
+      - platform: state
+        entity_id: input_boolean.log_enable
+        to:
+          - "on"
+          - "off"
+    action:
+      - service: >
+          {% if states('input_boolean.log_enable') == 'on' %}
+            recorder.enable
+          {% else %}
+            recorder.disable
+          {% endif %}
+      # Reset the Timer          
+      - service: input_datetime.set_datetime
+        entity_id: input_datetime.log_disable_time
+        data_template:
+          datetime: "{{ (now().timestamp())| timestamp_custom('%Y-%m-%d %H:%M:%S', true) }}"
+      # IF log_enable is ON 
+      - condition: state
+        entity_id: input_boolean.log_enable
+        state: "on"
+      # Make the timeout to 1 day later
+      - service: input_datetime.set_datetime
+        entity_id: input_datetime.log_disable_time
+        data_template:
+          datetime: "{{ (now().timestamp() + 60*60*24)| timestamp_custom('%Y-%m-%d %H:%M:%S', true) }}"
+
+  - alias: Turn Off Logging By The Timeout
+    id: "1607918439987"
+    trigger:
+      - platform: time_pattern
+        minutes: "/5"
+    action:
+      # Time condition does not work with input_datetime so have to use template to work aorund
+      - condition: template
+        value_template: "{{now().timestamp() > state_attr('input_datetime.log_disable_time', 'timestamp')}}"
+      - service: input_boolean.turn_off
+        entity_id: input_boolean.log_enable
+      - service: recorder.disable

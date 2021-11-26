@@ -3,26 +3,7 @@
 # Custom Entities
 #
 ###########################################
-
-light:
-  - platform: group
-    name: Kitchen Ceiling Light
-    entities:
-      #- light.kitchen_spotlight_bulb_1_localtuya
-      #- light.kitchen_spotlight_bulb_2_localtuya
-      #- light.kitchen_spotlight_bulb_3_localtuya
-      #- light.kitchen_spotlight_bulb_4_localtuya
-      #- light.kitchen_spotlight_bulb_5_localtuya
-      #- light.kitchen_spotlight_bulb_6_localtuya
-      #- light.kitchen_spotlight_bulb_7_localtuya
-      - light.kitchen_ceiling_light_1_hue
-      - light.kitchen_ceiling_light_2_hue
-      - light.kitchen_ceiling_light_3_hue
-      - light.kitchen_ceiling_light_4_hue
-      - light.kitchen_ceiling_light_5_hue
-      - light.kitchen_ceiling_light_6_hue
-      - light.kitchen_ceiling_light_7_hue
-
+    
 # Room Motion
 group:
   kitchen_motion:
@@ -40,6 +21,12 @@ input_boolean:
   kitchen_slideshow_enable:
     name: "Kitchen Slideshow Enable"
 
+# Fire TV
+media_player:
+  - platform: androidtv
+    name: Kitchen Fire TV
+    host: 10.1.1.32
+    
 # TV picture mode
 input_select:
   kitchen_tv_picture_mode:
@@ -173,7 +160,7 @@ script:
       - service: light.turn_on
         entity_id: light.kitchen_ceiling_light
         data:
-          kelvin: 3000
+          kelvin: 2200
       - service: light.turn_on
         entity_id: light.kitchen_dining_light
         data:
@@ -303,7 +290,7 @@ automation:
   ###############################################
   # Heating Automation based on motion sensors
   ###############################################
-  - alias: H-KC Kitchen Heating And Drinking Hot Water On If Person Present
+  - alias: H-KC Kitchen Heating And Drinking Hot Water On If People Present
     id: "1599609685194"
     description: "automation.kitchen_heating_on_if_people_present"
     trigger:
@@ -386,9 +373,9 @@ automation:
   ###############################################
   # Lighting Automation based on motion sensors
   ###############################################
-  - alias: L-KC Kitchen Lights On If Person Present and Dim In Daytime
+  - alias: L-KC Kitchen Lights On If People Present and Dim In Daytime
     id: "1603640029617"
-    description: "automation.kitchen_lights_on_if_person_present_and_dark_in_daytime"
+    description: "automation.kitchen_lights_on_if_people_present_and_dark_in_daytime"
     trigger:
       - entity_id: binary_sensor.kitchen_dining_motion_sensor_motion
         platform: state
@@ -412,7 +399,7 @@ automation:
     action:
       - service: script.kitchen_set_bright_warm_light
 
-  - alias: L-KC Kitchen Lights On If Person Present In Nighttime
+  - alias: L-KC Kitchen Lights On If People Present In Nighttime
     id: "1603640029618"
     description: ""
     trigger:
@@ -428,6 +415,12 @@ automation:
       - after: "00:00:00"
         before: "06:00:00"
         condition: time
+      - condition: state
+        entity_id:
+          - light.kitchen_ceiling_light
+          - light.kitchen_dining_light
+        state: "off"
+        for: "00:00:05"
     action:
       - service: light.turn_on
         entity_id:
@@ -525,7 +518,7 @@ automation:
             - condition: template
               value_template: "{{states('media_player.kitchen_tv') == 'off'}}"
 
-  - alias: L-KC Kitchen Cool White Lights On If Person Present In Worktop In Daytime
+  - alias: L-KC Kitchen Cool White Lights On If People Present In Worktop In Daytime
     id: "1603640020051"
     description: ""
     trigger:
@@ -550,7 +543,7 @@ automation:
         data:
           kelvin: 4000
 
-  - alias: L-KC Kitchen To Warm White If No Person Present In Worktop In Daytime
+  - alias: L-KC Kitchen To Warm White If No People Present In Worktop In Daytime
     description: ""
     trigger:
       - entity_id: binary_sensor.kitchen_worktop_motion_sensor_motion
@@ -669,28 +662,6 @@ automation:
       # the second action will be ignored until this action is finished.
       - delay: 02:00:00
 
-  #- alias: T-KC Kitchen Light Update Colour At Night
-  #  trigger:
-  #    - at: "00:00:00"
-  #      platform: time
-  #  action:
-  #    - choose:
-  #        # If the light is already on - change colour temperature only
-  #        - conditions:
-  #            - condition: state
-  #              entity_id: light.kitchen_ceiling_light
-  #              state: "on"
-  #          sequence:
-  #            - service: script.kitchen_set_dark_warm_light
-  #      # ELSE - change colour temperature and turn it off
-  #      default:
-  #        - service: script.kitchen_set_dark_warm_light
-  #        - delay: "00:00:05"
-  #        - service: light.turn_off
-  #          entity_id:
-  #           - light.kitchen_ceiling_light
-  #           - light.kitchen_dining_light
-
   #################################################################
   # Sonos Speakers Grouping/Ungrouping Based On Motion Sensor
   #################################################################
@@ -796,3 +767,29 @@ automation:
     action:
       - service: vacuum.start
         entity_id: vacuum.xiaomi_vacuum_cleaner
+
+script kitchen_noti:
+  kitchen_window_left_open_critical_notification:
+    alias: Kitchen Window Left Open Critical Notification
+    sequence:
+    - service: notify.mobile_app_tais_iphone
+      data:
+        message: Kitchen Window Left Open
+        data:
+          push:
+            name: default
+            critical: 1
+            volume: 1
+        
+#automation window:  
+#  - alias: W-KC Kitchen Window Left Open, Push Notification
+#    id: "1603148420051"
+#    description: ""
+#    trigger:
+#      - at: 04:00:00
+#        platform: time
+#    condition:
+#    action:
+#      - service: vacuum.start
+#        entity_id: vacuum.xiaomi_vacuum_cleaner
+

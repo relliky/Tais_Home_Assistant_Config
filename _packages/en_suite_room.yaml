@@ -39,11 +39,11 @@ climate:
 group:
   en_suite_room_motion:
     name: En-suite Room Motion
-    entities: 
-      - binary_sensor.en_suite_room_motion_sensor_motion
+    entities:
+      - binary_sensor.en_suite_room_bed_motion_sensor_motion
       - binary_sensor.kes_desk_motion_sensor_motion
       - binary_sensor.tais_desk_motion_sensor_motion
-          
+
 # Custom Variables
 input_boolean:
   # Spare Room Usage
@@ -64,9 +64,17 @@ input_boolean:
     name: "En-suite Room Outstanding Setting Update"
     initial: "off"
 
+# Valve Setting
 input_text:
   en_suite_room_valve_log:
     name: En-suite Room Valve Log
+
+input_number:
+  en_suite_room_default_temperature:
+    name: En-suite Room Default Temperature
+    min: 18
+    max: 25
+    step: 0.5
 
 ###############################################
 #
@@ -96,27 +104,6 @@ script:
           - light.en_suite_room_bed_led
           #- switch.en_suite_room_bedside_lamp
 
-  en_suite_room_set_heating_temp_with_state_maintaince:
-    alias: En-suite Room Set Heating Temperature With State Maintaince
-    mode: restart
-    sequence:
-      # clear the short presence flag
-      - service: input_boolean.turn_off
-        entity_id: input_boolean.en_suite_room_short_presence
-      # turn on heating
-      - data:
-          hvac_mode: heat
-        entity_id: climate.en_suite_room
-        service: climate.set_hvac_mode
-      - data:
-          temperature: 22.5
-        entity_id: climate.en_suite_room
-        service: climate.set_temperature
-      - data:
-          stop_actions: false
-        entity_id: automation.en_suite_room_heating_on_if_person_present
-        service: automation.turn_off
-
 ###############################################
 #
 # Automations:
@@ -136,11 +123,8 @@ automation:
     trigger:
       - entity_id: group.en_suite_room_motion
         platform: state
-        from: "on"
         to: "off"
         for: 00:15:00
-      - minutes: /5
-        platform: time_pattern
     condition:
       - condition: or
         conditions:
@@ -183,13 +167,15 @@ automation:
                 entity_id: input_boolean.en_suite_room_guests_use_this_room
                 state: "on"
     action:
-      # Turn Off Room Thermostat and Turn On Auto Heating
+      # Turn off room thermostat and Turn On Auto Heating
+      - service: automation.turn_off
+        entity_id: automation.en_suite_room_heating_scheduler
       - service: climate.set_hvac_mode
         entity_id: climate.en_suite_room
         data:
           hvac_mode: "off"
       - service: automation.turn_on
-        entity_id: automation.en_suite_room_heating_on_if_person_present
+        entity_id: automation.en_suite_room_heating_on_if_people_present
       # Clear flags
       - service: input_boolean.turn_off
         entity_id: input_boolean.en_suite_room_short_presence
@@ -197,47 +183,31 @@ automation:
       - service: script.turn_on
         entity_id: script.en_suite_room_all_lights_turn_off
       - service: automation.turn_on
-        entity_id: automation.en_suite_room_lights_on_if_person_present
+        entity_id: automation.en_suite_room_lights_on_if_people_present
 
-  - alias: H-ER En-suite Room Heating On If Person Present
+  - alias: H-ER En-suite Room Heating On If People Present
     id: "1599909943111"
-    description: "automation.en_suite_room_heating_on_if_person_present"
+    description: "automation.en_suite_room_heating_on_if_people_present"
+    use_blueprint:
+      path: room_delayed_action.yaml
+      input:
+        binary_sensor_motion_sensors: group.en_suite_room_motion
+        input_boolean_short_presence: input_boolean.en_suite_room_short_presence
+        automation_this_automation_entity: automation.en_suite_room_heating_on_if_people_present
+        automations_to_be_triggered_and_on: automation.en_suite_room_heating_scheduler
+
+  - alias: H-ER En-suite Room Heating Scheduler
+    id: "1515909948789"
+    description: "automation.en_suite_room_heating_scheduler"
     trigger:
-      - entity_id: group.en_suite_room_motion
-        platform: state
-        from: "off"
-        to: "on"
-    # Queued mode guarentees race condition are in series
-    mode: queued
+      - platform: state
+        entity_id: input_number.en_suite_room_default_temperature
     action:
-      # Resolve race on multiple triggers - only execute instances that
-      # turned on heating and turned off the automation.
-      - condition: state
-        entity_id: automation.en_suite_room_heating_on_if_person_present
-        state: "on"
-      # Turn on heating on repeated short presence or longer presence
-      - choose:
-          # IF - first time entering, set the flag
-          #      Longer presence will turn on heating
-          - conditions:
-              # Wait for 1.5 min if it is the first time of presence
-              - condition: state
-                entity_id: input_boolean.en_suite_room_short_presence
-                state: "off"
-            sequence:
-              # set the short presence flag
-              - service: input_boolean.turn_on
-                entity_id: input_boolean.en_suite_room_short_presence
-              # Delay 1.5 min and test motion sensor
-              - delay: 00:01:45
-              - condition: state
-                entity_id: group.en_suite_room_motion
-                state: "on"
-              # Longer presence will turn on heating
-              - service: script.en_suite_room_set_heating_temp_with_state_maintaince
-        # ELSE - Repeated short presence will turn on heating
-        default:
-          - service: script.en_suite_room_set_heating_temp_with_state_maintaince
+      - data:
+          temperature: "{{states('input_number.en_suite_room_default_temperature')}}"
+          hvac_mode: "heat"
+        entity_id: climate.en_suite_room
+        service: climate.set_temperature
 
   - alias: H-ER En-suite Room Valve Calibrate Temperature
     id: "1343567382451"
@@ -252,9 +222,9 @@ automation:
   # Lighting Automation based on motion sensors
   ###############################################
   # En-suite Room Lights
-  - alias: L-ER En-suite Room Lights On If Person Present
+  - alias: L-ER En-suite Room Lights On If People Present
     id: "1603640029650"
-    description: "automation.en_suite_room_lights_on_if_person_present"
+    description: "automation.en_suite_room_lights_on_if_people_present"
     trigger:
       - entity_id: binary_sensor.en_suite_room_motion_sensor_motion
         platform: state
@@ -269,7 +239,7 @@ automation:
         below: "40"
     action:
       - service: script.en_suite_room_all_lights_turn_on
-      - entity_id: automation.en_suite_room_lights_on_if_person_present
+      - entity_id: automation.en_suite_room_lights_on_if_people_present
         service: automation.turn_off
 
   ###############################################
@@ -345,9 +315,9 @@ automation:
       - delay: 00:00:30
       - service: automation.turn_off
         entity_id:
-          - automation.en_suite_room_lights_on_if_person_present
+          - automation.en_suite_room_lights_on_if_people_present
       # Short presence machanism requires to turn off auto-heating late
       - delay: 00:03:00
       - service: automation.turn_off
         entity_id:
-          - automation.en_suite_room_heating_on_if_person_present
+          - automation.en_suite_room_heating_on_if_people_present

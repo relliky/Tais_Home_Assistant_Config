@@ -8,9 +8,6 @@ default_config:
 # * [HW] Fixed the living room light switches possibly by replacing a new smart switch
 # * change all bedroom light colour on the time (using light state off->on as trigger)
 # * blueprint instance for heating automation
-# * Master room lamps with localtuya to support colour mode
-# * Replace living room LED with a working controller
-# * Garden bike shed sensor can be easily triggered by grass movement. Move it to a proper place to avoid that. Currently disabled this sensor.
 
 homeassistant:
   customize: !include customize.yaml
@@ -18,54 +15,18 @@ homeassistant:
   internal_url: http://homeassistant.local:8123
   external_url: https://relliky.duckdns.org:38123
 
-# This sensor capture DNS public IP
-sensor:
-  - platform: dnsip
-
-# System Sensors
-sensor system:
-  - platform: systemmonitor
-    resources:
-      - type: disk_use
-        arg: /
-      - type: memory_use
-      - type: load_1m
-      - type: processor_use
-
-# Remove Acccess via HTTPS
-http:
-  ssl_certificate: /ssl/fullchain.pem
-  ssl_key: /ssl/privkey.pem
-  ip_ban_enabled: true
-  login_attempts_threshold: 10
 
 automation gui: !include automations.yaml
 script gui: !include scripts.yaml
 
-# Main DDNS - DuckDNS
-# Alt. DDNS - No-ip (needs to renew every 30 days)
-no_ip:
-  domain: relliky.ddns.net
-  username: !secret no_ip_account
-  password: !secret no_ip_password
-
-# Database logging config
-recorder:
-  purge_keep_days: 2
-  auto_purge: true
-  commit_interval: 15 # updates log every 15s
-  #db_url: mysql://hass_user:hass_pass@core-mariadb/homeassistant?charset=utf8mb4
 
 # Front-end
 frontend:
   themes: !include_dir_merge_named themes
 
+# Scene
+scene: !include scenes.yaml
 
-media_player:
-  # Use the Python ADB implementation
-  - platform: androidtv
-    name: Master Room Fire TV
-    host: 10.1.1.34
 
 
 # HA_On_VMs needs to enable USB->Bluetooh
@@ -83,7 +44,11 @@ media_player:
 #      mac: 34CE008D7558
 
 # Debug Homekit Integration
-
+#logger:
+#  default: warning
+#  logs:
+#    homeassistant.components.emulated_hue: debug
+#    
 # Install Mini Media Player
 #resources:
 #  - url: /local/mini-media-player-bundle.js?v=1.11.0
@@ -130,4 +95,42 @@ media_player:
 #               'A4:C1:38:EC:DB:BA': '1b535cbb3e68651bd67157ee0775e5cb'
 #               # Kitchen Worktop Temperature Sensor
 #               #'58:2d:34:3b:6a:27'
+
+#  NAME:     Master Room Temperature Sensor 2 Xiaomi
+#  ID:       blt.3.1467pp0eg5c00
+#  BLE KEY:  5C9DA96F6F339A9D000C37749B2FE09A
+#  TOKEN:    00A475CA3A37D4B4DACE8407
+#  MODEL:    miaomiaoce.sensor_ht.t2
+#  ---------
+#  NAME:     En-suite Room Temperature Sensor
+#  ID:       blt.3.146api6dklk00
+#  BLE KEY:  BB13EF8420698DD987C97F9A7FF32536
+#  TOKEN:    E8532EF2107F5241C0FAC84F
+#  MODEL:    miaomiaoce.sensor_ht.t2
+#  ---------
+#  NAME:     Master Room Temperature Sensor 1 Xiaomi
+#  ID:       blt.3.14b0ck638e000
+#  BLE KEY:  3A7C3675CB8094BB1241D3E224F663CB
+#  TOKEN:    4587BB420439B8967E86E403
+#  MODEL:    miaomiaoce.sensor_ht.t2
+#  ---------
+#  NAME:     温湿度计3
+#  ID:       blt.3.14b1d2obkeg01
+#  BLE KEY:  d75f4a31ea1b2bfb1257f432b9bf1711
+#  TOKEN:    470522e3206fb14df129b831
+#  MODEL:    miaomiaoce.sensor_ht.t2
+#  ---------
+#  NAME:     Living Room Temperature Sensor Xiaomi
+#  ID:       blt.3.14b4dbro4e800
+#  BLE KEY:  7C0EA966C9A6E90024FC1D29710B4EE0
+#  TOKEN:    C6A64B4F58A621797D158E58
+#  MODEL:    miaomiaoce.sensor_ht.t2
+#  ---------
+#  NAME:     温湿度计2
+#  ID:       blt.3.14c9qafe45s00
+#  BLE KEY:  74bdbf1be34fcd5f16f44e8e99c1589c
+#  TOKEN:    6c13db63db5724ee4473099e
+#  MODEL:    miaomiaoce.sensor_ht.t2
+
+
 

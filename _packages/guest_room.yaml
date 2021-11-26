@@ -14,8 +14,6 @@
 #         name: Guest Room Bed LED
 #         mode: "rgb"
 
-
-
 ###########################################
 #
 # Custom Entities
@@ -38,10 +36,9 @@ climate:
 group:
   guest_room_motion:
     name: Guest Room Motion
-    entities: 
+    entities:
       - binary_sensor.guest_room_radiator_motion_sensor_motion
       - binary_sensor.guest_room_bed_motion_sensor_motion
-          
 
 # Custom Variables
 input_boolean:
@@ -58,13 +55,11 @@ input_boolean:
     name: "Guest Room Short Presence"
     initial: "off"
 
-
-
 ###############################################
 #
 # Scripts
 #
-###############################################  
+###############################################
 script:
   guest_room_all_lights_turn_on:
     alias: Guest Room All Lights Turn On
@@ -85,7 +80,7 @@ script:
       #    - switch.guest_room_screen_led
       - service: light.turn_off
         entity_id:
-      #    - light.guest_room_lamps
+          #    - light.guest_room_lamps
           - light.guest_room_ceiling_light
 
   guest_room_set_heating_temp_with_state_maintaince:
@@ -106,9 +101,8 @@ script:
         service: climate.set_temperature
       - data:
           stop_actions: false
-        entity_id: automation.guest_room_heating_on_if_person_present
+        entity_id: automation.guest_room_heating_on_if_people_present
         service: automation.turn_off
-
 
 ###############################################
 #
@@ -120,284 +114,276 @@ script:
 #
 ###############################################
 automation:
-###############################################
-# Heating Automation based on motion sensors
-###############################################
-- alias: HL-GR Guest Room Heating Off If No Person For 15 Min
-  id: "1599910386222"
-  trigger:
-    - entity_id: binary_sensor.guest_room_radiator_motion_sensor_motion
-      platform: state
-      from: "on"
-      to: "off"
-      for: 00:15:00
-    - entity_id: binary_sensor.guest_room_bed_motion_sensor_motion
-      platform: state
-      from: "on"
-      to: "off"
-      for: 00:15:00
-    - minutes: /5
-      platform: time_pattern
-  condition:
-    - condition: or
-      conditions:
-        # IF - in daytime, turn off lighting/heating if no person for 15 min
-        - condition: and
-          conditions:
-            - after: "10:00:00"
-              before: "22:00:00"
-              condition: time
-            - condition: state
-              entity_id:
-                # "AND" logics - Both entities need to be pass this condition
-                - binary_sensor.guest_room_radiator_motion_sensor_motion
-                - binary_sensor.guest_room_bed_motion_sensor_motion
-              for: 00:15:00
-              state: "off"
-        # ELSEIF - in nighttime, if no people live in the room,
-        #          turn off lighting/heating if no person for 15 min
-        - condition: and
-          conditions:
-            - after: "22:00:00"
-              before: "10:00:00"
-              condition: time
-            - condition: state
-              entity_id:
-                - binary_sensor.guest_room_radiator_motion_sensor_motion
-                - binary_sensor.guest_room_bed_motion_sensor_motion
-              for: 00:15:00
-              state: "off"
-            - condition: state
-              entity_id: input_boolean.guest_room_guests_use_this_room
-              state: "off"
-        # ELSEIF - in nighttime, if people live in the room
-        #          turn off lighting/heating if no person for 2 hours
-        - condition: and
-          conditions:
-            - after: "22:00:00"
-              before: "10:00:00"
-              condition: time
-            - condition: state
-              entity_id:
-                - binary_sensor.guest_room_radiator_motion_sensor_motion
-                - binary_sensor.guest_room_bed_motion_sensor_motion
-              for: 02:00:00
-              state: "off"
-            - condition: state
-              entity_id: input_boolean.guest_room_guests_use_this_room
-              state: "on"
-  action:
-    # Turn Off Heating
-    - service: climate.set_hvac_mode
-      entity_id: climate.guest_room
-      data:
-        hvac_mode: "off"
-    - service: automation.turn_on
-      entity_id: automation.guest_room_heating_on_if_person_present
-    # Clear flags
-    - service: input_boolean.turn_off
-      entity_id: input_boolean.guest_room_short_presence
-    # Turn Off Lighting
-    - service: script.guest_room_all_lights_turn_off
-    - service: automation.turn_on
-      entity_id: automation.guest_room_lights_on_if_person_present
+  ###############################################
+  # Heating Automation based on motion sensors
+  ###############################################
+  - alias: HL-GR Guest Room Heating Off If No Person For 15 Min
+    id: "1599910386222"
+    trigger:
+      - entity_id: binary_sensor.guest_room_radiator_motion_sensor_motion
+        platform: state
+        from: "on"
+        to: "off"
+        for: 00:15:00
+      - entity_id: binary_sensor.guest_room_bed_motion_sensor_motion
+        platform: state
+        from: "on"
+        to: "off"
+        for: 00:15:00
+      - minutes: /5
+        platform: time_pattern
+    condition:
+      - condition: or
+        conditions:
+          # IF - in daytime, turn off lighting/heating if no person for 15 min
+          - condition: and
+            conditions:
+              - after: "10:00:00"
+                before: "22:00:00"
+                condition: time
+              - condition: state
+                entity_id:
+                  # "AND" logics - Both entities need to be pass this condition
+                  - binary_sensor.guest_room_radiator_motion_sensor_motion
+                  - binary_sensor.guest_room_bed_motion_sensor_motion
+                for: 00:15:00
+                state: "off"
+          # ELSEIF - in nighttime, if no people live in the room,
+          #          turn off lighting/heating if no person for 15 min
+          - condition: and
+            conditions:
+              - after: "22:00:00"
+                before: "10:00:00"
+                condition: time
+              - condition: state
+                entity_id:
+                  - binary_sensor.guest_room_radiator_motion_sensor_motion
+                  - binary_sensor.guest_room_bed_motion_sensor_motion
+                for: 00:15:00
+                state: "off"
+              - condition: state
+                entity_id: input_boolean.guest_room_guests_use_this_room
+                state: "off"
+          # ELSEIF - in nighttime, if people live in the room
+          #          turn off lighting/heating if no person for 2 hours
+          - condition: and
+            conditions:
+              - after: "22:00:00"
+                before: "10:00:00"
+                condition: time
+              - condition: state
+                entity_id:
+                  - binary_sensor.guest_room_radiator_motion_sensor_motion
+                  - binary_sensor.guest_room_bed_motion_sensor_motion
+                for: 02:00:00
+                state: "off"
+              - condition: state
+                entity_id: input_boolean.guest_room_guests_use_this_room
+                state: "on"
+    action:
+      # Turn Off Heating
+      - service: climate.set_hvac_mode
+        entity_id: climate.guest_room
+        data:
+          hvac_mode: "off"
+      - service: automation.turn_on
+        entity_id: automation.guest_room_heating_on_if_people_present
+      # Clear flags
+      - service: input_boolean.turn_off
+        entity_id: input_boolean.guest_room_short_presence
+      # Turn Off Lighting
+      - service: script.guest_room_all_lights_turn_off
+      - service: automation.turn_on
+        entity_id: automation.guest_room_lights_on_if_people_present
 
+  - alias: H-GR Guest Room Heating Set to 22 If People Present
+    id: "1599909943222"
+    description: "automation.guest_room_heating_on_if_people_present"
+    trigger:
+      - entity_id: binary_sensor.guest_room_radiator_motion_sensor_motion
+        platform: state
+        from: "off"
+        to: "on"
+      - entity_id: binary_sensor.guest_room_bed_motion_sensor_motion
+        platform: state
+        from: "off"
+        to: "on"
+    # Queued mode guarentees race condition are in series
+    mode: queued
+    action:
+      # Resolve race on multiple triggers - only execute instances that
+      # turned on heating and turned off the automation.
+      - condition: state
+        entity_id: automation.guest_room_heating_on_if_people_present
+        state: "on"
+      # Turn on heating on repeated short presence or longer presence
+      - choose:
+          # IF - first time entering, set the flag
+          #      Longer presence will turn on heating
+          - conditions:
+              # Wait for 1.5 min if it is the first time of presence
+              - condition: state
+                entity_id: input_boolean.guest_room_short_presence
+                state: "off"
+            sequence:
+              # set the short presence flag
+              - service: input_boolean.turn_on
+                entity_id: input_boolean.guest_room_short_presence
+              # Delay 1.5 min and test motion sensor
+              - delay: 00:01:45
+              - condition: or
+                conditions:
+                  - condition: state
+                    entity_id: binary_sensor.guest_room_radiator_motion_sensor_motion
+                    state: "on"
+                  - condition: state
+                    entity_id: binary_sensor.guest_room_bed_motion_sensor_motion
+                    state: "on"
+              # Longer presence will turn on heating
+              - service: script.guest_room_set_heating_temp_with_state_maintaince
+        # ELSE - Repeated short presence will turn on heating
+        default:
+          - service: script.guest_room_set_heating_temp_with_state_maintaince
 
-- alias: H-GR Guest Room Heating Set to 22 If Person Present
-  id: "1599909943222"
-  description: "automation.guest_room_heating_on_if_person_present"
-  trigger:
-    - entity_id: binary_sensor.guest_room_radiator_motion_sensor_motion
-      platform: state
-      from: "off"
-      to: "on"
-    - entity_id: binary_sensor.guest_room_bed_motion_sensor_motion
-      platform: state
-      from: "off"
-      to: "on"
-  # Queued mode guarentees race condition are in series
-  mode: queued
-  action:
-    # Resolve race on multiple triggers - only execute instances that
-    # turned on heating and turned off the automation.
-    - condition: state
-      entity_id: automation.guest_room_heating_on_if_person_present
-      state: "on"
-    # Turn on heating on repeated short presence or longer presence
-    - choose:
-        # IF - first time entering, set the flag
-        #      Longer presence will turn on heating
-        - conditions:
-            # Wait for 1.5 min if it is the first time of presence
-            - condition: state
-              entity_id: input_boolean.guest_room_short_presence
-              state: "off"
-          sequence:
-            # set the short presence flag
-            - service: input_boolean.turn_on
-              entity_id: input_boolean.guest_room_short_presence
-            # Delay 1.5 min and test motion sensor
-            - delay: 00:01:45
-            - condition: or
-              conditions:
-                - condition: state
-                  entity_id: binary_sensor.guest_room_radiator_motion_sensor_motion
-                  state: "on"
-                - condition: state
-                  entity_id: binary_sensor.guest_room_bed_motion_sensor_motion
-                  state: "on"
-            # Longer presence will turn on heating
-            - service: script.guest_room_set_heating_temp_with_state_maintaince
-      # ELSE - Repeated short presence will turn on heating
-      default:
-        - service: script.guest_room_set_heating_temp_with_state_maintaince
+  - alias: H-GR Guest Room Thermostat Switch Turns On/Off The Tado Valve
+    id: "1569909948781"
+    trigger:
+      - platform: state
+        entity_id: input_boolean.guest_room_valve_switch
+        to:
+          - "off"
+          - "on"
+      - minutes: /5
+        platform: time_pattern
+    condition: []
+    action:
+      - data:
+          hvac_mode: heat
+        entity_id:
+          - climate.guest_room
+        service: climate.set_hvac_mode
+      - data:
+          # Set tado temperature based on outdoor temperatures
+          temperature: >
+            {% if states('input_boolean.guest_room_valve_switch') == 'off' %}
+              5
+            {% elif states('sensor.cambridge_city_airport_temperature') < 2 %}
+              25
+            {% elif states('sensor.cambridge_city_airport_temperature') < 4 %}
+              24
+            {% elif states('sensor.cambridge_city_airport_temperature') < 6 %}
+              23
+            {% else %}
+              22
+            {% endif %}
+        entity_id: climate.guest_room
+        service: climate.set_temperature
 
+  ###############################################
+  # Lighting Automation based on motion sensors
+  ###############################################
+  - alias: L-GR Guest Room Ceiling Lights On If People Present
+    id: "1599910376296"
+    description: "automation.guest_room_lights_on_if_people_present"
+    trigger:
+      - entity_id: binary_sensor.guest_room_radiator_motion_sensor_motion
+        platform: state
+        from: "off"
+        to: "on"
+      - entity_id: binary_sensor.guest_room_bed_motion_sensor_motion
+        platform: state
+        from: "off"
+        to: "on"
+    condition:
+      - condition: or
+        conditions:
+          - condition: and
+            conditions:
+              - entity_id: binary_sensor.guest_room_radiator_motion_sensor_motion
+                condition: state
+                state: "on"
+              - entity_id: sensor.guest_room_radiator_motion_sensor_light
+                condition: numeric_state
+                below: "30"
+          - condition: and
+            conditions:
+              - entity_id: binary_sensor.guest_room_bed_motion_sensor_motion
+                condition: state
+                state: "on"
+              - entity_id: binary_sensor.guest_room_bed_motion_sensor_light
+                condition: numeric_state
+                below: "30"
+    action:
+      - service: light.turn_on
+        entity_id: light.guest_room_ceiling_light
+      - service: automation.turn_off
+        entity_id: automation.guest_room_lights_on_if_people_present
 
-- alias: H-GR Guest Room Thermostat Switch Turns On/Off The Tado Valve
-  id: "1569909948781"
-  trigger:
-    - platform: state
-      entity_id: input_boolean.guest_room_valve_switch
-      to:
-        - "off"
-        - "on"
-    - minutes: /5
-      platform: time_pattern
-  condition: []
-  action:
-    - data:
-        hvac_mode: heat
-      entity_id: 
-        - climate.guest_room
-      service: climate.set_hvac_mode
-    - data:
-        # Set tado temperature based on outdoor temperatures
-        temperature: >
-          {% if states('input_boolean.guest_room_valve_switch') == 'off' %}
-            5
-          {% elif states('sensor.cambridge_city_airport_temperature') < 2 %}
-            25
-          {% elif states('sensor.cambridge_city_airport_temperature') < 4 %}
-            24
-          {% elif states('sensor.cambridge_city_airport_temperature') < 6 %}
-            23
-          {% else %}
-            22
-          {% endif %}
-      entity_id: climate.guest_room
-      service: climate.set_temperature
+  ###############################################
+  # Lighting Automation based on buttons
+  ###############################################
+  - alias: B-GR Guest Room Wall Switch - Single Press - Toggle Ceiling Light
+    trigger:
+      - platform: state
+        entity_id: sensor.guest_room_ceiling_light_wall_switch
+        to: single
+    action:
+      - choose:
+          # IF - all lights off - turn on ceiling light
+          - conditions:
+              - condition: and
+                conditions:
+                  - condition: state
+                    entity_id: light.guest_room_ceiling_light
+                    state: "off"
+                  #- condition: state
+                  #  entity_id: switch.guest_room_screen_led
+                  #  state: "off"
+                  #- condition: state
+                  #  entity_id: light.guest_room_lamps
+                  #  state: "off"
+            sequence:
+              - service: light.turn_on
+                entity_id: light.guest_room_ceiling_light
+        # ELSE - some lights on - turn off all lights
+        default:
+          #- service: switch.turn_off
+          #  entity_id:
+          #    - switch.guest_room_screen_led
+          - service: light.turn_off
+            entity_id:
+              - light.guest_room_ceiling_light
+          #    - light.guest_room_lamps
 
-###############################################
-# Lighting Automation based on motion sensors
-###############################################
-- alias: L-GR Guest Room Ceiling Lights On If Person Present
-  id: "1599910376296"
-  description: "automation.guest_room_lights_on_if_person_present"
-  trigger:
-    - entity_id: binary_sensor.guest_room_radiator_motion_sensor_motion
-      platform: state
-      from: "off"
-      to: "on"
-    - entity_id: binary_sensor.guest_room_bed_motion_sensor_motion
-      platform: state
-      from: "off"
-      to: "on"
-  condition:
-    - condition: or
-      conditions:
-        - condition: and
-          conditions:
-            - entity_id: binary_sensor.guest_room_radiator_motion_sensor_motion
-              condition: state
-              state: "on"
-            - entity_id: sensor.guest_room_radiator_motion_sensor_light
-              condition: numeric_state
-              below: "30"
-        - condition: and
-          conditions:
-            - entity_id: binary_sensor.guest_room_bed_motion_sensor_motion
-              condition: state
-              state: "on"
-            - entity_id: binary_sensor.guest_room_bed_motion_sensor_light
-              condition: numeric_state
-              below: "30"
-  action:
-    - service: light.turn_on
-      entity_id: light.guest_room_ceiling_light
-    - service: automation.turn_off
-      entity_id: automation.guest_room_lights_on_if_person_present
+  #- alias: B-GR Guest Room Button Single Press - Toggle Ceiling Lights
+  #  trigger:
+  #    - platform: state
+  #      entity_id: sensor.guest_room_button
+  #      to: single
+  #  action:
+  #    - service: light.toggle
+  #      entity_id: light.guest_room_ceiling_light
 
-
-###############################################
-# Lighting Automation based on buttons
-###############################################
-- alias: B-GR Guest Room Wall Switch - Single Press - Toggle Ceiling Light
-  trigger:
-    - platform: state
-      entity_id: sensor.guest_room_ceiling_light_wall_switch
-      to: single
-  action:
-    - choose:
-        # IF - all lights off - turn on ceiling light
-        - conditions:
-            - condition: and
-              conditions:
-                - condition: state
-                  entity_id: light.guest_room_ceiling_light
-                  state: "off"
-                #- condition: state
-                #  entity_id: switch.guest_room_screen_led
-                #  state: "off"
-                #- condition: state
-                #  entity_id: light.guest_room_lamps
-                #  state: "off"
-          sequence:
-            - service: light.turn_on
-              entity_id: light.guest_room_ceiling_light
-      # ELSE - some lights on - turn off all lights
-      default:
-        #- service: switch.turn_off
-        #  entity_id:
-        #    - switch.guest_room_screen_led
-        - service: light.turn_off
-          entity_id:
-            - light.guest_room_ceiling_light
-        #    - light.guest_room_lamps
-
-#- alias: B-GR Guest Room Button Single Press - Toggle Ceiling Lights
-#  trigger:
-#    - platform: state
-#      entity_id: sensor.guest_room_button
-#      to: single
-#  action:
-#    - service: light.toggle
-#      entity_id: light.guest_room_ceiling_light
-
-
-######################################################
-# Maintaince on bedroom automation based on presence
-######################################################
-- alias: P-GR Guest Room Disable The Entering Room Automation If People Present
-  trigger:
-    - entity_id: binary_sensor.guest_room_radiator_motion_sensor_motion
-      platform: state
-      from: "off"
-      to: "on"
-    - entity_id: binary_sensor.guest_room_bed_motion_sensor_motion
-      platform: state
-      from: "off"
-      to: "on"
-  action:
-    - delay: 00:00:30
-    - service: automation.turn_off
-      entity_id:
-        - automation.guest_room_lights_on_if_person_present
-    - delay: 00:03:30
-    # Short presence machanism requires to turn off auto-heating late     
-    - service: automation.turn_off
-      entity_id:
-        - automation.guest_room_heating_on_if_person_present
-    
-
-
-
+  ######################################################
+  # Maintaince on bedroom automation based on presence
+  ######################################################
+  - alias: P-GR Guest Room Disable The Entering Room Automation If People Present
+    trigger:
+      - entity_id: binary_sensor.guest_room_radiator_motion_sensor_motion
+        platform: state
+        from: "off"
+        to: "on"
+      - entity_id: binary_sensor.guest_room_bed_motion_sensor_motion
+        platform: state
+        from: "off"
+        to: "on"
+    action:
+      - delay: 00:00:30
+      - service: automation.turn_off
+        entity_id:
+          - automation.guest_room_lights_on_if_people_present
+      - delay: 00:03:30
+      # Short presence machanism requires to turn off auto-heating late
+      - service: automation.turn_off
+        entity_id:
+          - automation.guest_room_heating_on_if_people_present

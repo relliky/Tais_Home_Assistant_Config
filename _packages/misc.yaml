@@ -26,56 +26,37 @@ input_boolean:
   placeholder:
     name: "Placeholder"
     initial: "off"
-  
+
 input_datetime:
-  log_disable_time:
-    name: "Log Disable Time"
-    has_date: true
-    has_time: true
-
-  early_daylight_start:
-    name: "Early Daylight Start"
+  beginning_of_early_morning:
+    name: "Beginning of Early Morning"
     has_date: false
     has_time: true
-    initial: "05:59:50"
+    initial: "05:59:55"
 
-  late_daylight_start:
-    name: "Late Daylight Start"
+  beginning_of_late_morning:
+    name: "Beginning of Late Morning"
     has_date: false
     has_time: true
-    initial: "09:59:50"
+    initial: "09:59:55"
 
-  nighttime_start:
-    name: "Nighttime Start"
+  beginning_of_evening:
+    name: "Beginning of Evening"
     has_date: false
     has_time: true
-    initial: "17:59:50"
+    initial: "17:59:55"
 
-  midnight_start:
-    name: "Midnight Start"
+  beginning_of_bedtime:
+    name: "Beginning of Bedtime"
     has_date: false
     has_time: true
-    initial: "22:59:50"
+    initial: "20:59:55"
 
-# Lights Temperature Changed for Flux
-#switch flux:
-#  - platform: flux
-#    lights:
-#      - light.guest_room_lamp_left
-#      - light.guest_room_lamp_right
-#      - light.guest_room_ceiling_light
-#      - light.study_lamp_left
-#      - light.study_lamp_right
-#      - light.study_ceiling_light
-#    name: Fluxer
-#    start_time: "6:00"
-#    stop_time: "23:00"
-#    start_colortemp: 6000
-#    sunset_colortemp: 5000
-#    stop_colortemp: 3000
-#    mode: mired
-#    transition: 30
-#    interval: 60
+  beginning_of_midnight:
+    name: "Beginning of Midnight"
+    has_date: false
+    has_time: true
+    initial: "22:59:55"
 
 ## Avoid race condition with /5 time pattern trigger
 #input_datetime:
@@ -91,13 +72,13 @@ input_datetime:
 #    has_time: true
 #    initial: "10:01:00"
 #
-#  toilet_nighttime_start:
+#  toilet_beginning_of_evening:
 #    name: Toilet Nighttime Start
 #    has_date: false
 #    has_time: true
 #    initial: "18:01:00"
 #
-#  toilet_midnight_start:
+#  toilet_beginning_of_midnight:
 #    name: Toilet Midnight Start
 #    has_date: false
 #    has_time: true
@@ -118,6 +99,124 @@ script:
     alias: Do nothing
     sequence:
 
+  light_color_profile_for_non_bedroom_lights:
+    alias: Light Colour Porfile Throughput the Day
+    sequence:
+      # Delay 1 second to make sure the timestamp is within the condition region
+      - delay: "00:00:01"
+      # - choose:
+      #    - conditions:
+      #       - condition: state
+      #         state: "on"
+      #         for: 00:02:00
+      #        entity_id:
+      #          - input_boolean.home_alarm
+      #    sequence:
+      #      - service: input_boolean.turn_off
+      #       entity_id: input_boolean.home_alarm
+      #      - service: input_boolean.turn_on
+      #       entity
+      - choose:
+          # Early Moring Setting
+          - conditions:
+              - condition: time
+                after: input_datetime.beginning_of_early_morning
+                before: input_datetime.beginning_of_late_morning
+            sequence:
+              - service: light.turn_on
+                entity_id:
+                  - light.kitchen_ceiling_light
+                  - light.kitchen_ceiling_light
+                  - light.kitchen_dining_light
+                  - light.en_suite_toilet_ceiling_light
+                  - light.en_suite_toilet_ceiling_light
+                  - light.guest_toilet_ceiling_light
+                  - light.guest_toilet_ceiling_light
+                  - light.ground_toilet_ceiling_light
+                  - light.ground_toilet_ceiling_light
+                  - light.guest_room_lamps
+                  - light.study_lamps
+                  - light.ground_corridor_ble_light
+                  - light.first_corridor_ble_light
+                  - light.master_room_entrance_led_light
+                  - light.living_room_floor_light
+                data:
+                  brightness: 255
+                  kelvin: 4000
+          # Late Moring Setting
+          - conditions:
+              - condition: time
+                after: input_datetime.beginning_of_late_morning
+                before: input_datetime.beginning_of_evening
+            sequence:
+              - service: light.turn_on
+                entity_id:
+                  - light.master_toilet_ceiling_light
+                  - light.master_toilet_ceiling_light
+                  - light.master_toilet_dressing_room_light
+                data:
+                  brightness: 255
+                  kelvin: 4000
+          # Nighttime setting
+          - conditions:
+              - condition: time
+                after: input_datetime.beginning_of_evening
+                before: input_datetime.beginning_of_midnight
+            sequence:
+              - service: light.turn_on
+                entity_id:
+                  - light.kitchen_ceiling_light
+                  - light.kitchen_ceiling_light
+                  - light.kitchen_dining_light
+                  - light.en_suite_toilet_ceiling_light
+                  - light.en_suite_toilet_ceiling_light
+                  - light.guest_toilet_ceiling_light
+                  - light.guest_toilet_ceiling_light
+                  - light.ground_toilet_ceiling_light
+                  - light.ground_toilet_ceiling_light
+                  - light.guest_room_lamps
+                  - light.study_lamps
+                  - light.ground_corridor_ble_light
+                  - light.first_corridor_ble_light
+                  - light.master_room_entrance_led_light
+                  - light.living_room_floor_light
+                data:
+                  brightness: 255
+                  kelvin: 3000
+        # ELSE - Midnight setting
+        default:
+          - service: light.turn_on
+            entity_id:
+              - light.master_toilet_ceiling_light
+              - light.master_toilet_ceiling_light
+              - light.en_suite_toilet_ceiling_light
+              - light.en_suite_toilet_ceiling_light
+              - light.guest_toilet_ceiling_light
+              - light.guest_toilet_ceiling_light
+              - light.master_toilet_dressing_room_light
+              - light.first_corridor_ble_light
+            data:
+              brightness: 10
+              kelvin: 3000
+          - service: light.turn_on
+            entity_id:
+              - light.kitchen_ceiling_light
+              - light.kitchen_ceiling_light
+              - light.kitchen_dining_light
+              - light.ground_toilet_ceiling_light
+              - light.ground_toilet_ceiling_light
+              - light.master_room_entrance_led_light
+              - light.living_room_floor_light
+            data:
+              brightness: 25
+              kelvin: 3000
+          - service: light.turn_on
+            entity_id:
+              - light.ground_corridor_ble_light
+            data:
+              brightness: 76
+              kelvin: 3000
+
 ###############################################
 #
 # Automations:
@@ -133,35 +232,30 @@ automation:
     action:
 
   ########################################################################################################################
-  # Non-bedroom light colour design
+  # Light colour profile/TV, speaker volume profile throughout a day
+  #
   # 1. T- (10am-6pm) Starting from daylight, uses 4000k white, full brightness
-  # 2. T- (6pm-11pm)  Starting from nighttime, uses 3000k white, full brightness
-  # 3. B- (6pm-11pm)  During nighttime, Switch to 4000k white (with floor led off if possible) if mirror light is on
-  # 4. B- (6pm-11pm)  During nighttime, Switch to 3000k white (with floor led on  if possible) if mirror light is off
-  # 5. T- (11pm-10am) Starting from midnight, uses 3000k white, 1% brightness
+  #                                          daylight profile of sound volume for smart speakers/TVs
+  # 2. T- (6pm-11pm)  Starting from offwork time, uses 3000k white, full brightness
+  # 3. B- (6pm-11pm)  During nighttime, switch to 4000k white (with floor led off if possible) if mirror light is on
+  # 4. B- (6pm-11pm)  During nighttime, switch to 3000k white (with floor led on  if possible) if mirror light is off
+  # 5. T- 9pm         Starting from bedtime, set TV volume setting to night profile
+  # 6. T- (11pm-10am) Starting from midnight, uses 3000k white, 1% brightness
+  #                                           midnight profile of sound volume for smart speakers
   ########################################################################################################################
-  - alias: T- Set light starting from early daylight, uses 4000k white, full brightness
+  - alias: T- Update Light Colour Profile Throughout the Day
     id: "1512912317895"
     trigger:
-      - at: input_datetime.early_daylight_start
+      - at: input_datetime.beginning_of_early_morning
+        platform: time
+      - at: input_datetime.beginning_of_late_morning
+        platform: time
+      - at: input_datetime.beginning_of_evening
+        platform: time
+      - at: input_datetime.beginning_of_midnight
         platform: time
     action:
-      - service: light.turn_on
-        entity_id:
-          - light.kitchen_ceiling_light
-          - light.kitchen_dining_light
-          - light.en_suite_toilet_ceiling_light
-          - light.guest_toilet_ceiling_light
-          - light.ground_toilet_ceiling_light
-          - light.guest_room_lamps
-          - light.study_lamps
-          - light.ground_corridor_ble_light
-          - light.first_corridor_ble_light
-          - light.master_room_entrance_led_light
-          - light.living_room_landing_light
-        data:
-          brightness: 255
-          kelvin: 4000
+      - service: script.light_color_profile_for_non_bedroom_lights
       # Update bedroom lights update status so that it will change setting next time when lights on
       - service: input_boolean.turn_on
         entity_id:
@@ -169,96 +263,14 @@ automation:
           - input_boolean.tais_desk_outstanding_setting_update
           - input_boolean.kes_desk_outstanding_setting_update
           - input_boolean.master_room_ceiling_light_outstanding_setting_update
-          - input_boolean.master_room_lamp_outstanding_setting_update
-
-  - alias: T- Set light starting from late daylight, uses 4000k white, full brightness
-    trigger:
-      - at: input_datetime.late_daylight_start
-        platform: time
-    action:
-      - service: light.turn_on
-        entity_id:
-          - light.master_toilet_ceiling_light
-          - light.master_toilet_dressing_room_light
-        data:
-          brightness: 255
-          kelvin: 4000
-
-  - alias: T- Set light starting from nighttime, uses 3000k white, full brightness
-    trigger:
-      - at: input_datetime.nighttime_start
-        platform: time
-    action:
-      - service: light.turn_on
-        entity_id:
-          - light.kitchen_ceiling_light
-          - light.kitchen_dining_light
-          - light.master_toilet_ceiling_light
-          - light.en_suite_toilet_ceiling_light
-          - light.guest_toilet_ceiling_light
-          - light.ground_toilet_ceiling_light
-          - light.master_toilet_dressing_room_light
-          - light.guest_room_lamps
-          - light.study_lamps
-          - light.ground_corridor_ble_light
-          - light.first_corridor_ble_light
-          - light.master_room_entrance_led_light
-          - light.living_room_landing_light
-        data:
-          brightness: 255
-          kelvin: 3000
-      - service: input_boolean.turn_on
-        entity_id:
-          - input_boolean.en_suite_room_outstanding_setting_update
-          - input_boolean.tais_desk_outstanding_setting_update
-          - input_boolean.kes_desk_outstanding_setting_update
-          - input_boolean.master_room_ceiling_light_outstanding_setting_update
-          - input_boolean.master_room_lamp_outstanding_setting_update
-
-  - alias: T- Set light starting from midnight, uses 3000k white, 1% brightness
-    trigger:
-      - at: input_datetime.midnight_start
-        platform: time
-    action:
-      - service: light.turn_on
-        entity_id:
-          - light.master_toilet_ceiling_light
-          - light.en_suite_toilet_ceiling_light
-          - light.guest_toilet_ceiling_light
-          - light.master_toilet_dressing_room_light
-          - light.first_corridor_ble_light
-        data:
-          brightness: 10
-          kelvin: 3000
-      - service: light.turn_on
-        entity_id:
-          - light.kitchen_ceiling_light
-          - light.kitchen_dining_light
-          - light.ground_toilet_ceiling_light
-          - light.master_room_entrance_led_light
-          - light.living_room_landing_light
-        data:
-          brightness: 25
-          kelvin: 3000
-      - service: light.turn_on
-        entity_id:
-          - light.ground_corridor_ble_light
-        data:
-          brightness: 76
-          kelvin: 3000
-      - service: input_boolean.turn_on
-        entity_id:
-          - input_boolean.en_suite_room_outstanding_setting_update
-          - input_boolean.tais_desk_outstanding_setting_update
-          - input_boolean.kes_desk_outstanding_setting_update
-          - input_boolean.master_room_ceiling_light_outstanding_setting_update
-          - input_boolean.master_room_lamp_outstanding_setting_update
+          - input_boolean.master_room_lamp_1_outstanding_setting_update
+          - input_boolean.master_room_lamp_2_outstanding_setting_update
 
   # All living room Router/AP/Hubs (tado/hue/LR gateway 3/Xiaomi AP)
   # will be restart at 4.30am by a timer plug.
   # HA instance and other AP/hubs (AQ/MR gateway/TPlink AP) will be
   # restarted by the instance below.
-  - alias: "Restart HA at midnight"
+  - alias: Restart HA at midnight
     id: "1602722452776"
     description: ""
     trigger:
@@ -273,78 +285,39 @@ automation:
       - delay: "00:01:00"
       - service: homeassistant.restart
 
-  # - Starts Log Enable and set timeout
-  - alias: Enable/Disable Logging By The State of The Log Enable and Set Timeout for 24 Hours
-    id: "1607918439986"
-    trigger:
-      - platform: state
-        entity_id: input_boolean.log_enable
-        to:
-          - "on"
-          - "off"
-    action:
-      - service: >
-          {% if states('input_boolean.log_enable') == 'on' %}
-            recorder.enable
-          {% else %}
-            recorder.disable
-          {% endif %}
-
-      - condition: state
-        entity_id: input_boolean.log_enable
-        state: "on"
-      - service: input_datetime.set_datetime
-        entity_id: input_datetime.log_disable_time
-        # Make the timeout to 2 days later
-        data_template:
-          datetime: "{{ (now().timestamp() + 60*60*48)| timestamp_custom('%Y-%m-%d %H:%M:%S', true) }}"
-
-  - alias: Turn Off Logging By The Timeout
-    id: "1607918439987"
-    trigger:
-      - platform: time_pattern
-        minutes: "/5"
-    action:
-      # Time condition does not work with input_datetime so have to use template to work aorund
-      - condition: template
-        value_template: "{{now().timestamp() > state_attr('input_datetime.log_disable_time', 'timestamp')}}"
-      - service: input_boolean.turn_off
-        entity_id: input_boolean.log_enable
-      - service: recorder.disable
-
   # Air cond automation
-#  - alias: H-MR Master Room Thermostat State Are Mutually Exclusive From Aircon
-#    id: "1596916933135"
-#    description: "automation.master_room_thermostat_state_are_mutually_exclusive_from_aircon"
-#    trigger:
-#      - platform: state
-#        entity_id: climate.master_room
-#        to:
-#          - "off"
-#          - "heat"
-#      - platform: state
-#        entity_id: climate.en_suite_room_thermostat
-#        to:
-#          - "off"
-#          - "heat"
-#    action:
-#      - service: automation.turn_off
-#        entity_id: automation.master_room_aircon_state_are_mutually_exclusive_from_thermostat
-#      - entity_id:
-#          - climate.master_room_air_conditioner
-#          - climate.en_suite_room_air_conditioner
-#        service: climate.set_hvac_mode
-#        data:
-#          hvac_mode: >
-#            {% if states('climate.master_room') == 'heat' %}
-#              off
-#            {% elif states('climate.en_suite_room_thermostat') == 'heat' %}
-#              off
-#            {% else %}
-#              cool
-#            {% endif %}
-#      - service: automation.turn_on
-#        entity_id: automation.master_room_aircon_state_are_mutually_exclusive_from_thermostat
+  #  - alias: H-MR Master Room Thermostat State Are Mutually Exclusive From Aircon
+  #    id: "1596916933135"
+  #    description: "automation.master_room_thermostat_state_are_mutually_exclusive_from_aircon"
+  #    trigger:
+  #      - platform: state
+  #        entity_id: climate.master_room
+  #        to:
+  #          - "off"
+  #          - "heat"
+  #      - platform: state
+  #        entity_id: climate.en_suite_room_thermostat
+  #        to:
+  #          - "off"
+  #          - "heat"
+  #    action:
+  #      - service: automation.turn_off
+  #        entity_id: automation.master_room_aircon_state_are_mutually_exclusive_from_thermostat
+  #      - entity_id:
+  #          - climate.master_room_air_conditioner
+  #          - climate.en_suite_room_air_conditioner
+  #        service: climate.set_hvac_mode
+  #        data:
+  #          hvac_mode: >
+  #            {% if states('climate.master_room') == 'heat' %}
+  #              off
+  #            {% elif states('climate.en_suite_room_thermostat') == 'heat' %}
+  #              off
+  #            {% else %}
+  #              cool
+  #            {% endif %}
+  #      - service: automation.turn_on
+  #        entity_id: automation.master_room_aircon_state_are_mutually_exclusive_from_thermostat
 
   #  - alias: H-MR Master Room Aircon State Are Mutually Exclusive From Thermostat
   #    id: "1596916933136"
@@ -428,3 +401,85 @@ automation:
                   message: "BLE Master Room Entrance Light Is Offline. Restarting HA"
               - delay: "00:01:00"
               - service: homeassistant.restart
+
+automation alarm:
+  - alias: A- Sound Alarm When Break-in Detected If No One Is Home
+    id: "1679216351420"
+    trigger:
+      - platform: state
+        to: "on"
+        entity_id: group.alarm_motion
+    condition:
+      - condition: state
+        entity_id: input_boolean.home_alarm
+        for: 00:02:00
+        state: "on"
+    action:
+      - service: notify.mobile_app_tais_iphone
+        data:
+          message: Break-in detected. Start to sound alarm in 30 seconds
+          data:
+            push:
+              name: default
+              critical: 1
+              volume: 1
+      - service: notify.mobile_app_kes_iphone11
+        data:
+          message: Break-in detected. Start to sound alarm in 30 seconds
+          data:
+            push:
+              name: default
+              critical: 1
+              volume: 1
+
+      - delay: "00:00:30"
+      - condition: state
+        entity_id: input_boolean.home_alarm
+        for: 00:02:00
+        state: "on"
+
+      - service: media_player.play_media
+        target:
+          entity_id: media_player.master_toilet_echo
+        data:
+          media_content_type: routine
+          media_content_id: Break in Pre Countdown Step One
+
+      - delay: "00:00:15"
+      - condition: state
+        entity_id: input_boolean.home_alarm
+        for: 00:02:00
+        state: "on"
+
+      - service: media_player.play_media
+        target:
+          entity_id: media_player.master_toilet_echo
+        data:
+          media_content_type: routine
+          media_content_id: Break in Pre Countdown Step Two
+
+      - delay: "00:00:10"
+      - condition: state
+        entity_id: input_boolean.home_alarm
+        for: 00:02:00
+        state: "on"
+
+      - service: media_player.play_media
+        target:
+          entity_id: media_player.master_toilet_echo
+        data:
+          media_content_type: routine
+          media_content_id: Break in Countdown
+
+      - delay: "00:00:20"
+      - condition: state
+        entity_id: input_boolean.home_alarm
+        for: 00:02:00
+        state: "on"
+
+      - service: media_player.play_media
+        target:
+          entity_id: media_player.master_toilet_echo
+        data:
+          media_content_type: routine
+          media_content_id: Break in Post Countdown

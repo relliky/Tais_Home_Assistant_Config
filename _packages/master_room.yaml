@@ -55,6 +55,18 @@
 #
 ###########################################
 
+# Valve Setting
+input_text:
+  master_room_valve_log:
+    name: Master Room Valve Log
+
+input_number:
+  master_room_default_temperature:
+    name: Master Room Default Temperature
+    min: 18
+    max: 25
+    step: 0.5
+
 # Temperature Sensor
 template:
   - sensor:
@@ -145,6 +157,12 @@ input_boolean:
   master_room_slideshow_enable:
     name: "Master Room Slideshow Enable"
 
+# Fire TV
+media_player:
+  - platform: androidtv
+    name: Master Room Fire TV
+    host: 10.1.1.34
+
 # TV picture mode
 input_select:
   master_room_tv_picture_mode:
@@ -155,18 +173,6 @@ input_select:
       - Natural
       - Movie
       - FILMMAKER MODE
-
-# H-MR Valve Setting
-input_text:
-  master_room_valve_log:
-    name: Master Room Valve Log
-
-input_number:
-  master_room_default_temperature:
-    name: Master Room Default Temperature
-    min: 18
-    max: 25
-    step: 0.1
 
 # TV power
 switch:
@@ -193,13 +199,7 @@ automation heating:
         from: "on"
         to: "off"
         for: 00:15:00
-        entity_id:
-          - binary_sensor.master_room_bed_motion_sensor_motion
-          - binary_sensor.master_room_entrance_motion_sensor
-          - binary_sensor.master_room_stair_motion_sensor_motion
-          - binary_sensor.master_room_dressing_table_motion_sensor_motion
-          - binary_sensor.master_room_tv_motion_sensor_motion
-          - binary_sensor.master_room_drawer_motion_sensor_motion
+        entity_id: group.master_room_motion
       - minutes: /5
         platform: time_pattern
     condition:
@@ -212,13 +212,7 @@ automation heating:
                 before: "22:00:00"
                 condition: time
               - condition: state
-                entity_id:
-                  - binary_sensor.master_room_bed_motion_sensor_motion
-                  - binary_sensor.master_room_entrance_motion_sensor
-                  - binary_sensor.master_room_stair_motion_sensor_motion
-                  - binary_sensor.master_room_dressing_table_motion_sensor_motion
-                  - binary_sensor.master_room_tv_motion_sensor_motion
-                  - binary_sensor.master_room_drawer_motion_sensor_motion
+                entity_id: group.master_room_motion
                 for: 00:15:00
                 state: "off"
           # in nighttime, turn off and re-eable automation
@@ -229,13 +223,7 @@ automation heating:
                 before: "10:00:00"
                 condition: time
               - condition: state
-                entity_id:
-                  - binary_sensor.master_room_bed_motion_sensor_motion
-                  - binary_sensor.master_room_entrance_motion_sensor
-                  - binary_sensor.master_room_stair_motion_sensor_motion
-                  - binary_sensor.master_room_dressing_table_motion_sensor_motion
-                  - binary_sensor.master_room_tv_motion_sensor_motion
-                  - binary_sensor.master_room_drawer_motion_sensor_motion
+                entity_id: group.master_room_motion
                 for: 02:00:00
                 state: "off"
     action:
@@ -258,21 +246,17 @@ automation heating:
           - script.master_room_close_all_curtains
           - script.master_room_tv_turn_off
 
-  - alias: H-MR-M Master Room Turn On Schedule If Person Present
+  - alias: H-MR-M Master Room Turn On Schedule If People Present
     id: "1543510386760"
     description: "automation.master_room_heating_on_if_people_present"
     use_blueprint:
       path: room_delayed_action.yaml
       input:
-        binary_sensor_motion_sensors:
-          - binary_sensor.master_room_bed_motion_sensor_motion
-          - binary_sensor.master_room_dressing_table_motion_sensor_motion
-          - binary_sensor.master_room_tv_motion_sensor_motion
-          - binary_sensor.master_room_drawer_motion_sensor_motion
+        binary_sensor_motion_sensors: group.master_room_motion
         input_boolean_short_presence: input_boolean.master_room_short_presence
-        automation_this_automation_entity:
-          - automation.master_room_heating_on_if_people_present
+        automation_this_automation_entity: automation.master_room_heating_on_if_people_present
         automations_to_be_triggered_and_on: automation.master_room_heating_scheduler
+        scripts_to_be_run: script.master_room_tv_slideshow
 
   - alias: H-MR Master Room Heating Scheduler
     id: "1599909948789"
@@ -281,10 +265,6 @@ automation heating:
       - platform: state
         entity_id: input_number.master_room_default_temperature
     action:
-      # Make sure only turn on thermostat if aircon is off
-      - condition: state
-        entity_id: climate.master_room_air_conditioner
-        state: "off"
       - data:
           temperature: "{{states('input_number.master_room_default_temperature')}}"
           hvac_mode: "heat"
@@ -307,11 +287,9 @@ automation heating:
     id: "1599110313838"
     trigger:
       - platform: state
-        from: "off"
         to: "on"
         entity_id:
           - binary_sensor.master_room_bed_motion_sensor_motion
-          - binary_sensor.master_room_entrance_motion_sensor
           - binary_sensor.master_room_stair_motion_sensor_motion
           - binary_sensor.master_room_dressing_table_motion_sensor_motion
           - binary_sensor.master_room_tv_motion_sensor_motion
@@ -345,7 +323,7 @@ automation heating:
   ###############################################
   # Curtain autmation based on time
   ###############################################
-  - alias: LT-MR-T Master Room Open/Close Curtains Around Sun set
+  - alias: LT-MR-T Master Room Open/Close Curtains Around Sun set Based On Balcony Door State
     id: "1599110386763"
     trigger:
       - platform: state
@@ -353,8 +331,9 @@ automation heating:
         from: "above_horizon"
         to: "below_horizon"
     action:
-      # IF balcony door open for ventilation for more than 30min
-      #    open curtain for 2 hours to cool down room
+      # IF balcony door open for ventilation to cool down the room
+      #    in the summer for more than 30min,
+      #    open curtain for 2 hours
       - choose:
           - conditions:
               - condition: state
@@ -366,9 +345,9 @@ automation heating:
               - service: script.master_room_open_all_curtains
               - delay: "02:00:00"
               - service: script.master_room_close_all_curtains
-        # ELSE close curtain 2 hours after sunset
+        # ELSE close curtain 1 hours after sunset
         default:
-          - delay: "02:00:00"
+          - delay: "01:00:00"
           # Turn Off lights and curtains
           - service: script.master_room_close_all_curtains
           - delay: "00:00:05"
@@ -388,16 +367,6 @@ automation heating:
 ###############################################
 # Groups
 light group:
-  - platform: group
-    name: Master Room Lamp 1
-    entities:
-      - light.master_room_lamp_1_hue
-
-  - platform: group
-    name: Master Room Lamp 2
-    entities:
-      - light.master_room_lamp_2_hue
-
   - platform: group
     name: Master Room Lamps
     entities:
@@ -544,16 +513,12 @@ automation light:
     trigger:
       - entity_id: binary_sensor.master_room_entrance_motion_sensor
         platform: state
-        from: "off"
         to: "on"
     action:
       - service: automation.turn_off
         entity_id: automation.master_room_ceiling_lights_on_or_open_curtain_if_entering_room
         data:
           stop_actions: false
-      # Turn on TV for slideshow
-      - service: script.turn_on
-        entity_id: script.master_room_tv_slideshow
       - choose:
           # IF - in daytime
           #    - not the hot afternoons in summer
@@ -592,21 +557,19 @@ automation light:
                     after: "10:00:00"
                     before: "19:30:00"
                 sequence:
-                  - service: script.master_room_ceiling_lights_set_3000k
-                  - service: script.master_room_lamps_set_3000k
+                  - service: script.master_room_bedside_lights_turn_on
+                  - service: script.master_room_ceiling_lights_turn_on
             default:
               - service: script.master_room_leds_set_night_scene
 
-  - alias: L-MR-M Master Room Entrance/Corridor LED Light On If Person Present
+  - alias: L-MR-M Master Room Entrance/Corridor LED Light On If People Present
     description: ""
     trigger:
       - entity_id: binary_sensor.master_room_entrance_motion_sensor
         platform: state
-        from: "off"
         to: "on"
       - entity_id: binary_sensor.master_room_stair_motion_sensor_motion
         platform: state
-        from: "off"
         to: "on"
     action:
       - service: light.turn_on
@@ -672,7 +635,6 @@ automation light:
     trigger:
       - entity_id: binary_sensor.master_room_balcony_door
         platform: state
-        from: "off"
         to: "on"
     condition:
       - entity_id: sensor.master_room_light_meter
@@ -724,13 +686,12 @@ automation light:
   #      - cover.master_room_blind_2
   #
 
-  - alias: L-MR-M Master Room Dressing Table On If Person Present
+  - alias: L-MR-M Master Room Dressing Table On If People Present
     id: "1603640027683"
     description: ""
     trigger:
       - entity_id: binary_sensor.master_room_dressing_table_motion_sensor_motion
         platform: state
-        from: "off"
         to: "on"
     condition: []
     action:
@@ -764,11 +725,12 @@ automation light:
     mode: restart
     trigger:
       - entity_id:
+          - binary_sensor.master_room_entrance_motion_sensor
+          - binary_sensor.master_room_stair_motion_sensor_motion
+          - binary_sensor.master_room_dressing_table_motion_sensor_motion
           - binary_sensor.master_room_tv_motion_sensor_motion
           - binary_sensor.master_room_drawer_motion_sensor_motion
-          - binary_sensor.master_toilet_dressing_room_motion_sensor_motion
         platform: state
-        from: "off"
         to: "on"
     condition:
       # In the night or curtain shut
@@ -1198,17 +1160,36 @@ automation button:
 script tv:
   master_room_tv_turn_on:
     alias: Master Room Turn On TV
+    fields:
+      room:
+        example: "master_room, kitchen, living_room"
     sequence:
-      # Turn on TV
-      - service: media_player.turn_on
-        target:
-          entity_id: media_player.master_room_tv
-      - service: media_player.play_media
-        target:
-          entity_id: media_player.master_room_fire_tv_echo
+      # Mute Echo
+      - service: media_player.volume_mute
+        entity_id: media_player.master_room_echo
         data:
-          media_content_type: routine
-          media_content_id: TurnOnMasterRoomTV
+          is_volume_muted: true
+      # Turn on TV
+      - repeat:
+          sequence:
+            - service: media_player.turn_on
+              target:
+                entity_id: media_player.master_room_tv
+            - service: media_player.play_media
+              target:
+                entity_id: media_player.master_room_echo
+              data:
+                media_content_type: routine
+                media_content_id: TurnOnMasterRoomTV
+          until:
+            - condition: template
+              value_template: >
+                {{states('media_player.master_room_tv') == 'on'}}
+      # Unmute Echo
+      - service: media_player.volume_mute
+        entity_id: media_player.master_room_echo
+        data:
+          is_volume_muted: false
 
   master_room_tv_turn_off:
     alias: Master Room Turn Off TV
@@ -1266,13 +1247,13 @@ script tv:
       # Mute Echo
       - service: media_player.volume_set
         target:
-          entity_id: media_player.master_room_fire_tv_echo
+          entity_id: media_player.master_room_echo
         data:
           volume_level: 0
       # Play slideshow on FireTV
       - service: media_player.play_media
         target:
-          entity_id: media_player.master_room_fire_tv_echo
+          entity_id: media_player.master_room_echo
         data:
           media_content_type: routine
           media_content_id: MasterRoomSlideshow
@@ -1295,11 +1276,12 @@ script tv:
           entity_id: media_player.master_room_tv
         data:
           is_volume_muted: false
+      - delay: "00:01:30"
       - service: media_player.volume_set
         target:
-          entity_id: media_player.master_room_fire_tv_echo
+          entity_id: media_player.master_room_echo
         data:
-          volume_level: 0.60
+          volume_level: 1.00
 
   master_room_tv_slideshow_watchdog:
     alias: Master Room TV Slideshow Watchdog
@@ -1312,10 +1294,10 @@ script tv:
     alias: Master Room TV Sleep Timer Start
     mode: restart
     sequence:
-      # TV is off
+      # TV is on
       - condition: state
         entity_id: media_player.master_room_tv
-        state: "off"
+        state: "on"
       # Set TV Volum
       - service: media_player.volume_set
         data:
@@ -1361,81 +1343,61 @@ automation tv:
         input_select_tv_picture_mode: input_select.master_room_tv_picture_mode
         tv_entity: media_player.master_room_tv
         automation_tv_pic_on_ha: automation.master_room_tv_picture_mode
-
 #################################################################
 # Sonos Speakers Grouping/Ungrouping Based On Motion Sensor
 #################################################################
-automation sonos:
-  - alias: S-MR-M Master Room Group Its Speaker If People Present
-    trigger:
-      - platform: state
-        from: "off"
-        to: "on"
-        entity_id:
-          - binary_sensor.master_room_bed_motion_sensor_motion
-          - binary_sensor.master_room_entrance_motion_sensor
-          - binary_sensor.master_room_stair_motion_sensor_motion
-          - binary_sensor.master_room_dressing_table_motion_sensor_motion
-          - binary_sensor.master_room_tv_motion_sensor_motion
-          - binary_sensor.master_room_drawer_motion_sensor_motion
-    condition:
-      - condition: state
-        entity_id: input_boolean.follow_music
-        state: "on"
-      # The controller player must be playing music (not paused)
-      - condition: template
-        value_template: >
-          {% if states('media_player.' + states('input_select.music_controller')) == 'playing' %}
-            true
-          {% else %}
-            false
-          {% endif %}
-    action:
-      # Add this room speaker into the group
-      - service: script.add_sonos_into_speaker_group
-        data:
-          target_player: media_player.master_room_sonos
+# automation sonos:
+#   - alias: S-MR-M Master Room Group Its Speaker If People Present
+#     trigger:
+#       - platform: state
+#         to: "on"
+#         entity_id: group.master_room_motion
+#     condition:
+#       - condition: state
+#         entity_id: input_boolean.follow_music
+#         state: "on"
+#       # The controller player must be playing music (not paused)
+#       - condition: template
+#         value_template: >
+#           {% if states('media_player.' + states('input_select.music_controller')) == 'playing' %}
+#             true
+#           {% else %}
+#             false
+#           {% endif %}
+#     action:
+#       # Add this room speaker into the group
+#       - service: script.add_sonos_into_speaker_group
+#         data:
+#           target_player: media_player.master_room_sonos
 
-  - alias: S-MR-M Master Room Ungroup/Pause Its Speaker If No People
-    trigger:
-      - platform: state
-        from: "on"
-        to: "off"
-        for: 00:10:00
-        entity_id:
-          - binary_sensor.master_room_bed_motion_sensor_motion
-          - binary_sensor.master_room_entrance_motion_sensor
-          - binary_sensor.master_room_stair_motion_sensor_motion
-          - binary_sensor.master_room_dressing_table_motion_sensor_motion
-          - binary_sensor.master_room_tv_motion_sensor_motion
-          - binary_sensor.master_room_drawer_motion_sensor_motion
-      - minutes: /5
-        platform: time_pattern
-    condition:
-      - condition: state
-        entity_id:
-          - binary_sensor.master_room_bed_motion_sensor_motion
-          - binary_sensor.master_room_entrance_motion_sensor
-          - binary_sensor.master_room_stair_motion_sensor_motion
-          - binary_sensor.master_room_dressing_table_motion_sensor_motion
-          - binary_sensor.master_room_tv_motion_sensor_motion
-          - binary_sensor.master_room_drawer_motion_sensor_motion
-        for: 00:10:00
-        state: "off"
-    action:
-      - choose:
-          # IF - music follower is on
-          - conditions:
-              - condition: state
-                entity_id: input_boolean.follow_music
-                state: "on"
-            sequence:
-              # Remove this room speaker from the group
-              - service: script.remove_sonos_from_speaker_group
-                data:
-                  target_player: media_player.master_room_sonos
-      # Pause this room speaker in case it is the last item in the group
-      # or music follower is off
-      - service: script.pause_sonos_if_sole_speaker_group
-        data:
-          target_player: media_player.master_room_sonos
+#   - alias: S-MR-M Master Room Ungroup/Pause Its Speaker If No People
+#     trigger:
+#       - platform: state
+#         from: "on"
+#         to: "off"
+#         for: 00:10:00
+#         entity_id: group.master_room_motion
+#       - minutes: /5
+#         platform: time_pattern
+#     condition:
+#       - condition: state
+#         entity_id: group.master_room_motion
+#         for: 00:10:00
+#         state: "off"
+#     action:
+#       - choose:
+#           # IF - music follower is on
+#           - conditions:
+#               - condition: state
+#                 entity_id: input_boolean.follow_music
+#                 state: "on"
+#             sequence:
+#               # Remove this room speaker from the group
+#               - service: script.remove_sonos_from_speaker_group
+#                 data:
+#                   target_player: media_player.master_room_sonos
+#       # Pause this room speaker in case it is the last item in the group
+#       # or music follower is off
+#       - service: script.pause_sonos_if_sole_speaker_group
+#         data:
+#           target_player: media_player.master_room_sonos

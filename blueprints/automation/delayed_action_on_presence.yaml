@@ -1,0 +1,118 @@
+blueprint:
+  name: Delayed Action Including Heating On Presence
+  description: Turn on heating and other actions once people present in the room for a while
+  domain: automation
+  input:
+    room:
+      name: Room entity name (master_room, living_room, kitchen, etc)
+
+    boolean_run_generated_heating_scheduler:
+      name: Boolean - Run Generated Heating Automation - automation.{{room}}_heating_on_if_people_present
+      default: true
+
+    scripts_to_be_run:
+      name: Script called for heating scheduler
+      default: script.do_nothing
+
+variables:
+  room: !input room
+  # Motion sensor list
+  binary_sensor_motion_sensors: "group.{{room}}_motion"
+  # Current room short presence variable
+  input_boolean_short_presence: "input_boolean.{{room}}_short_presence"
+  # This automation entity
+  automation_this_automation_entity: "automation.{{room}}_heating_on_if_people_present"
+  # Boolean to generate and run a heating scheduler
+  boolean_run_generated_heating_scheduler: !input boolean_run_generated_heating_scheduler
+  # Automation generated and called for heating scheduler
+  automations_to_be_triggered_and_on: "automation.{{room}}_heating_scheduler"
+
+trigger:
+  - entity_id: "{{binary_sensor_motion_sensors}}"
+    platform: state
+    from: "off"
+    to: "on"
+
+mode: queued
+action:
+  # Resolve race on multiple triggers - only execute instances that
+  # turned on heating and turned off the automation.
+  - condition: state
+    entity_id: "{{automation_this_automation_entity}}"
+    state: "on"
+  # Turn on heating on repeated short presence or longer presence
+  - choose:
+      # IF - first time entering, set the flag
+      #      Longer presence will turn on heating
+      - conditions:
+          # Wait for 1.5 min if it is the first time of presence
+          - condition: state
+            entity_id: "{{input_boolean_short_presence}}"
+            state: "off"
+        sequence:
+          # set the short presence flag
+          - service: input_boolean.turn_on
+            entity_id: "{{input_boolean_short_presence}}"
+          # Delay 2 min
+          - delay: 00:02:00
+          # Test motion sensor - not all motion sensors are off
+          - condition: not
+            conditions:
+              - condition: state
+                entity_id: "{{binary_sensor_motion_sensors}}"
+                state: "off"
+          # Longer presence will turn on heating
+          #------------------------------------------------
+          # Set Heating Temperature With State Maintaince #
+          #------------------------------------------------
+          # Clear flags
+          - service: input_boolean.turn_off
+            entity_id: "{{input_boolean_short_presence}}"
+
+          # The automation set to run the generated heating scheduler
+          - choose:
+              - conditions:
+                  - condition: template
+                    value_template: "{{boolean_run_generated_heating_scheduler}}"
+                sequence:
+                  - service: automation.trigger
+                    entity_id: "{{automations_to_be_triggered_and_on}}"
+                  - service: automation.turn_on
+                    entity_id: "{{automations_to_be_triggered_and_on}}"
+
+          # Turn on extra scripts that need to be run along with automation heating scheduler
+          - service: script.turn_on
+            entity_id: !input scripts_to_be_run
+
+          - service: automation.turn_off
+            entity_id: "{{automation_this_automation_entity}}"
+            data:
+              stop_actions: false
+    # ELSE - Repeated short presence will turn on heating
+    default:
+      #------------------------------------------------
+      # Set Heating Temperature With State Maintaince #
+      #------------------------------------------------
+      # Clear flags
+      - service: input_boolean.turn_off
+        entity_id: "{{input_boolean_short_presence}}"
+
+      # The automation set to run the generated heating scheduler
+      - choose:
+          - conditions:
+              - condition: template
+                value_template: "{{boolean_run_generated_heating_scheduler}}"
+            sequence:
+              - service: automation.trigger
+                entity_id: "{{automations_to_be_triggered_and_on}}"
+              - service: automation.turn_on
+                entity_id: "{{automations_to_be_triggered_and_on}}"
+
+      # Turn on extra scripts that need to be run along with automation heating scheduler
+      - service: script.turn_on
+        entity_id: !input scripts_to_be_run
+
+      - service: automation.turn_off
+        entity_id: "{{automation_this_automation_entity}}"
+        data:
+          stop_actions: false

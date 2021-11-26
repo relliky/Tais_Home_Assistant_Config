@@ -26,6 +26,7 @@ group:
       - switch.kitchen_dining_light
       - switch.study_ceiling_light
       - switch.guest_room_ceiling_light
+      - switch.guest_toilet_ceiling_light
       - switch.en_suite_toilet_light
       - switch.en_suite_room_ceiling_light
       - switch.ground_toilet_light
@@ -37,11 +38,11 @@ group:
       - binary_sensor.ground_corridor_motion_sensor_motion
       - binary_sensor.first_corridor_motion_sensor_motion
 
-  whole_home_motion:
-    name: Whole Home Motion
+  indoor_motion:
+    name: Indoor Motion
     entities:
       - group.living_room_motion
-      - group.garden_motion
+      #- group.garden_motion
       - group.kitchen_motion
       - group.corridor_motion
       - group.study_motion
@@ -53,12 +54,22 @@ group:
       - group.guest_room_motion
       - group.guest_toilet_motion
 
+  alarm_motion:
+    name: Alarm Motion
+    entities:
+      - group.indoor_motion
+      - binary_sensor.kitchen_window
+
   whole_home_tv_slideshow:
     name: Whole Home TV Slideshow
     entities:
       - input_boolean.living_room_slideshow_enable
       - input_boolean.master_room_slideshow_enable
       - input_boolean.kitchen_slideshow_enable
+
+input_boolean:
+  home_alarm:
+    name: "Home Alarm"
 
 # Helper sensors for detecting requirement for downstairs/upstairs heating
 template:
@@ -151,9 +162,9 @@ automation:
   ###############################################
   # Heating Automation based on motion sensors
   ###############################################
-  - alias: H-GC Ground Corrdior Heating Set to 20 If Person Present
+  - alias: H-GC Ground Corrdior Heating Set to 20 If People Present
     id: "1599611792932"
-    description: "automation.ground_corrdior_heating_on_if_person_present"
+    description: "automation.ground_corrdior_heating_on_if_people_present"
     trigger:
       - entity_id: binary_sensor.ground_corridor_motion_sensor_motion
         platform: state
@@ -247,25 +258,8 @@ automation:
     description: "automation.water_heater_start_and_schedule_on_if_people_back_from_journey"
     trigger:
       - platform: state
-        from: "off"
         to: "on"
-        entity_id:
-          - binary_sensor.ground_corridor_motion_sensor_motion
-          - binary_sensor.first_corridor_motion_sensor_motion
-          - binary_sensor.ground_toilet_motion_sensor_motion
-          - binary_sensor.living_room_sofa_motion_sensor_motion
-          - binary_sensor.living_room_tv_motion_sensor_motion
-          - binary_sensor.kitchen_dining_motion_sensor_motion
-          - binary_sensor.kitchen_worktop_motion_sensor_motion
-          - binary_sensor.master_toilet_basin_motion_sensor_motion
-          - binary_sensor.master_toilet_shower_motion_sensor_motion
-          - binary_sensor.master_room_bed_motion_sensor_motion
-          - binary_sensor.study_motion_sensor_motion
-          - binary_sensor.guest_toilet_motion_sensor_motion
-          - binary_sensor.guest_room_radiator_motion_sensor_motion
-          - binary_sensor.guest_room_bed_motion_sensor_motion
-          - binary_sensor.en_suite_toilet_motion_sensor_motion
-          #- binary_sensor.en_suite_room_motion_sensor_motion
+        entity_id: group.indoor_motion
     condition: []
     mode: single
     action:
@@ -292,23 +286,7 @@ automation:
       - condition: state
         state: "off"
         for: 24:00:00
-        entity_id:
-          - binary_sensor.ground_corridor_motion_sensor_motion
-          - binary_sensor.first_corridor_motion_sensor_motion
-          - binary_sensor.ground_toilet_motion_sensor_motion
-          - binary_sensor.living_room_sofa_motion_sensor_motion
-          - binary_sensor.living_room_tv_motion_sensor_motion
-          - binary_sensor.kitchen_dining_motion_sensor_motion
-          - binary_sensor.kitchen_worktop_motion_sensor_motion
-          - binary_sensor.master_toilet_basin_motion_sensor_motion
-          - binary_sensor.master_toilet_shower_motion_sensor_motion
-          - binary_sensor.master_room_bed_motion_sensor_motion
-          - binary_sensor.study_motion_sensor_motion
-          - binary_sensor.guest_toilet_motion_sensor_motion
-          - binary_sensor.guest_room_radiator_motion_sensor_motion
-          - binary_sensor.guest_room_bed_motion_sensor_motion
-          - binary_sensor.en_suite_toilet_motion_sensor_motion
-          #- binary_sensor.en_suite_room_motion_sensor_motion
+        entity_id: group.indoor_motion
     action:
       - service: switch.turn_off
         entity_id: switch.schedule_water_heater
@@ -319,7 +297,7 @@ automation:
   # Lighting Automation based on motion sensors
   ###############################################
 
-  - alias: L-GC Corridor Lights On If Person Present
+  - alias: L-GC Corridor Lights On If People Present
     description: ""
     trigger:
       - entity_id: binary_sensor.ground_corridor_motion_sensor_motion
@@ -385,43 +363,11 @@ automation:
     description: "automation.always_on_switches_stays_on"
     trigger:
       - platform: state
-        from: "off"
         to: "on"
-        entity_id:
-          - binary_sensor.ground_corridor_motion_sensor_motion
-          - binary_sensor.first_corridor_motion_sensor_motion
-          - binary_sensor.ground_toilet_motion_sensor_motion
-          - binary_sensor.living_room_sofa_motion_sensor_motion
-          - binary_sensor.living_room_tv_motion_sensor_motion
-          - binary_sensor.kitchen_dining_motion_sensor_motion
-          - binary_sensor.kitchen_worktop_motion_sensor_motion
-          - binary_sensor.master_toilet_basin_motion_sensor_motion
-          - binary_sensor.master_toilet_shower_motion_sensor_motion
-          - binary_sensor.master_room_bed_motion_sensor_motion
-          - binary_sensor.study_motion_sensor_motion
-          - binary_sensor.guest_toilet_motion_sensor_motion
-          - binary_sensor.guest_room_radiator_motion_sensor_motion
-          - binary_sensor.guest_room_bed_motion_sensor_motion
-          - binary_sensor.en_suite_toilet_motion_sensor_motion
-          - binary_sensor.en_suite_room_motion_sensor_motion
+        entity_id: group.indoor_motion
     action:
       - service: switch.turn_on
-        entity_id:
-          - switch.front_door_light_switch
-          - switch.ground_corridor_light_switch
-          - switch.first_corridor_light_switch
-          - switch.master_room_entrance_light_switch
-          - switch.master_room_bed_ceiling_light
-          - switch.master_room_landing_ceiling_light
-          - switch.master_toilet_light
-          - switch.master_toilet_dressing_room_light
-          - switch.kitchen_ceiling_light
-          - switch.kitchen_dining_light
-          - switch.study_ceiling_light
-          - switch.guest_room_ceiling_light
-          - switch.en_suite_toilet_light
-          - switch.en_suite_room_ceiling_light
-          - switch.ground_toilet_light
+        entity_id: group.always_on_switch
 
   ###############################################
   # Actions based on buttons
@@ -445,72 +391,73 @@ automation:
   # Sonos Speakers Grouping/Ungrouping Based On Motion Sensor
   #################################################################
 
-  - alias: S-FC First Corridor Group Its Speaker If People Present In Corridor
-    trigger:
-      - platform: state
-        from: "off"
-        to: "on"
-        entity_id:
-          - binary_sensor.ground_corridor_motion_sensor_motion
-          - binary_sensor.first_corridor_motion_sensor_motion
-    condition:
-      - condition: state
-        entity_id: input_boolean.follow_music
-        state: "on"
-      # The controller player must be playing music (not paused)
-      - condition: template
-        value_template: >
-          {% if states('media_player.' + states('input_select.music_controller')) == 'playing' %}
-            true
-          {% else %}
-            false
-          {% endif %}
-    action:
-      # Add this room speaker into the group
-      - service: script.add_sonos_into_speaker_group
-        data:
-          target_player: media_player.first_corridor_sonos
+  # - alias: S-FC First Corridor Group Its Speaker If People Present In Corridor
+  #   trigger:
+  #     - platform: state
+  #       from: "off"
+  #       to: "on"
+  #       entity_id:
+  #         - binary_sensor.ground_corridor_motion_sensor_motion
+  #         - binary_sensor.first_corridor_motion_sensor_motion
+  #   condition:
+  #     - condition: state
+  #       entity_id: input_boolean.follow_music
+  #       state: "on"
+  #     # The controller player must be playing music (not paused)
+  #     - condition: template
+  #       value_template: >
+  #         {% if states('media_player.' + states('input_select.music_controller')) == 'playing' %}
+  #           true
+  #         {% else %}
+  #           false
+  #         {% endif %}
+  #   action:
+  #     # Add this room speaker into the group
+  #     - service: script.add_sonos_into_speaker_group
+  #       data:
+  #         target_player: media_player.first_corridor_sonos
 
-  - alias: S-FC First Corridor Ungroup/Pause Its Speaker If No People in Corridor or First Floor Rooms
-    trigger:
-      - platform: state
-        from: "on"
-        to: "off"
-        for: 00:10:00
-        entity_id:
-          - binary_sensor.ground_corridor_motion_sensor_motion
-          - binary_sensor.first_corridor_motion_sensor_motion
-          - binary_sensor.en_suite_room_motion_sensor_motion
-          - binary_sensor.guest_room_radiator_motion_sensor_motion
-          - binary_sensor.guest_room_bed_motion_sensor_motion
-          - binary_sensor.study_motion_sensor_motion
-      - minutes: /5
-        platform: time_pattern
-    condition:
-      - condition: state
-        entity_id:
-          - binary_sensor.ground_corridor_motion_sensor_motion
-          - binary_sensor.first_corridor_motion_sensor_motion
-          - binary_sensor.en_suite_room_motion_sensor_motion
-          - binary_sensor.guest_room_radiator_motion_sensor_motion
-          - binary_sensor.guest_room_bed_motion_sensor_motion
-          - binary_sensor.study_motion_sensor_motion
-        for: 00:10:00
-        state: "off"
-    action:
-      - choose:
-          # IF - music follower is on
-          - conditions:
-              - condition: state
-                entity_id: input_boolean.follow_music
-                state: "on"
-            sequence:
-              # Remove this room speaker from the group
-              - service: script.remove_sonos_from_speaker_group
-                data:
-                  target_player: media_player.first_corridor_sonos
-      # Pause this room speaker in case it is the last item in the group
-      # or music follower is off
-      - service: script.pause_sonos_if_sole_speaker_group
-        data:
-          target_player: media_player.first_corridor_sonos
+  # - alias: S-FC First Corridor Ungroup/Pause Its Speaker If No People in Corridor or First Floor Rooms
+  #   trigger:
+  #     - platform: state
+  #       from: "on"
+  #       to: "off"
+  #       for: 00:10:00
+  #       entity_id:
+  #         - binary_sensor.ground_corridor_motion_sensor_motion
+  #         - binary_sensor.first_corridor_motion_sensor_motion
+  #         - binary_sensor.en_suite_room_motion_sensor_motion
+  #         - binary_sensor.guest_room_radiator_motion_sensor_motion
+  #         - binary_sensor.guest_room_bed_motion_sensor_motion
+  #         - binary_sensor.study_motion_sensor_motion
+  #     - minutes: /5
+  #       platform: time_pattern
+  #   condition:
+  #     - condition: state
+  #       entity_id:
+  #         - binary_sensor.ground_corridor_motion_sensor_motion
+  #         - binary_sensor.first_corridor_motion_sensor_motion
+  #         - binary_sensor.en_suite_room_motion_sensor_motion
+  #         - binary_sensor.guest_room_radiator_motion_sensor_motion
+  #         - binary_sensor.guest_room_bed_motion_sensor_motion
+  #         - binary_sensor.study_motion_sensor_motion
+  #       for: 00:10:00
+  #       state: "off"
+  #   action:
+  #     - choose:
+  #         # IF - music follower is on
+  #         - conditions:
+  #             - condition: state
+  #               entity_id: input_boolean.follow_music
+  #               state: "on"
+  #           sequence:
+  #             # Remove this room speaker from the group
+  #             - service: script.remove_sonos_from_speaker_group
+  #               data:
+  #                 target_player: media_player.first_corridor_sonos
+  #     # Pause this room speaker in case it is the last item in the group
+  #     # or music follower is off
+  #     - service: script.pause_sonos_if_sole_speaker_group
+  #       data:
+  #         target_player: media_player.first_corridor_sonos
+
