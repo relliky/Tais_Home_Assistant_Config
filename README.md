@@ -29,19 +29,19 @@ Other smart home features but not done in Home Assistant:
 
 This is my device list which are connected to HA with 5 protocols 
 
-2.4Ghz Wifi Devices
-- Lepro Wifi Bulbs (Colour/White) E27/E16
-- Yeelight Wifi Bulbs (Colour) E27
-- Meross Homekit Wifi Bulbs (Colour) E27
-- Meross Homekit Wifi Sockets
-- Meross Homekit LED Strips 
-- Magic Home LED Strips 
-- BENEXMART Blind Motors
-- Xiaomi Vacuum Robot 
-- Sonos soundbar and speakers
-- iPhones, iPads
-- Eufy Cameras
-- Xiaomi Gateways v1/v3
+- 2.4Ghz Wifi Devices
+  - Lepro Wifi Bulbs (Colour/White) E27/E16
+  - Yeelight Wifi Bulbs (Colour) E27
+  - Meross Homekit Wifi Bulbs (Colour) E27
+  - Meross Homekit Wifi Sockets
+  - Meross Homekit LED Strips 
+  - Magic Home LED Strips 
+  - BENEXMART Blind Motors
+  - Xiaomi Vacuum Robot 
+  - Sonos soundbar and speakers
+  - iPhones, iPads
+  - Eufy Cameras
+  - Xiaomi Gateways v1/v3
 
 5Ghz Wifi Devices
 - Fire TV sticks/cubes
