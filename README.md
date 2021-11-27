@@ -26,7 +26,7 @@ Other smart home features but not done in Home Assistant:
 - VNC server (on home server)
 - Plex server (on home server)
 
-
+<br><br>
 This is my device list which are connected to HA with 6 protocols 
 
 - 2.4Ghz Wifi Devices
