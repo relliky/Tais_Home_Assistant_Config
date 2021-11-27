@@ -43,35 +43,35 @@ This is my device list which are connected to HA with 5 protocols
   - Eufy Cameras
   - Xiaomi Gateways v1/v3
 
-5Ghz Wifi Devices
-- Fire TV sticks/cubes
-- Samsung Smart TVs (one of them is on 2.4Ghz)
-- Amazon Echo Dots - also used as intercom (one of them is on 2.4Ghz)
+- 5Ghz Wifi Devices
+  - Fire TV sticks/cubes
+  - Samsung Smart TVs (one of them is on 2.4Ghz)
+  - Amazon Echo Dots - also used as intercom (one of them is on 2.4Ghz)
 
-Zigbee Devices 
-- IKEA white spectrum GU10 
-- IKEA colour GU10 
-- Xiaomi/Aqara Motion Sensors
-- Xiaomi/Aqara Door Window Contact Sensors
-- Xiaomi Wireless Buttons
-- Aqara B1 Curtain Motors
-- Xiaomi Light Sensors
-- Aqara Smart Wall Switches
+- Zigbee Devices 
+  - IKEA white spectrum GU10 
+  - IKEA colour GU10 
+  - Xiaomi/Aqara Motion Sensors
+  - Xiaomi/Aqara Door Window Contact Sensors
+  - Xiaomi Wireless Buttons
+  - Aqara B1 Curtain Motors
+  - Xiaomi Light Sensors
+  - Aqara Smart Wall Switches
 
-BLE Devices
-- Xiaomi Motion Sensors 2
-- Xiaomi Door Window Contact Sensors 2
-- Xiaomi Temperature and Humidity Sensors
-- Xiaomi White Temperature Bulb E27
+- BLE Devices
+  - Xiaomi Motion Sensors 2
+  - Xiaomi Door Window Contact Sensors 2
+  - Xiaomi Temperature and Humidity Sensors
+  - Xiaomi White Temperature Bulb E27
 
-Proprietary Protocol
-- Tado thermostat radiator valves
+- Proprietary Protocol
+  - Tado thermostat radiator valves
 
-Ethernet 
-- Google Mesh Wifi
-- Linksys Mesh Wifi
-- Raspberry Pi 3b/4b
-- Windows Machines
-- QNAP NAS
-- Philips Hue Bridge
+- Ethernet 
+  - Google Mesh Wifi
+  - Linksys Mesh Wifi
+  - Raspberry Pi 3b/4b
+  - Windows Machines
+  - QNAP NAS
+  - Philips Hue Bridge
   
