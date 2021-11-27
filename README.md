@@ -44,7 +44,7 @@ Wifi Devices
   12. iPhones, iPads
   13. Amazon Echo Dots
   14. Eufy Cameras
-  15. Xiaomi Gateway v1/v3
+  15. Xiaomi Gateways v1/v3
 
 Zigbee Devices 
   1. IKEA white spectrum GU10 
@@ -67,7 +67,7 @@ Proprietary Protocol
 Ethernet 
   1. Google Mesh Wifi
   2. Linksys Mesh Wifi
-  3. Raspberry Pis
+  3. Raspberry Pi 3b/4b
   4. Windows Machines
   5. QNAP NAS
   6. Philips Hue Bridge
