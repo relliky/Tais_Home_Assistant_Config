@@ -29,7 +29,7 @@ Other smart home features but not done in Home Assistant:
 
 This is my device list which are connected to HA with 5 protocols 
 
-Wifi Devices
+2.4Ghz Wifi Devices
 - Lepro Wifi Bulbs (Colour/White) E27/E16
 - Yeelight Wifi Bulbs (Colour) E27
 - Meross Homekit Wifi Bulbs (Colour) E27
@@ -38,26 +38,29 @@ Wifi Devices
 - Magic Home LED Strips 
 - BENEXMART Blind Motors
 - Xiaomi Vacuum Robot 
-- Samsung Smart TVs
-- Fire TV sticks/cubes
 - Sonos soundbar and speakers
 - iPhones, iPads
-- Amazon Echo Dots - also used as intercom 
 - Eufy Cameras
 - Xiaomi Gateways v1/v3
+
+5Ghz Wifi Devices
+- Fire TV sticks/cubes
+- Samsung Smart TVs (one of them is on 2.4Ghz)
+- Amazon Echo Dots - also used as intercom (one of them is on 2.4Ghz)
 
 Zigbee Devices 
 - IKEA white spectrum GU10 
 - IKEA colour GU10 
 - Xiaomi/Aqara Motion Sensors
-- Xiaomi/Aqara Door&Window Contact Sensors
+- Xiaomi/Aqara Door Window Contact Sensors
 - Xiaomi Wireless Buttons
 - Aqara B1 Curtain Motors
 - Xiaomi Light Sensors
 - Aqara Smart Wall Switches
 
 BLE Devices
-- Xiaomi Motion Sensors
+- Xiaomi Motion Sensors 2
+- Xiaomi Door Window Contact Sensors 2
 - Xiaomi Temperature and Humidity Sensors
 - Xiaomi White Temperature Bulb E27
 
