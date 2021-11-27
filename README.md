@@ -65,12 +65,12 @@ This is my device list which are connected to HA with 6 protocols
   - Xiaomi White Temperature Bulb E27
 
 - Proprietary Protocol
-  - Tado thermostat radiator valves
+  - Tado Smart Radiator Valves
 
 - Ethernet 
   - Google Mesh Wifi
   - Linksys Mesh Wifi
-  - Raspberry Pi 3b/4b
+  - Raspberry Pi 3/4
   - Windows Machines
   - QNAP NAS
   - Philips Hue Bridge
