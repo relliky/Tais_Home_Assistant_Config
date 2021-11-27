@@ -27,7 +27,7 @@ Other smart home features but not done in Home Assistant:
 - Plex server (on home server)
 
 
-This is my device list which are connected to HA with 5 protocols 
+This is my device list which are connected to HA with 6 protocols 
 
 - 2.4Ghz Wifi Devices
   - Lepro Wifi Bulbs (Colour/White) E27/E16
