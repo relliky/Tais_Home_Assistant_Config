@@ -39,7 +39,6 @@ This is my device list which are connected to HA with 6 protocols
   - BENEXMART Blind Motors
   - Xiaomi Vacuum Robot 
   - Sonos soundbar and speakers
-  - iPhones, iPads
   - Eufy Cameras
   - Xiaomi Gateways v1/v3
 
@@ -47,6 +46,7 @@ This is my device list which are connected to HA with 6 protocols
   - Fire TV sticks/cubes
   - Samsung Smart TVs (one of them is on 2.4Ghz)
   - Amazon Echo Dots - also used as intercom (one of them is on 2.4Ghz)
+  - iPhones, iPads
 
 - Zigbee Devices 
   - IKEA white spectrum GU10 
