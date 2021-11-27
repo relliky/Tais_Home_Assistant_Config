@@ -42,7 +42,7 @@ Wifi Devices
 - Fire TV sticks/cubes
 - Sonos soundbar and speakers
 - iPhones, iPads
-- Amazon Echo Dots
+- Amazon Echo Dots - also used as intercom 
 - Eufy Cameras
 - Xiaomi Gateways v1/v3
 
