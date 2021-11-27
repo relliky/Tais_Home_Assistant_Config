@@ -31,8 +31,8 @@ This is my device list which are connected to HA with 5 protocols
 
 Wifi Devices
 - Lepro Wifi Bulbs (Colour/White) E27/E16
-- Yeelight Wifi Bulbs (Colou) E27
-- Meross Homekit Wifi Bulbs (Colou) E27
+- Yeelight Wifi Bulbs (Colour) E27
+- Meross Homekit Wifi Bulbs (Colour) E27
 - Meross Homekit Wifi Sockets
 - Meross Homekit LED Strips 
 - Magic Home LED Strips 
