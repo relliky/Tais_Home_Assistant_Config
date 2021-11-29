@@ -46,7 +46,7 @@ This is my device list which are connected to HA with 6 protocols
   - Fire TV sticks/cubes
   - Samsung Smart TVs (one of them is on 2.4Ghz)
   - Amazon Echo Dots - also used as intercom (one of them is on 2.4Ghz)
-  - iPhones, iPads
+  - Apple devices: iPhones, iPads, Macbooks
 
 - Zigbee Devices 
   - IKEA white spectrum GU10 
