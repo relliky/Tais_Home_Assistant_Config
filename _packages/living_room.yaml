@@ -26,12 +26,6 @@
 # Light Groups
 light:
   - platform: group
-    name: Living Room Floor Light
-    entities:
-      - light.living_room_floor_light_1
-      - light.living_room_floor_light_2
-
-  - platform: group
     name: Living Room LED
     entities:
       - light.living_room_tv_led
@@ -49,6 +43,25 @@ group:
     entities:
       - binary_sensor.garden_sliding_door_motion_sensor_motion
       - binary_sensor.garden_bike_shed_motion_sensor_motion
+
+  living_room_floor_light:
+    name: Living Room Floor Light
+    entities:
+      - light.living_room_floor_light_1
+      - light.living_room_floor_light_2
+      - switch.living_room_floor_light_3
+
+  living_room_lights:
+    name: Living Room Lights
+    entities:
+      - light.living_room_floor_light_1
+      - light.living_room_floor_light_2
+      - switch.living_room_floor_light_3
+      - light.living_room_tv_led
+      - light.living_room_sofa_led
+      - light.boiler_room_light
+      - switch.living_room_ceiling_light
+      - switch.garden_wall_light
 
 # Custom Variables
 input_boolean:
@@ -75,7 +88,7 @@ input_number:
 media_player:
   - platform: androidtv
     name: Living Room Fire TV
-    host: 10.1.1.33
+    host: 192.168.1.33
 
 # TV picture mode
 input_select:
@@ -97,36 +110,6 @@ switch:
           - service: script.living_room_tv_turn_on
         turn_off:
           - service: script.living_room_tv_turn_off
-
-      living_room_sonos_night_sound:
-        value_template: "{{state_attr('media_player.living_room_sonos', 'night_sound')}}"
-        turn_on:
-          - service: sonos.set_option
-            data:
-              night_sound: true
-            target:
-              entity_id: media_player.living_room_sonos
-        turn_off:
-          - service: sonos.set_option
-            data:
-              night_sound: false
-            target:
-              entity_id: media_player.living_room_sonos
-
-      living_room_sonos_speech_enhance:
-        value_template: "{{state_attr('media_player.living_room_sonos', 'speech_enhance')}}"
-        turn_on:
-          - service: sonos.set_option
-            data:
-              speech_enhance: true
-            target:
-              entity_id: media_player.living_room_sonos
-        turn_off:
-          - service: sonos.set_option
-            data:
-              speech_enhance: false
-            target:
-              entity_id: media_player.living_room_sonos
 
 ###############################################
 #
@@ -153,16 +136,6 @@ script:
         service: light.turn_on
       - entity_id: switch.living_room_floor_light_3
         service: switch.turn_on
-
-  living_room_floor_lights_toggle:
-    alias: Living Room Floor Lights Toggle
-    mode: parallel
-    max: 100
-    sequence:
-      - entity_id: light.living_room_floor_light
-        service: light.toggle
-      - entity_id: switch.living_room_floor_light_3
-        service: switch.toggle
 
   living_room_all_lights_turn_on:
     alias: Living Room Ceiling All Lights Turn On
@@ -250,7 +223,7 @@ script:
         data:
           entity_id: media_player.living_room_tv
           picture_mode: >
-            {% if states('sensor.master_room_light_meter')|int > 200 %}  
+            {% if states('input_select.indoor_brightness') != dark %}  
               Standard
             {% else %}
               Natural
@@ -429,9 +402,9 @@ automation:
               - entity_id: binary_sensor.living_room_tv_motion_sensor_motion
                 condition: state
                 state: "on"
-              - entity_id: sensor.master_room_light_meter
-                condition: numeric_state
-                below: "100"
+              - condition: state
+                entity_id: input_select.indoor_brightness
+                state: dark
     action:
       - choose:
           # Turn on Floor Light apart from midnights
@@ -443,9 +416,9 @@ automation:
               - service: script.living_room_floor_lights_turn_on
       - choose:
           - conditions:
-              - condition: numeric_state
-                entity_id: sensor.master_room_light_meter
-                below: "300"
+              - condition: state
+                entity_id: input_select.indoor_brightness
+                state: dark
             sequence:
               - service: light.turn_on
                 entity_id: light.living_room_led
@@ -564,9 +537,9 @@ automation:
           - entity_id: binary_sensor.garden_bike_shed_motion_sensor_motion
             condition: state
             state: "on"
-          - entity_id: sensor.master_room_light_meter
-            condition: numeric_state
-            below: "100"
+          - condition: state
+            entity_id: input_select.indoor_brightness
+            state: dark
     action:
       - service: switch.turn_on
         entity_id: switch.garden_wall_light
@@ -603,19 +576,22 @@ automation:
       - platform: state
         entity_id: sensor.living_room_sofa_button
         to: single
-      - platform: state
-        entity_id: sensor.living_room_ceiling_light_button
-        to: single
+      #- platform: state
+      #  entity_id: sensor.living_room_ceiling_light_wall_button
+      #  to: single
     action:
-      - service: script.living_room_floor_lights_toggle
+      - service: homeassistant.toggle
+        entity_id: group.living_room_floor_light
 
-  - alias: B-LR Living Room Wall Switch - Double Press - Turn Off All Lights
+  - alias: B-LR Living Room Wall Switch - Double Press - Turn Off Living Room Appliances
+    id: "1623641043079"
     trigger:
       - platform: state
-        entity_id: sensor.living_room_ceiling_light_button
+        entity_id: sensor.living_room_ceiling_light_wall_button
         to: double
     action:
-      - service: script.living_room_all_lights_turn_off
+      - service: homeassistant.turn_off
+        entity_id: group.living_room_lights
 
   - alias: B-LR Living Room Sofa - Double Press - Toggle Ceiling Lights
     id: "1603641040071"
@@ -631,12 +607,12 @@ automation:
           - light.living_room_tv_led
           - light.living_room_sofa_led
 
-  - alias: B-LR Living Room Sofa - Tripple Press - Turn off lights - Movie Scene For 2 Hours
+  - alias: B-LR Living Room Sofa - Long Press - Turn off lights - Movie Scene For 2 Hours
     id: "1603641040072"
     trigger:
       - platform: state
         entity_id: sensor.living_room_sofa_button
-        to: triple
+        to: hold
     action:
       - choose:
           # IF movie scene is off, turn off lights and its automation for 2 hours for movie scene
@@ -781,20 +757,42 @@ automation:
       - at: "21:00:00"
         platform: time
     action:
-      - service: sonos.set_option
-        data:
-          night_sound: true
-          entity_id: media_player.living_room_sonos
+      - service: switch.turn_on
+        entity_id:
+          - switch.sonos_living_room_sonos_speech_enhancement
+          - switch.sonos_living_room_sonos_night_sound
+      # Turn up volume by 10
+      - service: media_player.volume_up
+        entity_id: media_player.living_room_sonos
+      - service: media_player.volume_up
+        entity_id: media_player.living_room_sonos
+      - service: media_player.volume_up
+        entity_id: media_player.living_room_sonos
+      - service: media_player.volume_up
+        entity_id: media_player.living_room_sonos
+      - service: media_player.volume_up
+        entity_id: media_player.living_room_sonos
 
   - alias: S-LR Living Room Sonos Night Mode Off In the Morning
     trigger:
       - at: "09:00:00"
         platform: time
     action:
-      - service: sonos.set_option
-        data:
-          night_sound: false
-          entity_id: media_player.living_room_sonos
+      - service: switch.turn_off
+        entity_id:
+          - switch.sonos_living_room_sonos_speech_enhancement
+          - switch.sonos_living_room_sonos_night_sound
+      # Turn down volume by 10
+      - service: media_player.volume_down
+        entity_id: media_player.living_room_sonos
+      - service: media_player.volume_down
+        entity_id: media_player.living_room_sonos
+      - service: media_player.volume_down
+        entity_id: media_player.living_room_sonos
+      - service: media_player.volume_down
+        entity_id: media_player.living_room_sonos
+      - service: media_player.volume_down
+        entity_id: media_player.living_room_sonos
 #################################################################
 # TV auto turn-off based on motion sensors
 #################################################################

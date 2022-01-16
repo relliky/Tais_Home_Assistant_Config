@@ -1,18 +1,6 @@
 ###########################################
 # Custom Entities
 ###########################################
-light:
-  - platform: group
-    name: Master Toilet Ceiling Light
-    entities:
-      - light.master_toilet_light_1_hue
-      - light.master_toilet_light_2_hue
-      - light.master_toilet_light_3_hue
-      - light.master_toilet_light_4_hue
-      #- light.master_toilet_spotlight_bulb_1_localtuya
-      #- light.master_toilet_spotlight_bulb_2_localtuya
-      #- light.master_toilet_spotlight_bulb_3_localtuya
-      #- light.master_toilet_spotlight_bulb_4_localtuya
 
 input_boolean:
   # First Time Presence in a Room
@@ -28,18 +16,16 @@ template:
         state: >
           {{ states('sensor.master_toilet_mirror_light_meter')|int > 1000 }}
 
-  - binary_sensor:
-      - name: "Master Toilet Presence"
-        state: >
-          {{  states('binary_sensor.master_toilet_basin_motion_sensor_motion' ) or
-              states('binary_sensor.master_toilet_shower_motion_sensor_motion')   }}
-
 group:
   master_toilet_motion:
     name: Master Toilet Motion
     entities:
       - binary_sensor.master_toilet_basin_motion_sensor_motion
       - binary_sensor.master_toilet_shower_motion_sensor_motion
+
+  master_dressing_room_motion:
+    name: Master Dressing Room Motion
+    entities:
       - binary_sensor.master_toilet_dressing_room_motion_sensor_motion
 
 ###############################################
@@ -165,11 +151,7 @@ automation:
     id: "1600014380137"
     description: "automation.master_toilet_heating_on_if_people_present"
     trigger:
-      - entity_id: binary_sensor.master_toilet_basin_motion_sensor_motion
-        platform: state
-        from: "off"
-        to: "on"
-      - entity_id: binary_sensor.master_toilet_shower_motion_sensor_motion
+      - entity_id: group.master_toilet_motion
         platform: state
         from: "off"
         to: "on"
@@ -199,10 +181,7 @@ automation:
               - condition: or
                 conditions:
                   - condition: state
-                    entity_id: binary_sensor.master_toilet_basin_motion_sensor_motion
-                    state: "on"
-                  - condition: state
-                    entity_id: binary_sensor.master_toilet_shower_motion_sensor_motion
+                    entity_id: group.master_toilet_motion
                     state: "on"
               # Longer presence will turn on heating
               - service: script.master_toilet_set_heating_temp_with_state_maintaince
@@ -216,25 +195,14 @@ automation:
     trigger:
       - minutes: /5
         platform: time_pattern
-      - entity_id: binary_sensor.master_toilet_basin_motion_sensor_motion
+      - entity_id: group.master_toilet_motion
         platform: state
         from: "on"
         to: "off"
         for: 00:05:00
-      - entity_id: binary_sensor.master_toilet_shower_motion_sensor_motion
-        platform: state
-        from: "on"
-        to: "off"
-        for: 00:05:00
-      - minutes: /5
-        platform: time_pattern
     condition:
       - condition: state
-        entity_id: binary_sensor.master_toilet_basin_motion_sensor_motion
-        for: 00:05:00
-        state: "off"
-      - condition: state
-        entity_id: binary_sensor.master_toilet_shower_motion_sensor_motion
+        entity_id: group.master_toilet_motion
         for: 00:05:00
         state: "off"
     action:
@@ -255,11 +223,7 @@ automation:
     id: "1600015728994"
     description: "automation.master_toilet_lights_on_if_people_present"
     trigger:
-      - entity_id: binary_sensor.master_toilet_basin_motion_sensor_motion
-        platform: state
-        from: "off"
-        to: "on"
-      - entity_id: binary_sensor.master_toilet_shower_motion_sensor_motion
+      - entity_id: group.master_toilet_motion
         platform: state
         from: "off"
         to: "on"
@@ -273,7 +237,7 @@ automation:
                 state: "on"
               - entity_id: sensor.master_toilet_basin_motion_sensor_light
                 condition: numeric_state
-                below: "200"
+                below: "150"
           - condition: and
             conditions:
               - entity_id: binary_sensor.master_toilet_shower_motion_sensor_motion
@@ -331,12 +295,7 @@ automation:
     id: "1603640011745"
     description: ""
     trigger:
-      - entity_id: binary_sensor.master_toilet_basin_motion_sensor_motion
-        platform: state
-        from: "on"
-        to: "off"
-        for: 00:10:00
-      - entity_id: binary_sensor.master_toilet_shower_motion_sensor_motion
+      - entity_id: group.master_toilet_motion
         platform: state
         from: "on"
         to: "off"
@@ -344,11 +303,7 @@ automation:
       - minutes: /5
         platform: time_pattern
     condition:
-      - entity_id: binary_sensor.master_toilet_basin_motion_sensor_motion
-        condition: state
-        state: "off"
-        for: 00:10:00
-      - entity_id: binary_sensor.master_toilet_shower_motion_sensor_motion
+      - entity_id: group.master_toilet_motion
         condition: state
         state: "off"
         for: 00:10:00
@@ -359,12 +314,7 @@ automation:
     id: "1603640027495"
     description: ""
     trigger:
-      - entity_id: binary_sensor.master_toilet_basin_motion_sensor_motion
-        platform: state
-        from: "on"
-        to: "off"
-        for: 00:02:00
-      - entity_id: binary_sensor.master_toilet_shower_motion_sensor_motion
+      - entity_id: group.master_toilet_motion
         platform: state
         from: "on"
         to: "off"
@@ -375,11 +325,7 @@ automation:
       - entity_id: binary_sensor.master_toilet_door
         condition: state
         state: "on"
-      - entity_id: binary_sensor.master_toilet_basin_motion_sensor_motion
-        condition: state
-        state: "off"
-        for: 00:02:00
-      - entity_id: binary_sensor.master_toilet_shower_motion_sensor_motion
+      - entity_id: group.master_toilet_motion
         condition: state
         state: "off"
         for: 00:02:00

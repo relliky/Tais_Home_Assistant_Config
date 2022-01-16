@@ -5,18 +5,19 @@
 emulated_hue:
   listen_port: 80
   expose_by_default: false
-  # Emulated Hue can only make entities to appear as lights in Alexa
-  # It supports light, switch, climate, input_boolean - by using brightness percentage
-  exposed_domains:
-    - light
-    - switch
-    - climate
   # Make sure "hidden:false" is always attached - otherwise HA would not be found the devices
   # N.B.
   # As per Emulated Hue documentation, ONLY UP TO 49 DEVICES can be supported by this integration.
+  # There are 27 devices now
   entities:
     ###################################
-    # Master Room
+    # HA script - using a fake light brightness to call scripts
+    ###################################
+    light.emulated_hue_ha_script:
+      name: "HA Scripts"
+      hidden: false
+    ###################################
+    # Master Room  - 7 devices
     ###################################
     # Alexa, set the Master Room Thermostat to 23
     switch.master_room_blind:
@@ -40,8 +41,11 @@ emulated_hue:
     light.master_room_entrance_led_light:
       name: "Master Room Entrance Light"
       hidden: false
+    input_boolean.master_room_tv_sleep_mode:
+      name: "Master Room TV Sleep Mode"
+      hidden: false
     ###################################
-    # Master Toilet
+    # Master Toilet  - 2 devices
     ###################################
     light.master_toilet_ceiling_light:
       name: "Master Toilet Ceiling Light"
@@ -50,13 +54,13 @@ emulated_hue:
       name: "Master Toilet Floor LED"
       hidden: false
     ###################################
-    # Guest Room
+    # Guest Room  - 1 devices
     ###################################
     light.guest_room_ceiling_light:
       name: "Guest Room Ceiling Light"
       hidden: false
     ###################################
-    # Living Room
+    # Living Room - 4 devices
     ###################################
     light.living_room_led:
       name: "Living Room LED"
@@ -73,7 +77,7 @@ emulated_hue:
       name: "Garden Light"
       hidden: false
     ###################################
-    # Kitchen
+    # Kitchen - 5 devices
     ###################################
     light.kitchen_ceiling_light:
       name: "Kitchen Ceiling Light"
@@ -91,19 +95,19 @@ emulated_hue:
       name: "Kitchen Worktop LED Right"
       hidden: false
     ###################################
-    # Ground Toilet
+    # Ground Toilet - 1 devices
     ###################################
     light.ground_toilet_ceiling_light:
       name: "Ground Toilet Ceiling Light"
       hidden: false
     ###################################
-    # Study
+    # Study - 1 devices
     ###################################
     light.study_ceiling_light:
       name: "Study Ceiling Light"
       hidden: false
     ###################################
-    # En-suite Room
+    # En-suite Room - 6 devices
     ###################################
     light.en_suite_room_ceiling_light:
       name: "En-suite Room Ceiling Light"
@@ -150,3 +154,87 @@ switch emulated_hue:
           service: cover.close_cover
           target:
             entity_id: cover.master_room_curtain
+
+# Fake Light - using its brightness to call scripts from Alexa
+light:
+  - platform: template
+    lights:
+      emulated_hue_ha_script:
+        friendly_name: "Emulated Hue HA Script"
+        turn_on:
+          service: script.do_nothing
+        turn_off:
+          service: script.do_nothing
+        set_level:
+          service: script.do_nothing
+          data:
+            brightness: "{{ brightness }}"
+
+automation:
+  - alias: E- Emulated Hue HA Script
+    id: "1939270046562"
+    trigger:
+      - platform: state
+        entity_id: light.emulated_hue_ha_script
+        to: "on"
+    action:
+      # Delay for a bit for the brightness value to be up-to-date
+      - delay: "00:00:01"
+      - service: script.turn_on
+        data:
+          entity_id: >
+            {% set script_brightness = ((state_attr('light.emulated_hue_ha_script', 'brightness')/255*100)|round) %}
+
+            {% if   script_brightness == 1 %}
+                script.do_nothing                
+
+            {% elif script_brightness == 6 %}
+                script.master_room_open_curtain                
+                
+            {% elif script_brightness == 7 %}
+                script.master_room_close_curtain                 
+
+            {% elif script_brightness == 8 %}
+                script.master_room_open_blind                
+                
+            {% elif script_brightness == 9 %}
+                script.master_room_close_blind
+                
+            {% elif script_brightness == 10 %}
+                script.master_room_tv_sleep_timer_start
+
+            {% elif script_brightness == 11 %}
+                script.find_tais_iphone_13
+
+            {% elif script_brightness == 12 %}
+                script.find_tais_iphone_8
+
+            {% elif script_brightness == 13 %}
+                script.find_tais_iphone_6
+
+            {% elif script_brightness == 14 %}
+                script.find_tais_ipad
+
+            {% elif script_brightness == 15 %}
+                script.find_tais_macbook_air
+
+            {% elif script_brightness == 16 %}
+                script.find_kes_iphone_11
+
+            {% elif script_brightness == 17 %}
+                script.find_kes_iphone_8
+
+            {% elif script_brightness == 18 %}
+                script.find_kes_macbook_air
+
+            {% else %}
+                script.do_nothing                
+            {% endif %}
+      # Restore the default value and delay for a bit
+      - delay: "00:00:02"
+      - service: light.turn_on
+        entity_id: light.emulated_hue_ha_script
+        data:
+          brightness_pct: 100
+      - service: light.turn_off
+        entity_id: light.emulated_hue_ha_script

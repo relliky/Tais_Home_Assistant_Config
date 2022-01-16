@@ -1,3 +1,6 @@
+# Lovelace
+browser_mod:
+
 # System Sensors
 sensor:
   # This sensor capture DNS public IP
@@ -36,13 +39,13 @@ sensor:
           {{ relative_time(strptime(states('sensor.boot_time'), '%Y-%m-%dT%H:%M:%S.%f%z')) }}
 
   # Bad Login Attempts
-  - platform: command_line
-    name: badlogin
-    command: "grep -c 'Login attempt' /home/hass/.homeassistant/home-assistant.log"
+#  - platform: command_line
+#    name: badlogin
+#    command: "grep -c 'Login attempt' /home/hass/.homeassistant/home-assistant.log"
   
   # QNAP NAS
   - platform: qnap
-    host: 10.1.1.25
+    host: 192.168.1.11
     username: admin
     password: admin
     monitored_conditions:
@@ -53,7 +56,7 @@ sensor:
       - volume_percentage_used
       - volume_size_free
     
-# Remove Acccess via HTTPS
+# Remote Acccess via HTTPS
 http:
   ssl_certificate: /ssl/fullchain.pem
   ssl_key: /ssl/privkey.pem
@@ -61,40 +64,51 @@ http:
   login_attempts_threshold: 10
 
 # Main DDNS - DuckDNS (needs to renew every 3 months mannually if auto-renew fails)
-# Alt. DDNS - No-ip   (needs to renew every 1  month mannually)
-no_ip:
-  domain:   !secret no_ip_url
-  username: !secret no_ip_account
-  password: !secret no_ip_password
+# Alt. DDNS - FreeDNS (no need to renew mannually)
+freedns:
+  access_token: !secret freedns_token
 
+# No-IP discarded as it requires to manually renew every month
+# Alt. DDNS - No-ip   (needs to renew every 1  month mannually)
+#no_ip:
+#  domain:   !secret no_ip_url
+#  username: !secret no_ip_account
+#  password: !secret no_ip_password
+
+  
 # Database logging config
 recorder:
-  purge_keep_days: 1
+  purge_keep_days: 3
   auto_purge: true
-  commit_interval: 15 # updates log every 15s
+  commit_interval: 15 # updates log every 5s
   #db_url: mysql://hass_user:hass_pass@core-mariadb/homeassistant?charset=utf8mb4
-  
   
 # WOL switch on PCs
 switch:
   - platform: wake_on_lan
     mac: b8:88:e3:33:cf:17
     name: Old Laptop
-    host: 10.1.1.5
-    broadcast_address: 10.1.1.255
-    
+    host: 192.168.1.5
+
   - platform: wake_on_lan
-    mac: 8c:16:45:69:fe:4d
-    name: Home Server
+    mac: 40:B0:76:D8:A9:DC
+    name: Gaming PC
+    host: 192.168.1.9
+
+  - platform: wake_on_lan
+    mac: b8:ae:ed:75:d8:b7
+    name: Intel NUC
     host: 192.168.1.7
-    broadcast_address: 192.168.1.255
-    
-  - platform: wake_on_lan
-    mac: 24:5E:BE:09:3D:E0
-    name: NAS
-    host: 10.1.1.25
-    broadcast_address: 192.168.1.255
-    
+
+binary_sensor:
+  - platform: ping
+    host: 192.168.1.20
+    name: Kes Work Laptop
+
+#  - platform: ping
+#    mac: 24:5E:BE:09:3D:E0
+#    name: QNAP NAS
+#    host: 192.168.1.11
 
 input_datetime:
   log_disable_time:
