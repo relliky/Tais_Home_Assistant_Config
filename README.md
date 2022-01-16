@@ -16,10 +16,12 @@ UI to control:
   
 Voice Assistant:
 - Alexa (free alexa services via emulated_hue)
+  - Extra commands supported:
+    - Alexa, Find my iPhone. This will set a "Find My" alert to my iphone. Other apple devices are also supported.
 
 Remote Control:
 - WOL on PCs/NAS
-- HA instance (free DDNS services using DuckDNS as primary and NoIP as secondary)
+- HA instance (free DDNS services using DuckDNS as primary and FreeDNS as secondary)
 
 
 Other smart home features but not done in Home Assistant:
