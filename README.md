@@ -15,7 +15,7 @@ UI to control:
   - All above + TV remote/Room default temperature scheduler
   
 Voice Assistant:
-- Alexa (free alexa services via emulated_hue)
+- Alexa (free alexa integration via Emulated Hue)
   - Extra commands supported:
     - Alexa, Find my iPhone
       - This will set a "Find My" alert to my iphone. Other apple devices are also supported.
