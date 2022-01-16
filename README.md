@@ -25,9 +25,13 @@ Remote Control:
 - HA instance (free DDNS services using DuckDNS as primary and FreeDNS as secondary)
 
 
-Other smart home features but not done in Home Assistant:
-- VNC server (on home server)
-- Plex server (on home server)
+Other smart features but not done in Home Assistant:
+- Proxmox VE running
+  - Home Assistant OS VM
+  - Plex Media Server LXC
+  - Ubuntu LXC
+- VNC server (on a gaming PC and an old laptop)
+- LAN Game Streaming using Nvdia graphic card on the gaming PC to Moonlight on Nintendo Switch
 
 <br><br>
 This is my device list which are connected to HA with 6 protocols 
