@@ -1,6 +1,6 @@
 This is my configuration of Home Assistant used in the house. 
 
-My whole home supports automations on
+All the rooms in my place supports automations on
 - Heating/Lighting/Curtain/TV photo slideshow on-off based on presence (motion sensors) in all rooms and the garden
 - Heating - thermostatic radiator valve calibration using external temperature sensor
 - Lighting/Curtain/TV off at midnight
