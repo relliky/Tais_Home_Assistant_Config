@@ -1,11 +1,11 @@
 This is my configuration of Home Assistant used in the house. 
 
 All the rooms in my place supports automations on
-- Heating/Lighting/Curtain/TV photo slideshow on-off based on presence (motion sensors) in all rooms and the garden
-- Heating - thermostatic radiator valve calibration using external temperature sensor
+- Heating/Lighting/Curtain/TV photo slideshow automatically on-off based on presence (motion sensors) in all rooms and the garden
+- Heating - smart thermostatic radiator valve calibration using external temperature sensor
 - Lighting/Curtain/TV off at midnight
-- Lighting temperature/color, speakers volume, TVs startup volume/brightness change throughout the day
-- Sonos speakers grouping/ungrouping based on motion sensor to achieve music following people 
+- Lighting temperature/color, speakers volume, TVs startup volume/brightness change throughout the day adaptively
+- Sonos speakers grouping/ungrouping based on motion sensor to achieve music/TV audio following people 
 - Light/Curtain/TV/Scene on-off using physical remote buttons
 
 UI to control:
@@ -16,6 +16,7 @@ UI to control:
   
 Voice Assistant:
 - Alexa (free alexa integration via Emulated Hue)
+  - Support turn on/off HA appliances and calling HA scripts to set a scene
   - Extra commands supported:
     - Alexa, Find my iPhone
       - This will set a "Find My" alert to my iphone. Other apple devices are also supported.
@@ -29,12 +30,14 @@ Other smart features but not done in Home Assistant:
 - Proxmox VE running
   - Home Assistant OS VM
   - Plex Media Server LXC
+    - Streamed from multiple Plex client apps from TV/computer/phones/tablets for its video and music library
+    - Streamed from Alexa-enabled devices for its music library
   - Ubuntu LXC
 - VNC server (on a gaming PC and an old laptop)
-- LAN Game Streaming using Nvdia graphic card on the gaming PC to Moonlight on Nintendo Switch
+- LAN Game Streaming using NVDIA GPU from the gaming PC to TV/computer/phone/tablets
 
 <br><br>
-This is my device list which are connected to HA with 6 protocols 
+This is my device list which are connected to HA via 6 protocols 
 
 - 2.4Ghz Wifi Devices (60+ devices)
   - Lepro Wifi Bulbs (Colour/White) E27/E16/GU10
@@ -77,13 +80,11 @@ This is my device list which are connected to HA with 6 protocols
   - Tado Smart Radiator Valves
 
 - Ethernet (10+ devices)
-  - Unifi UDM, UAP-AC-PRO, UAP-AC-Lite
-  - Linksys Mesh Wifi
-  - Raspberry Pi 3/4
+  - Unifi UDM, U6-LITE
   - Intel NUC
   - Gaming PC
   - Old Windows Laptop
-  - QNAP NAS
+  - Synology NAS 
   - Philips Hue Bridge
   - Tado Bridge
   
