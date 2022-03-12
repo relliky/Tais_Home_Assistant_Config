@@ -45,7 +45,7 @@ This is my device list which are connected to HA via 6 protocols
     - BENEXMART Blind Motors 
   - Homekit integration
     - Meross Homekit Wifi Bulbs (Colour) E27 (Homekit)
-    - Meross Homekit Wifi Sockets
+    - Meross Homekit Wifi Wall Plugs
     - Meross Homekit LED Strips 
   - Yeelight integration
     - Yeelight Wifi Bulbs (Colour) E27 (Yeelight)
@@ -63,40 +63,55 @@ This is my device list which are connected to HA via 6 protocols
     - Xiaomi Gateways v1
 
 - 5Ghz Wifi Devices (10+ devices)
-  - Fire TV sticks/cubes
-  - Samsung Smart TVs (one of them is on 2.4Ghz)
-  - Amazon Echo Dots - also used as intercom (one of them is on 2.4Ghz)
-  - Apple devices: iPhones, iPads, Macbooks
-  - Windows work laptops
+  - Andriod TV integration 
+    - Fire TV sticks/cubes
+  - SamsungTV Smart integration
+    - Samsung Smart TVs (one of them is on 2.4Ghz)
+  - Alexa Media Player integration
+    - Amazon Echo Dots - also used as intercom (one of them is on 2.4Ghz)
+  - iCloud integration
+    - Apple devices: iPhones, iPads, Macbooks
+  - WOL integration/RPC addon
+    - Windows laptops
 
 - Zigbee Devices (80+ devices)
-  - IKEA white spectrum GU10 
-  - IKEA colour GU10 
-  - Xiaomi/Aqara Motion Sensors
-  - Xiaomi/Aqara Door Window Contact Sensors
-  - Xiaomi Wireless Buttons
-  - Aqara B1 Curtain Motors
-  - Xiaomi Light Sensors
-  - Aqara Smart Wall Switches
+  - Philps Hue integration
+    - IKEA white spectrum GU10 
+    - IKEA colour GU10 
+  - Xiaomi Gateway 3/Xiaomi Gateway integration
+    - Xiaomi/Aqara Motion Sensors
+    - Xiaomi/Aqara Door Window Contact Sensors
+    - Xiaomi Wireless Buttons
+    - Aqara B1 Curtain Motors
+    - Xiaomi Light Sensors
+    - Aqara Smart Wall Switches
 
 - BLE Devices (20+ devices)
-  - Xiaomi Motion Sensors 2
-  - Xiaomi Door Window Contact Sensors 2
-  - Xiaomi Temperature and Humidity Sensors
-  - Xiaomi White Temperature Bulb E27
-  - Philip Hue Bulbs E27
+  - Philps Hue integration
+    - Philip Hue Bulbs E27
+  - Xiaomi Gateway 3 integration
+    - Xiaomi Motion Sensors 2
+    - Xiaomi Door Window Contact Sensors 2
+    - Xiaomi Temperature and Humidity Sensors
+    - Xiaomi White Temperature Bulb E27
   
 - Proprietary Protocol (10+ devices)
-  - Tado Smart Radiator Valves
+  - Tado integration
+    - Tado Smart Radiator Valves
 
 - Ethernet (10+ devices)
-  - Unifi UDM, U6-LITE
-  - Intel NUC
-  - Gaming PC
-  - Old Windows Laptop
-  - Synology NAS 
-  - Philips Hue Bridge
-  - Tado Bridge
+  - Ubuiquiti intgration
+    - Unifi UDM, U6-LITE
+  - WOL integration/RPC addon
+    - Intel NUC
+    - Gaming PC
+    - Old Windows Laptop
+  - Synology integration
+    - Synology NAS 
+  - Philps Hue integration
+    - Philips Hue Bridge
+  - Tado integration
+    - Tado Bridge
   
 --------------------------------------------------------------------------  
 Follow my activity on 
