@@ -12,6 +12,19 @@ group:
       - binary_sensor.kitchen_worktop_motion_sensor_motion
       - binary_sensor.kitchen_dining_motion_sensor_motion
 
+  kitchen_appliances:
+    name: Kitchen Appliances
+    entities:
+      - climate.kitchen
+      - switch.kitchen_floor_led
+      - light.kitchen_dining_light
+      - light.kitchen_ceiling_light
+      - switch.kitchen_worktop_led_left
+      - switch.kitchen_worktop_led_right
+      - media_player.kitchen_tv
+      - switch.kitchen_extractor
+      - switch.kitchen_drinking_hot_water
+
 # Custom Variables
 input_boolean:
   kitchen_short_presence: # done
@@ -59,14 +72,14 @@ script:
     max: 100
     mode: parallel
     sequence:
-      - entity_id: light.kitchen_ceiling_light
-        service: light.turn_off
-      - entity_id: light.kitchen_dining_light
-        service: light.turn_off
       - entity_id: switch.kitchen_floor_led
         service: switch.turn_off
       - entity_id: script.kitchen_worktop_lights_turn_off
         service: script.turn_on
+      - entity_id: light.kitchen_dining_light
+        service: light.turn_off
+      - entity_id: light.kitchen_ceiling_light
+        service: light.turn_off
 
   # Turn Off All Kitchen Lights and Also Reset Extractor Automation
   kitchen_all_lights_and_appliances_turn_off:
@@ -78,6 +91,10 @@ script:
         service: script.turn_on
       - entity_id: script.kitchen_all_lights_turn_off
         service: script.turn_on
+      # Remove this room speaker from the group
+      - service: script.remove_sonos_from_speaker_group
+        data:
+          target_player: media_player.kitchen_sonos
 
   kitchen_worktop_lights_turn_on:
     alias: Kitchen Worktop Lights Turn On
@@ -373,33 +390,33 @@ automation:
   ###############################################
   # Lighting Automation based on motion sensors
   ###############################################
-  - alias: L-KC Kitchen Lights On If People Present and Dim In Daytime
-    id: "1603640029617"
-    description: "automation.kitchen_lights_on_if_people_present_and_dark_in_daytime"
-    trigger:
-      - entity_id: binary_sensor.kitchen_dining_motion_sensor_motion
-        platform: state
-        from: "off"
-        to: "on"
-    condition:
-      # Do not need light condition for turning on kitchen lights
-      #- condition: and
-      #  conditions:
-      #    - condition: and
-      #      conditions:
-      #        - entity_id: binary_sensor.kitchen_dining_motion_sensor_motion
-      #          condition: state
-      #          state: "on"
-      #        - entity_id: sensor.kitchen_dining_motion_sensor_light
-      #          condition: numeric_state
-      #          below: "200"
-      - after: "06:00:00"
-        before: "00:00:00"
-        condition: time
-    action:
-      - service: script.kitchen_set_bright_warm_light
+  #  - alias: L-KC Kitchen Lights On If People Present and Dim In Daytime
+  #    id: "1603640029617"
+  #    description: "automation.kitchen_lights_on_if_people_present_and_dark_in_daytime"
+  #    trigger:
+  #      - entity_id: binary_sensor.kitchen_dining_motion_sensor_motion
+  #        platform: state
+  #        from: "off"
+  #        to: "on"
+  #    condition:
+  #      # Do not need light condition for turning on kitchen lights
+  #      #- condition: and
+  #      #  conditions:
+  #      #    - condition: and
+  #      #      conditions:
+  #      #        - entity_id: binary_sensor.kitchen_dining_motion_sensor_motion
+  #      #          condition: state
+  #      #          state: "on"
+  #      #        - entity_id: sensor.kitchen_dining_motion_sensor_light
+  #      #          condition: numeric_state
+  #      #          below: "200"
+  #      - after: "06:00:00"
+  #        before: "00:00:00"
+  #        condition: time
+  #    action:
+  #      - service: script.kitchen_set_bright_warm_light
 
-  - alias: L-KC Kitchen Lights On If People Present In Nighttime
+  - alias: L-KC Kitchen Lights On If People Present
     id: "1603640029618"
     description: ""
     trigger:
@@ -411,21 +428,27 @@ automation:
         platform: state
         from: "off"
         to: "on"
-    condition:
-      - after: "00:00:00"
-        before: "06:00:00"
-        condition: time
-      - condition: state
-        entity_id:
-          - light.kitchen_ceiling_light
-          - light.kitchen_dining_light
-        state: "off"
-        for: "00:00:05"
+    #condition:
+    #  - after: "00:00:00"
+    #    before: "06:00:00"
+    #    condition: time
+    #  - condition: state
+    #    entity_id:
+    #      - light.kitchen_ceiling_light
+    #      - light.kitchen_dining_light
+    #    state: "off"
+    #    for: "00:00:05"
     action:
       - service: light.turn_on
         entity_id:
-          - light.kitchen_ceiling_light
           - light.kitchen_dining_light
+          - light.kitchen_ceiling_light
+      # Turn on LED if sunset
+      - condition: state
+        entity_id: sun.sun
+        state: "Below horizon"
+      - service: switch.turn_on
+        entity_id: switch.kitchen_floor_led
 
   - alias: L-KC Kitchen TV Slideshow When People Present
     id: "1583407343079"
@@ -518,7 +541,7 @@ automation:
             - condition: template
               value_template: "{{states('media_player.kitchen_tv') == 'off'}}"
 
-  - alias: L-KC Kitchen Cool White Lights On If People Present In Worktop In Daytime
+  - alias: L-KC Kitchen Worktop Lights On If People Present In Worktop In Daytime
     id: "1603640020051"
     description: ""
     trigger:
@@ -528,22 +551,22 @@ automation:
         to: "on"
     condition:
       - after: "06:00:00"
-        before: "00:00:00"
+        before: "23:00:00"
         condition: time
     action:
       - service: script.kitchen_worktop_lights_turn_on
-      - service: switch.turn_off
-        entity_id: switch.kitchen_floor_led
-      - service: light.turn_on
-        entity_id: light.kitchen_ceiling_light
-        data:
-          kelvin: 4000
-      - service: light.turn_on
-        entity_id: light.kitchen_dining_light
-        data:
-          kelvin: 4000
+      #- service: switch.turn_off
+      #  entity_id: switch.kitchen_floor_led
+      #- service: light.turn_on
+      #  entity_id: light.kitchen_ceiling_light
+      #  data:
+      #    kelvin: 4000
+      #- service: light.turn_on
+      #  entity_id: light.kitchen_dining_light
+      #  data:
+      #    kelvin: 4000
 
-  - alias: L-KC Kitchen To Warm White If No People Present In Worktop In Daytime
+  - alias: L-KC Kitchen Worktop Lights off If No People Present In Worktop In Daytime
     description: ""
     trigger:
       - entity_id: binary_sensor.kitchen_worktop_motion_sensor_motion
@@ -559,28 +582,28 @@ automation:
         for: 00:05:00
         state: "off"
       - after: "06:00:00"
-        before: "00:00:00"
+        before: "23:00:00"
         condition: time
     action:
-      # Remove race conditon of the turn-off automation
-      - delay: 00:00:15
-      # And some light are still on
-      - condition: or
-        conditions:
-          - condition: state
-            entity_id:
-              - switch.kitchen_floor_led
-            state: "on"
-          - condition: state
-            entity_id:
-              - light.kitchen_dining_light
-            state: "on"
-          - condition: state
-            entity_id:
-              - light.kitchen_ceiling_light
-            state: "on"
-      # Set Kitchen to warm whites
-      - service: script.kitchen_set_bright_warm_light
+      ## Remove race conditon of the turn-off automation
+      #- delay: 00:00:15
+      ## And some light are still on
+      #- condition: or
+      #  conditions:
+      #    - condition: state
+      #      entity_id:
+      #        - switch.kitchen_floor_led
+      #      state: "on"
+      #    - condition: state
+      #      entity_id:
+      #        - light.kitchen_dining_light
+      #      state: "on"
+      #    - condition: state
+      #      entity_id:
+      #        - light.kitchen_ceiling_light
+      #      state: "on"
+      ## Set Kitchen to warm whites
+      #- service: script.kitchen_set_bright_warm_light
       - service: script.kitchen_worktop_lights_turn_off
 
   ###############################################
@@ -606,6 +629,28 @@ automation:
       - entity_id: switch.kitchen_extractor
         service: switch.toggle
     mode: restart
+
+  - alias: B-KC Kitchen Button Double Press - Toggle Kitchen Sonos Groupping to Living Room
+    id: "1560305343074"
+    trigger:
+      - platform: state
+        entity_id: sensor.kitchen_worktop_button
+        to: double
+    mode: restart
+    action:
+      - choose:
+          - conditions:
+              - condition: state
+                entity_id: media_player.kitchen_sonos
+                state: "playing"
+            sequence:
+              - service: script.remove_sonos_from_speaker_group
+                data:
+                  target_player: media_player.kitchen_sonos
+        default:
+          - service: script.add_sonos_into_speaker_group
+            data:
+              target_player: media_player.kitchen_sonos
 
   - alias: B-KC Kitchen Light - Left Press - Toggle Ceiling Light
     trigger:
@@ -667,13 +712,12 @@ automation:
   #################################################################
 
   - alias: S-KC Kitchen Group Its Speaker If People Present
+    id: "1560305343071"
     trigger:
       - platform: state
         from: "off"
         to: "on"
-        entity_id:
-          - binary_sensor.kitchen_dining_motion_sensor_motion
-          - binary_sensor.kitchen_worktop_motion_sensor_motion
+        entity_id: group.kitchen_motion
     condition:
       - condition: state
         entity_id: input_boolean.follow_music
@@ -693,21 +737,18 @@ automation:
           target_player: media_player.kitchen_sonos
 
   - alias: S-KC Kitchen Ungroup/Pause Its Speaker If No People
+    id: "1560305343072"
     trigger:
       - platform: state
         from: "on"
         to: "off"
         for: 00:10:00
-        entity_id:
-          - binary_sensor.kitchen_dining_motion_sensor_motion
-          - binary_sensor.kitchen_worktop_motion_sensor_motion
+        entity_id: group.kitchen_motion
       - minutes: /5
         platform: time_pattern
     condition:
       - condition: state
-        entity_id:
-          - binary_sensor.kitchen_dining_motion_sensor_motion
-          - binary_sensor.kitchen_worktop_motion_sensor_motion
+        entity_id: group.kitchen_motion
         for: 00:10:00
         state: "off"
     action:

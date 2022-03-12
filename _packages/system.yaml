@@ -19,24 +19,28 @@ sensor:
       - type: load_1m
       - type: processor_use 
       - type: processor_temperature
+
+shell_command:
+  reboot_u6_lite: bash /config/shell_scripts/reboot_u6_lite.sh
+  reboot_udm:     bash /config/shell_scripts/reboot_udm.sh
   
-  # CPU Clock Frequency
-  - platform: command_line
-    name: "CPU Clock Frequency"
-    command: 'cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq'
-    unit_of_measurement: 'MHz'
-    value_template: '{{ value | multiply(0.001) }}'
-  
-  # Uptime
-  - platform: uptime
-    name: Boot Time
-  - platform: template
-    sensors:
-      uptime:
-        friendly_name: "Uptime"
-        value_template: >-
-          {% set t = now() %}
-          {{ relative_time(strptime(states('sensor.boot_time'), '%Y-%m-%dT%H:%M:%S.%f%z')) }}
+#  # CPU Clock Frequency
+#  - platform: command_line
+#    name: "CPU Clock Frequency"
+#    command: 'cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq'
+#    unit_of_measurement: 'MHz'
+#    value_template: '{{ value | multiply(0.001) }}'
+#  
+#  # Uptime
+#  - platform: uptime
+#    name: Boot Time
+#  - platform: template
+#    sensors:
+#      uptime:
+#        friendly_name: "Uptime"
+#        value_template: >-
+#          {% set t = now() %}
+#          {{ relative_time(strptime(states('sensor.boot_time'), '%Y-%m-%dT%H:%M:%S.%f%z')) }}
 
   # Bad Login Attempts
 #  - platform: command_line
@@ -44,17 +48,17 @@ sensor:
 #    command: "grep -c 'Login attempt' /home/hass/.homeassistant/home-assistant.log"
   
   # QNAP NAS
-  - platform: qnap
-    host: 192.168.1.11
-    username: admin
-    password: admin
-    monitored_conditions:
-      - status
-      - cpu_usage
-      - memory_percent_used
-      - network_tx
-      - volume_percentage_used
-      - volume_size_free
+#  - platform: qnap
+#    host: 192.168.1.11
+#    username: admin
+#    password: admin
+#    monitored_conditions:
+#      - status
+#      - cpu_usage
+#      - memory_percent_used
+#      - network_tx
+#      - volume_percentage_used
+#      - volume_size_free
     
 # Remote Acccess via HTTPS
 http:
@@ -63,13 +67,12 @@ http:
   ip_ban_enabled: true
   login_attempts_threshold: 10
 
-# Main DDNS - DuckDNS (needs to renew every 3 months mannually if auto-renew fails)
+# Main DDNS - DuckDNS (if auto-renew fails, needs to mannually renew every 3 months)
 # Alt. DDNS - FreeDNS (no need to renew mannually)
 freedns:
   access_token: !secret freedns_token
 
 # No-IP discarded as it requires to manually renew every month
-# Alt. DDNS - No-ip   (needs to renew every 1  month mannually)
 #no_ip:
 #  domain:   !secret no_ip_url
 #  username: !secret no_ip_account
@@ -80,7 +83,7 @@ freedns:
 recorder:
   purge_keep_days: 3
   auto_purge: true
-  commit_interval: 15 # updates log every 5s
+  commit_interval: 15 # updates log every 15s
   #db_url: mysql://hass_user:hass_pass@core-mariadb/homeassistant?charset=utf8mb4
   
 # WOL switch on PCs
@@ -94,7 +97,12 @@ switch:
     mac: 40:B0:76:D8:A9:DC
     name: Gaming PC
     host: 192.168.1.9
-
+    turn_off:
+      service: hassio.addon_stdin
+      data:
+        addon: core_rpc_shutdown
+        input: gaming_pc
+        
   - platform: wake_on_lan
     mac: b8:ae:ed:75:d8:b7
     name: Intel NUC
@@ -109,6 +117,13 @@ binary_sensor:
 #    mac: 24:5E:BE:09:3D:E0
 #    name: QNAP NAS
 #    host: 192.168.1.11
+
+input_number:
+  gaming_pc_shutdown_timer_in_hour:
+    name: Gaming PC Shutdown Timer In Hour
+    min: 1
+    max: 24
+    step: 1
 
 input_datetime:
   log_disable_time:
@@ -160,3 +175,15 @@ automation:
       - service: input_boolean.turn_off
         entity_id: input_boolean.log_enable
       - service: recorder.disable
+
+  - alias: Turn Off Gaming PC By The Timeout
+    id: "1207688309981"
+    trigger:
+      - platform: state
+        entity_id: switch.gaming_pc
+        to: "on"
+        for:
+            hours: "{{ states('input_number.gaming_pc_shutdown_timer_in_hour')|int }}"
+    action:
+      - service: switch.turn_off
+        entity_id: switch.gaming_pc

@@ -75,8 +75,8 @@ template:
         state: >
           {% set sensor_1 = states('sensor.master_room_temperature_sensor_1') | float | round(1) %}
           {% set sensor_2 = states('sensor.master_room_temperature_sensor_2') | float | round(1) %}
-          {% if sensor_1 == '0.0' and sensor_2 == '0.0' %}
-            0.0
+          {% if sensor_1 < '1.0' or sensor_2 < '1.0' or (sensor_1 + sensor_2) < '1.0' %}
+            20.0
           {% else %}
             {{ ((sensor_1 + sensor_2) / 2) | round(1) }}
           {% endif %}
@@ -97,6 +97,20 @@ group:
     entities:
       - binary_sensor.master_room_entrance_motion_sensor
       - binary_sensor.master_room_stair_motion_sensor_motion
+
+  master_room_appliances:
+    name: Master Room Appliances
+    entities:
+      - climate.master_room
+      - light.master_room_lamps
+      - light.master_room_leds
+      - light.master_room_entrance_led_light
+      - light.master_room_ceiling_lights
+      - switch.master_room_dressing_table_light      
+      - cover.master_room_blind
+      - cover.master_room_curtain      
+      - media_player.master_room_tv
+      
 
 # Custom Thermostat
 climate:
@@ -143,19 +157,6 @@ input_boolean:
   # First Time Presence in a Room
   master_room_short_presence: # done
     name: "Master Room Short Presence"
-    initial: "off"
-
-  # Use for detecting if there is an outstanding setting update scheduled
-  master_room_ceiling_light_outstanding_setting_update:
-    name: "Master Room Ceiling Light Outstanding Setting Update"
-    initial: "off"
-
-  master_room_lamp_1_outstanding_setting_update:
-    name: "Master Room Lamp 1 Outstanding Setting Update"
-    initial: "off"
-
-  master_room_lamp_2_outstanding_setting_update:
-    name: "Master Room Lamp 2 Outstanding Setting Update"
     initial: "off"
 
   master_room_slideshow_enable:
@@ -263,8 +264,6 @@ automation heating:
         #scripts_to_be_run: script.master_room_tv_slideshow
 
   # If scheduled normally, set heating temperature
-  #
-
   - alias: H-MR Master Room Heating Scheduler
     id: "1599909948789"
     description: "automation.master_room_heating_scheduler"
@@ -605,33 +604,6 @@ automation light:
     action:
       - service: light.turn_off
         entity_id: light.master_room_entrance_led_light
-
-  - alias: L-MR Master Room Ceiling Light Update Setting When Turned On
-    id: "1607918414251"
-    description: ""
-    use_blueprint:
-      path: update_setting_when_on.yaml
-      input:
-        target_light_list: light.master_room_ceiling_lights
-        input_boolean_outstanding_setting_update: input_boolean.master_room_ceiling_light_outstanding_setting_update
-
-  - alias: L-MR Master Room Lamp 1 Update Setting When Turned On
-    id: "1607918411259"
-    description: ""
-    use_blueprint:
-      path: update_setting_when_on.yaml
-      input:
-        target_light_list: light.master_room_lamp_1
-        input_boolean_outstanding_setting_update: input_boolean.master_room_lamp_1_outstanding_setting_update
-
-  - alias: L-MR Master Room Lamp 2 Update Setting When Turned On
-    id: "1617918441259"
-    description: ""
-    use_blueprint:
-      path: update_setting_when_on.yaml
-      input:
-        target_light_list: light.master_room_lamp_2
-        input_boolean_outstanding_setting_update: input_boolean.master_room_lamp_2_outstanding_setting_update
 
   - alias: L-MR-M Master Room Balcony Lights On If Door Open
     id: "1615068441570"

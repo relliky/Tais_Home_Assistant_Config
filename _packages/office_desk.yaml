@@ -3,28 +3,6 @@
 # Custom Entities
 #
 ###########################################
-light:
-  - platform: group
-    name: Tais Desk Lamps
-    entities:
-      - light.tais_desk_lamp_1_hue
-      - light.tais_desk_lamp_2_hue
-
-  - platform: group
-    name: Kes Desk Lamps
-    entities:
-      - light.kes_desk_lamp_1_hue
-      - light.kes_desk_lamp_1_tuya
-
-input_boolean:
-  # Use for detecting if there is an outstanding setting update scheduled
-  tais_desk_outstanding_setting_update:
-    name: "Tai's Desk Outstanding Setting Update"
-    initial: "off"
-
-  kes_desk_outstanding_setting_update:
-    name: "Ke's Desk Outstanding Setting Update"
-    initial: "off"
 
 ###############################################
 #
@@ -83,58 +61,6 @@ automation:
       - service: light.turn_off
         entity_id: light.tais_desk_lamps
 
-  #- alias: L-OD Tai's Desk light Update Setting When Turned On
-  #  id: '1607918423060'
-  #  description: ""
-  #  trigger:
-  #    - entity_id: light.tais_desk_lamps
-  #      platform: state
-  #      from: "off"
-  #      to: "on"
-  #  condition:
-  #    - entity_id: input_boolean.office_desk_outstanding_setting_update
-  #      condition: state
-  #      state: "on"
-  #  action:
-  #  - choose:
-  #      # Daylight setting
-  #      - conditions:
-  #          - condition: time
-  #            after: input_datetime.beginning_of_early_morning
-  #        sequence:
-  #          - service: light.turn_on
-  #            entity_id: light.tais_desk_lamps
-  #            data:
-  #              brightness: 255
-  #              kelvin: 5000
-  #      # Nighttime setting setting
-  #      - conditions:
-  #          - condition: time
-  #            after:  input_datetime.beginning_of_evening
-  #            before: input_datetime.beginning_of_midnight
-  #        sequence:
-  #          - service: light.turn_on
-  #            entity_id: light.tais_desk_lamps
-  #            data:
-  #              brightness: 255
-  #              kelvin: 3000
-  #    # ELSE - Midnight setting
-  #    default:
-  #      - service: light.turn_on
-  #        entity_id: light.tais_desk_lamps
-  #        data:
-  #          brightness: 65
-  #          kelvin: 3000
-
-  - alias: L-OD Tai's Desk light Update Setting When Turned On
-    id: "1607918423060"
-    description: ""
-    use_blueprint:
-      path: update_setting_when_on.yaml
-      input:
-        target_light_list: light.tais_desk_lamps
-        input_boolean_outstanding_setting_update: input_boolean.tais_desk_outstanding_setting_update
-
   - alias: L-OD Ke's Desk Lights On If Person Sits In The Desk
     id: "1603640030053"
     description: ""
@@ -175,15 +101,6 @@ automation:
       - service: switch.turn_off
         entity_id: switch.kes_desk_screen_led
 
-  - alias: L-OD Ke's Desk light Update Setting When Turned On
-    id: "1607918427957"
-    description: ""
-    use_blueprint:
-      path: update_setting_when_on.yaml
-      input:
-        target_light_list: light.kes_desk_lamps
-        input_boolean_outstanding_setting_update: input_boolean.kes_desk_outstanding_setting_update
-
   # Lighting Automation based on buttons
   - alias: B-GR Guest Room Button Double Press - Toggle Tai's Desk Screen LED/Desk Lamps
     trigger:
@@ -219,11 +136,10 @@ automation:
     trigger:
       - platform: state
         entity_id: switch.tais_desk_screen_led
-        to: 'on'
+        to: "on"
       - platform: state
         entity_id: switch.kes_desk_screen_led
-        to: 'on'
+        to: "on"
     action:
       - service: light.turn_on
         entity_id: light.en_suite_room_ceiling_light
-

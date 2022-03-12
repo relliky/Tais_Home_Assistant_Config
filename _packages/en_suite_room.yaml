@@ -44,6 +44,17 @@ group:
       - binary_sensor.kes_desk_motion_sensor_motion
       - binary_sensor.tais_desk_motion_sensor_motion
 
+  en_suite_room_appliances:
+    name: En-suite Room Appliances
+    entities:
+      - light.en_suite_room_ceiling_light
+      - light.kes_desk_lamps
+      - light.tais_desk_lamps
+      - switch.tais_desk_screen_led
+      - switch.kes_desk_screen_led
+      - light.en_suite_room_bed_led
+      - climate.en_suite_room
+      
 # Custom Variables
 input_boolean:
   # Spare Room Usage
@@ -59,10 +70,6 @@ input_boolean:
     name: "En-suite Room Short Presence"
     initial: "off"
 
-  # Use for detecting if there is an outstanding setting update scheduled
-  en_suite_room_outstanding_setting_update:
-    name: "En-suite Room Outstanding Setting Update"
-    initial: "off"
 
 # Valve Setting
 input_text:
@@ -138,27 +145,27 @@ automation:
                 entity_id: group.en_suite_room_motion
                 for: 00:15:00
                 state: "off"
-          # ELSEIF - in nighttime, if no people live in the room,
-          #          turn off lighting/heating if no person for 15 min
-          - condition: and
-            conditions:
-              - after: "22:00:00"
-                before: "10:00:00"
-                condition: time
-              - condition: state
-                entity_id: group.en_suite_room_motion
-                state: "off"
-                for: 00:15:00
-              - condition: state
-                entity_id: input_boolean.en_suite_room_guests_use_this_room
-                state: "off"
+          ## ELSEIF - in nighttime, if no people live in the room,
+          ##          turn off lighting/heating if no person for 15 min
+          #- condition: and
+          #  conditions:
+          #    - after: "22:00:00"
+          #      before: "10:00:00"
+          #      condition: time
+          #    - condition: state
+          #      entity_id: group.en_suite_room_motion
+          #      state: "off"
+          #      for: 00:15:00
+          #    - condition: state
+          #      entity_id: input_boolean.en_suite_room_guests_use_this_room
+          #      state: "off"
           # ELSEIF - in nighttime, if people live in the room
           #          turn off lighting/heating if no person for 2 hours
           - condition: and
             conditions:
-              - after: "22:00:00"
-                before: "10:00:00"
-                condition: time
+              #- after: "10:00:00"
+              #  before: "22:59:00"
+              #  condition: time
               - condition: state
                 entity_id: group.en_suite_room_motion
                 state: "off"
@@ -234,6 +241,7 @@ automation:
       - entity_id: binary_sensor.en_suite_room_motion_sensor_motion
         condition: state
         state: "on"
+      # @TODO: make this into door motion sensor
       - entity_id: sensor.en_suite_room_motion_sensor_light
         condition: numeric_state
         below: "40"
@@ -241,6 +249,11 @@ automation:
       - service: script.en_suite_room_all_lights_turn_on
       - entity_id: automation.en_suite_room_lights_on_if_people_present
         service: automation.turn_off
+      - after: "10:00:00"
+        before: "22:59:00"
+        condition: time
+      - service: light.turn_on
+        entity_id: light.en_suite_room_bed_led
 
   ###############################################
   # Actions based on buttons
