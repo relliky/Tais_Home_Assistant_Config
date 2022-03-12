@@ -34,7 +34,7 @@ Other smart features but not done in Home Assistant:
     - Streamed from Alexa-enabled devices for its music library
   - Ubuntu LXC
 - VNC server (on a gaming PC and an old laptop)
-- LAN Game Streaming using NVDIA GPU from the gaming PC to TV/computer/phone/tablets
+- Game streaming using NVDIA GPU from the gaming PC to TV/computer/phone/tablets/nintendo switch
 
 <br><br>
 This is my device list which are connected to HA via 6 protocols 
