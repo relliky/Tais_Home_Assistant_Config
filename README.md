@@ -49,7 +49,7 @@ This is my device list which are connected to HA via 6 protocols
     - Meross Homekit LED Strips 
   - Yeelight integration
     - Yeelight Wifi Bulbs (Colour) E27 (Yeelight)
-  - Smartthings/Flux_LED integration
+  - Magic Home/SmartThings integration
     - Magic Home LED Strips 
   - Xiaomi IoT/Xiaomi MIoT integration
     - Xiaomi Vacuum Robot 
@@ -65,7 +65,7 @@ This is my device list which are connected to HA via 6 protocols
 - 5Ghz Wifi Devices (10+ devices)
   - Andriod TV integration 
     - Fire TV sticks/cubes
-  - SamsungTV Smart integration
+  - SamsungTV Smart integration/SmartThings integration
     - Samsung Smart TVs (one of them is on 2.4Ghz)
   - Alexa Media Player integration
     - Amazon Echo Dots - also used as intercom (one of them is on 2.4Ghz)
