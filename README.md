@@ -16,7 +16,7 @@ UI to control:
   
 Voice Assistant:
 - Alexa (free alexa integration via Emulated Hue)
-  - Support turn on/off HA appliances and calling HA scripts to set a scene
+  - Support controlling HA appliances and calling HA scripts to set a scene
   - Extra commands supported:
     - Alexa, Find my iPhone
       - This will set a "Find My" alert to my iphone. Other apple devices are also supported.
@@ -39,18 +39,28 @@ Other smart features but not done in Home Assistant:
 <br><br>
 This is my device list which are connected to HA via 6 protocols 
 
-- 2.4Ghz Wifi Devices (60+ devices)
-  - Lepro Wifi Bulbs (Colour/White) E27/E16/GU10
-  - Yeelight Wifi Bulbs (Colour) E27
-  - Meross Homekit Wifi Bulbs (Colour) E27
-  - Meross Homekit Wifi Sockets
-  - Meross Homekit LED Strips 
-  - Magic Home LED Strips 
-  - BENEXMART Blind Motors
-  - Xiaomi Vacuum Robot 
-  - Sonos Soundbar and Speakers
-  - Eufy Cameras and Doorbells
-  - Xiaomi Gateways v1/v3
+- 2.4Ghz Wifi Devices (60+ devices) 
+  - Tuya/Localtuya/Smartthings integration
+    - Lepro Wifi Bulbs (Colour/White) E27/E16/GU10 
+    - BENEXMART Blind Motors 
+  - Homekit integration
+    - Meross Homekit Wifi Bulbs (Colour) E27 (Homekit)
+    - Meross Homekit Wifi Sockets
+    - Meross Homekit LED Strips 
+  - Yeelight integration
+    - Yeelight Wifi Bulbs (Colour) E27 (Yeelight)
+  - Smartthings/Flux_LED integration
+    - Magic Home LED Strips 
+  - Xiaomi IoT/Xiaomi MIoT integration
+    - Xiaomi Vacuum Robot 
+  - Sonos integration
+    - Sonos Soundbar and Speakers
+  - Eufy integration
+    - Eufy Cameras and Doorbells
+  - Xiaomi Gateway 3 integration
+    - Xiaomi Gateways v3
+  - Xiaomi Gateway integration
+    - Xiaomi Gateways v1
 
 - 5Ghz Wifi Devices (10+ devices)
   - Fire TV sticks/cubes
