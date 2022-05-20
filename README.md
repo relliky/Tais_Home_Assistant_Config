@@ -5,6 +5,7 @@ Home Assistant Community activity https://community.home-assistant.io/u/relliky/
 在瀚思彼岸HomeAssistant中文论坛也可以关注我的动态 https://bbs.hassbian.com/?41990
 
 我的手机Lovelace界面展示 https://www.bilibili.com/video/BV1hb4y1a76i?share_source=copy_web 
+
 --------------------------------------------------------------------------  
 
 This is my configuration of Home Assistant used in the house. 
