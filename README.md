@@ -8,7 +8,8 @@ Home Assistant Community activity https://community.home-assistant.io/u/relliky/
 
 --------------------------------------------------------------------------  
 
-**This is my configuration of Home Assistant used in the house. **
+**This is my configuration of Home Assistant used in the house. 
+**
 
 All the rooms in my place supports automations on
 - Heating/Lighting/Curtain/TV photo slideshow automatically on-off based on presence (motion sensors) in all rooms and the garden
