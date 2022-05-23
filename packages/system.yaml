@@ -1,6 +1,12 @@
 # Lovelace
 browser_mod:
 
+# Pyscript message severity level
+logger:
+  default: error
+  logs:
+    custom_components.pyscript: info
+    
 # System Sensors
 sensor:
   # This sensor capture DNS public IP
@@ -83,8 +89,23 @@ freedns:
 recorder:
   purge_keep_days: 3
   auto_purge: true
-  commit_interval: 15 # updates log every 15s
+  commit_interval: 3 # updates log every 3s
   #db_url: mysql://hass_user:hass_pass@core-mariadb/homeassistant?charset=utf8mb4
+  
+  
+# PVE monitor
+proxmoxve:
+  - host: 192.168.1.7
+    username: root
+    password: !secret pve_password
+    verify_ssl: false
+    nodes:
+      - node: pve
+        vms:
+          - 100
+        containers:
+          - 101
+          - 102
   
 # WOL switch on PCs
 switch:
@@ -131,6 +152,19 @@ input_datetime:
     has_date: true
     has_time: true
     
+###############################################
+#
+# Scripts
+#
+###############################################
+script:
+  hassio_restart:
+    alias: Restart Home Assistant
+    sequence:
+      - service: homeassistant.restart
+
+
+
 automation:
   # - Starts Log Enable and set timeout
   - alias: Enable/Disable Logging By The State of The Log Enable and Set Timeout for 48 Hours
@@ -179,11 +213,7 @@ automation:
   - alias: Turn Off Gaming PC By The Timeout
     id: "1207688309981"
     trigger:
-      - platform: state
-        entity_id: switch.gaming_pc
-        to: "on"
-        for:
-            hours: "{{ states('input_number.gaming_pc_shutdown_timer_in_hour')|int }}"
+      - platform: time_pattern
+        minutes: "/5"
     action:
-      - service: switch.turn_off
-        entity_id: switch.gaming_pc
+      - service: pyscript.turn_off_gaming_pc_based_on_a_timer

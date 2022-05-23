@@ -1,9 +1,8 @@
-# Using v3.2.3 at the moment but sometimes have connection issues
+###########################################
 #
-# Tuya single light/light groups instantiations
+# Smart Light Renaming
 #
-# Localtuya works ok on GU10 Lepro bulbs
-#
+###########################################
 light:
   - platform: group
     name: En-suite Room Ceiling Light
@@ -51,13 +50,13 @@ light:
     name: Living Room Floor Light 1
     entities:
       - light.living_room_floor_light_1_localtuya
-      - light.living_room_floor_light_1_tuya_v1
+      #- light.living_room_floor_light_1_tuya_v1
 
   - platform: group
     name: Living Room Floor Light 2
     entities:
       - light.living_room_floor_light_2_localtuya
-      - light.living_room_floor_light_2_tuya_v1
+      #- light.living_room_floor_light_2_tuya_v1
 
   - platform: group
     name: Living Room Floor Light
@@ -75,13 +74,13 @@ light:
       - light.kitchen_spotlight_bulb_5_localtuya
       - light.kitchen_spotlight_bulb_6_localtuya
       - light.kitchen_spotlight_bulb_7_localtuya
-      - light.kitchen_spotlight_bulb_1_tuya_v1
-      - light.kitchen_spotlight_bulb_2_tuya_v1
-      - light.kitchen_spotlight_bulb_3_tuya_v1
-      - light.kitchen_spotlight_bulb_4_tuya_v1
-      - light.kitchen_spotlight_bulb_5_tuya_v1
-      - light.kitchen_spotlight_bulb_6_tuya_v1
-      - light.kitchen_spotlight_bulb_7_tuya_v1
+      #- light.kitchen_spotlight_bulb_1_tuya_v1
+      #- light.kitchen_spotlight_bulb_2_tuya_v1
+      #- light.kitchen_spotlight_bulb_3_tuya_v1
+      #- light.kitchen_spotlight_bulb_4_tuya_v1
+      #- light.kitchen_spotlight_bulb_5_tuya_v1
+      #- light.kitchen_spotlight_bulb_6_tuya_v1
+      #- light.kitchen_spotlight_bulb_7_tuya_v1
 
   - platform: group
     name: Guest Toilet Ceiling Light
@@ -89,9 +88,9 @@ light:
       - light.guest_toilet_bulb_1_localtuya
       - light.guest_toilet_bulb_2_localtuya
       - light.guest_toilet_bulb_3_localtuya
-      - light.guest_toilet_bulb_1_tuya
-      - light.guest_toilet_bulb_2_tuya
-      - light.guest_toilet_bulb_3_tuya
+      #- light.guest_toilet_bulb_1_tuya
+      #- light.guest_toilet_bulb_2_tuya
+      #- light.guest_toilet_bulb_3_tuya
 
   - platform: group
     name: Ground Toilet Ceiling Light
@@ -103,9 +102,9 @@ light:
   - platform: group
     name: En-suite Toilet Ceiling Light
     entities:
-      - light.en_suite_toilet_bulb_1_hue
-      - light.en_suite_toilet_bulb_2_hue
-      - light.en_suite_toilet_bulb_3_hue
+      #- light.en_suite_toilet_bulb_1_hue
+      #- light.en_suite_toilet_bulb_2_hue
+      #- light.en_suite_toilet_bulb_3_hue
       - light.en_suite_toilet_light_hue
 
   - platform: group
@@ -120,6 +119,50 @@ light:
       #- light.master_toilet_spotlight_bulb_2_localtuya
       #- light.master_toilet_spotlight_bulb_3_localtuya
       #- light.master_toilet_spotlight_bulb_4_localtuya
+
+  - platform: group
+    name: En-suite Room BED LED
+    entities:
+      - light.en_suite_room_bed_led_magic_home
+
+  - platform: group
+    name: Living Room Sofa LED
+    entities:
+      - light.living_room_sofa_led_magic_home
+
+  - platform: group
+    name: Living Room TV LED
+    entities:
+      - light.living_room_tv_led_magic_home
+
+  - platform: group
+    name: Master Room Bed LED 
+    entities:
+      - light.master_room_bed_led_magic_home
+
+  - platform: group
+    name: Master Room TV LED 
+    entities:
+      - light.master_room_tv_led_magic_home
+
+  - platform: group
+    name: Master Room Drawer LED 
+    entities:
+      - light.master_room_drawer_led_magic_home
+
+  - platform: group
+    name: Corridor Light
+    entities:
+      #- light.corridor_ble_lights
+      - light.first_corridor_ble_light
+      - light.ground_corridor_ble_light
+
+
+###########################################
+#
+# Localtuya instantiation
+#
+###########################################
 
 localtuya:
   # Grount Toilet GU10 bulbs
@@ -482,6 +525,8 @@ input_datetime:
     has_time: true
     initial: "22:59:50"
 
+
+       
 script:
   light_color_profile_for_non_bedroom_lights:
     alias: Light Colour Porfile Throughput the Day
@@ -721,27 +766,55 @@ script:
 #         input_boolean_outstanding_setting_update: input_boolean.master_room_lamp_2_outstanding_setting_update
 #
 
-# automation adaptive_lighting:
-#   - alias: T- Update Light Adaptive Lighting Sleep Mode
-#     id: "1512912317895"
-#     trigger:
-#       - at: input_datetime.beginning_of_early_morning
-#         platform: time
-#       - at: input_datetime.beginning_of_late_morning
-#         platform: time
-#       - at: input_datetime.beginning_of_midnight
-#         platform: time
-#     action:
-#       - service: script.light_color_profile_for_non_bedroom_lights
-#       # Update bedroom lights update status so that it will change setting next time when lights on
-#       - service: input_boolean.turn_on
-#         entity_id:
-#           - input_boolean.en_suite_room_outstanding_setting_update
-#           - input_boolean.tais_desk_outstanding_setting_update
-#           - input_boolean.kes_desk_outstanding_setting_update
-#           - input_boolean.master_room_ceiling_light_outstanding_setting_update
-#           - input_boolean.master_room_lamp_1_outstanding_setting_update
-#           - input_boolean.master_room_lamp_2_outstanding_setting_update
-# 
+automation adaptive_lighting:
+  - alias: T- Update Light Adaptive Lighting Sleep Mode Control and LED light setting
+    id: "automation.t_update_light_adaptive_lighting_sleep_mode_control"
+    trigger:
+       - at: input_datetime.beginning_of_early_morning
+         platform: time
+       - at: input_datetime.beginning_of_late_morning
+         platform: time
+       - at: input_datetime.beginning_of_evening
+         platform: time
+       - at: input_datetime.beginning_of_bedtime
+         platform: time
+       - at: input_datetime.beginning_of_midnight
+         platform: time
+    action:
+      - choose:
+          - conditions: "{{state_attr('input_datetime.beginning_of_early_morning', 'hour') == trigger.now.hour}}"
+            sequence: 
+              - service: switch.turn_off
+                entity_id: 
+                  - switch.adaptive_lighting_sleep_mode_non_bedroom
+                  - switch.adaptive_lighting_sleep_mode_office
+                  - switch.adaptive_lighting_sleep_mode_bedroom
+
+          - conditions: "{{state_attr('input_datetime.beginning_of_late_morning', 'hour') == trigger.now.hour}}"
+            sequence: 
+              - service: switch.turn_off
+                entity_id: 
+                  - switch.adaptive_lighting_sleep_mode_master_room_toilet
+        
+          - conditions: "{{state_attr('input_datetime.beginning_of_midnight', 'hour') == trigger.now.hour}}"
+            sequence: 
+              - service: switch.turn_on
+                entity_id: 
+                  - switch.adaptive_lighting_sleep_mode_non_bedroom
+                  - switch.adaptive_lighting_sleep_mode_office
+                  - switch.adaptive_lighting_sleep_mode_bedroom
+                  - switch.adaptive_lighting_sleep_mode_master_room_toilet
+              # Turn on LED brighter when lamps are dimmed into sleep mode     
+              - service: light.turn_on
+                entity_id: 
+                  - light.master_room_leds
+                data:
+                  rgb_color:
+                    - 255
+                    - 255
+                    - 255
+                  brightness_pct: 100    
+      
 
 
+      

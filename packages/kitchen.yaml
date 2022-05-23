@@ -25,6 +25,12 @@ group:
       - switch.kitchen_extractor
       - switch.kitchen_drinking_hot_water
 
+  kitchen_worktop_leds:
+    name: Kitchen Worktop LEDs
+    entities:
+      - switch.kitchen_worktop_led_left
+      - switch.kitchen_worktop_led_right
+      
 # Custom Variables
 input_boolean:
   kitchen_short_presence: # done
@@ -101,18 +107,37 @@ script:
     max: 100
     mode: parallel
     sequence:
-      - data: {}
-        entity_id: switch.kitchen_worktop_led_left
+    - parallel:
+      - entity_id: switch.kitchen_worktop_led_left
         service: switch.turn_on
-      - data: {}
-        entity_id: switch.kitchen_worktop_led_right
+      - entity_id: switch.kitchen_worktop_led_right
         service: switch.turn_on
 
+#  kitchen_test:
+#    alias: Kitchen worktop test
+#    sequence:
+#    - parallel:
+#      - entity_id: light.kitchen_spotlight_bulb_1_localtuya
+#        service: light.turn_on
+#      - entity_id: light.kitchen_spotlight_bulb_2_localtuya
+#        service: light.turn_on
+#      - entity_id: light.kitchen_spotlight_bulb_3_localtuya
+#        service: light.turn_on
+#      - entity_id: light.kitchen_spotlight_bulb_4_localtuya
+#        service: light.turn_on
+#      - entity_id: light.kitchen_spotlight_bulb_5_localtuya
+#        service: light.turn_on
+#      - entity_id: light.kitchen_spotlight_bulb_6_localtuya
+#        service: light.turn_on
+#      - entity_id: light.kitchen_spotlight_bulb_7_localtuya
+#        service: light.turn_on
+  
   kitchen_worktop_lights_turn_off:
     alias: Kitchen Worktop Lights Turn Off
     max: 100
     mode: parallel
     sequence:
+    - parallel:
       - data: {}
         entity_id: switch.kitchen_worktop_led_left
         service: switch.turn_off
@@ -125,6 +150,7 @@ script:
     max: 100
     mode: parallel
     sequence:
+    - parallel:
       - data: {}
         entity_id: script.kitchen_worktop_lights_turn_on
         service: script.turn_on
@@ -137,6 +163,7 @@ script:
     max: 100
     mode: parallel
     sequence:
+    - parallel:
       - data: {}
         entity_id: script.kitchen_worktop_lights_turn_off
         service: script.turn_on
@@ -145,7 +172,7 @@ script:
         service: light.turn_off
 
   kitchen_worktop_and_ceiling_lights_toggle:
-    alias: Kitchen Worktop and Ceiling Lights Turn Off
+    alias: Kitchen Worktop and Ceiling Lights Toggle
     max: 100
     mode: parallel
     sequence:
@@ -315,7 +342,6 @@ automation:
           - binary_sensor.kitchen_dining_motion_sensor_motion
           - binary_sensor.kitchen_worktop_motion_sensor_motion
         platform: state
-        from: "off"
         to: "on"
     # Queued mode guarentees no race
     mode: queued
@@ -422,7 +448,6 @@ automation:
     trigger:
       - entity_id: binary_sensor.kitchen_dining_motion_sensor_motion
         platform: state
-        from: "off"
         to: "on"
       - entity_id: binary_sensor.kitchen_worktop_motion_sensor_motion
         platform: state
@@ -439,14 +464,17 @@ automation:
     #    state: "off"
     #    for: "00:00:05"
     action:
+    - parallel:
+      - service: light.turn_on
+        entity_id:
+          - light.kitchen_ceiling_light
       - service: light.turn_on
         entity_id:
           - light.kitchen_dining_light
-          - light.kitchen_ceiling_light
       # Turn on LED if sunset
       - condition: state
         entity_id: sun.sun
-        state: "Below horizon"
+        state: "below_horizon"
       - service: switch.turn_on
         entity_id: switch.kitchen_floor_led
 
@@ -456,7 +484,6 @@ automation:
     trigger:
       - entity_id: binary_sensor.kitchen_dining_motion_sensor_motion
         platform: state
-        from: "off"
         to: "on"
     action:
       # Slideshow is enabled
@@ -506,7 +533,6 @@ automation:
         platform: time_pattern
       - entity_id: binary_sensor.kitchen_dining_motion_sensor_motion
         platform: state
-        from: "on"
         to: "off"
         for: 00:10:00
       - entity_id: binary_sensor.kitchen_worktop_motion_sensor_motion
@@ -547,7 +573,6 @@ automation:
     trigger:
       - entity_id: binary_sensor.kitchen_worktop_motion_sensor_motion
         platform: state
-        from: "off"
         to: "on"
     condition:
       - after: "06:00:00"
@@ -713,9 +738,9 @@ automation:
 
   - alias: S-KC Kitchen Group Its Speaker If People Present
     id: "1560305343071"
+    description: "automation.s_kc_kitchen_group_its_speaker_if_people_present"
     trigger:
       - platform: state
-        from: "off"
         to: "on"
         entity_id: group.kitchen_motion
     condition:
@@ -735,6 +760,9 @@ automation:
       - service: script.add_sonos_into_speaker_group
         data:
           target_player: media_player.kitchen_sonos
+      - service: automation.turn_off
+        entity_id: automation.s_kc_kitchen_group_its_speaker_if_people_present
+
 
   - alias: S-KC Kitchen Ungroup/Pause Its Speaker If No People
     id: "1560305343072"
@@ -742,7 +770,7 @@ automation:
       - platform: state
         from: "on"
         to: "off"
-        for: 00:10:00
+        for: 00:02:00
         entity_id: group.kitchen_motion
       - minutes: /5
         platform: time_pattern
@@ -768,6 +796,8 @@ automation:
       - service: script.pause_sonos_if_sole_speaker_group
         data:
           target_player: media_player.kitchen_sonos
+      - service: automation.turn_on
+        entity_id: automation.s_kc_kitchen_group_its_speaker_if_people_present
 
   #################################################################
   # TV auto turn-off based on motion sensor
