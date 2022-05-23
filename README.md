@@ -18,10 +18,10 @@ All the rooms in my place supports automations on
 - Sonos speakers grouping/ungrouping based on motion sensor to achieve music/TV audio following people 
 - Light/Curtain/TV/Scene on-off using physical remote buttons
 
-UI to control:
-- Homekit
+GUI to control:
+- Homekit used by Macbook/iPhone/iPad
   - Lighting/Heating/Curtain/TV on-off
-- Lovelace 
+- Dashboard used by Laptops/iPhone/iPad
   - All above + TV remote/Room default temperature scheduler
   - User permission control. Each room user only has access to their rooms and common areas.
   
