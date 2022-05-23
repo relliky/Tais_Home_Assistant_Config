@@ -19,7 +19,7 @@ All the rooms in my place supports automations on
 - Light/Curtain/TV/Scene on-off using physical remote buttons
 
 GUI to control:
-- [OBSOLETE] Homekit used by Macbook/iPhone/iPad
+- [OBSOLETE] Apple Home app used by Macbook/iPhone/iPad
   - Lighting/Heating/Curtain/TV on-off
 - Home Assistant Dashboard used by Laptops/iPhone/iPad
   - All above + TV remote/Room default temperature scheduler
