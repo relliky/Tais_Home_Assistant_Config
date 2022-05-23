@@ -46,6 +46,7 @@ Other smart features but not done in Home Assistant:
   - Ubuntu LXC
 - VNC server (on a gaming PC and an old laptop)
 - Game streaming/Video streaming using NVDIA GPU from the gaming PC to TV/computer/phone/tablets/nintendo switch
+- All TVs supports airplay for casting contents from iPhone/iPad
 
 <br><br>
 This is my device list which are connected to HA via 6 protocols 
