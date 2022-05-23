@@ -19,9 +19,9 @@ All the rooms in my place supports automations on
 - Light/Curtain/TV/Scene on-off using physical remote buttons
 
 GUI to control:
-- Homekit used by Macbook/iPhone/iPad
+- [OBSOLETE] Homekit used by Macbook/iPhone/iPad
   - Lighting/Heating/Curtain/TV on-off
-- Dashboard used by Laptops/iPhone/iPad
+- Home Assistant Dashboard used by Laptops/iPhone/iPad
   - All above + TV remote/Room default temperature scheduler
   - User permission control. Each room user only has access to their rooms and common areas.
   
