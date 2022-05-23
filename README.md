@@ -23,6 +23,7 @@ UI to control:
   - Lighting/Heating/Curtain/TV on-off
 - Lovelace 
   - All above + TV remote/Room default temperature scheduler
+  - User permission control. Each room user only has access to their rooms and common areas.
   
 Voice Assistant:
 - Alexa (free alexa integration via Emulated Hue)
