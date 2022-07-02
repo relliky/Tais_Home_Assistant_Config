@@ -56,7 +56,7 @@ This is my device list which are connected to HA via 6 protocols
   - Tuya/Localtuya/Smartthings integration
     - Lepro Wifi Bulbs (Colour/White) E27/E16/GU10 
     - BENEXMART Blind Motors 
-  - Homekit integration
+  - Homekit controller integration
     - Meross Homekit Wifi Bulbs (Colour) E27 (Homekit)
     - Meross Homekit Wifi Wall Plugs
     - Meross Homekit LED Strips 
@@ -64,7 +64,7 @@ This is my device list which are connected to HA via 6 protocols
     - Yeelight Wifi Bulbs (Colour) E27 (Yeelight)
   - Magic Home/SmartThings integration
     - Magic Home LED Strips 
-  - Xiaomi IoT/Xiaomi MIoT integration
+  - Xiaomi IoT/Xiaomi MIoT Auto integration
     - Xiaomi Vacuum Robot 
   - Sonos integration
     - Sonos Soundbar and Speakers
@@ -126,26 +126,12 @@ This is my device list which are connected to HA via 6 protocols
   - Tado integration
     - Tado Bridge
   
-The list below is the integrations I used in my HA instance.
+Other integration I haven't mentioned above. 
 
 - Lighting/Switches
   - Adaptive Lighting
-  - Homekit Controller
-  - Localtuya 
-  - Tuya v2
-  - Tuya v1
-  - Magic Home
-  - Meross Cloud IoT
-  - Philips Hue
-  - SmartThings
-
-- Xiaomi Sensors/Lighting/Switches/Remotes
-  - Xiaomi Gateway(Aqara)
-  - Xiaomi Gateway 3
-  - Xiaomi MIoT Auto
 
 - Climate
-  - Tado
   - Met Office
   - Sun
 
@@ -153,18 +139,15 @@ The list below is the integrations I used in my HA instance.
   - Mobile App
 
 - Voice control
-  - Alexa Media Player
   - Emulated Hue
 
 - Media
   - DLNA Digital Media Renderer
   - Plex
-  - Sonos
-  - Android TV
-  - SamsungTV Smart
 
 - Energy
   - Hildebrand Glow (DCC)
+  - Meross Cloud IoT
 
 - HA Dashbaord
   - Browser Mod
