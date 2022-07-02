@@ -21,7 +21,7 @@ All the rooms in my place supports automations on
 GUI to control:
 - [OBSOLETE] Apple Home app used by Macbook/iPhone/iPad
   - Lighting/Heating/Curtain/TV on-off
-- Home Assistant Dashboard used by Laptops/iPhone/iPad
+- Home Assistant Dashboard used by any laptops/smart phones/tablets
   - All above + TV remote/Room default temperature scheduler
   - User permission control. Each room user only has access to their rooms and common areas.
   
