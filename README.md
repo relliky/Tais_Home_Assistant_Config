@@ -49,6 +49,7 @@ Other smart features but not done in Home Assistant:
 - All TVs supports airplay for casting contents from iPhone/iPad
 
 <br><br>
+
 This is my device list which are connected to HA via 6 protocols 
 
 - 2.4Ghz Wifi Devices (60+ devices) 
@@ -125,4 +126,60 @@ This is my device list which are connected to HA via 6 protocols
   - Tado integration
     - Tado Bridge
   
+The list below is the integrations I used in my HA instance.
+
+- Lighting/Switches
+  - Adaptive Lighting
+  - Homekit Controller
+  - Localtuya 
+  - Tuya v2
+  - Tuya v1
+  - Magic Home
+  - Meross Cloud IoT
+  - Philips Hue
+  - SmartThings
+
+- Xiaomi Sensors/Lighting/Switches/Remotes
+  - Xiaomi Gateway(Aqara)
+  - Xiaomi Gateway 3
+  - Xiaomi MIoT Auto
+
+- Climate
+  - Tado
+  - Met Office
+  - Sun
+
+- Phone
+  - Mobile App
+
+- Voice control
+  - Alexa Media Player
+  - Emulated Hue
+
+- Media
+  - DLNA Digital Media Renderer
+  - Plex
+  - Sonos
+  - Android TV
+  - SamsungTV Smart
+
+- Energy
+  - Hildebrand Glow (DCC)
+
+- HA Dashbaord
+  - Browser Mod
+  - Scheduler
+
+- System Monitoring
+  - Certificate Expiry
+  - CPU Speed
+  - DNS IP
+  - Unifi Network
+  - Sinology DSM
+
+- HA General
+  - Pyscript
+  - HACS
+
+
 
