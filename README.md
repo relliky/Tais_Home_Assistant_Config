@@ -45,6 +45,7 @@ Other smart features but not done in Home Assistant:
   - Plex Media Server LXC
     - Streamed from multiple Plex client apps from TV/computer/phones/tablets for its video and music library
     - Streamed from Alexa-enabled devices for its music library
+    - DLNA server feeding into HA media player
   - Ubuntu LXC
 - VNC server (on a gaming PC and an old laptop)
 - All TVs supports airplay for casting contents from iPhone/iPad
