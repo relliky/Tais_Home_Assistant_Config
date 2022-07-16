@@ -6,6 +6,8 @@ logger:
   default: error
   logs:
     custom_components.pyscript: info
+    custom_components.pyscript.file.my_scripts.z_alexa_set_tv_brightness: debug    
+    
     
 # System Sensors
 sensor:
@@ -76,7 +78,7 @@ http:
 # Main DDNS - DuckDNS (if auto-renew fails, needs to mannually renew every 3 months)
 # Alt. DDNS - FreeDNS (no need to renew mannually)
 freedns:
-  access_token: !secret freedns_token
+  url: !secret freedns_token_url
 
 # No-IP discarded as it requires to manually renew every month
 #no_ip:
@@ -152,6 +154,10 @@ input_datetime:
     has_date: true
     has_time: true
     
+timer:
+  gaming_pc_shutdown_timer:
+    name: "Gaming PC Shutdown Timer"
+    duration: "02:00:00"
 ###############################################
 #
 # Scripts
@@ -210,10 +216,29 @@ automation:
         entity_id: input_boolean.log_enable
       - service: recorder.disable
 
-  - alias: Turn Off Gaming PC By The Timeout
-    id: "1207688309981"
+
+  - alias: Start the Gaming PC Timer When it is turned on
+    id: automation.start_the_gaming_pc_timer_when_it_is_turned_on
     trigger:
-      - platform: time_pattern
-        minutes: "/5"
+      - platform: state
+        entity_id: switch.gaming_pc
+        from: "off"
+        to: "on"
     action:
-      - service: pyscript.turn_off_gaming_pc_based_on_a_timer
+      - service: timer.start
+        entity_id: timer.gaming_pc_shutdown_timer
+        data:
+          duration: "05:00:00"
+
+  - alias: Turn Off Gaming PC By The Timeout
+    id: automation.turn_off_gaming_pc_by_the_timeout
+    trigger:
+      - platform: event
+        event_type: timer.finished
+        event_data:
+          entity_id: timer.gaming_pc_shutdown_timer
+    action:
+      - service: switch.turn_off
+        entity_id: switch.gaming_pc
+        
+        

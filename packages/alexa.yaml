@@ -1,4 +1,24 @@
----
+#-------------------
+# Last Alexa Sensor
+#-------------------
+group:
+  all_echos:
+    name: All Echos
+    entities:
+      - media_player.master_toilet_echo
+      - media_player.master_room_echo
+      - media_player.kitchen_echo
+      - media_player.living_room_echo
+
+template:
+  - sensor:
+      - name: Last Alexa
+      # entity_id: last_alexa
+        state: >
+          {{ expand('group.all_echos') | selectattr('attributes.last_called','eq',True) | map(attribute='entity_id') | first | replace('media_player.','') | replace('_echo','') }}
+        availability: >
+          {{ expand('group.all_echos') | selectattr('attributes.last_called','eq',True) | first is defined }}
+
 #----------------
 # Emulated Hue
 #----------------
@@ -17,24 +37,12 @@ emulated_hue:
       name: "HA Scripts"
       hidden: false
     ###################################
-    # Non-light Devices - 2 devices
+    # Non-light Devices - 0 devices
     ###################################
-    switch.gaming_pc:
-      name: "Gaming PC"
-      hidden: false   
-    switch.old_laptop:
-      name: "Old Laptop"
-      hidden: false   
     ###################################
     # Master Room  - 8 devices
     ###################################
     # Alexa, set the Master Room Thermostat to 23
-    switch.master_room_blind:
-      name: "Master Room Blind"
-      hidden: false
-    switch.master_room_curtain:
-      name: "Master Room Curtain"
-      hidden: false
     light.master_room_lamp_1:
       name: "Master Room Left Lamp"
       hidden: false
@@ -179,6 +187,56 @@ light:
           data:
             brightness: "{{ brightness }}"
 
+
+script:
+  alexa_set_tv_brightness_to_dynamic:
+    sequence:
+    - service: pyscript.alexa_set_tv_brightness
+      data:
+        brightness: 'Dynamic'
+
+  alexa_set_tv_brightness_to_standard:
+    sequence:
+    - service: pyscript.alexa_set_tv_brightness
+      data:
+        brightness: 'Standard'
+
+  alexa_set_tv_brightness_to_natural:
+    sequence:
+    - service: pyscript.alexa_set_tv_brightness
+      data:
+        brightness: 'Natural'
+
+  alexa_set_tv_brightness_to_movie:
+    sequence:
+    - service: pyscript.alexa_set_tv_brightness
+      data:
+        brightness: 'Movie'
+
+  turn_on_gaming_pc:
+    sequence:
+    - service: switch.turn_on
+      entity_id: switch.gaming_pc
+
+  turn_off_gaming_pc:
+    sequence:
+    - service: switch.turn_off
+      entity_id: switch.gaming_pc
+
+  turn_on_old_laptop:
+    sequence:
+    - service: switch.turn_on
+      entity_id: switch.old_laptop
+
+  turn_off_old_laptop:
+    sequence:
+    - service: switch.turn_off
+      entity_id: switch.old_laptop
+
+  doorbell_notify_ha_users:
+    sequence:
+    - service: script.do_nothing #TODO
+   
 automation:
   - alias: E- Emulated Hue HA Script
     id: "1939270046562"
@@ -186,12 +244,13 @@ automation:
       - platform: state
         entity_id: light.emulated_hue_ha_script
         to: "on"
+      - platform: state
+        entity_id: light.emulated_hue_ha_script
+        attribute: brightness
     action:
       # Delay for a bit for the brightness value to be up-to-date
       - delay: "00:00:01"
-      - service: script.turn_on
-        data:
-          entity_id: >
+      - service: >
             {% set script_brightness = ((state_attr('light.emulated_hue_ha_script', 'brightness')/255*100)|round) %}
 
             {% if   script_brightness == 1 %}
@@ -236,14 +295,39 @@ automation:
             {% elif script_brightness == 18 %}
                 script.find_kes_macbook_air
 
+            {% elif script_brightness == 19 %}
+                script.alexa_set_tv_brightness_to_dynamic
+
+            {% elif script_brightness == 20 %}
+                script.alexa_set_tv_brightness_to_standard
+
+            {% elif script_brightness == 21 %}
+                script.alexa_set_tv_brightness_to_natural
+
+            {% elif script_brightness == 22 %}
+                script.alexa_set_tv_brightness_to_movie
+
+            {% elif script_brightness == 23 %}
+                script.turn_on_gaming_pc
+
+            {% elif script_brightness == 24 %}
+                script.turn_off_gaming_pc
+
+            {% elif script_brightness == 24 %}
+                script.doorbell_notify_ha_users
+
             {% else %}
-                script.do_nothing                
+                script.do_nothing      
+                
             {% endif %}
+            
       # Restore the default value and delay for a bit
       - delay: "00:00:02"
       - service: light.turn_on
         entity_id: light.emulated_hue_ha_script
         data:
-          brightness_pct: 100
+          brightness_pct: 1
       - service: light.turn_off
         entity_id: light.emulated_hue_ha_script
+
+
