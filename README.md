@@ -38,6 +38,8 @@ Remote Control:
 
 
 Other smart features but not done in Home Assistant:
+- Video/Game streaming from a PC to multiple Fire TV devices in sync by using Parsec. Useful to play videos sync living room TV content to dining room TV content wirelessly.
+- Game streaming/Video streaming using NVDIA GPU and Moonlight from the gaming PC to TV/computer/phone/tablets/nintendo switch
 - Proxmox VE running
   - Home Assistant OS VM
   - Plex Media Server LXC
@@ -45,8 +47,8 @@ Other smart features but not done in Home Assistant:
     - Streamed from Alexa-enabled devices for its music library
   - Ubuntu LXC
 - VNC server (on a gaming PC and an old laptop)
-- Game streaming/Video streaming using NVDIA GPU from the gaming PC to TV/computer/phone/tablets/nintendo switch
 - All TVs supports airplay for casting contents from iPhone/iPad
+
 
 <br><br>
 
