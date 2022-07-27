@@ -19,7 +19,7 @@ All the rooms in my place supports automations on
 - Light/Curtain/TV/Scene on-off using physical remote buttons
 
 GUI to control:
-- [OBSOLETE] Apple Home app used by Macbook/iPhone/iPad
+- [OBSOLETE] Apple Home app used by MacBook/iPhone/iPad
   - Lighting/Heating/Curtain/TV on-off
 - Home Assistant Dashboard used by any laptops/smart phones/tablets
   - All above + TV remote/Room default temperature scheduler
@@ -47,6 +47,8 @@ Other smart features but not done in Home Assistant:
     - Streamed from Alexa-enabled devices for its music library
     - DLNA server feeding into HA media player
   - Ubuntu LXC
+    - Running Airconnect to enable Sonos speakers with Airplay
+    - Scheduled Unifi AP reboot
 - VNC server (on a gaming PC and an old laptop)
 - All TVs supports airplay for casting contents from iPhone/iPad
 
@@ -72,7 +74,9 @@ This is my device list which are connected to HA via 6 protocols
   - Sonos integration
     - Sonos Soundbar and Speakers
   - Eufy integration
-    - Eufy Cameras and Doorbells
+    - Eufy Doorbells
+  - WebRTC Camera
+    - Eufy Cameras
   - Xiaomi Gateway 3 integration
     - Xiaomi Gateways v3
   - Xiaomi Gateway integration
