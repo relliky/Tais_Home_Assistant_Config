@@ -20,7 +20,7 @@ All the rooms in my place supports automations on
 - All Alexa devices will be alarmed and TV will show the front-door live feed if the doorbell is pressed
 
 GUI to control:
-- [OBSOLETE] Apple Home app used by MacBook/iPhone/iPad
+- Apple Home app used by MacBook/iPhone/iPad
   - Lighting/Heating/Curtain/TV on-off
 - Home Assistant Dashboard used by any laptops/smart phones/tablets
   - All above + TV remote/Room default temperature scheduler
@@ -34,6 +34,8 @@ Voice Assistant:
       - This will set a "Find My" alert to my iphone. Other apple devices are also supported.
     - Alex, set TV brightness to xxx
       - This will adjust TV brightness in the same room where the Echo speaker is called.
+- Siri
+  - Support limited devices in Homekit
 
 Remote Control:
 - WOL on PCs/NAS
