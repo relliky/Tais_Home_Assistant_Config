@@ -16,7 +16,7 @@ All the rooms in my place supports automations on
 - Lighting/Curtain/TV off at midnight
 - Lighting temperature/color, speakers volume, TVs startup volume/brightness change throughout the day adaptively
 - Sonos speakers grouping/ungrouping based on motion sensor to achieve music/TV audio following people 
-- Light/Curtain/TV/Scene on-off using physical remote buttons
+- Light/Curtain/TV/Scene on-off using wireless buttons
 
 GUI to control:
 - [OBSOLETE] Apple Home app used by MacBook/iPhone/iPad
