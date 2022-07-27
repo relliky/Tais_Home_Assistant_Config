@@ -33,7 +33,7 @@ Voice Assistant:
     - Alexa, Find my iPhone
       - This will set a "Find My" alert to my iphone. Other apple devices are also supported.
     - Alex, set TV brightness to xxx
-      - This will adjust TV brightness in the same room the Echo speaker is called.
+      - This will adjust TV brightness in the same room where the Echo speaker is called.
 
 Remote Control:
 - WOL on PCs/NAS
