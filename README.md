@@ -17,6 +17,7 @@ All the rooms in my place supports automations on
 - Lighting temperature/color, speakers volume, TVs startup volume/brightness change throughout the day adaptively
 - Sonos speakers grouping/ungrouping based on motion sensor to achieve music/TV audio following people 
 - Light/Curtain/TV/Scene on-off using wireless buttons
+- All Alexa devices will be alarmed and TV will show the front-door live feed if the doorbell is pressed
 
 GUI to control:
 - [OBSOLETE] Apple Home app used by MacBook/iPhone/iPad
@@ -31,6 +32,8 @@ Voice Assistant:
   - Extra commands supported:
     - Alexa, Find my iPhone
       - This will set a "Find My" alert to my iphone. Other apple devices are also supported.
+    - Alex, set TV brightness to xxx
+      - This will adjust TV brightness in the same room the Echo speaker is called.
 
 Remote Control:
 - WOL on PCs/NAS
