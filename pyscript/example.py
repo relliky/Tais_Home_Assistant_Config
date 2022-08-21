@@ -48,13 +48,3 @@ def set_room_heat_temperature(room=None, temperature=None ):
                                hvac_mode = 'heat',
                                temperature = temperature);
 
-
-
-
-
-
-
-
-
-
-
