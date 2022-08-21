@@ -28,9 +28,48 @@ sensor:
       - type: processor_use 
       - type: processor_temperature
 
-shell_command:
-  reboot_u6_lite: bash /config/shell_scripts/reboot_u6_lite.sh
-  reboot_udm:     bash /config/shell_scripts/reboot_udm.sh
+  # Time
+  - platform: time_date
+    display_options:
+      - "time"
+      - "date"
+
+
+# Custom Variables
+input_boolean:
+  log_enable:
+    name: "Log Enable"
+
+  always_off_constant:
+    name: "Always Off Constant"
+    initial: "off"
+
+  always_on_constant:
+    name: "Always On Constant"
+    initial: "on"
+
+  placeholder:
+    name: "Placeholder"
+    initial: "off"
+
+input_select:
+  indoor_brightness:
+    name: Indoor Brightness
+    options:
+      - dark
+      - dimmed
+      - bright
+      
+#shell_command:
+#  # PVE CPU Temperature
+#  - platform: command_line
+#    name: "CPU Temperature"
+#    command: "sensors | grep CPUTIN | awk '{print $2}'"
+#    unit_of_measurement: 'C'
+
+
+#  reboot_u6_lite: bash /config/shell_scripts/reboot_u6_lite.sh
+#  reboot_udm:     bash /config/shell_scripts/reboot_udm.sh
   
 #  # CPU Clock Frequency
 #  - platform: command_line
@@ -73,7 +112,7 @@ http:
   ssl_certificate: /ssl/fullchain.pem
   ssl_key: /ssl/privkey.pem
   ip_ban_enabled: true
-  login_attempts_threshold: 10
+  login_attempts_threshold: 50
 
 # Main DDNS - DuckDNS (if auto-renew fails, needs to mannually renew every 3 months)
 # Alt. DDNS - FreeDNS (no need to renew mannually)
@@ -89,7 +128,7 @@ freedns:
   
 # Database logging config
 recorder:
-  purge_keep_days: 3
+  purge_keep_days: 5
   auto_purge: true
   commit_interval: 3 # updates log every 3s
   #db_url: mysql://hass_user:hass_pass@core-mariadb/homeassistant?charset=utf8mb4
@@ -109,28 +148,6 @@ proxmoxve:
           - 101
           - 102
   
-# WOL switch on PCs
-switch:
-  - platform: wake_on_lan
-    mac: b8:88:e3:33:cf:17
-    name: Old Laptop
-    host: 192.168.1.5
-
-  - platform: wake_on_lan
-    mac: 40:B0:76:D8:A9:DC
-    name: Gaming PC
-    host: 192.168.1.9
-    turn_off:
-      service: hassio.addon_stdin
-      data:
-        addon: core_rpc_shutdown
-        input: gaming_pc
-        
-  - platform: wake_on_lan
-    mac: b8:ae:ed:75:d8:b7
-    name: Intel NUC
-    host: 192.168.1.7
-
 binary_sensor:
   - platform: ping
     host: 192.168.1.20
@@ -141,23 +158,12 @@ binary_sensor:
 #    name: QNAP NAS
 #    host: 192.168.1.11
 
-input_number:
-  gaming_pc_shutdown_timer_in_hour:
-    name: Gaming PC Shutdown Timer In Hour
-    min: 1
-    max: 24
-    step: 1
-
 input_datetime:
   log_disable_time:
     name: "Log Disable Time"
     has_date: true
     has_time: true
     
-timer:
-  gaming_pc_shutdown_timer:
-    name: "Gaming PC Shutdown Timer"
-    duration: "02:00:00"
 ###############################################
 #
 # Scripts
@@ -169,9 +175,46 @@ script:
     sequence:
       - service: homeassistant.restart
 
+  do_nothing:
+    alias: Do nothing
+    sequence:
 
 
+###############################################
+#
+# Automations:
+# - Non-bedroom light colour design
+# - Restart HA on time
+# - Log Enable
+#
+###############################################
 automation:
+  - alias: Do nothing
+    id: "1596919926917"
+    trigger: []
+    action: []
+    
+    
+  # All living room Router/AP/Hubs (tado/hue/LR gateway 3/Xiaomi AP)
+  # will be restart at 4.30am by a timer plug.
+  # HA instance and other AP/hubs (AQ/MR gateway/TPlink AP) will be
+  # restarted by the instance below.
+  #
+  # WOL sometimes stuck at sending magic packets and required to restart HA
+  - alias: Restart HA at midnight
+    id: "1602722452776"
+    description: ""
+    trigger:
+      - at: 04:00:00
+        platform: time
+    action:
+      # Generate report
+      - service: watchman.report
+      # Restart hubs in other rooms
+      - delay: "00:01:00"
+      - service: homeassistant.restart
+
+
   # - Starts Log Enable and set timeout
   - alias: Enable/Disable Logging By The State of The Log Enable and Set Timeout for 48 Hours
     id: "1607918439986"
@@ -216,29 +259,168 @@ automation:
         entity_id: input_boolean.log_enable
       - service: recorder.disable
 
+  ####################################################
+  #
+  # Restart HA if certain entities becomes unavailable
+  #
+  ####################################################
+  - alias: T- Restart HA When Some Devices Are Offline
+    id: "1599910317895"
+    description: ""
+    trigger:
+      - minutes: /10
+        platform: time_pattern
+    action:
+      - choose:
+          # Check LR Zigbee
+          - conditions:
+              - condition: state
+                entity_id: binary_sensor.ground_toilet_motion_sensor_motion
+                state: "unavailable"
+            sequence:
+              - service: notify.notify
+                data:
+                  title: "Restarting HA in 1 Min"
+                  message: "LR Ground Toilet Sensor Is Offline. Restarting HA"
+              - delay: "00:01:00"
+              - service: homeassistant.restart
+          # Check MR Zigbee
+          - conditions:
+              - condition: state
+                entity_id: binary_sensor.master_toilet_basin_motion_sensor_motion
+                state: "unavailable"
+            sequence:
+              - service: notify.notify
+                data:
+                  title: "Restarting HA in 1 Min"
+                  message: "MR Master Toilet Sensor Is Offline. Restarting HA"
+              - delay: "00:01:00"
+              - service: homeassistant.restart
+          # Check BLE devices
+          - conditions:
+              - condition: state
+                entity_id: light.master_room_entrance_led_light
+                state: "unavailable"
+            sequence:
+              - service: notify.notify
+                data:
+                  title: "Restarting HA in 1 Min"
+                  message: "BLE Master Room Entrance Light Is Offline. Restarting HA"
+              - delay: "00:01:00"
+              - service: homeassistant.restart
 
-  - alias: Start the Gaming PC Timer When it is turned on
-    id: automation.start_the_gaming_pc_timer_when_it_is_turned_on
+
+
+automation brightness:
+  - alias: L- Set up Indoor Brightness Based On Sun
+    id: "1679065359421"
+    trigger:
+      - entity_id: sun.sun
+        platform: state
+    action:
+      - service: input_select.select_option
+        target:
+          entity_id: input_select.indoor_brightness
+        data:
+          option: >
+            {% if states('sun.sun') == 'below_horizon' %}
+              dark
+            {% else %}
+              bright
+            {% endif %}
+
+
+automation alarm:
+  - alias: A- Sound Alarm When Break-in Detected If No One Is Home
+    id: "1679216351420"
     trigger:
       - platform: state
-        entity_id: switch.gaming_pc
-        from: "off"
         to: "on"
+        entity_id: group.alarm_motion
+    condition:
+      - condition: state
+        entity_id: input_boolean.home_alarm
+        for: 00:02:00
+        state: "on"
     action:
-      - service: timer.start
-        entity_id: timer.gaming_pc_shutdown_timer
+      - service: notify.mobile_app_tais_iphone_13
         data:
-          duration: "05:00:00"
+          message: Break-in detected. Start to sound alarm in 30 seconds
+          data:
+            push:
+              name: default
+              critical: 1
+              volume: 1
+      - service: notify.mobile_app_tais_iphone
+        data:
+          message: Break-in detected. Start to sound alarm in 30 seconds
+          data:
+            push:
+              name: default
+              critical: 1
+              volume: 1
 
-  - alias: Turn Off Gaming PC By The Timeout
-    id: automation.turn_off_gaming_pc_by_the_timeout
-    trigger:
-      - platform: event
-        event_type: timer.finished
-        event_data:
-          entity_id: timer.gaming_pc_shutdown_timer
-    action:
-      - service: switch.turn_off
-        entity_id: switch.gaming_pc
-        
+      - service: notify.mobile_app_kes_iphone11
+        data:
+          message: Break-in detected. Start to sound alarm in 30 seconds
+          data:
+            push:
+              name: default
+              critical: 1
+              volume: 1
+
+      - delay: "00:00:30"
+      - condition: state
+        entity_id: input_boolean.home_alarm
+        for: 00:02:00
+        state: "on"
+
+      - service: media_player.play_media
+        target:
+          entity_id: media_player.master_toilet_echo
+        data:
+          media_content_type: routine
+          media_content_id: Break in Pre Countdown Step One
+
+      - delay: "00:00:15"
+      - condition: state
+        entity_id: input_boolean.home_alarm
+        for: 00:02:00
+        state: "on"
+
+      - service: media_player.play_media
+        target:
+          entity_id: media_player.master_toilet_echo
+        data:
+          media_content_type: routine
+          media_content_id: Break in Pre Countdown Step Two
+
+      - delay: "00:00:10"
+      - condition: state
+        entity_id: input_boolean.home_alarm
+        for: 00:02:00
+        state: "on"
+
+      - service: media_player.play_media
+        target:
+          entity_id: media_player.master_toilet_echo
+        data:
+          media_content_type: routine
+          media_content_id: Break in Countdown
+
+      - delay: "00:00:20"
+      - condition: state
+        entity_id: input_boolean.home_alarm
+        for: 00:02:00
+        state: "on"
+
+      - service: media_player.play_media
+        target:
+          entity_id: media_player.master_toilet_echo
+        data:
+          media_content_type: routine
+          media_content_id: Break in Post Countdown
+
+
+
         

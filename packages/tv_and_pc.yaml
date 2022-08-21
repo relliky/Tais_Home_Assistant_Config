@@ -1,0 +1,232 @@
+# TV/Fire TV Renaming does not work for attributes
+
+# WOL switch on PCs
+switch:
+  - platform: wake_on_lan
+    mac: b8:88:e3:33:cf:17
+    name: Old Laptop
+    host: 192.168.1.5
+
+  - platform: wake_on_lan
+    mac: 40:B0:76:D8:A9:DC
+    name: Gaming PC
+    host: 192.168.1.9
+    turn_off:
+      service: hassio.addon_stdin
+      data:
+        addon: core_rpc_shutdown
+        input: gaming_pc
+
+  - platform: wake_on_lan
+    mac: b8:ae:ed:75:d8:b7
+    name: Intel NUC
+    host: 192.168.1.7
+
+timer:
+  gaming_pc_shutdown_timer:
+    name: "Gaming PC Shutdown Timer"
+    duration: "08:00:00"
+
+# Detection if Fire TV is streaming Moonlight/Parsec
+template:
+  - binary_sensor:
+      - name: "Master Room Fire TV Streaming PC Contents"
+        state: >
+          {{        (states.media_player.master_room_fire_tv.state == 'paused') 
+            and (   (states.media_player.master_room_fire_tv.attributes.source == 'tv.parsec.client') 
+                 or (states.media_player.master_room_fire_tv.attributes.source == 'com.limelight'   )   )}}
+                 
+      - name: "Living Room Fire TV Streaming PC Contents"
+        state: >
+          {{        (states.media_player.living_room_fire_tv.state == 'paused') 
+            and (   (states.media_player.living_room_fire_tv.attributes.source == 'tv.parsec.client') 
+                 or (states.media_player.living_room_fire_tv.attributes.source == 'com.limelight'   )   )}}
+
+      - name: "Kitchen Fire TV Streaming PC Contents"
+        state: >
+          {{        (states.media_player.kitchen_fire_tv.state == 'paused') 
+            and (   (states.media_player.kitchen_fire_tv.attributes.source == 'tv.parsec.client') 
+                 or (states.media_player.kitchen_fire_tv.attributes.source == 'com.limelight'   )   )}}
+
+      - name: "Portable Fire TV Streaming PC Contents"
+        state: >
+          {{        (states.media_player.portable_fire_tv.state == 'paused') 
+            and (   (states.media_player.portable_fire_tv.attributes.source == 'tv.parsec.client') 
+                 or (states.media_player.portable_fire_tv.attributes.source == 'com.limelight'   )   )}}
+
+      - name: " Balcony Fire TV Streaming PC Contents"
+        state: >
+          {{        (states.media_player.balcony_fire_tv.state == 'paused') 
+            and (   (states.media_player.balcony_fire_tv.attributes.source == 'tv.parsec.client') 
+                 or (states.media_player.balcony_fire_tv.attributes.source == 'com.limelight'   )   )}}
+
+binary_sensor:
+  - platform: group
+    name: "Fire TV Streaming PC Contents"
+    entities:
+      - binary_sensor.master_room_fire_tv_streaming_pc_contents
+      - binary_sensor.living_room_fire_tv_streaming_pc_contents
+      - binary_sensor.kitchen_fire_tv_streaming_pc_contents
+      - binary_sensor.portable_fire_tv_streaming_pc_contents
+      - binary_sensor.balcony_fire_tv_streaming_pc_contents
+
+# Generic PC TriggerCMD scripts
+rest_command:
+  tcmd_run_command:
+    url: "https://www.triggercmd.com/api/run/triggerSave"
+    method: POST
+    content_type: "application/x-www-form-urlencoded"
+    payload: 'trigger={{trigger|replace(" ","%20")}}&computer={{computer|replace(" ","-")}}&params=+{{params}}&token={{token}}'
+
+script triggercmd:
+  run_triggercmd_rest_command:
+    alias: Run TriggerCMD REST Command
+    description: Execute a RESTful command with params and a device using triggercmd.
+    icon: mdi:apple-keyboard-command
+    fields:
+      trigger:
+        description: The name of the trigger
+        example: Exit Windows Program
+        required: true
+      computer:
+        description: The name of the computer as shown in your computer list on triggercmd.com.
+        example: My Computer Name
+        required: true
+      token:
+        description: triggerCMD token
+        required: true
+      params:
+        description: Optional args string to pass with the trigger, using a space for multiple params [optional].
+        required: false
+    sequence:
+      - service: rest_command.tcmd_run_command
+        data:
+          trigger: "{{ trigger }}"
+          computer: "{{ computer }}"
+          params: "{{ params }}"
+          token: "{{ token }}"
+
+script:
+  # PC Commands
+  reboot_old_laptop:
+    alias: Reboot Old Laptop
+    sequence:
+      - service: script.run_triggercmd_rest_command
+        data:
+          trigger: Reboot in 10 seconds
+          computer: Old-Laptop
+          token: !secret triggercmd_old_laptop_token
+
+  reboot_gaming_pc:
+    alias: Reboot Gaming PC
+    sequence:
+      - service: script.run_triggercmd_rest_command
+        data:
+          trigger: Reboot in 10 seconds
+          computer: Gaming-PC
+          token: !secret triggercmd_gaming_pc_token
+
+  kill_moonlight_parsec_active_session:
+    alias: Kill Moonlight Parsec Active Session
+    sequence:
+      - service: script.run_triggercmd_rest_command
+        data:
+          trigger: Kill_Moonlight_Parsec_Active_Session
+          computer: Gaming-PC
+          token: !secret triggercmd_gaming_pc_token
+
+  # Fire TV App Button
+  fire_tv_starts_app:
+    alias: Fire TV Starts App
+    fields:
+      room:
+        example: "master_room, kitchen, living_room"
+      app:
+        example: "bilibili, youtube, smart_youtube, plex, netflix, parsec"
+    sequence:
+      - condition: template
+        value_template: >
+          {% set room_tv_entity = 'media_player.' + room + '_tv' %}
+          {{ states(room_tv_entity) == 'on' }}
+      - service: media_player.select_source
+        target:
+          entity_id: >
+            media_player.{{room}}_fire_tv
+        data:
+          source: >
+            {% if   app == 'bilibili' %}
+              com.bilibili.tv
+            {% elif app == 'youtube'  %}
+              com.amazon.firetv.youtube
+            {% elif app == 'smart_youtube'  %}
+              com.liskovsoft.videomanager
+            {% elif app == 'plex'     %}
+              com.plexapp.android
+            {% elif app == 'netflix'  %}
+              com.netflix.ninja   
+            {% elif app == 'parsec'  %}
+              tv.parsec.client
+            {% elif app == 'moonlight'  %}
+              com.limelight
+            {% endif %}
+      # TV is switched to Fire TV
+      - service: media_player.select_source
+        target:
+          entity_id: >
+            media_player.{{room}}_tv
+        data:
+          source: >
+            {% if room == 'master_room' or room == 'living_room' %}
+              Amazon Fire TV Cube          
+            {% else %}
+              Amazon Fire TV stick
+            {% endif %}
+
+automation:
+  - alias: Start the Gaming PC Timer When it is turned on
+    id: automation.start_the_gaming_pc_timer_when_it_is_turned_on
+    trigger:
+      - platform: state
+        entity_id: switch.gaming_pc
+        from: "off"
+        to: "on"
+    action:
+      # reset timer and restart
+      - service: timer.cancel
+        entity_id: timer.gaming_pc_shutdown_timer
+      - service: timer.start
+        entity_id: timer.gaming_pc_shutdown_timer
+
+  - alias: Turn Off Gaming PC By The Timeout
+    id: automation.turn_off_gaming_pc_by_the_timeout
+    trigger:
+      - platform: event
+        event_type: timer.finished
+        event_data:
+          entity_id: timer.gaming_pc_shutdown_timer
+    action:
+      - service: switch.turn_off
+        entity_id: switch.gaming_pc
+
+  - alias: Kill Moonlight Parsec Active Session When No Fire TV Streaming Them For Some Time
+    id: automation.kill_moonlight_parsec_active_session_when_no_fire_TV_streaming_them_for_some_time
+    trigger:
+      - platform: state
+        entity_id: binary_sensor.fire_tv_streaming_pc_contents
+        from: "on"
+        to: "off"
+        for: "00:10:00"
+    action:
+      - service: script.kill_moonlight_parsec_active_session
+
+  - alias: Restart Old Laptop Nightly
+    id: automation.restart_old_laptop_nightly
+    trigger:
+      - platform: time
+        at: "03:30:00"
+    action:
+      - service: switch.turn_on
+        entity_id: switch.old_laptop
+      - delay: "00:00:30"
+      - service: script.reboot_old_laptop
+

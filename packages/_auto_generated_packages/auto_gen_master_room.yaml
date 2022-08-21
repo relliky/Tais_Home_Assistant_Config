@@ -1,0 +1,195 @@
+automation:
+- alias: L-MR Master Room Ceiling Lights On Or Open Curtains If Entering to Room
+  id: automation.l_mr_master_room_ceiling_lights_on_or_open_curtains_if_entering_to_room
+  initial_state: false
+  trigger:
+  - entity_id:
+    - binary_sensor.master_room_entrance_motion_sensor_motion
+    platform: state
+    to: 'on'
+  action:
+  - service: automation.turn_off
+    entity_id: automation.l_mr_master_room_ceiling_lights_on_or_open_curtains_if_entering_to_room
+    data:
+      stop_actions: false
+  - choose:
+    - conditions:
+      - condition: state
+        entity_id: input_select.indoor_brightness
+        state: bright
+      - condition: not
+        conditions:
+        - condition: and
+          conditions:
+          - condition: numeric_state
+            entity_id: sensor.cambridge_city_airport_temperature
+            above: '16'
+          - condition: time
+            after: '13:00:00'
+            before: '22:00:00'
+          - condition: template
+            value_template: '{{ now().month > 4 and now().month < 9 }}'
+      sequence:
+        service: cover.open_cover
+        entity_id:
+        - cover.master_room_blind
+        - cover.master_room_curtain
+    default:
+    - choose:
+      - conditions:
+        - condition: time
+          after: '10:00:00'
+          before: '22:00:00'
+        sequence:
+          service: homeassistant.turn_on
+          entity_id:
+          - light.master_room_lamp_1
+          - light.master_room_lamp_2
+          - light.master_room_ceiling_light
+      default:
+        service: homeassistant.turn_on
+        entity_id:
+        - light.master_room_drawer_led
+        - light.master_room_tv_led
+        - light.master_room_bed_led
+
+
+- alias: L-MR Master Room Lights Off If No Person
+  id: automation.l_mr_master_room_lights_off_if_no_person
+  trigger:
+  - platform: state
+    from: 'on'
+    to: 'off'
+    for: 00:15:00
+    entity_id:
+    - group.master_room_motion
+  - minutes: /5
+    platform: time_pattern
+  condition:
+  - condition: or
+    conditions:
+    - condition: and
+      conditions:
+      - after: '10:00:00'
+        before: '22:00:00'
+        condition: time
+      - condition: state
+        entity_id:
+        - group.master_room_motion
+        for: 00:15:00
+        state: 'off'
+    - condition: and
+      conditions:
+      - after: '22:00:00'
+        before: '10:00:00'
+        condition: time
+      - condition: state
+        entity_id:
+        - group.master_room_motion
+        for: 02:00:00
+        state: 'off'
+  action:
+  - service: homeassistant.turn_on
+    entity_id: automation.l_mr_master_room_ceiling_lights_on_or_open_curtains_if_entering_to_room
+  - service: homeassistant.turn_off
+    entity_id:
+    - light.master_room_drawer_led
+    - light.master_room_tv_led
+    - light.master_room_bed_led
+    - light.master_room_lamp_1
+    - light.master_room_lamp_2
+    - light.master_room_ceiling_light
+  - service: homeassistant.turn_off
+    entity_id:
+    - media_player.master_room_tv
+  - service: cover.close_cover
+    entity_id:
+    - cover.master_room_blind
+    - cover.master_room_curtain
+
+
+- alias: LB-MR Master Room Bed Button - Single - Toggle Bed Lights/Ceiling Lights
+  trigger:
+  - platform: state
+    entity_id:
+    - sensor.master_room_bedside_button_1
+    - sensor.master_room_bedside_button_2
+    to: single
+  action:
+  - choose:
+    - conditions:
+      - condition: state
+        entity_id:
+        - light.master_room_ceiling_light
+        state: 'on'
+      sequence:
+        parallel:
+        - service: homeassistant.turn_off
+          entity_id:
+          - light.master_room_ceiling_light
+        - service: homeassistant.turn_on
+          entity_id:
+          - light.master_room_lamp_1
+          - light.master_room_lamp_2
+          - light.master_room_drawer_led
+          - light.master_room_tv_led
+          - light.master_room_bed_led
+    - conditions:
+      - condition: state
+        entity_id:
+        - light.master_room_lamp_1
+        - light.master_room_lamp_2
+        state: 'on'
+      sequence:
+        parallel:
+        - service: homeassistant.turn_off
+          entity_id:
+          - light.master_room_lamp_1
+          - light.master_room_lamp_2
+          - light.master_room_ceiling_light
+        - service: homeassistant.turn_on
+          entity_id:
+          - light.master_room_drawer_led
+          - light.master_room_tv_led
+          - light.master_room_bed_led
+    - conditions:
+      - condition: state
+        entity_id:
+        - light.master_room_drawer_led
+        - light.master_room_tv_led
+        - light.master_room_bed_led
+        state: 'on'
+      sequence:
+        parallel:
+        - service: homeassistant.turn_off
+          entity_id:
+          - light.master_room_lamp_1
+          - light.master_room_lamp_2
+          - light.master_room_ceiling_light
+          - light.master_room_drawer_led
+          - light.master_room_tv_led
+          - light.master_room_bed_led
+    default:
+      service: homeassistant.turn_on
+      entity_id:
+      - light.master_room_lamp_1
+      - light.master_room_lamp_2
+      - light.master_room_ceiling_light
+      - light.master_room_drawer_led
+      - light.master_room_tv_led
+      - light.master_room_bed_led
+  id: automation.lb_mr_master_room_bed_button_single_toggle_bed_lights_ceiling_lights
+
+
+- alias: LB-MR Master Room Wall Switch - Double Press - Leave Room and Turn Off Everything
+  trigger:
+  - platform: state
+    entity_id:
+    - sensor.master_room_entrance_wall_button
+    to: double
+  action:
+  - service: automation.trigger
+    entity_id: automation.l_mr_master_room_lights_off_if_no_person
+  id: automation.lb_mr_master_room_wall_switch_double_press_leave_room_and_turn_off_everything
+
+
