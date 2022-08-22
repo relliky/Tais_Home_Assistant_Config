@@ -42,11 +42,11 @@ def set_rgb_light_list(light_list=None, profile_name='soho'):
     light_list = filter_rbg_light_list(light_list)
     
     # Select a colour profile
-    selected_colour_list = []
-    for profile_name, colour_list in get_hue_colour_profiles().items():
-      if profile_name == 'soho':
-        selected_colour_list = colour_list
-        #log.info (selected_colour_list)
+    colour_list = []
+    for _profile_name, _colour_list in get_hue_colour_profiles().items():
+      if profile_name == _profile_name:
+        colour_list = _colour_list
+        #log.info (colour_list)
         #light.master_room_lamp_2.turn_on(rgb_color = (0, 237, 252))
         #light.turn_on( entity_id = 'light.master_room_lamp_2', rgb_color = rgb_colour)
 
@@ -61,7 +61,7 @@ def set_rgb_light_list(light_list=None, profile_name='soho'):
         
     # Turn on lights with the selected colour list
     for i in range(len(light_list)):
-        rgb_colour = selected_colour_list[colour_index[i]]
+        rgb_colour = colour_list[colour_index[i]]
         light.turn_on(entity_id=light_list[i], rgb_color=rgb_colour)
 
 
