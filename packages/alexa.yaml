@@ -27,13 +27,13 @@ emulated_hue:
   # Make sure "hidden:false" is always attached - otherwise HA would not be found the devices
   # N.B.
   # As per Emulated Hue documentation, ONLY UP TO 49 DEVICES can be supported by this integration.
-  # There are 31 devices now
+  # There are 29 devices below + 11 physical devices on Hue bridge
   entities:
     ###################################
     # HA script - using a fake light brightness to call scripts - 1 devices
     ###################################
-    light.emulated_hue_ha_script:
-      name: "HA Scripts"
+    light.emulated_hue_ha_script_index_from_alexa:
+      name: "HA Script Index From Alexa"
       hidden: false
     ###################################
     # Non-light Devices - 0 devices
@@ -84,10 +84,6 @@ emulated_hue:
     light.living_room_floor_light:
       name: "Living Room Floor Light"
       hidden: false
-    # Boiler Room
-    light.boiler_room_light:
-      name: "Boiler Room Light"
-      hidden: false
     # Garden
     switch.garden_wall_light:
       name: "Garden Light"
@@ -95,27 +91,27 @@ emulated_hue:
     ###################################
     # Kitchen - 5 devices
     ###################################
-    light.kitchen_ceiling_light:
-      name: "Kitchen Ceiling Light"
-      hidden: false
-    light.kitchen_dining_light:
-      name: "Kitchen Dining Light"
-      hidden: false
-    switch.kitchen_floor_led:
-      name: "Kitchen Floor LED"
-      hidden: false
-    switch.kitchen_worktop_led_left:
-      name: "Kitchen Worktop LED Left"
-      hidden: false
-    switch.kitchen_worktop_led_right:
-      name: "Kitchen Worktop LED Right"
-      hidden: false
+    #light.kitchen_ceiling_light:
+    #  name: "Kitchen Ceiling Light"
+    #  hidden: false
+    #light.kitchen_dining_light:
+    #  name: "Kitchen Dining Light"
+    #  hidden: false
+    #switch.kitchen_floor_led:
+    #  name: "Kitchen Floor LED"
+    #  hidden: false
+    #switch.kitchen_worktop_led_left:
+    #  name: "Kitchen Worktop LED Left"
+    #  hidden: false
+    #switch.kitchen_worktop_led_right:
+    #  name: "Kitchen Worktop LED Right"
+    #  hidden: false
     ###################################
     # Ground Toilet - 1 devices
     ###################################
-    light.ground_toilet_ceiling_light:
-      name: "Ground Toilet Ceiling Light"
-      hidden: false
+    #light.ground_toilet_ceiling_light:
+    #  name: "Ground Toilet Ceiling Light"
+    #  hidden: false
     ###################################
     # Study - 1 devices
     ###################################
@@ -131,19 +127,26 @@ emulated_hue:
     light.en_suite_room_bed_led:
       name: "En-suite Room Bed LED"
       hidden: false
+    light.en_suite_room_lamp_2:
+      name: "En-suite Room Left Lamp"
+      hidden: false
+    light.en_suite_room_lamp_1:
+      name: "En-suite Room Right Lamp"
+      hidden: false
+      
     # Office
-    light.kes_desk_lamps:
-      name: "Kes Desk Lamp"
-      hidden: false
-    switch.kes_desk_screen_led:
-      name: "Kes Desk Screen LED"
-      hidden: false
-    light.tais_desk_lamps:
-      name: "Tais Desk Lamp"
-      hidden: false
-    switch.tais_desk_screen_led:
-      name: "Tais Desk Screen LED"
-      hidden: false
+    #light.kes_desk_lamps:
+    #  name: "Kes Desk Lamp"
+    #  hidden: false
+    #switch.kes_desk_screen_led:
+    #  name: "Kes Desk Screen LED"
+    #  hidden: false
+    #light.tais_desk_lamps:
+    #  name: "Tais Desk Lamp"
+    #  hidden: false
+    #switch.tais_desk_screen_led:
+    #  name: "Tais Desk Screen LED"
+    #  hidden: false
 
 # Switches for Emulated Hue
 switch emulated_hue:
@@ -171,20 +174,30 @@ switch emulated_hue:
           target:
             entity_id: cover.master_room_curtain
 
-# Fake Light - using its brightness to call scripts from Alexa
+# Fake Light - using its brightness to call scripts from customized Alexa commands
 light:
   - platform: template
     lights:
       emulated_hue_ha_script:
-        friendly_name: "Emulated Hue HA Script"
+        friendly_name: "Emulated Hue HA Script 1"
         turn_on:
           service: script.do_nothing
         turn_off:
           service: script.do_nothing
         set_level:
           service: script.do_nothing
-          data:
-            brightness: "{{ brightness }}"
+        set_temperature:
+          service: script.do_nothing
+        set_white_value:
+          service: script.do_nothing
+        set_color:
+          service: script.do_nothing
+
+  # Sometimes HA script Light Needs to be re-instantiated
+  - platform : group
+    name: Emulated Hue HA Script Index From Alexa
+    entities:
+    - light.emulated_hue_ha_script
 
 script:
   alexa_set_tv_brightness_to_dynamic:

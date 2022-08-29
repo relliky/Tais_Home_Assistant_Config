@@ -9,31 +9,52 @@ class RoomBase:
     self.room_entity           = room_entity
     self.num_of_xiaomi_button  = num_of_xiaomi_button
     self.num_of_lamps          = num_of_lamps
-    self.name       = 'En-suite Room' if self.room_entity == 'en_suite_room' else \
-                      'Master Room'   if self.room_entity == 'master_room'   else \
-                      'Guest Room'    if self.room_entity == 'guest_room'    else \
+    self.room_name  = 'En-suite Room'   if self.room_entity == 'en_suite_room'   else \
+                      'Master Room'     if self.room_entity == 'master_room'     else \
+                      'Guest Room'      if self.room_entity == 'guest_room'      else \
+                      'En-suite Toilet' if self.room_entity == 'en_suite_toilet' else \
+                      'Master Toilet'   if self.room_entity == 'master_toilet'   else \
+                      'Guest Toilet'    if self.room_entity == 'guest_toilet'    else \
+                      'Groud Toilet'    if self.room_entity == 'ground_toilet'   else \
+                      'Study'           if self.room_entity == 'study'           else \
+                      'Kitchen'         if self.room_entity == 'kitchen'         else \
+                      'Garden'          if self.room_entity == 'garden'          else \
+                      'Living Room'     if self.room_entity == 'living_room'     else \
+                      'Corridor'        if self.room_entity == 'corridor'        else \
                       None
 
-    self.short_name = 'ER'            if self.room_entity == 'en_suite_room' else \
-                      'MR'            if self.room_entity == 'master_room'   else \
-                      'GR'            if self.room_entity == 'guest_room'    else \
-                      None
+    self.room_short_name = 'ER'         if self.room_entity == 'en_suite_room'   else \
+                           'MR'         if self.room_entity == 'master_room'     else \
+                           'GR'         if self.room_entity == 'guest_room'      else \
+                           'ET'         if self.room_entity == 'en_suite_toilet' else \
+                           'MT'         if self.room_entity == 'master_toilet'   else \
+                           'GT'         if self.room_entity == 'guest_toilet'    else \
+                           '0T'         if self.room_entity == 'ground_toilet'   else \
+                           'ST'         if self.room_entity == 'study'           else \
+                           'KC'         if self.room_entity == 'kitchen'         else \
+                           'GD'         if self.room_entity == 'garden'          else \
+                           'LR'         if self.room_entity == 'living_room'     else \
+                           'CR'         if self.room_entity == 'corridor'        else \
+                           None
+    
+    self.automation_room_name = self.room_short_name + " " + self.room_name + " "
 
     self.room_type =  'bedroom'       if (('_room' in self.room_entity) and ('living_room' != self.room_entity)) else \
                       'toilet'        if '_toilet' in self.room_entity else \
                       'common_area'
 
-    self.west_face_windows = True     if self.room_entity == 'en_suite_room' or self.room_entity == 'master_room' else False
+    self.west_face_windows = True     if self.room_entity in ['en_suite_room', 'master_room'] else False
     
     # Motion sensor entities
     self.bed_motion_sensors      = ["binary_sensor." + self.room_entity + "_bed_motion_sensor_motion"]
-    self.entrance_motion_sensors = ["binary_sensor." + self.room_entity + "_entrance_motion_sensor_motion"]
     self.all_motion_sensors      = ["group."         + self.room_entity + "_motion"]
+    self.entrance_motion_sensors = ["binary_sensor." + self.room_entity + "_entrance_motion_sensor_motion"] if self.room_type == 'bedroom' else \
+                                   self.all_motion_sensors
 
     # Button (sensor) entities
     self.xiaomi_buttons          = []
     for i in range(self.num_of_xiaomi_button):
-      self.xiaomi_buttons       += ["sensor." + self.room_entity + "_bedside_button"]
+      self.xiaomi_buttons       += ["sensor." + self.room_entity + "_button"] 
       if self.num_of_xiaomi_button != 1:
         self.xiaomi_buttons[i]  += "_" + str(i+1)
     self.wall_buttons            = ["sensor." + self.room_entity + "_entrance_wall_button"] if self.room_entity == 'master_room' else \
@@ -44,14 +65,23 @@ class RoomBase:
     self.bed_leds                = ["light." + self.room_entity + "_bed_led"      ] if self.room_type == 'bedroom' else None
     self.other_leds              = ["light.master_room_drawer_led",
                                     "light.master_room_tv_led"     ] if self.room_entity == 'master_room' else []
-    self.leds                    = self.other_leds + self.bed_leds
-    #self.leds                    = ["light." + self.room_entity + "_led"          ]
+    self.leds                    = ["light.living_room_tv_led", 
+                                    "light.living_room_sofa_led"] if self.room_entity == 'living_room' else \
+                                   self.other_leds + self.bed_leds
+
     self.ceiling_lights          = ["light." + self.room_entity + "_ceiling_light"]
+    
     self.lamps                   = []
     for i in range(num_of_lamps):
       self.lamps                += ["light." + room_entity + "_lamp"]
       if num_of_lamps != 1:
         self.lamps[i]           += "_" + str(i+1)
+    self.lamps                   = ["light.living_room_floor_light_1", 
+                                    "light.living_room_3_head_lamp_1",
+                                    "light.living_room_3_head_lamp_2",
+                                    "light.living_room_3_head_lamp_3"] if self.room_entity == 'living_room' else \
+                                   self.lamps    
+
     self.lights                  = self.leds + self.lamps + self.ceiling_lights
 
     # TV entities
@@ -61,7 +91,8 @@ class RoomBase:
 
     # Time setup
     self.daytime_lights_off_timeout   = "00:15:00"
-    self.nighttime_lights_off_timeout = "02:00:00"
+    self.nighttime_lights_off_timeout = "02:00:00" if self.room_type == "bedroom" else \
+                                        self.daytime_lights_off_timeout
     self.daytime_start                = "10:00:00"
     self.afternoon_start              = "13:00:00"
     self.daytime_end                  = "22:00:00"
@@ -69,9 +100,11 @@ class RoomBase:
     # Cover entities
     self.curtains               = ["cover.master_room_blind",
                                    "cover.master_room_curtain"] if self.room_entity == "master_room" else None
-
+    # Temperature sensor entities
+    self.outside_temperature    = ["sensor.cambridge_city_airport_temperature"]
+    
     #self.config = { nameof(self.room_entity              ) : self.room_entity               ,
-    #                nameof(self.name                     ) : self.name                      ,
+    #                nameof(self.room_name                     ) : self.room_name                      ,
     #                nameof(self.room_type                ) : self.room_type                 ,
     #                nameof(self.bed_motion_sensors       ) : self.bed_motion_sensors        ,
     #                nameof(self.entrance_motion_sensors  ) : self.entrance_motion_sensors   ,
@@ -89,15 +122,35 @@ class RoomBase:
     # Render Automation
     self.automations  = []
     self.automations += self.get_lighting_automations()
+    self.entity_declarations = {}    
+    self.get_entity_declarations()
+
+  def get_entity_declarations(self):
+    self.entity_declarations = {
+      "input_select":{
+        self.room_entity + "_scene" : {
+          "name" : self.room_name + " Scene",
+          "options":[
+            "All White",
+            "Lamp Led White",
+            "LED White",
+            "Hue",
+            "Night Mode",
+            "Dark Night Mode"
+          ]
+        }
+      }
+    }
+      
 
   # Lighting Automations
   def get_lighting_automations(self):
     self.automations = []
-    self.automation_lights_on = {"alias":"L-"+self.short_name+" "+self.name+" "+"Ceiling Lights On Or Open Curtains If Entering to Room"}
+    self.automation_lights_on = {"alias":"L-" + self.automation_room_name + "Ceiling Lights On Or Open Curtains If Entering to Room"}
     self.automation_lights_on['id'] = self.getIDFromAlias(self.automation_lights_on['alias'])
     self.automations += [self.automation_lights_on | {
         # Lights on automation are initially off until it is automatically turned on when no present detected
-        "initial_state": False,
+        #"initial_state": False,
         "trigger": [
           {
             "entity_id": self.entrance_motion_sensors,
@@ -137,8 +190,8 @@ class RoomBase:
                           # Outdoor temp above certain temperature
                           {
                             "condition": "numeric_state",
-                            "entity_id": "sensor.cambridge_city_airport_temperature",
-                            "above": "16"
+                            "entity_id": self.outside_temperature,
+                            "above": "20"
                           },
                           # In the morning/afternoon
                           {
@@ -184,7 +237,7 @@ class RoomBase:
       }
     ]
 
-    self.automation_lights_off = {"alias":"L-"+self.short_name+" "+self.name+" "+"Lights Off If No Person"}
+    self.automation_lights_off = {"alias":"L-" + self.automation_room_name + "Lights Off If No Person"}
     self.automation_lights_off['id'] = self.getIDFromAlias(self.automation_lights_off['alias'])
     self.automations += [self.automation_lights_off | {
         "trigger": [
@@ -256,7 +309,7 @@ class RoomBase:
     ]
 
     self.automations += [{
-        "alias" : "LB-"+self.short_name+" "+self.name+" "+"Bed Button - Single - Toggle Bed Lights/Ceiling Lights",
+        "alias" : "LB-" + self.automation_room_name + "Remote Button - Single - Toggle Bed Lights/Ceiling Lights",
         "trigger": [
           {
             "platform": "state",
@@ -264,6 +317,7 @@ class RoomBase:
             "to": "single"
           }
         ],
+        "mode":"queued",
         "action": [
           {
             # N.B. choose will only choose the first matching condition to execute
@@ -325,7 +379,71 @@ class RoomBase:
 
     self.automations += [
       {
-        "alias":"LB-"+self.short_name+" "+self.name+" "+"Wall Switch - Double Press - Leave Room and Turn Off Everything",
+        "alias":"LB-" + self.automation_room_name + "Remote Button - Double - Toggle Lamps",
+        "trigger": [
+          {
+            "platform": "state",
+            "entity_id": self.xiaomi_buttons,
+            "to": "double"
+          }
+        ],
+        "action": [
+            self.turn(self.lamps, "toggle"),
+        ]
+      }
+    ]
+
+    self.automations += [
+      {
+        "alias":"LB-" + self.automation_room_name + "Remote Button - Triple - Set Scene",
+        "trigger": [
+          {
+            "platform": "state",
+            "entity_id": self.xiaomi_buttons,
+            "to": "triple"
+          }
+        ],
+        "action": [
+            self.turn(self.lamps, "toggle"),
+        ]
+      }
+    ]
+
+    self.automations += [
+      {
+        "alias":"LB-" + self.automation_room_name + "Remote Button - Long - Toggle LEDs",
+        "trigger": [
+          {
+            "platform": "state",
+            "entity_id": self.xiaomi_buttons,
+            "to": "hold"
+          }
+        ],
+        "action": [
+            self.turn(self.leds, "toggle") 
+        ]
+      }
+    ]
+
+    self.automations += [
+      {
+        "alias":"LB-" + self.automation_room_name + "Wall Switch - Single Press - Toggle Ceiling Light",
+        "trigger": [
+          {
+            "platform": "state",
+            "entity_id": self.wall_buttons,
+            "to": "single"
+          }
+        ],
+        "action": [
+            self.turn(self.ceiling_lights, "toggle") 
+        ]
+      }
+    ]
+
+    self.automations += [
+      {
+        "alias":"LB-" + self.automation_room_name + "Wall Switch - Double Press - Leave Room and Turn Off Everything",
         "trigger": [
           {
             "platform": "state",
@@ -358,12 +476,16 @@ class RoomBase:
 
   # Create service call for turn on/off entities
   def turn(self, entity_list, state):
-    assert state == 'on' or state == 'off', "State has to be on or off"
+    assert state in ['on', 'off', 'toggle'], "State has to be on, off, toggle"
 
     if entity_list == self.curtains:
-      action_service = {"service": "cover.open_cover"      if state == 'on' else "cover.close_cover"}
+      action_service = {"service": "cover.open_cover"       if state == 'on'     else \
+                                   "cover.close_cover"      if state == 'off'    else \
+                                   "cover.toggle"           if state == 'toggle' else None}
     else:
-      action_service = {"service": "homeassistant.turn_on" if state == 'on' else "homeassistant.turn_off"}
+      action_service = {"service": "homeassistant.turn_on"  if state == 'on'     else \
+                                   "homeassistant.turn_off" if state == 'off'    else \
+                                   "homeassistant.toggle"   if state == 'toggle' else None}
     action_service |= {"entity_id": entity_list}
     if entity_list != None:
       return action_service
@@ -384,27 +506,29 @@ class RoomBase:
       f.write(yaml.dump([automation], sort_keys=False, width=float("inf")))
       f.write("\n\n")
     #f.write(yaml.dump([room.automations[3]], sort_keys=False, width=float("inf")))
+    f.write(yaml.dump(self.entity_declarations, sort_keys=False, width=float("inf")))
     f.close()
 
 
-rooms = [ RoomBase ('en_suite_room', num_of_xiaomi_button=1),
-          RoomBase ('master_room',   num_of_xiaomi_button=2)   ]
-
+rooms = [RoomBase('en_suite_room',num_of_xiaomi_button=1),
+         RoomBase('master_room',  num_of_xiaomi_button=2),
+         RoomBase('living_room',  num_of_xiaomi_button=1)]
 
 
 #YAML = YAML()
 #print (YAML.dump(rooms[0].automation))
-#
+
 yaml.Dumper.ignore_aliases = lambda *args : True
 
 for room in rooms:
   room.writeYaml()
-  #room.auto_gen_yaml_path
 
-  print ("\n\n")
-  print (yaml.dump(room.automations, sort_keys=False))
-  print ("\n\n")
+  #print ("\n\n")
+  #print (yaml.dump(room.automations, sort_keys=False))
+  #print ("\n\n")
 
+  for automation in room.automations:
+    print (yaml.dump(automation['id'], sort_keys=False))
 
 
 #print ([list(room.lamps), list(room.leds)])

@@ -1,7 +1,6 @@
 automation:
 - alias: L-MR Master Room Ceiling Lights On Or Open Curtains If Entering to Room
   id: automation.l_mr_master_room_ceiling_lights_on_or_open_curtains_if_entering_to_room
-  initial_state: false
   trigger:
   - entity_id:
     - binary_sensor.master_room_entrance_motion_sensor_motion
@@ -22,8 +21,9 @@ automation:
         - condition: and
           conditions:
           - condition: numeric_state
-            entity_id: sensor.cambridge_city_airport_temperature
-            above: '16'
+            entity_id:
+            - sensor.cambridge_city_airport_temperature
+            above: '20'
           - condition: time
             after: '13:00:00'
             before: '22:00:00'
@@ -108,13 +108,14 @@ automation:
     - cover.master_room_curtain
 
 
-- alias: LB-MR Master Room Bed Button - Single - Toggle Bed Lights/Ceiling Lights
+- alias: LB-MR Master Room Remote Button - Single - Toggle Bed Lights/Ceiling Lights
   trigger:
   - platform: state
     entity_id:
-    - sensor.master_room_bedside_button_1
-    - sensor.master_room_bedside_button_2
+    - sensor.master_room_button_1
+    - sensor.master_room_button_2
     to: single
+  mode: queued
   action:
   - choose:
     - conditions:
@@ -160,15 +161,14 @@ automation:
         - light.master_room_bed_led
         state: 'on'
       sequence:
-        parallel:
-        - service: homeassistant.turn_off
-          entity_id:
-          - light.master_room_lamp_1
-          - light.master_room_lamp_2
-          - light.master_room_ceiling_light
-          - light.master_room_drawer_led
-          - light.master_room_tv_led
-          - light.master_room_bed_led
+        service: homeassistant.turn_off
+        entity_id:
+        - light.master_room_lamp_1
+        - light.master_room_lamp_2
+        - light.master_room_ceiling_light
+        - light.master_room_drawer_led
+        - light.master_room_tv_led
+        - light.master_room_bed_led
     default:
       service: homeassistant.turn_on
       entity_id:
@@ -178,7 +178,66 @@ automation:
       - light.master_room_drawer_led
       - light.master_room_tv_led
       - light.master_room_bed_led
-  id: automation.lb_mr_master_room_bed_button_single_toggle_bed_lights_ceiling_lights
+  id: automation.lb_mr_master_room_remote_button_single_toggle_bed_lights_ceiling_lights
+
+
+- alias: LB-MR Master Room Remote Button - Double - Toggle Lamps
+  trigger:
+  - platform: state
+    entity_id:
+    - sensor.master_room_button_1
+    - sensor.master_room_button_2
+    to: double
+  action:
+  - service: homeassistant.toggle
+    entity_id:
+    - light.master_room_lamp_1
+    - light.master_room_lamp_2
+  id: automation.lb_mr_master_room_remote_button_double_toggle_lamps
+
+
+- alias: LB-MR Master Room Remote Button - Triple - Set Scene
+  trigger:
+  - platform: state
+    entity_id:
+    - sensor.master_room_button_1
+    - sensor.master_room_button_2
+    to: triple
+  action:
+  - service: homeassistant.toggle
+    entity_id:
+    - light.master_room_lamp_1
+    - light.master_room_lamp_2
+  id: automation.lb_mr_master_room_remote_button_triple_set_scene
+
+
+- alias: LB-MR Master Room Remote Button - Long - Toggle LEDs
+  trigger:
+  - platform: state
+    entity_id:
+    - sensor.master_room_button_1
+    - sensor.master_room_button_2
+    to: hold
+  action:
+  - service: homeassistant.toggle
+    entity_id:
+    - light.master_room_drawer_led
+    - light.master_room_tv_led
+    - light.master_room_bed_led
+  id: automation.lb_mr_master_room_remote_button_long_toggle_leds
+
+
+- alias: LB-MR Master Room Wall Switch - Single Press - Toggle Ceiling Light
+  trigger:
+  - platform: state
+    entity_id:
+    - sensor.master_room_entrance_wall_button
+    to: single
+  action:
+  - service: homeassistant.toggle
+    entity_id:
+    - light.master_room_ceiling_light
+  id: automation.lb_mr_master_room_wall_switch_single_press_toggle_ceiling_light
 
 
 - alias: LB-MR Master Room Wall Switch - Double Press - Leave Room and Turn Off Everything
@@ -193,3 +252,13 @@ automation:
   id: automation.lb_mr_master_room_wall_switch_double_press_leave_room_and_turn_off_everything
 
 
+input_select:
+  master_room_scene:
+    name: Master Room Scene
+    options:
+    - All White
+    - Lamp Led White
+    - LED White
+    - Hue
+    - Night Mode
+    - Dark Night Mode

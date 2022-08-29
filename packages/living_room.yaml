@@ -53,7 +53,7 @@ group:
       - light.living_room_floor_light_1
       - light.living_room_floor_light_2
       - switch.living_room_floor_light_3
-      - switch.living_room_ceiling_light
+      - light.living_room_ceiling_light
       - light.living_room_tv_led
       - light.living_room_sofa_led
       - light.boiler_room_light
@@ -131,9 +131,9 @@ script:
     mode: parallel
     max: 100
     sequence:
-      - service: switch.turn_on
+      - service: homeassistant.turn_on
         entity_id:
-          - switch.living_room_ceiling_light
+          - light.living_room_ceiling_light
           - switch.living_room_tree_light
       - service: script.living_room_floor_lights_turn_on
 
@@ -142,9 +142,9 @@ script:
     mode: parallel
     max: 100
     sequence:
-      - service: switch.turn_off
+      - service: homeassistant.turn_off
         entity_id:
-          - switch.living_room_ceiling_light
+          - light.living_room_ceiling_light
           - switch.garden_light
       - service: script.living_room_floor_lights_turn_off
       - service: light.turn_off
@@ -419,49 +419,6 @@ automation:
       - service: automation.turn_off
         entity_id: automation.living_room_lights_on_if_people_present
 
-  - alias: L-LR Living Room Lights Off If No Person For 10 Min
-    id: "1603640031662"
-    description: ""
-    trigger:
-      - entity_id: group.living_room_motion
-        platform: state
-        from: "on"
-        to: "off"
-        for: 00:10:00
-      - minutes: /5
-        platform: time_pattern
-    condition:
-      - condition: state
-        entity_id: group.living_room_motion
-        for: 00:10:00
-        state: "off"
-    action:
-      - if:
-          alias: "Garden occupancy timer set manually"
-          condition: state
-          entity_id: timer.garden_occupancy_timer
-          state: "active"
-        then:
-          - service: script.do_nothing
-        else:
-          - service: script.living_room_all_lights_turn_off
-          # Turn on auto light automation
-          - service: automation.turn_on
-            entity_id: automation.living_room_lights_on_if_people_present
-          # Turn Off TV if Living Room TV is on
-          - condition: state
-            entity_id: media_player.living_room_tv
-            state: "on"
-          - alias: "Repeat turning off tv until tv is off"
-            repeat:
-              sequence:
-                - service: script.turn_on
-                  entity_id: script.living_room_tv_turn_off
-                - delay: "00:00:03"
-              until:
-                - condition: template
-                  value_template: "{{states('media_player.living_room_tv') == 'off'}}"
-
   # Boiler Room
   - alias: L-LR Boiler Room Lights On If Door Opens
     id: "1603640041661"
@@ -503,49 +460,12 @@ automation:
   ###############################################
   # Actions based on buttons
   ###############################################
-  - alias: B-LR Living Room Wall/Sofa - Single Press - Toggle Floor Lights
-    id: "1603641040070"
-    trigger:
-      - platform: state
-        entity_id: sensor.living_room_sofa_button
-        to: single
-      #- platform: state
-      #  entity_id: sensor.living_room_ceiling_light_wall_button
-      #  to: single
-    action:
-      - service: homeassistant.toggle
-        entity_id: group.living_room_floor_light
-
-  - alias: B-LR Living Room Wall Switch - Double Press - Turn Off Living Room Appliances
-    id: "1623641043079"
-    trigger:
-      - platform: state
-        entity_id: sensor.living_room_ceiling_light_wall_button
-        to: double
-    action:
-      - service: homeassistant.turn_off
-        entity_id: group.living_room_appliances
-
-  - alias: B-LR Living Room Sofa - Double Press - Toggle Ceiling Lights
-    id: "1603641040071"
-    trigger:
-      - platform: state
-        entity_id: sensor.living_room_sofa_button
-        to: double
-    action:
-      #- entity_id: switch.living_room_ceiling_light
-      #  service: switch.toggle
-      - service: light.toggle
-        entity_id:
-          - light.living_room_tv_led
-          - light.living_room_sofa_led
-
-  - alias: B-LR Living Room Sofa - Long Press - Turn off lights - Movie Scene For 2 Hours
+  - alias: B-LR Living Room Sofa - Five Press - Turn off lights - Movie Scene For 2 Hours
     id: "1603641040072"
     trigger:
       - platform: state
-        entity_id: sensor.living_room_sofa_button
-        to: hold
+        entity_id: sensor.living_room_button
+        to: many
     action:
       - choose:
           # IF movie scene is off, turn off lights and its automation for 2 hours for movie scene
@@ -558,13 +478,12 @@ automation:
               - service: automation.turn_off
                 entity_id: automation.living_room_lights_on_if_people_present
               - service: script.living_room_floor_lights_turn_off
-              - entity_id: switch.living_room_ceiling_light
-                service: switch.turn_off
+              - entity_id: light.living_room_ceiling_light
+                service: homeassistant.turn_off
               # Delay of some time and turn on back auto lights up
               - delay: "02:00:00"
               - service: automation.turn_on
                 entity_id: automation.living_room_lights_on_if_people_present
-
         # ELSE - if movie scene is on, turn off movie scene and turn on lights and its automation
         default:
           - service: script.living_room_floor_lights_turn_on

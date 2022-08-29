@@ -1,0 +1,264 @@
+automation:
+- alias: L-LR Living Room Ceiling Lights On Or Open Curtains If Entering to Room
+  id: automation.l_lr_living_room_ceiling_lights_on_or_open_curtains_if_entering_to_room
+  trigger:
+  - entity_id:
+    - group.living_room_motion
+    platform: state
+    to: 'on'
+  action:
+  - service: automation.turn_off
+    entity_id: automation.l_lr_living_room_ceiling_lights_on_or_open_curtains_if_entering_to_room
+    data:
+      stop_actions: false
+  - choose:
+    - conditions:
+      - condition: state
+        entity_id: input_select.indoor_brightness
+        state: bright
+      - condition: not
+        conditions:
+        - condition: and
+          conditions:
+          - condition: numeric_state
+            entity_id:
+            - sensor.cambridge_city_airport_temperature
+            above: '20'
+          - condition: time
+            after: '10:00:00'
+            before: '13:00:00'
+          - condition: template
+            value_template: '{{ now().month > 4 and now().month < 9 }}'
+      sequence:
+        service: script.do_nothing
+    default:
+    - choose:
+      - conditions:
+        - condition: time
+          after: '10:00:00'
+          before: '22:00:00'
+        sequence:
+          service: homeassistant.turn_on
+          entity_id:
+          - light.living_room_floor_light_1
+          - light.living_room_3_head_lamp_1
+          - light.living_room_3_head_lamp_2
+          - light.living_room_3_head_lamp_3
+          - light.living_room_ceiling_light
+      default:
+        service: homeassistant.turn_on
+        entity_id:
+        - light.living_room_tv_led
+        - light.living_room_sofa_led
+
+
+- alias: L-LR Living Room Lights Off If No Person
+  id: automation.l_lr_living_room_lights_off_if_no_person
+  trigger:
+  - platform: state
+    from: 'on'
+    to: 'off'
+    for: 00:15:00
+    entity_id:
+    - group.living_room_motion
+  - minutes: /5
+    platform: time_pattern
+  condition:
+  - condition: or
+    conditions:
+    - condition: and
+      conditions:
+      - after: '10:00:00'
+        before: '22:00:00'
+        condition: time
+      - condition: state
+        entity_id:
+        - group.living_room_motion
+        for: 00:15:00
+        state: 'off'
+    - condition: and
+      conditions:
+      - after: '22:00:00'
+        before: '10:00:00'
+        condition: time
+      - condition: state
+        entity_id:
+        - group.living_room_motion
+        for: 00:15:00
+        state: 'off'
+  action:
+  - service: homeassistant.turn_on
+    entity_id: automation.l_lr_living_room_ceiling_lights_on_or_open_curtains_if_entering_to_room
+  - service: homeassistant.turn_off
+    entity_id:
+    - light.living_room_tv_led
+    - light.living_room_sofa_led
+    - light.living_room_floor_light_1
+    - light.living_room_3_head_lamp_1
+    - light.living_room_3_head_lamp_2
+    - light.living_room_3_head_lamp_3
+    - light.living_room_ceiling_light
+  - service: homeassistant.turn_off
+    entity_id:
+    - media_player.living_room_tv
+  - service: script.do_nothing
+
+
+- alias: LB-LR Living Room Remote Button - Single - Toggle Bed Lights/Ceiling Lights
+  trigger:
+  - platform: state
+    entity_id:
+    - sensor.living_room_button
+    to: single
+  mode: queued
+  action:
+  - choose:
+    - conditions:
+      - condition: state
+        entity_id:
+        - light.living_room_ceiling_light
+        state: 'on'
+      sequence:
+        parallel:
+        - service: homeassistant.turn_off
+          entity_id:
+          - light.living_room_ceiling_light
+        - service: homeassistant.turn_on
+          entity_id:
+          - light.living_room_floor_light_1
+          - light.living_room_3_head_lamp_1
+          - light.living_room_3_head_lamp_2
+          - light.living_room_3_head_lamp_3
+          - light.living_room_tv_led
+          - light.living_room_sofa_led
+    - conditions:
+      - condition: state
+        entity_id:
+        - light.living_room_floor_light_1
+        - light.living_room_3_head_lamp_1
+        - light.living_room_3_head_lamp_2
+        - light.living_room_3_head_lamp_3
+        state: 'on'
+      sequence:
+        parallel:
+        - service: homeassistant.turn_off
+          entity_id:
+          - light.living_room_floor_light_1
+          - light.living_room_3_head_lamp_1
+          - light.living_room_3_head_lamp_2
+          - light.living_room_3_head_lamp_3
+          - light.living_room_ceiling_light
+        - service: homeassistant.turn_on
+          entity_id:
+          - light.living_room_tv_led
+          - light.living_room_sofa_led
+    - conditions:
+      - condition: state
+        entity_id:
+        - light.living_room_tv_led
+        - light.living_room_sofa_led
+        state: 'on'
+      sequence:
+        service: homeassistant.turn_off
+        entity_id:
+        - light.living_room_floor_light_1
+        - light.living_room_3_head_lamp_1
+        - light.living_room_3_head_lamp_2
+        - light.living_room_3_head_lamp_3
+        - light.living_room_ceiling_light
+        - light.living_room_tv_led
+        - light.living_room_sofa_led
+    default:
+      service: homeassistant.turn_on
+      entity_id:
+      - light.living_room_floor_light_1
+      - light.living_room_3_head_lamp_1
+      - light.living_room_3_head_lamp_2
+      - light.living_room_3_head_lamp_3
+      - light.living_room_ceiling_light
+      - light.living_room_tv_led
+      - light.living_room_sofa_led
+  id: automation.lb_lr_living_room_remote_button_single_toggle_bed_lights_ceiling_lights
+
+
+- alias: LB-LR Living Room Remote Button - Double - Toggle Lamps
+  trigger:
+  - platform: state
+    entity_id:
+    - sensor.living_room_button
+    to: double
+  action:
+  - service: homeassistant.toggle
+    entity_id:
+    - light.living_room_floor_light_1
+    - light.living_room_3_head_lamp_1
+    - light.living_room_3_head_lamp_2
+    - light.living_room_3_head_lamp_3
+  id: automation.lb_lr_living_room_remote_button_double_toggle_lamps
+
+
+- alias: LB-LR Living Room Remote Button - Triple - Set Scene
+  trigger:
+  - platform: state
+    entity_id:
+    - sensor.living_room_button
+    to: triple
+  action:
+  - service: homeassistant.toggle
+    entity_id:
+    - light.living_room_floor_light_1
+    - light.living_room_3_head_lamp_1
+    - light.living_room_3_head_lamp_2
+    - light.living_room_3_head_lamp_3
+  id: automation.lb_lr_living_room_remote_button_triple_set_scene
+
+
+- alias: LB-LR Living Room Remote Button - Long - Toggle LEDs
+  trigger:
+  - platform: state
+    entity_id:
+    - sensor.living_room_button
+    to: hold
+  action:
+  - service: homeassistant.toggle
+    entity_id:
+    - light.living_room_tv_led
+    - light.living_room_sofa_led
+  id: automation.lb_lr_living_room_remote_button_long_toggle_leds
+
+
+- alias: LB-LR Living Room Wall Switch - Single Press - Toggle Ceiling Light
+  trigger:
+  - platform: state
+    entity_id:
+    - sensor.living_room_ceiling_light_wall_button
+    to: single
+  action:
+  - service: homeassistant.toggle
+    entity_id:
+    - light.living_room_ceiling_light
+  id: automation.lb_lr_living_room_wall_switch_single_press_toggle_ceiling_light
+
+
+- alias: LB-LR Living Room Wall Switch - Double Press - Leave Room and Turn Off Everything
+  trigger:
+  - platform: state
+    entity_id:
+    - sensor.living_room_ceiling_light_wall_button
+    to: double
+  action:
+  - service: automation.trigger
+    entity_id: automation.l_lr_living_room_lights_off_if_no_person
+  id: automation.lb_lr_living_room_wall_switch_double_press_leave_room_and_turn_off_everything
+
+
+input_select:
+  living_room_scene:
+    name: Living Room Scene
+    options:
+    - All White
+    - Lamp Led White
+    - LED White
+    - Hue
+    - Night Mode
+    - Dark Night Mode
