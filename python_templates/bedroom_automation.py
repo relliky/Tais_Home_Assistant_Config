@@ -102,6 +102,10 @@ class RoomBase:
                                    "cover.master_room_curtain"] if self.room_entity == "master_room" else None
     # Temperature sensor entities
     self.outside_temperature    = ["sensor.cambridge_city_airport_temperature"]
+
+    # Scene 
+    self.room_scene             =                   self.room_entity + "_scene"
+    self.room_scene_entity      = "input_select." + self.room_entity + "_scene"
     
     #self.config = { nameof(self.room_entity              ) : self.room_entity               ,
     #                nameof(self.room_name                     ) : self.room_name                      ,
@@ -128,15 +132,16 @@ class RoomBase:
   def get_entity_declarations(self):
     self.entity_declarations = {
       "input_select":{
-        self.room_entity + "_scene" : {
+        self.room_scene : {
           "name" : self.room_name + " Scene",
           "options":[
-            "All White",
-            "Lamp Led White",
-            "LED White",
             "Hue",
             "Night Mode",
-            "Dark Night Mode"
+            "Dark Night Mode",
+            "All White",
+            "Lamp LED White",
+            "LED White",
+            "All Off"
           ]
         }
       }
@@ -226,10 +231,10 @@ class RoomBase:
                         "before": self.daytime_end
                       }
                     ],
-                    "sequence": self.turn(self.lamps + self.ceiling_lights, 'on')
+                    "sequence": self.setNewScene("All White")
                   }
                 ],
-                "default": self.turn(self.leds, 'on')
+                "default": self.setNewScene("Lamp LED White")
               }
             ]
           }
@@ -307,9 +312,9 @@ class RoomBase:
         ]
       }
     ]
-
+    
     self.automations += [{
-        "alias" : "LB-" + self.automation_room_name + "Remote Button - Single - Toggle Bed Lights/Ceiling Lights",
+        "alias" : "LB-" + self.automation_room_name + "Remote Button - Single - Applies Different Scenes (State Execution)",
         "trigger": [
           {
             "platform": "state",
@@ -320,62 +325,54 @@ class RoomBase:
         "mode":"queued",
         "action": [
           {
-            # N.B. choose will only choose the first matching condition to execute
-            #      and exit the choose function immediately after the cooresponding
-            #      sequence completed and will not continue to test other condtions.
-            #      So it is a proper IF-ELSE statement.
             "choose": [
-              # IF ceiling lights on - turn off ceiling lights and turn on bedside lights + LED
-              {
-                "conditions": [
-                  {
-                    "condition": "state",
-                    "entity_id": self.ceiling_lights,
-                    "state": "on"
-                  }
-                ],
-                "sequence": {
-                  "parallel": [
-                    self.turn(self.ceiling_lights, "off"),
-                    self.turn(self.lamps + self.leds, "on")
-                  ]
-                }
-              },
-              # ELSE IF bed lamp lights on - turn off all lights apart from LED
-              {
-                "conditions": [
-                  {
-                    "condition": "state",
-                    "entity_id": self.lamps,
-                    "state": "on"
-                  }
-                ],
-                "sequence": {
-                  "parallel": [
-                    self.turn(self.lamps+self.ceiling_lights, "off"),
-                    self.turn(self.leds, "on")
-                  ]
-                }
-              },
-              # ELSE IF bed LDE on - turn off all lights
-              {
-                "conditions": [
-                  {
-                    "condition": "state",
-                    "entity_id": self.leds,
-                    "state": "on"
-                  }
-                ],
-                "sequence": self.turn(self.lamps + self.ceiling_lights+ self.leds, "off")
-
-              }
-            ],
-            # ELSE - no lights on - turn on all lightss
-            "default": self.turn(self.lamps + self.ceiling_lights+ self.leds, "on")
+              # State Machine
+              # "All Off"
+              # -> "All White" ->  "Lamp LED White" -> "LED White"
+              # -> "Hue" -> "Night Mode" ->  "Dark Night Mode"
+              #
+              #  Default room supports these secnes 
+              self.ifOldSceneSetNewScene("All Off",         "All White"),
+              self.ifOldSceneSetNewScene("All White",       "Lamp LED White"),
+              self.ifOldSceneSetNewScene("Lamp LED White",  "LED White")
+            ] + ([
+              # Master Room supports a few more scenes
+              self.ifOldSceneSetNewScene("LED White",       "Hue"),
+              self.ifOldSceneSetNewScene("Hue",             "Night Mode"),
+              self.ifOldSceneSetNewScene("Night Mode",      "Dark Night Mode"),
+              self.ifOldSceneSetNewScene("Dark Night Mode", "All Off")
+            ] if self.room_entity == 'master_room' else [
+              # Default Room does not support extra scenes 
+              self.ifOldSceneSetNewScene("LED White",       "All Off")
+            ]),
+            "default": self.setNewScene("Lamp LED White")
           }
         ]
-      }
-    ]
+    }]
+
+    self.automations += [{
+        "alias" : "LB-" + self.automation_room_name + "Remote Button - Single - Applies Different Scenes (Execution)",
+        "trigger": [
+          {
+            "platform": "state",
+            "entity_id": self.room_scene_entity,
+          }
+        ],
+        "mode":"queued",
+        "action": [
+          {
+            "choose": [
+              self.callSceneServiceIfSelected("All White"),
+              self.callSceneServiceIfSelected("Lamp LED White"),
+              self.callSceneServiceIfSelected("LED White"),
+              self.callSceneServiceIfSelected("Hue"),
+              self.callSceneServiceIfSelected("Night Mode"),
+              self.callSceneServiceIfSelected("Dark Night Mode"),
+              self.callSceneServiceIfSelected("All Off")
+            ]
+          }
+        ]
+    }]
 
     self.automations += [
       {
@@ -475,22 +472,134 @@ class RoomBase:
     return id
 
   # Create service call for turn on/off entities
-  def turn(self, entity_list, state):
-    assert state in ['on', 'off', 'toggle'], "State has to be on, off, toggle"
+  def turn(self, entity_list, state=None, light_brightness=None, tv_brightness=None):
+    assert state in ['on', 'off', 'toggle', None], "State has to be one of 'on', 'off', 'toggle', None"
 
-    if entity_list == self.curtains:
+    if light_brightness != None:
+      action_service = {"service" : "light.turn_on",
+                        "entity_id" : entity_list,
+                        "data": {"brightness_pct": light_brightness}}
+    elif tv_brightness != None:
+      action_service = {"service" : "samsungtv_smart.select_picture_mode",
+                        "data": {"entity_id" : entity_list,
+                                 "picture_mode": "Movie"    if tv_brightness in [1, '1'] else \
+                                                 "Natural"  if tv_brightness in [2, '2'] else \
+                                                 "Standard" if tv_brightness in [3, '3'] else \
+                                                 "Dynamic"}}
+      #action_service = {"service": "input_select.select_option",
+      #                  "target": {
+      #                    "entity_id": self.room_entity + "_tv_picture_mode"
+      #                  },
+      #                  "data":{
+      #                    "option": "Movie"    if tv_brightness in [1, '1'] else \
+      #                              "Natural"  if tv_brightness in [2, '2'] else \
+      #                              "Standard" if tv_brightness in [3, '3'] else \
+      #                              "Dynamic"}} 
+    elif entity_list == self.curtains:
       action_service = {"service": "cover.open_cover"       if state == 'on'     else \
                                    "cover.close_cover"      if state == 'off'    else \
-                                   "cover.toggle"           if state == 'toggle' else None}
+                                   "cover.toggle"           if state == 'toggle' else None,
+                        "entity_id": entity_list}
     else:
       action_service = {"service": "homeassistant.turn_on"  if state == 'on'     else \
                                    "homeassistant.turn_off" if state == 'off'    else \
-                                   "homeassistant.toggle"   if state == 'toggle' else None}
-    action_service |= {"entity_id": entity_list}
+                                   "homeassistant.toggle"   if state == 'toggle' else None,
+                        "entity_id": entity_list}
+
     if entity_list != None:
       return action_service
     else:
       return {"service": "script.do_nothing"}
+
+  def callSceneService(self, scene_name):  
+      parallel_enable = True  
+      scene_service = []  
+      if   scene_name == 'All White':
+          scene_service += [self.turn(self.lamps + self.ceiling_lights+ self.leds, "on")]
+      elif scene_name == 'Lamp LED White':
+          scene_service += [self.turn(self.ceiling_lights, "off"),
+                            self.turn(self.lamps + self.leds, "on") ]
+      elif scene_name == 'LED White':
+          scene_service += [self.turn(self.ceiling_lights + self.lamps, "off"),
+                            self.turn(self.leds, "on"),
+                            self.turn(self.tvs, tv_brightness=3)]
+      elif scene_name == 'Hue': 
+          parallel_enable = False
+          scene_service += [self.turn(self.lamps + self.leds, "on", light_brightness=100),
+                            {"service" : "pyscript.set_rgb_light_list",
+                             "data": {"light_list": self.lamps + self.ceiling_lights+ self.leds}},
+                            self.turn(self.tvs, tv_brightness=3)]
+      elif scene_name == 'Night Mode': 
+          scene_service += [{ "service": "homeassistant.turn_on",
+                              "entity_id": "scene." + self.room_entity + "_night_mode" }]
+      elif scene_name == 'Dark Night Mode': 
+          scene_service += [{ "service": "homeassistant.turn_on",
+                              "entity_id": "scene." + self.room_entity + "_dark_night_mode" }]
+      elif scene_name == 'All Off':
+          scene_service += [self.turn(self.lamps + self.ceiling_lights+ self.leds, "off")]
+
+      if parallel_enable == True:
+        scene_service = [{"parallel":scene_service}] 
+      return scene_service
+        
+  def ifOldSceneSetNewScene (self, old_scene, new_scene):
+    cond_seq = {
+        "conditions": 
+          { "condition": "state",
+            "entity_id": self.room_scene_entity,
+            "state": old_scene
+          },
+        "sequence": 
+           { "service": "input_select.select_option",
+             "target": {
+               "entity_id": self.room_scene_entity
+             },
+             "data":{
+               "option": new_scene
+             }
+           }
+      }
+    return cond_seq
+
+  def setNewScene (self, new_scene):
+    seq = {
+      "service": "input_select.select_option",
+       "target": {
+         "entity_id": self.room_scene_entity
+       },
+       "data":{
+         "option": new_scene
+       }
+      }
+    return seq
+
+  def setTvBrightness (self, brightness):
+    seq = {
+      "service": "input_select.select_option",
+       "target": {
+         "entity_id": self.room_entity + "_tv"
+       },
+       "data":{
+         "option": "Movie"    if brightness in [1, '1'] else \
+                   "Natural"  if brightness in [2, '2'] else \
+                   "Standard" if brightness in [3, '3'] else \
+                   "Dynamic"
+       }
+      }
+    return seq
+
+  def callSceneServiceIfSelected(self, scene_name):
+    cond_seq = {
+        "conditions": [
+          {
+            "condition": "state",
+            "entity_id": self.room_scene_entity,
+            "state": scene_name
+          }
+        ],
+        "sequence": self.callSceneService(scene_name) 
+      }
+    return cond_seq
 
   # Create a new yaml and write to it
   def writeYaml (self):
@@ -534,9 +643,4 @@ for room in rooms:
 #print ([list(room.lamps), list(room.leds)])
 
 #  print (list(room.leds))
-
-# single button - light
-# double button - close light
-# people present - turn on celing light
-# people not present - turn off everything
 

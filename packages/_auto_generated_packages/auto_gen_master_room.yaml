@@ -41,17 +41,17 @@ automation:
           after: '10:00:00'
           before: '22:00:00'
         sequence:
-          service: homeassistant.turn_on
-          entity_id:
-          - light.master_room_lamp_1
-          - light.master_room_lamp_2
-          - light.master_room_ceiling_light
+          service: input_select.select_option
+          target:
+            entity_id: input_select.master_room_scene
+          data:
+            option: All White
       default:
-        service: homeassistant.turn_on
-        entity_id:
-        - light.master_room_drawer_led
-        - light.master_room_tv_led
-        - light.master_room_bed_led
+        service: input_select.select_option
+        target:
+          entity_id: input_select.master_room_scene
+        data:
+          option: Lamp LED White
 
 
 - alias: L-MR Master Room Lights Off If No Person
@@ -108,7 +108,7 @@ automation:
     - cover.master_room_curtain
 
 
-- alias: LB-MR Master Room Remote Button - Single - Toggle Bed Lights/Ceiling Lights
+- alias: LB-MR Master Room Remote Button - Single - Applies Different Scenes (State Execution)
   trigger:
   - platform: state
     entity_id:
@@ -119,66 +119,201 @@ automation:
   action:
   - choose:
     - conditions:
-      - condition: state
-        entity_id:
-        - light.master_room_ceiling_light
-        state: 'on'
+        condition: state
+        entity_id: input_select.master_room_scene
+        state: All Off
       sequence:
-        parallel:
-        - service: homeassistant.turn_off
-          entity_id:
-          - light.master_room_ceiling_light
-        - service: homeassistant.turn_on
-          entity_id:
-          - light.master_room_lamp_1
-          - light.master_room_lamp_2
-          - light.master_room_drawer_led
-          - light.master_room_tv_led
-          - light.master_room_bed_led
+        service: input_select.select_option
+        target:
+          entity_id: input_select.master_room_scene
+        data:
+          option: All White
     - conditions:
-      - condition: state
-        entity_id:
-        - light.master_room_lamp_1
-        - light.master_room_lamp_2
-        state: 'on'
+        condition: state
+        entity_id: input_select.master_room_scene
+        state: All White
       sequence:
-        parallel:
-        - service: homeassistant.turn_off
-          entity_id:
-          - light.master_room_lamp_1
-          - light.master_room_lamp_2
-          - light.master_room_ceiling_light
-        - service: homeassistant.turn_on
-          entity_id:
-          - light.master_room_drawer_led
-          - light.master_room_tv_led
-          - light.master_room_bed_led
+        service: input_select.select_option
+        target:
+          entity_id: input_select.master_room_scene
+        data:
+          option: Lamp LED White
     - conditions:
-      - condition: state
-        entity_id:
-        - light.master_room_drawer_led
-        - light.master_room_tv_led
-        - light.master_room_bed_led
-        state: 'on'
+        condition: state
+        entity_id: input_select.master_room_scene
+        state: Lamp LED White
       sequence:
-        service: homeassistant.turn_off
-        entity_id:
-        - light.master_room_lamp_1
-        - light.master_room_lamp_2
-        - light.master_room_ceiling_light
-        - light.master_room_drawer_led
-        - light.master_room_tv_led
-        - light.master_room_bed_led
+        service: input_select.select_option
+        target:
+          entity_id: input_select.master_room_scene
+        data:
+          option: LED White
+    - conditions:
+        condition: state
+        entity_id: input_select.master_room_scene
+        state: LED White
+      sequence:
+        service: input_select.select_option
+        target:
+          entity_id: input_select.master_room_scene
+        data:
+          option: Hue
+    - conditions:
+        condition: state
+        entity_id: input_select.master_room_scene
+        state: Hue
+      sequence:
+        service: input_select.select_option
+        target:
+          entity_id: input_select.master_room_scene
+        data:
+          option: Night Mode
+    - conditions:
+        condition: state
+        entity_id: input_select.master_room_scene
+        state: Night Mode
+      sequence:
+        service: input_select.select_option
+        target:
+          entity_id: input_select.master_room_scene
+        data:
+          option: Dark Night Mode
+    - conditions:
+        condition: state
+        entity_id: input_select.master_room_scene
+        state: Dark Night Mode
+      sequence:
+        service: input_select.select_option
+        target:
+          entity_id: input_select.master_room_scene
+        data:
+          option: All Off
     default:
-      service: homeassistant.turn_on
-      entity_id:
-      - light.master_room_lamp_1
-      - light.master_room_lamp_2
-      - light.master_room_ceiling_light
-      - light.master_room_drawer_led
-      - light.master_room_tv_led
-      - light.master_room_bed_led
-  id: automation.lb_mr_master_room_remote_button_single_toggle_bed_lights_ceiling_lights
+      service: input_select.select_option
+      target:
+        entity_id: input_select.master_room_scene
+      data:
+        option: Lamp LED White
+  id: automation.lb_mr_master_room_remote_button_single_applies_different_scenes_(state_execution)
+
+
+- alias: LB-MR Master Room Remote Button - Single - Applies Different Scenes (Execution)
+  trigger:
+  - platform: state
+    entity_id: input_select.master_room_scene
+  mode: queued
+  action:
+  - choose:
+    - conditions:
+      - condition: state
+        entity_id: input_select.master_room_scene
+        state: All White
+      sequence:
+      - parallel:
+        - service: homeassistant.turn_on
+          entity_id:
+          - light.master_room_lamp_1
+          - light.master_room_lamp_2
+          - light.master_room_ceiling_light
+          - light.master_room_drawer_led
+          - light.master_room_tv_led
+          - light.master_room_bed_led
+    - conditions:
+      - condition: state
+        entity_id: input_select.master_room_scene
+        state: Lamp LED White
+      sequence:
+      - parallel:
+        - service: homeassistant.turn_off
+          entity_id:
+          - light.master_room_ceiling_light
+        - service: homeassistant.turn_on
+          entity_id:
+          - light.master_room_lamp_1
+          - light.master_room_lamp_2
+          - light.master_room_drawer_led
+          - light.master_room_tv_led
+          - light.master_room_bed_led
+    - conditions:
+      - condition: state
+        entity_id: input_select.master_room_scene
+        state: LED White
+      sequence:
+      - parallel:
+        - service: homeassistant.turn_off
+          entity_id:
+          - light.master_room_ceiling_light
+          - light.master_room_lamp_1
+          - light.master_room_lamp_2
+        - service: homeassistant.turn_on
+          entity_id:
+          - light.master_room_drawer_led
+          - light.master_room_tv_led
+          - light.master_room_bed_led
+        - service: samsungtv_smart.select_picture_mode
+          data:
+            entity_id:
+            - media_player.master_room_tv
+            picture_mode: Standard
+    - conditions:
+      - condition: state
+        entity_id: input_select.master_room_scene
+        state: Hue
+      sequence:
+      - service: light.turn_on
+        entity_id:
+        - light.master_room_lamp_1
+        - light.master_room_lamp_2
+        - light.master_room_drawer_led
+        - light.master_room_tv_led
+        - light.master_room_bed_led
+        data:
+          brightness_pct: 100
+      - service: pyscript.set_rgb_light_list
+        data:
+          light_list:
+          - light.master_room_lamp_1
+          - light.master_room_lamp_2
+          - light.master_room_ceiling_light
+          - light.master_room_drawer_led
+          - light.master_room_tv_led
+          - light.master_room_bed_led
+      - service: samsungtv_smart.select_picture_mode
+        data:
+          entity_id:
+          - media_player.master_room_tv
+          picture_mode: Standard
+    - conditions:
+      - condition: state
+        entity_id: input_select.master_room_scene
+        state: Night Mode
+      sequence:
+      - parallel:
+        - service: homeassistant.turn_on
+          entity_id: scene.master_room_night_mode
+    - conditions:
+      - condition: state
+        entity_id: input_select.master_room_scene
+        state: Dark Night Mode
+      sequence:
+      - parallel:
+        - service: homeassistant.turn_on
+          entity_id: scene.master_room_dark_night_mode
+    - conditions:
+      - condition: state
+        entity_id: input_select.master_room_scene
+        state: All Off
+      sequence:
+      - parallel:
+        - service: homeassistant.turn_off
+          entity_id:
+          - light.master_room_lamp_1
+          - light.master_room_lamp_2
+          - light.master_room_ceiling_light
+          - light.master_room_drawer_led
+          - light.master_room_tv_led
+          - light.master_room_bed_led
+  id: automation.lb_mr_master_room_remote_button_single_applies_different_scenes_(execution)
 
 
 - alias: LB-MR Master Room Remote Button - Double - Toggle Lamps
@@ -256,9 +391,10 @@ input_select:
   master_room_scene:
     name: Master Room Scene
     options:
-    - All White
-    - Lamp Led White
-    - LED White
     - Hue
     - Night Mode
     - Dark Night Mode
+    - All White
+    - Lamp LED White
+    - LED White
+    - All Off
