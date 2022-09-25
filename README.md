@@ -86,6 +86,8 @@ This is my device list which are connected to HA via 6 protocols
     - Xiaomi Gateways v3
   - Xiaomi Gateway integration
     - Xiaomi Gateways v1
+  - MQTT integration
+    - Sonoff Zigbee USB dongle
 
 - 5Ghz Wifi Devices (10+ devices)
   - Andriod TV integration 
@@ -100,6 +102,7 @@ This is my device list which are connected to HA via 6 protocols
     - Windows laptops
 
 - Zigbee Devices (80+ devices)
+  - MQTT integration
   - Philps Hue integration
     - IKEA white spectrum GU10 
     - IKEA colour GU10 
