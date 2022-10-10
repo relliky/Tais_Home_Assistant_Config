@@ -25,7 +25,7 @@ switch:
 timer:
   gaming_pc_shutdown_timer:
     name: "Gaming PC Shutdown Timer"
-    duration: "08:00:00"
+    duration: "04:00:00"
 
 # Detection if Fire TV is streaming Moonlight/Parsec
 template:
@@ -41,12 +41,11 @@ template:
           {{        (states.media_player.living_room_fire_tv.state == 'paused') 
             and (   (states.media_player.living_room_fire_tv.attributes.source == 'tv.parsec.client') 
                  or (states.media_player.living_room_fire_tv.attributes.source == 'com.limelight'   )   )}}
-
+      
+      # Kitchen Fire TV is constantly offline. Use Kitchen TV to replace instead
       - name: "Kitchen Fire TV Streaming PC Contents"
         state: >
-          {{        (states.media_player.kitchen_fire_tv.state == 'paused') 
-            and (   (states.media_player.kitchen_fire_tv.attributes.source == 'tv.parsec.client') 
-                 or (states.media_player.kitchen_fire_tv.attributes.source == 'com.limelight'   )   )}}
+          {{        (states.media_player.kitchen_tv.state == 'on') }}
 
       - name: "Portable Fire TV Streaming PC Contents"
         state: >
@@ -182,8 +181,17 @@ script:
               Amazon Fire TV stick
             {% endif %}
 
+
+  gaming_pc_timer_reset_and_restart:
+    alias: Gaming PC Timer Reset And Restart
+    sequence:
+      - service: timer.cancel
+        entity_id: timer.gaming_pc_shutdown_timer
+      - service: timer.start
+        entity_id: timer.gaming_pc_shutdown_timer
+
 automation:
-  - alias: Start the Gaming PC Timer When it is turned on
+  - alias: PC- Start the Gaming PC Timer When it is turned on
     id: automation.start_the_gaming_pc_timer_when_it_is_turned_on
     trigger:
       - platform: state
@@ -191,13 +199,9 @@ automation:
         from: "off"
         to: "on"
     action:
-      # reset timer and restart
-      - service: timer.cancel
-        entity_id: timer.gaming_pc_shutdown_timer
-      - service: timer.start
-        entity_id: timer.gaming_pc_shutdown_timer
+      - service: script.gaming_pc_timer_reset_and_restart
 
-  - alias: Turn Off Gaming PC By The Timeout
+  - alias: PC- Turn Off Gaming PC By The Timeout
     id: automation.turn_off_gaming_pc_by_the_timeout
     trigger:
       - platform: event
@@ -205,10 +209,21 @@ automation:
         event_data:
           entity_id: timer.gaming_pc_shutdown_timer
     action:
+    - choose:
+      # IF PC is streaming, reset the timer
+      - conditions:
+          condition: state
+          entity_id: binary_sensor.fire_tv_streaming_pc_contents
+          state: 'on'
+        sequence:
+        # reset timer and restart
+        - service: script.gaming_pc_timer_reset_and_restart
+      # ELSE turn off PC
+      default:
       - service: switch.turn_off
         entity_id: switch.gaming_pc
 
-  - alias: Kill Moonlight Parsec Active Session When No Fire TV Streaming Them For Some Time
+  - alias: PC- Kill Moonlight Parsec Active Session When No Fire TV Streaming Them For Some Time
     id: automation.kill_moonlight_parsec_active_session_when_no_fire_TV_streaming_them_for_some_time
     trigger:
       - platform: state
@@ -219,7 +234,15 @@ automation:
     action:
       - service: script.kill_moonlight_parsec_active_session
 
-  - alias: Restart Old Laptop Nightly
+  - alias: PC- Extend PC Timer When Fire TV Streaming State Changes
+    id: automation.pc_extend_pc_timer_when_fire_tv_streaming_state_changes
+    trigger:
+      - platform: state
+        entity_id: binary_sensor.fire_tv_streaming_pc_contents
+    action:
+      - service: script.gaming_pc_timer_reset_and_restart
+
+  - alias: PC- Restart Old Laptop Nightly
     id: automation.restart_old_laptop_nightly
     trigger:
       - platform: time

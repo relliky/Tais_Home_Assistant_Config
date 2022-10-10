@@ -47,9 +47,13 @@ class RoomBase:
     
     # Motion sensor entities
     self.bed_motion_sensors      = ["binary_sensor." + self.room_entity + "_bed_motion_sensor_motion"]
-    self.all_motion_sensors      = ["group."         + self.room_entity + "_motion"]
+    self.all_motion_sensor       =  "group."         + self.room_entity + "_motion"
     self.entrance_motion_sensors = ["binary_sensor." + self.room_entity + "_entrance_motion_sensor_motion"] if self.room_type == 'bedroom' else \
-                                   self.all_motion_sensors
+                                   [self.all_motion_sensor]
+    self.room_occupancy          = self.room_entity + "_occupancy"                           
+    self.occupancy_state_duration= 4 # Minutes
+    self.occupancy_on_x_min_ratio_sensor  = []
+    self.occupancy_on_2x_min_ratio_sensor = []
 
     # Button (sensor) entities
     self.xiaomi_buttons          = []
@@ -58,7 +62,7 @@ class RoomBase:
       if self.num_of_xiaomi_button != 1:
         self.xiaomi_buttons[i]  += "_" + str(i+1)
     self.wall_buttons            = ["sensor." + self.room_entity + "_entrance_wall_button"] if self.room_entity == 'master_room' else \
-                                   ["sensor." + self.room_entity + "_ceiling_light_wall_button"]
+                                   ["sensor." + self.room_entity + "_wall_button"]
     self.buttons                 = self.wall_buttons + self.xiaomi_buttons
 
     # Light/Switch entities
@@ -79,7 +83,8 @@ class RoomBase:
     self.lamps                   = ["light.living_room_floor_light_1", 
                                     "light.living_room_3_head_lamp_1",
                                     "light.living_room_3_head_lamp_2",
-                                    "light.living_room_3_head_lamp_3"] if self.room_entity == 'living_room' else \
+                                    "light.living_room_3_head_lamp_3",
+                                    "switch.living_room_floor_light_3"] if self.room_entity == 'living_room' else \
                                    self.lamps    
 
     self.lights                  = self.leds + self.lamps + self.ceiling_lights
@@ -123,30 +128,90 @@ class RoomBase:
     #                nameof(self.room_entity              ) : self.room_entity       ,
     #                nameof(self.room_entity              ) : self.room_entity       }
 
+    # Render entity declarations
+    self.get_entity_declarations()
+
     # Render Automation
     self.automations  = []
     self.automations += self.get_lighting_automations()
-    self.entity_declarations = {}    
-    self.get_entity_declarations()
+    self.get_automation_group_declarations()
+  
+  def get_occupancy_ratio_sensor_config(self, x_minutes_multiple_str):
+    x_minutes_multiple = 1 if x_minutes_multiple_str == '1x' else \
+                         2 if x_minutes_multiple_str == '2x' else \
+                         0;  
+                         
+    x_minutes_total = x_minutes_multiple * self.occupancy_state_duration
+    sensor_name = self.room_name + " Motion On Ratio For Last " + str(x_minutes_total) +" Minutes"
+    
+    
+    if   x_minutes_multiple == 1:
+      self.occupancy_on_x_min_ratio_sensor = "sensor." + self.getIDFromName(sensor_name)
+    elif x_minutes_multiple == 2:  
+      self.occupancy_on_2x_min_ratio_sensor = "sensor." + self.getIDFromName(sensor_name)
+
+    ratio_sensor_config = {
+        "platform": "history_stats",
+        "name": sensor_name,
+        "entity_id": self.all_motion_sensor,
+        "state": "on",
+        "type": "ratio",
+        "duration": {
+          "minutes": str(x_minutes_total)
+        },
+        "end": "{{ (now() | as_timestamp) | as_datetime | as_local }}"
+      }
+    return ratio_sensor_config
+
 
   def get_entity_declarations(self):
     self.entity_declarations = {
       "input_select":{
         self.room_scene : {
           "name" : self.room_name + " Scene",
-          "options":[
-            "Hue",
-            "Night Mode",
-            "Dark Night Mode",
-            "All White",
+          "options":([
+            "Hue"
+          ] if self.room_entity == 'master_room' else [])  
+        + [ "All White",
             "Lamp LED White",
             "LED White",
+            "Night Mode",
+            "Dark Night Mode",
             "All Off"
           ]
+        },
+        self.room_occupancy : {
+          "name" : self.room_name + " Occupancy",
+          "options":[
+            "Outside",
+            "Just Entered",
+            "Stayed Inside"
+          ]
         }
+      },
+
+      "sensor":[
+        self.get_occupancy_ratio_sensor_config('1x'),
+        self.get_occupancy_ratio_sensor_config('2x')
+      ]
+    }
+    
+    
+  def get_automation_group_declarations(self):    
+    # Generate automations group 
+    self.automation_entity_list = []
+    for automation in self.automations:
+      self.automation_entity_list += [automation['id']]
+
+    self.entity_declarations |= {
+      "group": {
+        self.room_entity + "_auto_gen_automations" : {
+          "name": self.room_name + " Auto-gen Automations",
+          "entities": self.automation_entity_list 
+        }  
       }
     }
-      
+
 
   # Lighting Automations
   def get_lighting_automations(self):
@@ -234,7 +299,8 @@ class RoomBase:
                     "sequence": self.setNewScene("All White")
                   }
                 ],
-                "default": self.setNewScene("Lamp LED White")
+                "default": self.setNewScene("Lamp LED White") if self.room_entity != 'living_room' else \
+                           self.setNewScene("All White")
               }
             ]
           }
@@ -251,7 +317,7 @@ class RoomBase:
             "from": "on",
             "to": "off",
             "for": self.daytime_lights_off_timeout,
-            "entity_id": self.all_motion_sensors
+            "entity_id": self.all_motion_sensor
           },
           {
             "minutes": "/5",
@@ -273,7 +339,7 @@ class RoomBase:
                   },
                   {
                     "condition": "state",
-                    "entity_id": self.all_motion_sensors,
+                    "entity_id": self.all_motion_sensor,
                     "for": self.daytime_lights_off_timeout,
                     "state": "off"
                   }
@@ -290,7 +356,7 @@ class RoomBase:
                   },
                   {
                     "condition": "state",
-                    "entity_id": self.all_motion_sensors,
+                    "entity_id": self.all_motion_sensor,
                     "for": self.nighttime_lights_off_timeout,
                     "state": "off"
                   }
@@ -306,7 +372,8 @@ class RoomBase:
             "entity_id": self.automation_lights_on['id']
           },
           # Turn off lights/curtains/tv
-          self.turn(self.lights, 'off'),
+          self.setNewScene("All Off"),
+          self.turn(self.leds + self.ceiling_lights + self.lamps, 'off'),
           self.turn(self.tvs, 'off'),
           self.turn(self.curtains, 'off')
         ]
@@ -457,18 +524,60 @@ class RoomBase:
       }
     ]
 
+    self.automations += [
+      {
+        "alias":"Oc-" + self.automation_room_name + "Occupancy Update",
+        "trigger": [
+          {
+            "entity_id": self.all_motion_sensor,
+            "platform": "state",
+            "to": "on"
+          },
+          {
+            "entity_id": self.all_motion_sensor,
+            "platform": "state",
+            "to": "off",
+            "for": "05:00:00"
+          },
+          {
+            "minutes": "/5",
+            "platform": "time_pattern"
+          }
+        ],
+        "action": [
+          {
+           "service" : "pyscript.room_occupancy_state_machine",
+           "data": {"occupancy_entity_str":        self.room_occupancy,
+                    "motion_str":                  self.all_motion_sensor,                                 
+                    "motion_ratio_for_x_min_str":  self.occupancy_on_x_min_ratio_sensor,
+                    "motion_ratio_for_2x_min_str": self.occupancy_on_2x_min_ratio_sensor
+                   },
+          }
+        ]
+      }
+    ]
+
+
     for self.automation in self.automations:
       self.automation['id'] = self.getIDFromAlias(self.automation['alias'])
 
     return self.automations;
 
   # Generate automation ID/entity_name based on alias name
-  def getIDFromAlias (self, alias):
-    id = "automation." + alias.lower()
+  def getIDFromName (self, name):
+    id = name.lower()
     id = re.sub("-", "_", id)
     id = re.sub("/", "_", id)
     id = re.sub("\s", "_", id)
+    id = re.sub("\(", "_", id)
+    id = re.sub("\)", "_", id)
+    id = re.sub("_+$", "", id)
     id = re.sub("(_+)", "_", id)
+    return id
+
+  def getIDFromAlias (self, alias):
+    id = self.getIDFromName(alias)
+    id = "automation." + id
     return id
 
   # Create service call for turn on/off entities
@@ -515,14 +624,16 @@ class RoomBase:
       parallel_enable = True  
       scene_service = []  
       if   scene_name == 'All White':
-          scene_service += [self.turn(self.lamps + self.ceiling_lights+ self.leds, "on")]
+          scene_service += [self.turn(self.lamps + self.ceiling_lights+ self.leds, "on"),
+                            self.turn(self.tvs, tv_brightness=3)]
       elif scene_name == 'Lamp LED White':
           scene_service += [self.turn(self.ceiling_lights, "off"),
-                            self.turn(self.lamps + self.leds, "on") ]
+                            self.turn(self.lamps + self.leds, "on"),
+                            self.turn(self.tvs, tv_brightness=3)]
       elif scene_name == 'LED White':
           scene_service += [self.turn(self.ceiling_lights + self.lamps, "off"),
                             self.turn(self.leds, "on"),
-                            self.turn(self.tvs, tv_brightness=3)]
+                            self.turn(self.tvs, tv_brightness=2)]
       elif scene_name == 'Hue': 
           parallel_enable = False
           scene_service += [self.turn(self.lamps + self.leds, "on", light_brightness=100),
@@ -541,25 +652,6 @@ class RoomBase:
       if parallel_enable == True:
         scene_service = [{"parallel":scene_service}] 
       return scene_service
-        
-  def ifOldSceneSetNewScene (self, old_scene, new_scene):
-    cond_seq = {
-        "conditions": 
-          { "condition": "state",
-            "entity_id": self.room_scene_entity,
-            "state": old_scene
-          },
-        "sequence": 
-           { "service": "input_select.select_option",
-             "target": {
-               "entity_id": self.room_scene_entity
-             },
-             "data":{
-               "option": new_scene
-             }
-           }
-      }
-    return cond_seq
 
   def setNewScene (self, new_scene):
     seq = {
@@ -572,6 +664,17 @@ class RoomBase:
        }
       }
     return seq
+        
+  def ifOldSceneSetNewScene (self, old_scene, new_scene):
+    cond_seq = {
+        "conditions": 
+          { "condition": "state",
+            "entity_id": self.room_scene_entity,
+            "state": old_scene
+          },
+        "sequence": self.setNewScene(new_scene)
+      }
+    return cond_seq
 
   def setTvBrightness (self, brightness):
     seq = {
@@ -610,12 +713,12 @@ class RoomBase:
 
     # Open a new file and write automation
     f = open(self.auto_gen_yaml_path, "w")
+    f.write(yaml.dump(self.entity_declarations, sort_keys=False, width=float("inf")))
     f.write("automation:\n")
     for automation in room.automations:
       f.write(yaml.dump([automation], sort_keys=False, width=float("inf")))
       f.write("\n\n")
     #f.write(yaml.dump([room.automations[3]], sort_keys=False, width=float("inf")))
-    f.write(yaml.dump(self.entity_declarations, sort_keys=False, width=float("inf")))
     f.close()
 
 
@@ -636,8 +739,8 @@ for room in rooms:
   #print (yaml.dump(room.automations, sort_keys=False))
   #print ("\n\n")
 
-  for automation in room.automations:
-    print (yaml.dump(automation['id'], sort_keys=False))
+  #for automation in room.automations:
+  #  print (yaml.dump(automation['id'], sort_keys=False))
 
 
 #print ([list(room.lamps), list(room.leds)])

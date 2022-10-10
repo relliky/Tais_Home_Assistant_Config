@@ -1,3 +1,51 @@
+input_select:
+  master_room_scene:
+    name: Master Room Scene
+    options:
+    - Hue
+    - All White
+    - Lamp LED White
+    - LED White
+    - Night Mode
+    - Dark Night Mode
+    - All Off
+  master_room_occupancy:
+    name: Master Room Occupancy
+    options:
+    - Outside
+    - Just Entered
+    - Stayed Inside
+sensor:
+- platform: history_stats
+  name: Master Room Motion On Ratio For Last 4 Minutes
+  entity_id: group.master_room_motion
+  state: 'on'
+  type: ratio
+  duration:
+    minutes: '4'
+  end: '{{ (now() | as_timestamp) | as_datetime | as_local }}'
+- platform: history_stats
+  name: Master Room Motion On Ratio For Last 8 Minutes
+  entity_id: group.master_room_motion
+  state: 'on'
+  type: ratio
+  duration:
+    minutes: '8'
+  end: '{{ (now() | as_timestamp) | as_datetime | as_local }}'
+group:
+  master_room_auto_gen_automations:
+    name: Master Room Auto-gen Automations
+    entities:
+    - automation.l_mr_master_room_ceiling_lights_on_or_open_curtains_if_entering_to_room
+    - automation.l_mr_master_room_lights_off_if_no_person
+    - automation.lb_mr_master_room_remote_button_single_applies_different_scenes_state_execution
+    - automation.lb_mr_master_room_remote_button_single_applies_different_scenes_execution
+    - automation.lb_mr_master_room_remote_button_double_toggle_lamps
+    - automation.lb_mr_master_room_remote_button_triple_set_scene
+    - automation.lb_mr_master_room_remote_button_long_toggle_leds
+    - automation.lb_mr_master_room_wall_switch_single_press_toggle_ceiling_light
+    - automation.lb_mr_master_room_wall_switch_double_press_leave_room_and_turn_off_everything
+    - automation.oc_mr_master_room_occupancy_update
 automation:
 - alias: L-MR Master Room Ceiling Lights On Or Open Curtains If Entering to Room
   id: automation.l_mr_master_room_ceiling_lights_on_or_open_curtains_if_entering_to_room
@@ -61,8 +109,7 @@ automation:
     from: 'on'
     to: 'off'
     for: 00:15:00
-    entity_id:
-    - group.master_room_motion
+    entity_id: group.master_room_motion
   - minutes: /5
     platform: time_pattern
   condition:
@@ -74,8 +121,7 @@ automation:
         before: '22:00:00'
         condition: time
       - condition: state
-        entity_id:
-        - group.master_room_motion
+        entity_id: group.master_room_motion
         for: 00:15:00
         state: 'off'
     - condition: and
@@ -84,21 +130,25 @@ automation:
         before: '10:00:00'
         condition: time
       - condition: state
-        entity_id:
-        - group.master_room_motion
+        entity_id: group.master_room_motion
         for: 02:00:00
         state: 'off'
   action:
   - service: homeassistant.turn_on
     entity_id: automation.l_mr_master_room_ceiling_lights_on_or_open_curtains_if_entering_to_room
+  - service: input_select.select_option
+    target:
+      entity_id: input_select.master_room_scene
+    data:
+      option: All Off
   - service: homeassistant.turn_off
     entity_id:
     - light.master_room_drawer_led
     - light.master_room_tv_led
     - light.master_room_bed_led
+    - light.master_room_ceiling_light
     - light.master_room_lamp_1
     - light.master_room_lamp_2
-    - light.master_room_ceiling_light
   - service: homeassistant.turn_off
     entity_id:
     - media_player.master_room_tv
@@ -194,7 +244,7 @@ automation:
         entity_id: input_select.master_room_scene
       data:
         option: Lamp LED White
-  id: automation.lb_mr_master_room_remote_button_single_applies_different_scenes_(state_execution)
+  id: automation.lb_mr_master_room_remote_button_single_applies_different_scenes_state_execution
 
 
 - alias: LB-MR Master Room Remote Button - Single - Applies Different Scenes (Execution)
@@ -218,6 +268,11 @@ automation:
           - light.master_room_drawer_led
           - light.master_room_tv_led
           - light.master_room_bed_led
+        - service: samsungtv_smart.select_picture_mode
+          data:
+            entity_id:
+            - media_player.master_room_tv
+            picture_mode: Standard
     - conditions:
       - condition: state
         entity_id: input_select.master_room_scene
@@ -234,6 +289,11 @@ automation:
           - light.master_room_drawer_led
           - light.master_room_tv_led
           - light.master_room_bed_led
+        - service: samsungtv_smart.select_picture_mode
+          data:
+            entity_id:
+            - media_player.master_room_tv
+            picture_mode: Standard
     - conditions:
       - condition: state
         entity_id: input_select.master_room_scene
@@ -254,7 +314,7 @@ automation:
           data:
             entity_id:
             - media_player.master_room_tv
-            picture_mode: Standard
+            picture_mode: Natural
     - conditions:
       - condition: state
         entity_id: input_select.master_room_scene
@@ -313,7 +373,7 @@ automation:
           - light.master_room_drawer_led
           - light.master_room_tv_led
           - light.master_room_bed_led
-  id: automation.lb_mr_master_room_remote_button_single_applies_different_scenes_(execution)
+  id: automation.lb_mr_master_room_remote_button_single_applies_different_scenes_execution
 
 
 - alias: LB-MR Master Room Remote Button - Double - Toggle Lamps
@@ -387,14 +447,24 @@ automation:
   id: automation.lb_mr_master_room_wall_switch_double_press_leave_room_and_turn_off_everything
 
 
-input_select:
-  master_room_scene:
-    name: Master Room Scene
-    options:
-    - Hue
-    - Night Mode
-    - Dark Night Mode
-    - All White
-    - Lamp LED White
-    - LED White
-    - All Off
+- alias: Oc-MR Master Room Occupancy Update
+  trigger:
+  - entity_id: group.master_room_motion
+    platform: state
+    to: 'on'
+  - entity_id: group.master_room_motion
+    platform: state
+    to: 'off'
+    for: 05:00:00
+  - minutes: /5
+    platform: time_pattern
+  action:
+  - service: pyscript.room_occupancy_state_machine
+    data:
+      occupancy_entity_str: master_room_occupancy
+      motion_str: group.master_room_motion
+      motion_ratio_for_x_min_str: sensor.master_room_motion_on_ratio_for_last_4_minutes
+      motion_ratio_for_2x_min_str: sensor.master_room_motion_on_ratio_for_last_8_minutes
+  id: automation.oc_mr_master_room_occupancy_update
+
+

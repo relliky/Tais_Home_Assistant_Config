@@ -340,8 +340,8 @@ automation:
     description: "automation.kitchen_heating_on_if_people_present"
     trigger:
       - entity_id:
-          - binary_sensor.kitchen_dining_motion_sensor_motion
-          - binary_sensor.kitchen_worktop_motion_sensor_motion
+          - group.kitchen_motion
+          - group.living_room_motion
         platform: state
         to: "on"
     # Queued mode guarentees no race
@@ -368,10 +368,9 @@ automation:
               - condition: or
                 conditions:
                   - condition: state
-                    entity_id: binary_sensor.kitchen_dining_motion_sensor_motion
-                    state: "on"
-                  - condition: state
-                    entity_id: binary_sensor.kitchen_worktop_motion_sensor_motion
+                    entity_id: 
+                    - group.kitchen_motion
+                    - group.living_room_motion
                     state: "on"
               # Longer presence will turn on heating
               - service: script.kitchen_set_heating_temp_with_state_maintaince
@@ -388,17 +387,19 @@ automation:
     description: "automation.kitchen_heating_off_when_no_person"
     trigger:
       - entity_id: 
-        - binary_sensor.kitchen_dining_motion_sensor_motion
-        - binary_sensor.kitchen_worktop_motion_sensor_motion
+          - group.kitchen_motion
+          - group.living_room_motion
         platform: state
         from: "on"
         to: "off"
         for: 00:05:00
-      - minutes: /5
+      - minutes: /59
         platform: time_pattern
     condition:
       - condition: state
-        entity_id: binary_sensor.kitchen_dining_motion_sensor_motion
+        entity_id: 
+          - group.kitchen_motion
+          - group.living_room_motion
         for: 00:05:00
         state: "off"
     action:
@@ -683,26 +684,27 @@ automation:
   - alias: B-KC Kitchen Light - Left Press - Toggle Ceiling Light
     trigger:
       - platform: state
-        entity_id: sensor.kitchen_light_wall_button
+        entity_id: sensor.kitchen_wall_button
         to: button_1_single
     action:
       service: light.toggle
       entity_id: light.kitchen_ceiling_light
 
   - alias: B-KC Kitchen Light - Right/Double Press - Turn off all kitchen lights and appliance
+    id: sautomation.b_kc_kitchen_light_right_double_press_turn_off_all_kitchen_lights_and_appliance
     trigger:
       #- platform: state
-      #  entity_id: sensor.kitchen_light_wall_button
+      #  entity_id: sensor.kitchen_wall_button
       #  to: button_3_single
       - platform: state
-        entity_id: sensor.kitchen_light_wall_button
-        to: button_1_double
-      - platform: state
-        entity_id: sensor.kitchen_light_wall_button
-        to: button_2_double
-      - platform: state
-        entity_id: sensor.kitchen_light_wall_button
-        to: button_3_double
+        entity_id: sensor.kitchen_wall_button
+        to: 
+          - double_left
+          - double_center
+          - double_right
+          - button_1_double
+          - button_2_double
+          - button_3_double
     action:
       service: automation.trigger
       entity_id: automation.kitchen_all_lights_and_appliances_off_if_no_person

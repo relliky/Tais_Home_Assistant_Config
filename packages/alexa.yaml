@@ -1,3 +1,4 @@
+
 #-------------------
 # Last Alexa Sensor
 #-------------------
@@ -17,6 +18,17 @@ template:
           {{ expand('group.all_echos') | selectattr('attributes.last_called','eq',True) | map(attribute='entity_id') | first | replace('media_player.','') | replace('_echo','') }}
         availability: >
           {{ expand('group.all_echos') | selectattr('attributes.last_called','eq',True) | first is defined }}
+
+#----------------
+# Alexa entities
+#----------------
+group alexa:
+  living_room_floor_light:
+    name: Living Room Floor Light
+    entities:
+      - light.living_room_floor_light_1
+      - light.living_room_floor_light_2
+      - switch.living_room_floor_light_3
 
 #----------------
 # Emulated Hue
@@ -57,9 +69,6 @@ emulated_hue:
     switch.master_room_dressing_table_light:
       name: "Master Room Dressing Table Light"
       hidden: false
-    light.master_room_entrance_led_light:
-      name: "Master Room Entrance Light"
-      hidden: false
     ###################################
     # Master Toilet  - 2 devices
     ###################################
@@ -81,8 +90,11 @@ emulated_hue:
     light.living_room_led:
       name: "Living Room LED"
       hidden: false
-    light.living_room_floor_light:
+    group.living_room_floor_light:
       name: "Living Room Floor Light"
+      hidden: false
+    light.living_room_ceiling_light:
+      name: "Living Room Ceiling Light"
       hidden: false
     # Garden
     switch.garden_wall_light:
@@ -91,21 +103,15 @@ emulated_hue:
     ###################################
     # Kitchen - 5 devices
     ###################################
-    #light.kitchen_ceiling_light:
-    #  name: "Kitchen Ceiling Light"
-    #  hidden: false
-    #light.kitchen_dining_light:
-    #  name: "Kitchen Dining Light"
-    #  hidden: false
-    #switch.kitchen_floor_led:
-    #  name: "Kitchen Floor LED"
-    #  hidden: false
-    #switch.kitchen_worktop_led_left:
-    #  name: "Kitchen Worktop LED Left"
-    #  hidden: false
-    #switch.kitchen_worktop_led_right:
-    #  name: "Kitchen Worktop LED Right"
-    #  hidden: false
+    light.kitchen_ceiling_light:
+      name: "Kitchen Ceiling Light"
+      hidden: false
+    light.kitchen_dining_light:
+      name: "Kitchen Dining Light"
+      hidden: false
+    switch.kitchen_floor_led:
+      name: "Kitchen Floor LED"
+      hidden: false
     ###################################
     # Ground Toilet - 1 devices
     ###################################
@@ -133,20 +139,6 @@ emulated_hue:
     light.en_suite_room_lamp_1:
       name: "En-suite Room Right Lamp"
       hidden: false
-      
-    # Office
-    #light.kes_desk_lamps:
-    #  name: "Kes Desk Lamp"
-    #  hidden: false
-    #switch.kes_desk_screen_led:
-    #  name: "Kes Desk Screen LED"
-    #  hidden: false
-    #light.tais_desk_lamps:
-    #  name: "Tais Desk Lamp"
-    #  hidden: false
-    #switch.tais_desk_screen_led:
-    #  name: "Tais Desk Screen LED"
-    #  hidden: false
 
 # Switches for Emulated Hue
 switch emulated_hue:
@@ -194,10 +186,10 @@ light:
           service: script.do_nothing
 
   # Sometimes HA script Light Needs to be re-instantiated
-  - platform : group
+  - platform: group
     name: Emulated Hue HA Script Index From Alexa
     entities:
-    - light.emulated_hue_ha_script
+      - light.emulated_hue_ha_script
 
 script:
   alexa_set_tv_brightness_to_dynamic:
@@ -254,10 +246,12 @@ automation:
     trigger:
       - platform: state
         entity_id: light.emulated_hue_ha_script
+        from: "off"
         to: "on"
       - platform: state
         entity_id: light.emulated_hue_ha_script
         attribute: brightness
+    mode: single    
     action:
       # Delay for a bit for the brightness value to be up-to-date
       - delay: "00:00:01"
@@ -334,9 +328,9 @@ automation:
 
       # Restore the default value and delay for a bit
       - delay: "00:00:02"
-      - service: light.turn_on
-        entity_id: light.emulated_hue_ha_script
-        data:
-          brightness_pct: 1
+      #- service: light.turn_on
+      #  entity_id: light.emulated_hue_ha_script
+      #  data:
+      #    brightness_pct: 1
       - service: light.turn_off
         entity_id: light.emulated_hue_ha_script
