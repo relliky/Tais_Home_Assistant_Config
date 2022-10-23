@@ -89,74 +89,74 @@ automation:
   ###############################################
   # Heating Automation based on motion sensors
   ###############################################
-  - alias: H-GT Guest Toilet Heating Set to 22 If People Present
-    id: "1600014384333"
-    description: "automation.guest_toilet_heating_on_if_people_present"
-    trigger:
-      - entity_id: binary_sensor.guest_toilet_motion_sensor_motion
-        platform: state
-        from: "off"
-        to: "on"
-    # Queued mode guarentees race condition are in series
-    mode: queued
-    action:
-      # Resolve race on multiple triggers - only execute instances that
-      # turned on heating and turned off the automation.
-      - condition: state
-        entity_id: automation.guest_toilet_heating_on_if_people_present
-        state: "on"
-      # Turn on heating on repeated short presence or longer presence
-      - choose:
-          # IF - first time entering, set the flag
-          #      Longer presence will turn on heating
-          - conditions:
-              # Wait for 1.5 min if it is the first time of presence
-              - condition: state
-                entity_id: input_boolean.guest_toilet_short_presence
-                state: "off"
-            sequence:
-              # set the short presence flag
-              - service: input_boolean.turn_on
-                entity_id: input_boolean.guest_toilet_short_presence
-              # Delay 1.5 min and test motion sensor
-              - delay: 00:01:45
-              - condition: state
-                entity_id: binary_sensor.guest_toilet_motion_sensor_motion
-                state: "on"
-              # Longer presence will turn on heating
-              - service: script.guest_toilet_set_heating_temp_with_state_maintaince
-        # ELSE - Repeated short presence will turn on heating
-        default:
-          - service: script.guest_toilet_set_heating_temp_with_state_maintaince
-
-  - alias: H-GT Guest Toilet Heating Off If No Person For 10 Min
-    id: "1600015744334"
-    description: ""
-    trigger:
-      - entity_id: binary_sensor.guest_toilet_motion_sensor_motion
-        platform: state
-        from: "on"
-        to: "off"
-        for: 00:10:00
-      - minutes: /5
-        platform: time_pattern
-    condition:
-      - condition: state
-        entity_id: binary_sensor.guest_toilet_motion_sensor_motion
-        for: 00:10:00
-        state: "off"
-    action:
-      # turn off heating
-      - service: climate.set_hvac_mode
-        entity_id: climate.guest_toilet
-        data:
-          hvac_mode: "off"
-      - entity_id: automation.guest_toilet_heating_on_if_people_present
-        service: automation.turn_on
-      # clear the short presence flag
-      - service: input_boolean.turn_off
-        entity_id: input_boolean.guest_toilet_short_presence
-
+#  - alias: H-GT Guest Toilet Heating Set to 22 If People Present
+#    id: "1600014384333"
+#    description: "automation.guest_toilet_heating_on_if_people_present"
+#    trigger:
+#      - entity_id: binary_sensor.guest_toilet_motion_sensor_motion
+#        platform: state
+#        from: "off"
+#        to: "on"
+#    # Queued mode guarentees race condition are in series
+#    mode: queued
+#    action:
+#      # Resolve race on multiple triggers - only execute instances that
+#      # turned on heating and turned off the automation.
+#      - condition: state
+#        entity_id: automation.guest_toilet_heating_on_if_people_present
+#        state: "on"
+#      # Turn on heating on repeated short presence or longer presence
+#      - choose:
+#          # IF - first time entering, set the flag
+#          #      Longer presence will turn on heating
+#          - conditions:
+#              # Wait for 1.5 min if it is the first time of presence
+#              - condition: state
+#                entity_id: input_boolean.guest_toilet_short_presence
+#                state: "off"
+#            sequence:
+#              # set the short presence flag
+#              - service: input_boolean.turn_on
+#                entity_id: input_boolean.guest_toilet_short_presence
+#              # Delay 1.5 min and test motion sensor
+#              - delay: 00:01:45
+#              - condition: state
+#                entity_id: binary_sensor.guest_toilet_motion_sensor_motion
+#                state: "on"
+#              # Longer presence will turn on heating
+#              - service: script.guest_toilet_set_heating_temp_with_state_maintaince
+#        # ELSE - Repeated short presence will turn on heating
+#        default:
+#          - service: script.guest_toilet_set_heating_temp_with_state_maintaince
+#
+#  - alias: H-GT Guest Toilet Heating Off If No Person For 10 Min
+#    id: "1600015744334"
+#    description: ""
+#    trigger:
+#      - entity_id: binary_sensor.guest_toilet_motion_sensor_motion
+#        platform: state
+#        from: "on"
+#        to: "off"
+#        for: 00:10:00
+#      - minutes: /5
+#        platform: time_pattern
+#    condition:
+#      - condition: state
+#        entity_id: binary_sensor.guest_toilet_motion_sensor_motion
+#        for: 00:10:00
+#        state: "off"
+#    action:
+#      # turn off heating
+#      - service: climate.set_hvac_mode
+#        entity_id: climate.guest_toilet
+#        data:
+#          hvac_mode: "off"
+#      - entity_id: automation.guest_toilet_heating_on_if_people_present
+#        service: automation.turn_on
+#      # clear the short presence flag
+#      - service: input_boolean.turn_off
+#        entity_id: input_boolean.guest_toilet_short_presence
+#
   ###############################################
   # Lighting Automation based on motion sensors
   ###############################################

@@ -1,25 +1,45 @@
-[
-  {
-    "alias": "Oc-MT Master Toilet Occupancy Update",
-    "id": "automation.oc_mt_master_toilet_occupancy_update",
-    "trigger": [
-      {
-        "entity_id": "binary_sensor.master_toilet_basin_motion_sensor_motion",
-        "platform": "state",
-        "to": "on"
-      },
-      {
-        "entity_id": "binary_sensor.master_toilet_basin_motion_sensor_motion",
-        "platform": "state",
-        "to": "off",
-        "for": "05:00:00"
-      },
-      {
-        "minutes": "/5",
-        "platform": "time_pattern"
-      }
-    ],
-    "mode": "single",
-    "action": "a"
-  }
-]
+{
+  "alias": "Living Room Heating Schedule On If Staying In The Room",
+  "trigger": [
+    {
+      "platform": "state",
+      "entity_id": [
+        "input_select.living_room_occupancy"
+      ],
+      "to": "Stayed Inside"
+    }
+  ],
+  "action": [
+    {
+      "if": [
+        {
+          "condition": "not",
+          "conditions": [
+            {
+              "condition": "state",
+              "entity_id": "climate.living_room",
+              "state": "heat"
+            }
+          ]
+        }
+      ],
+      "then": [
+        {
+          "service": "climate.set_hvac_mode",
+          "data": {
+            "hvac_mode": "heat"
+          },
+          "target": {
+            "entity_id": "climate.living_room"
+          }
+        },
+        {
+          "service": "switch.turn_on",
+          "target": {
+            "entity_id": "switch.schedule_living_room_temperature"
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -14,6 +14,7 @@ input_select:
     - Outside
     - Just Entered
     - Stayed Inside
+    - In Sleep
 sensor:
 - platform: history_stats
   name: En-suite Room Motion On Ratio For Last 4 Minutes
@@ -31,23 +32,9 @@ sensor:
   duration:
     minutes: '8'
   end: '{{ (now() | as_timestamp) | as_datetime | as_local }}'
-group:
-  en_suite_room_auto_gen_automations:
-    name: En-suite Room Auto-gen Automations
-    entities:
-    - automation.l_er_en_suite_room_ceiling_lights_on_or_open_curtains_if_entering_to_room
-    - automation.l_er_en_suite_room_lights_off_if_no_person
-    - automation.lb_er_en_suite_room_remote_button_single_applies_different_scenes_state_execution
-    - automation.lb_er_en_suite_room_remote_button_single_applies_different_scenes_execution
-    - automation.lb_er_en_suite_room_remote_button_double_toggle_lamps
-    - automation.lb_er_en_suite_room_remote_button_triple_set_scene
-    - automation.lb_er_en_suite_room_remote_button_long_toggle_leds
-    - automation.lb_er_en_suite_room_wall_switch_single_press_toggle_ceiling_light
-    - automation.lb_er_en_suite_room_wall_switch_double_press_leave_room_and_turn_off_everything
-    - automation.oc_er_en_suite_room_occupancy_update
 automation:
-- alias: L-ER En-suite Room Ceiling Lights On Or Open Curtains If Entering to Room
-  id: automation.l_er_en_suite_room_ceiling_lights_on_or_open_curtains_if_entering_to_room
+- alias: ZL-ER Ceiling Lights On Or Open Curtains If Entering to Room-En-suite Room
+  id: automation.zl_er_ceiling_lights_on_or_open_curtains_if_entering_to_room_en_suite_room
   trigger:
   - entity_id:
     - binary_sensor.en_suite_room_entrance_motion_sensor_motion
@@ -55,7 +42,7 @@ automation:
     to: 'on'
   action:
   - service: automation.turn_off
-    entity_id: automation.l_er_en_suite_room_ceiling_lights_on_or_open_curtains_if_entering_to_room
+    entity_id: automation.zl_er_ceiling_lights_on_or_open_curtains_if_entering_to_room_en_suite_room
     data:
       stop_actions: false
   - choose:
@@ -68,8 +55,7 @@ automation:
         - condition: and
           conditions:
           - condition: numeric_state
-            entity_id:
-            - sensor.cambridge_city_airport_temperature
+            entity_id: sensor.cambridge_city_airport_temperature
             above: '20'
           - condition: time
             after: '13:00:00'
@@ -96,10 +82,8 @@ automation:
           entity_id: input_select.en_suite_room_scene
         data:
           option: Lamp LED White
-
-
-- alias: L-ER En-suite Room Lights Off If No Person
-  id: automation.l_er_en_suite_room_lights_off_if_no_person
+- alias: ZL-ER Lights Off If No Person-En-suite Room
+  id: automation.zl_er_lights_off_if_no_person_en_suite_room
   trigger:
   - platform: state
     from: 'on'
@@ -131,7 +115,7 @@ automation:
         state: 'off'
   action:
   - service: homeassistant.turn_on
-    entity_id: automation.l_er_en_suite_room_ceiling_lights_on_or_open_curtains_if_entering_to_room
+    entity_id: automation.zl_er_ceiling_lights_on_or_open_curtains_if_entering_to_room_en_suite_room
   - service: input_select.select_option
     target:
       entity_id: input_select.en_suite_room_scene
@@ -147,9 +131,7 @@ automation:
     entity_id:
     - media_player.portable_tv
   - service: script.do_nothing
-
-
-- alias: LB-ER En-suite Room Remote Button - Single - Applies Different Scenes (State Execution)
+- alias: ZLB-ER Remote Button - Single - Applies Different Scenes (State Execution)-En-suite Room
   trigger:
   - platform: state
     entity_id:
@@ -204,10 +186,8 @@ automation:
         entity_id: input_select.en_suite_room_scene
       data:
         option: Lamp LED White
-  id: automation.lb_er_en_suite_room_remote_button_single_applies_different_scenes_state_execution
-
-
-- alias: LB-ER En-suite Room Remote Button - Single - Applies Different Scenes (Execution)
+  id: automation.zlb_er_remote_button_single_applies_different_scenes_state_execution_en_suite_room
+- alias: ZLB-ER Applies Different Scenes Based on Scene Selections-En-suite Room
   trigger:
   - platform: state
     entity_id: input_select.en_suite_room_scene
@@ -321,10 +301,8 @@ automation:
           - light.en_suite_room_lamp_2
           - light.en_suite_room_ceiling_light
           - light.en_suite_room_bed_led
-  id: automation.lb_er_en_suite_room_remote_button_single_applies_different_scenes_execution
-
-
-- alias: LB-ER En-suite Room Remote Button - Double - Toggle Lamps
+  id: automation.zlb_er_applies_different_scenes_based_on_scene_selections_en_suite_room
+- alias: ZLB-ER Remote Button - Double - Toggle Lamps-En-suite Room
   trigger:
   - platform: state
     entity_id:
@@ -335,10 +313,8 @@ automation:
     entity_id:
     - light.en_suite_room_lamp_1
     - light.en_suite_room_lamp_2
-  id: automation.lb_er_en_suite_room_remote_button_double_toggle_lamps
-
-
-- alias: LB-ER En-suite Room Remote Button - Triple - Set Scene
+  id: automation.zlb_er_remote_button_double_toggle_lamps_en_suite_room
+- alias: ZLB-ER Remote Button - Triple - Set Scene-En-suite Room
   trigger:
   - platform: state
     entity_id:
@@ -349,10 +325,8 @@ automation:
     entity_id:
     - light.en_suite_room_lamp_1
     - light.en_suite_room_lamp_2
-  id: automation.lb_er_en_suite_room_remote_button_triple_set_scene
-
-
-- alias: LB-ER En-suite Room Remote Button - Long - Toggle LEDs
+  id: automation.zlb_er_remote_button_triple_set_scene_en_suite_room
+- alias: ZLB-ER Remote Button - Long - Toggle LEDs-En-suite Room
   trigger:
   - platform: state
     entity_id:
@@ -362,10 +336,8 @@ automation:
   - service: homeassistant.toggle
     entity_id:
     - light.en_suite_room_bed_led
-  id: automation.lb_er_en_suite_room_remote_button_long_toggle_leds
-
-
-- alias: LB-ER En-suite Room Wall Switch - Single Press - Toggle Ceiling Light
+  id: automation.zlb_er_remote_button_long_toggle_leds_en_suite_room
+- alias: ZLB-ER Wall Switch - Single Press - Toggle Ceiling Light-En-suite Room
   trigger:
   - platform: state
     entity_id:
@@ -375,10 +347,8 @@ automation:
   - service: homeassistant.toggle
     entity_id:
     - light.en_suite_room_ceiling_light
-  id: automation.lb_er_en_suite_room_wall_switch_single_press_toggle_ceiling_light
-
-
-- alias: LB-ER En-suite Room Wall Switch - Double Press - Leave Room and Turn Off Everything
+  id: automation.zlb_er_wall_switch_single_press_toggle_ceiling_light_en_suite_room
+- alias: ZLB-ER Wall Switch - Double Press - Leave Room and Turn Off Everything-En-suite Room
   trigger:
   - platform: state
     entity_id:
@@ -386,11 +356,9 @@ automation:
     to: double
   action:
   - service: automation.trigger
-    entity_id: automation.l_er_en_suite_room_lights_off_if_no_person
-  id: automation.lb_er_en_suite_room_wall_switch_double_press_leave_room_and_turn_off_everything
-
-
-- alias: Oc-ER En-suite Room Occupancy Update
+    entity_id: automation.zl_er_lights_off_if_no_person_en_suite_room
+  id: automation.zlb_er_wall_switch_double_press_leave_room_and_turn_off_everything_en_suite_room
+- alias: ZOc-ER Occupancy Update-En-suite Room
   trigger:
   - entity_id: group.en_suite_room_motion
     platform: state
@@ -404,10 +372,65 @@ automation:
   action:
   - service: pyscript.room_occupancy_state_machine
     data:
-      occupancy_entity_str: en_suite_room_occupancy
+      occupancy_entity_str: input_select.en_suite_room_occupancy
       motion_str: group.en_suite_room_motion
-      motion_ratio_for_x_min_str: sensor.en_suite_room_motion_on_ratio_for_last_4_minutes
-      motion_ratio_for_2x_min_str: sensor.en_suite_room_motion_on_ratio_for_last_8_minutes
-  id: automation.oc_er_en_suite_room_occupancy_update
-
-
+      motion_on_ratio_for_x_min_str: sensor.en_suite_room_motion_on_ratio_for_last_4_minutes
+      motion_on_ratio_for_2x_min_str: sensor.en_suite_room_motion_on_ratio_for_last_8_minutes
+      room_type: bedroom
+  id: automation.zoc_er_occupancy_update_en_suite_room
+- alias: ZH-ER Heating Schedule On If Staying In the Room-En-suite Room
+  trigger:
+  - platform: state
+    entity_id: input_select.en_suite_room_occupancy
+    from:
+    - Just Entered
+    - Outside
+    to: Stayed Inside
+  action:
+  - if:
+    - condition: not
+      conditions:
+      - condition: state
+        entity_id: climate.en_suite_room
+        state: heat
+    then:
+    - service: climate.set_hvac_mode
+      data:
+        hvac_mode: heat
+      target:
+        entity_id: climate.en_suite_room
+    - service: switch.turn_on
+      target:
+        entity_id: switch.schedule_en_suite_room_temperature
+  id: automation.zh_er_heating_schedule_on_if_staying_in_the_room_en_suite_room
+- alias: ZH-ER Heating Schedule Off If People Left the Room-En-suite Room
+  trigger:
+  - platform: state
+    entity_id: input_select.en_suite_room_occupancy
+    to: Outside
+  action:
+  - service: climate.set_hvac_mode
+    data:
+      hvac_mode: 'off'
+    target:
+      entity_id: climate.en_suite_room
+  - service: switch.turn_off
+    target:
+      entity_id: switch.schedule_en_suite_room_temperature
+  id: automation.zh_er_heating_schedule_off_if_people_left_the_room_en_suite_room
+group:
+  en_suite_room_auto_gen_automations:
+    name: En-suite Room Auto-gen Automations
+    entities:
+    - automation.zl_er_ceiling_lights_on_or_open_curtains_if_entering_to_room_en_suite_room
+    - automation.zl_er_lights_off_if_no_person_en_suite_room
+    - automation.zlb_er_remote_button_single_applies_different_scenes_state_execution_en_suite_room
+    - automation.zlb_er_applies_different_scenes_based_on_scene_selections_en_suite_room
+    - automation.zlb_er_remote_button_double_toggle_lamps_en_suite_room
+    - automation.zlb_er_remote_button_triple_set_scene_en_suite_room
+    - automation.zlb_er_remote_button_long_toggle_leds_en_suite_room
+    - automation.zlb_er_wall_switch_single_press_toggle_ceiling_light_en_suite_room
+    - automation.zlb_er_wall_switch_double_press_leave_room_and_turn_off_everything_en_suite_room
+    - automation.zoc_er_occupancy_update_en_suite_room
+    - automation.zh_er_heating_schedule_on_if_staying_in_the_room_en_suite_room
+    - automation.zh_er_heating_schedule_off_if_people_left_the_room_en_suite_room

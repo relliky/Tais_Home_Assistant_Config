@@ -1,0 +1,119 @@
+###########################################
+#
+# Custom Entities
+#
+###########################################
+group:
+  whole_home_motion:
+    name: Whole Home Motion
+    entities:
+      - group.living_room_motion
+      #- group.garden_motion
+      - group.kitchen_motion
+      - group.corridor_motion
+      - group.study_motion
+      - group.ground_toilet_motion
+      - group.master_room_motion
+      - group.master_toilet_motion
+      - group.en_suite_room_motion
+      - group.en_suite_toilet_motion
+      - group.guest_room_motion
+      - group.guest_toilet_motion
+
+input_boolean:
+  alexa_notification_alarm:
+    name: "Alexa Notification Alarm"
+  phone_notification_alarm:
+    name: "Phone Notification Alarm"
+
+
+automation:
+  - alias: A- Sound Alarm When Break-in Detected If No One Is Home
+    id: "1679216351420"
+    trigger:
+      - platform: state
+        entity_id: input_select.whole_home_occupancy
+        to: Stayed Inside
+    condition:
+      - condition: state
+        entity_id: input_boolean.home_alarm
+        for: "00:02:00"
+        state: "on"
+    action:
+      - parallel:
+          - sequence:
+            - condition: state
+              entity_id: input_boolean.alexa_notification_alarm
+              state: "on"
+            - delay: "00:00:30"
+            - condition: state
+              entity_id: input_boolean.home_alarm
+              for: "00:02:00"
+              state: "on"
+            - service: media_player.play_media
+              target:
+                entity_id: media_player.master_toilet_echo
+              data:
+                media_content_type: routine
+                media_content_id: Break in Pre Countdown Step One
+            - delay: "00:00:15"
+            - condition: state
+              entity_id: input_boolean.home_alarm
+              for: "00:02:00"
+              state: "on"
+            - service: media_player.play_media
+              target:
+                entity_id: media_player.master_toilet_echo
+              data:
+                media_content_type: routine
+                media_content_id: Break in Pre Countdown Step Two
+            - delay: "00:00:10"
+            - condition: state
+              entity_id: input_boolean.home_alarm
+              for: "00:02:00"
+              state: "on"
+            - service: media_player.play_media
+              target:
+                entity_id: media_player.master_toilet_echo
+              data:
+                media_content_type: routine
+                media_content_id: Break in Countdown
+            - delay: "00:00:20"
+            - condition: state
+              entity_id: input_boolean.home_alarm
+              for: "00:02:00"
+              state: "on"
+            - service: media_player.play_media
+              target:
+                entity_id: media_player.master_toilet_echo
+              data:
+                media_content_type: routine
+                media_content_id: Break in Post Countdown
+          - sequence:
+            - condition: state
+              entity_id: input_boolean.phone_notification_alarm
+              state: "on"
+            - service: notify.mobile_app_tais_iphone_13
+              data:
+                message: Break-in detected. Start to sound alarm in 30 seconds
+                data:
+                  push:
+                    name: default
+                    critical: 1
+                    volume: 1
+            - service: notify.mobile_app_tais_iphone
+              data:
+                message: Break-in detected. Start to sound alarm in 30 seconds
+                data:
+                  push:
+                    name: default
+                    critical: 1
+                    volume: 1
+            - service: notify.mobile_app_kes_iphone11
+              data:
+                message: Break-in detected. Start to sound alarm in 30 seconds
+                data:
+                  push:
+                    name: default
+                    critical: 1
+                    volume: 1

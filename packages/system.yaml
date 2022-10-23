@@ -5,8 +5,8 @@ browser_mod:
 logger:
   default: error
   logs:
-    custom_components.pyscript: info
-    custom_components.pyscript.file.my_scripts.z_alexa_set_tv_brightness: debug    
+    #custom_components.pyscript: info
+    #custom_components.pyscript.file.my_scripts.z_alexa_set_tv_brightness: debug    
     
     
 # System Sensors
@@ -179,6 +179,34 @@ script:
     alias: Do nothing
     sequence:
 
+  reload_all_config:
+    alias: Reload All Config
+    sequence:
+    - service: automation.reload
+    - service: frontend.reload_themes
+    - service: generic_thermostat.reload
+    - service: group.reload
+    - service: history_stats.reload
+    - service: homekit.reload
+    - service: input_boolean.reload
+    - service: input_button.reload
+    - service: input_datetime.reload
+    - service: input_number.reload
+    - service: input_select.reload
+    - service: input_text.reload
+    - service: localtuya.reload
+    - service: mqtt.reload
+    - service: person.reload
+    - service: pyscript.reload
+    - service: scene.reload
+    - service: schedule.reload
+    - service: script.reload
+    - service: template.reload
+    - service: timer.reload
+    - service: xiaomi_miot.reload
+    - service: zone.reload
+
+
 
 ###############################################
 #
@@ -209,7 +237,7 @@ automation:
         platform: time
     action:
       # Generate report
-      - service: watchman.report
+      #- service: watchman.report
       # Restart hubs in other rooms
       - delay: "00:01:00"
       - service: homeassistant.restart
@@ -330,97 +358,3 @@ automation brightness:
             {% endif %}
 
 
-automation alarm:
-  - alias: A- Sound Alarm When Break-in Detected If No One Is Home
-    id: "1679216351420"
-    trigger:
-      - platform: state
-        to: "on"
-        entity_id: group.alarm_motion
-    condition:
-      - condition: state
-        entity_id: input_boolean.home_alarm
-        for: 00:02:00
-        state: "on"
-    action:
-      - service: notify.mobile_app_tais_iphone_13
-        data:
-          message: Break-in detected. Start to sound alarm in 30 seconds
-          data:
-            push:
-              name: default
-              critical: 1
-              volume: 1
-      - service: notify.mobile_app_tais_iphone
-        data:
-          message: Break-in detected. Start to sound alarm in 30 seconds
-          data:
-            push:
-              name: default
-              critical: 1
-              volume: 1
-
-      - service: notify.mobile_app_kes_iphone11
-        data:
-          message: Break-in detected. Start to sound alarm in 30 seconds
-          data:
-            push:
-              name: default
-              critical: 1
-              volume: 1
-
-      - delay: "00:00:30"
-      - condition: state
-        entity_id: input_boolean.home_alarm
-        for: 00:02:00
-        state: "on"
-
-      - service: media_player.play_media
-        target:
-          entity_id: media_player.master_toilet_echo
-        data:
-          media_content_type: routine
-          media_content_id: Break in Pre Countdown Step One
-
-      - delay: "00:00:15"
-      - condition: state
-        entity_id: input_boolean.home_alarm
-        for: 00:02:00
-        state: "on"
-
-      - service: media_player.play_media
-        target:
-          entity_id: media_player.master_toilet_echo
-        data:
-          media_content_type: routine
-          media_content_id: Break in Pre Countdown Step Two
-
-      - delay: "00:00:10"
-      - condition: state
-        entity_id: input_boolean.home_alarm
-        for: 00:02:00
-        state: "on"
-
-      - service: media_player.play_media
-        target:
-          entity_id: media_player.master_toilet_echo
-        data:
-          media_content_type: routine
-          media_content_id: Break in Countdown
-
-      - delay: "00:00:20"
-      - condition: state
-        entity_id: input_boolean.home_alarm
-        for: 00:02:00
-        state: "on"
-
-      - service: media_player.play_media
-        target:
-          entity_id: media_player.master_toilet_echo
-        data:
-          media_content_type: routine
-          media_content_id: Break in Post Countdown
-
-
-
-        

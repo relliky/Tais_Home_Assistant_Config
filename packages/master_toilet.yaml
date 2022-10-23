@@ -170,77 +170,77 @@ script:
 #
 ###############################################
 automation:
-  # Master Toilet
-  - alias: H-MT Master Toilet Heating On If People Present
-    id: "1600014380137"
-    description: "automation.master_toilet_heating_on_if_people_present"
-    trigger:
-      - entity_id: group.master_toilet_motion
-        platform: state
-        from: "off"
-        to: "on"
-    # Queued mode guarentees race condition are in series
-    mode: queued
-    action:
-      # Resolve race on multiple triggers - only execute instances that
-      # turned on heating and turned off the automation.
-      - condition: state
-        entity_id: automation.master_toilet_heating_on_if_people_present
-        state: "on"
-      # Turn on heating on repeated short presence or longer presence
-      - choose:
-          # IF - first time entering, set the flag
-          #      Longer presence will turn on heating
-          - conditions:
-              # Wait for 1.5 min if it is the first time of presence
-              - condition: state
-                entity_id: input_boolean.master_toilet_short_presence
-                state: "off"
-            sequence:
-              # set the short presence flag
-              - service: input_boolean.turn_on
-                entity_id: input_boolean.master_toilet_short_presence
-              # Delay 1.5 min and test motion sensor
-              - delay: 00:01:45
-              - condition: or
-                conditions:
-                  - condition: state
-                    entity_id: group.master_toilet_motion
-                    state: "on"
-              # Longer presence will turn on heating
-              - service: script.master_toilet_set_heating_temp_with_state_maintaince
-        # ELSE - Repeated short presence will turn on heating
-        default:
-          - service: script.master_toilet_set_heating_temp_with_state_maintaince
-
-  - alias: H-MT Master Toilet Heating Off If No Person
-    id: "1600015749043"
-    description: "automation.master_toilet_heating_off_if_no_person"
-    trigger:
-      - minutes: /5
-        platform: time_pattern
-      - entity_id: group.master_toilet_motion
-        platform: state
-        from: "on"
-        to: "off"
-        for: 00:05:00
-    condition:
-      - condition: state
-        entity_id: group.master_toilet_motion
-        for: 00:05:00
-        state: "off"
-    action:
-      # Turn off heating
-      - service: climate.set_hvac_mode
-        entity_id: climate.master_toilet
-        data:
-          hvac_mode: "off"
-      - data: {}
-        entity_id: automation.master_toilet_heating_on_if_people_present
-        service: automation.turn_on
-      # Clear flags
-      - service: input_boolean.turn_off
-        entity_id: input_boolean.master_toilet_short_presence
+#  # Master Toilet
+#  - alias: H-MT Master Toilet Heating On If People Present
+#    id: "1600014380137"
+#    description: "automation.master_toilet_heating_on_if_people_present"
+#    trigger:
+#      - entity_id: group.master_toilet_motion
+#        platform: state
+#        from: "off"
+#        to: "on"
+#    # Queued mode guarentees race condition are in series
+#    mode: queued
+#    action:
+#      # Resolve race on multiple triggers - only execute instances that
+#      # turned on heating and turned off the automation.
+#      - condition: state
+#        entity_id: automation.master_toilet_heating_on_if_people_present
+#        state: "on"
+#      # Turn on heating on repeated short presence or longer presence
+#      - choose:
+#          # IF - first time entering, set the flag
+#          #      Longer presence will turn on heating
+#          - conditions:
+#              # Wait for 1.5 min if it is the first time of presence
+#              - condition: state
+#                entity_id: input_boolean.master_toilet_short_presence
+#                state: "off"
+#            sequence:
+#              # set the short presence flag
+#              - service: input_boolean.turn_on
+#                entity_id: input_boolean.master_toilet_short_presence
+#              # Delay 1.5 min and test motion sensor
+#              - delay: 00:01:45
+#              - condition: or
+#                conditions:
+#                  - condition: state
+#                    entity_id: group.master_toilet_motion
+#                    state: "on"
+#              # Longer presence will turn on heating
+#              - service: script.master_toilet_set_heating_temp_with_state_maintaince
+#        # ELSE - Repeated short presence will turn on heating
+#        default:
+#          - service: script.master_toilet_set_heating_temp_with_state_maintaince
+#
+#  - alias: H-MT Master Toilet Heating Off If No Person
+#    id: "1600015749043"
+#    description: "automation.master_toilet_heating_off_if_no_person"
+#    trigger:
+#      - minutes: /5
+#        platform: time_pattern
+#      - entity_id: group.master_toilet_motion
+#        platform: state
+#        from: "on"
+#        to: "off"
+#        for: 00:05:00
+#    condition:
+#      - condition: state
+#        entity_id: group.master_toilet_motion
+#        for: 00:05:00
+#        state: "off"
+#    action:
+#      # Turn off heating
+#      - service: climate.set_hvac_mode
+#        entity_id: climate.master_toilet
+#        data:
+#          hvac_mode: "off"
+#      - data: {}
+#        entity_id: automation.master_toilet_heating_on_if_people_present
+#        service: automation.turn_on
+#      # Clear flags
+#      - service: input_boolean.turn_off
+#        entity_id: input_boolean.master_toilet_short_presence
 
   # Master Toilet
   - alias: L-MT Master Toilet Lights On If People Present and Dark

@@ -1,0 +1,93 @@
+input_select:
+  guest_toilet_occupancy:
+    name: Guest Toilet Occupancy
+    options:
+    - Outside
+    - Just Entered
+    - Stayed Inside
+    - In Sleep
+sensor:
+- platform: history_stats
+  name: Guest Toilet Motion On Ratio For Last 4 Minutes
+  entity_id: group.guest_toilet_motion
+  state: 'on'
+  type: ratio
+  duration:
+    minutes: '4'
+  end: '{{ (now() | as_timestamp) | as_datetime | as_local }}'
+- platform: history_stats
+  name: Guest Toilet Motion On Ratio For Last 8 Minutes
+  entity_id: group.guest_toilet_motion
+  state: 'on'
+  type: ratio
+  duration:
+    minutes: '8'
+  end: '{{ (now() | as_timestamp) | as_datetime | as_local }}'
+automation:
+- alias: ZOc-GT Occupancy Update-Guest Toilet
+  trigger:
+  - entity_id: group.guest_toilet_motion
+    platform: state
+    to: 'on'
+  - entity_id: group.guest_toilet_motion
+    platform: state
+    to: 'off'
+    for: 05:00:00
+  - minutes: /5
+    platform: time_pattern
+  action:
+  - service: pyscript.room_occupancy_state_machine
+    data:
+      occupancy_entity_str: input_select.guest_toilet_occupancy
+      motion_str: group.guest_toilet_motion
+      motion_on_ratio_for_x_min_str: sensor.guest_toilet_motion_on_ratio_for_last_4_minutes
+      motion_on_ratio_for_2x_min_str: sensor.guest_toilet_motion_on_ratio_for_last_8_minutes
+      room_type: toilet
+  id: automation.zoc_gt_occupancy_update_guest_toilet
+- alias: ZH-GT Heating Schedule On If Staying In the Room-Guest Toilet
+  trigger:
+  - platform: state
+    entity_id: input_select.guest_toilet_occupancy
+    from:
+    - Just Entered
+    - Outside
+    to: Stayed Inside
+  action:
+  - if:
+    - condition: not
+      conditions:
+      - condition: state
+        entity_id: climate.guest_toilet
+        state: heat
+    then:
+    - service: climate.set_hvac_mode
+      data:
+        hvac_mode: heat
+      target:
+        entity_id: climate.guest_toilet
+    - service: switch.turn_on
+      target:
+        entity_id: switch.schedule_guest_toilet_temperature
+  id: automation.zh_gt_heating_schedule_on_if_staying_in_the_room_guest_toilet
+- alias: ZH-GT Heating Schedule Off If People Left the Room-Guest Toilet
+  trigger:
+  - platform: state
+    entity_id: input_select.guest_toilet_occupancy
+    to: Outside
+  action:
+  - service: climate.set_hvac_mode
+    data:
+      hvac_mode: 'off'
+    target:
+      entity_id: climate.guest_toilet
+  - service: switch.turn_off
+    target:
+      entity_id: switch.schedule_guest_toilet_temperature
+  id: automation.zh_gt_heating_schedule_off_if_people_left_the_room_guest_toilet
+group:
+  guest_toilet_auto_gen_automations:
+    name: Guest Toilet Auto-gen Automations
+    entities:
+    - automation.zoc_gt_occupancy_update_guest_toilet
+    - automation.zh_gt_heating_schedule_on_if_staying_in_the_room_guest_toilet
+    - automation.zh_gt_heating_schedule_off_if_people_left_the_room_guest_toilet

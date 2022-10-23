@@ -63,7 +63,7 @@ input_text:
 input_number:
   master_room_default_temperature:
     name: Master Room Default Temperature
-    min: 18
+    min: 16
     max: 25
     step: 0.5
 
@@ -248,40 +248,40 @@ automation heating:
         entity_id: climate.master_room
         data:
           hvac_mode: "off"
-      # Auto heating/lighting on
-      - service: automation.turn_on
-        entity_id:
-          - automation.master_room_heating_on_if_people_present
+      ## Auto heating/lighting on
+      #- service: automation.turn_on
+      #  entity_id:
+      #    - automation.master_room_heating_on_if_people_present
 
-  - alias: H-MR-M Master Room Turn On Schedule If People Present
-    id: "1543510386760"
-    description: "automation.master_room_heating_on_if_people_present"
-    use_blueprint:
-      path: room_delayed_action.yaml
-      input:
-        binary_sensor_motion_sensors: group.master_room_motion
-        input_boolean_short_presence: input_boolean.master_room_short_presence
-        automation_this_automation_entity: automation.master_room_heating_on_if_people_present
-        automations_to_be_triggered_and_on: automation.master_room_heating_scheduler
-        #scripts_to_be_run: script.master_room_tv_slideshow
+#  - alias: H-MR-M Master Room Turn On Schedule If People Present
+#    id: "1543510386760"
+#    description: "automation.master_room_heating_on_if_people_present"
+#    use_blueprint:
+#      path: room_delayed_action.yaml
+#      input:
+#        binary_sensor_motion_sensors: group.master_room_motion
+#        input_boolean_short_presence: input_boolean.master_room_short_presence
+#        automation_this_automation_entity: automation.master_room_heating_on_if_people_present
+#        automations_to_be_triggered_and_on: automation.master_room_heating_scheduler
+#        #scripts_to_be_run: script.master_room_tv_slideshow
 
-  # If scheduled normally, set heating temperature
-  - alias: H-MR Master Room Heating Scheduler
-    id: "1599909948789"
-    description: "automation.master_room_heating_scheduler"
-    trigger:
-      - platform: state
-        entity_id: input_number.master_room_default_temperature
-    action:
-      #- condition: state
-      #  entity_id: climate.master_room
-      #  state: 'heat'
-      #  for: "00:01:00"
-      - data:
-          temperature: "{{states('input_number.master_room_default_temperature')}}"
-          hvac_mode: "heat"
-        entity_id: climate.master_room
-        service: climate.set_temperature
+#  # If scheduled normally, set heating temperature
+#  - alias: H-MR Master Room Heating Scheduler
+#    id: "1599909948789"
+#    description: "automation.master_room_heating_scheduler"
+#    trigger:
+#      - platform: state
+#        entity_id: input_number.master_room_default_temperature
+#    action:
+#      #- condition: state
+#      #  entity_id: climate.master_room
+#      #  state: 'heat'
+#      #  for: "00:01:00"
+#      - data:
+#          temperature: "{{states('input_number.master_room_default_temperature')}}"
+#          hvac_mode: "heat"
+#        entity_id: climate.master_room
+#        service: climate.set_temperature
 
   - alias: H-MR Master Room Valve Calibrate Temperature
     id: "1543517389461"
@@ -295,42 +295,42 @@ automation heating:
   #################################################################
   # Disable the entering automation if people present in the bedroom
   #################################################################
-  - alias: HL-MR-T Master Room Disable The Entering Room Automation If People Present
-    id: "1599110313838"
-    trigger:
-      - platform: state
-        to: "on"
-        entity_id:
-          - binary_sensor.master_room_bed_motion_sensor_motion
-          - binary_sensor.master_room_stair_motion_sensor_motion
-          - binary_sensor.master_room_dressing_table_motion_sensor_motion
-          - binary_sensor.master_room_tv_motion_sensor_motion
-          - binary_sensor.master_room_drawer_motion_sensor_motion
-    condition: []
-    action:
-      - delay: 00:00:05
-      - service: automation.turn_off
-        entity_id:
-          - automation.master_room_ceiling_lights_on_or_open_curtain_if_entering_room
-      - delay: 00:03:00
-      # IF sleeping in the daytime caused the issue, i.e. entering automation is on,
-      # turn the heating back on and turn off the entering automations
-      - choose:
-          - conditions:
-              - condition: state
-                entity_id: automation.master_room_heating_on_if_people_present
-                state: "on"
-            sequence:
-              - service: automation.trigger
-                entity_id: automation.master_room_heating_on_if_people_present
-              # Turn on heating if it is off
-              - service: automation.trigger
-                entity_id: automation.master_room_heating_scheduler
-      # Turn off all entering automations
-      - service: automation.turn_off
-        entity_id:
-          - automation.master_room_ceiling_lights_on_or_open_curtain_if_entering_room
-          - automation.master_room_heating_on_if_people_present
+#  - alias: HL-MR-T Master Room Disable The Entering Room Automation If People Present
+#    id: "1599110313838"
+#    trigger:
+#      - platform: state
+#        to: "on"
+#        entity_id:
+#          - binary_sensor.master_room_bed_motion_sensor_motion
+#          - binary_sensor.master_room_stair_motion_sensor_motion
+#          - binary_sensor.master_room_dressing_table_motion_sensor_motion
+#          - binary_sensor.master_room_tv_motion_sensor_motion
+#          - binary_sensor.master_room_drawer_motion_sensor_motion
+#    condition: []
+#    action:
+#      - delay: 00:00:05
+#      - service: automation.turn_off
+#        entity_id:
+#          - automation.master_room_ceiling_lights_on_or_open_curtain_if_entering_room
+#      - delay: 00:03:00
+#      # IF sleeping in the daytime caused the issue, i.e. entering automation is on,
+#      # turn the heating back on and turn off the entering automations
+#      - choose:
+#          - conditions:
+#              - condition: state
+#                entity_id: automation.master_room_heating_on_if_people_present
+#                state: "on"
+#            sequence:
+#              - service: automation.trigger
+#                entity_id: automation.master_room_heating_on_if_people_present
+#              # Turn on heating if it is off
+#              - service: automation.trigger
+#                entity_id: automation.master_room_heating_scheduler
+#      # Turn off all entering automations
+#      - service: automation.turn_off
+#        entity_id:
+#          - automation.master_room_ceiling_lights_on_or_open_curtain_if_entering_room
+#          - automation.master_room_heating_on_if_people_present
 
   ###############################################
   # Curtain autmation based on time

@@ -334,88 +334,88 @@ automation tv:
 automation:
   ###############################################
   # Heating Automation based on motion sensors
-  ###############################################
-  - alias: H-KC Kitchen Heating And Drinking Hot Water On If People Present
-    id: "1599609685194"
-    description: "automation.kitchen_heating_on_if_people_present"
-    trigger:
-      - entity_id:
-          - group.kitchen_motion
-          - group.living_room_motion
-        platform: state
-        to: "on"
-    # Queued mode guarentees no race
-    mode: queued
-    action:
-      # Remove instances due to race conditions
-      - condition: state
-        entity_id: automation.kitchen_heating_on_if_people_present
-        state: "on"
-      # Turn on heating on repeated short presence or longer presence
-      - choose:
-          # IF - first time entering, set the flag
-          #      Longer presence will turn on heating
-          - conditions:
-              - condition: state
-                entity_id: input_boolean.kitchen_short_presence
-                state: "off"
-            sequence:
-              # set the short presence flag
-              - service: input_boolean.turn_on
-                entity_id: input_boolean.kitchen_short_presence
-              # Delay 1.5 min and test motion sensor
-              - delay: 00:01:45
-              - condition: or
-                conditions:
-                  - condition: state
-                    entity_id: 
-                    - group.kitchen_motion
-                    - group.living_room_motion
-                    state: "on"
-              # Longer presence will turn on heating
-              - service: script.kitchen_set_heating_temp_with_state_maintaince
-              - service: switch.turn_on
-                entity_id: switch.kitchen_drinking_hot_water
-        # ELSE - Repeated short presence will turn on heating
-        default:
-          - service: script.kitchen_set_heating_temp_with_state_maintaince
-          - service: switch.turn_on
-            entity_id: switch.kitchen_drinking_hot_water
-
-  - alias: H-KC Kitchen Heating And Drinking Hot Water Off If No Person
-    id: "1599609374841"
-    description: "automation.kitchen_heating_off_when_no_person"
-    trigger:
-      - entity_id: 
-          - group.kitchen_motion
-          - group.living_room_motion
-        platform: state
-        from: "on"
-        to: "off"
-        for: 00:05:00
-      - minutes: /59
-        platform: time_pattern
-    condition:
-      - condition: state
-        entity_id: 
-          - group.kitchen_motion
-          - group.living_room_motion
-        for: 00:05:00
-        state: "off"
-    action:
-      # turn off heating
-      - service: climate.set_hvac_mode
-        entity_id: climate.kitchen
-        data:
-          hvac_mode: "off"
-      - service: automation.turn_on
-        entity_id: automation.kitchen_heating_on_if_people_present
-      # turn on drinking hot water
-      - service: switch.turn_off
-        entity_id: switch.kitchen_drinking_hot_water
-      # Clear flags
-      - service: input_boolean.turn_off
-        entity_id: input_boolean.kitchen_short_presence
+#  ###############################################
+#  - alias: H-KC Kitchen Heating And Drinking Hot Water On If People Present
+#    id: "1599609685194"
+#    description: "automation.kitchen_heating_on_if_people_present"
+#    trigger:
+#      - entity_id:
+#          - group.kitchen_motion
+#          - group.living_room_motion
+#        platform: state
+#        to: "on"
+#    # Queued mode guarentees no race
+#    mode: queued
+#    action:
+#      # Remove instances due to race conditions
+#      - condition: state
+#        entity_id: automation.kitchen_heating_on_if_people_present
+#        state: "on"
+#      # Turn on heating on repeated short presence or longer presence
+#      - choose:
+#          # IF - first time entering, set the flag
+#          #      Longer presence will turn on heating
+#          - conditions:
+#              - condition: state
+#                entity_id: input_boolean.kitchen_short_presence
+#                state: "off"
+#            sequence:
+#              # set the short presence flag
+#              - service: input_boolean.turn_on
+#                entity_id: input_boolean.kitchen_short_presence
+#              # Delay 1.5 min and test motion sensor
+#              - delay: 00:01:45
+#              - condition: or
+#                conditions:
+#                  - condition: state
+#                    entity_id: 
+#                    - group.kitchen_motion
+#                    - group.living_room_motion
+#                    state: "on"
+#              # Longer presence will turn on heating
+#              - service: script.kitchen_set_heating_temp_with_state_maintaince
+#              - service: switch.turn_on
+#                entity_id: switch.kitchen_drinking_hot_water
+#        # ELSE - Repeated short presence will turn on heating
+#        default:
+#          - service: script.kitchen_set_heating_temp_with_state_maintaince
+#          - service: switch.turn_on
+#            entity_id: switch.kitchen_drinking_hot_water
+#
+#  - alias: H-KC Kitchen Heating And Drinking Hot Water Off If No Person
+#    id: "1599609374841"
+#    description: "automation.kitchen_heating_off_when_no_person"
+#    trigger:
+#      - entity_id: 
+#          - group.kitchen_motion
+#          - group.living_room_motion
+#        platform: state
+#        from: "on"
+#        to: "off"
+#        for: 00:05:00
+#      - minutes: /59
+#        platform: time_pattern
+#    condition:
+#      - condition: state
+#        entity_id: 
+#          - group.kitchen_motion
+#          - group.living_room_motion
+#        for: 00:05:00
+#        state: "off"
+#    action:
+#      ## turn off heating
+#      #- service: climate.set_hvac_mode
+#      #  entity_id: climate.kitchen
+#      #  data:
+#      #    hvac_mode: "off"
+#      #- service: automation.turn_on
+#      #  entity_id: automation.kitchen_heating_on_if_people_present
+#      # turn on drinking hot water
+#      - service: switch.turn_off
+#        entity_id: switch.kitchen_drinking_hot_water
+#      # Clear flags
+#      - service: input_boolean.turn_off
+#        entity_id: input_boolean.kitchen_short_presence
 
   ###############################################
   # Lighting Automation based on motion sensors
@@ -843,6 +843,29 @@ automation:
     action:
       - service: vacuum.start
         entity_id: vacuum.xiaomi_vacuum_cleaner
+
+  - alias: V-KC Remember to Refill Kitchen Vacuum Water when Going to Kitchen
+    mode: single
+    trigger:
+      - platform: state
+        entity_id:
+          - group.kitchen_motion
+    condition:
+      - condition: state
+        entity_id: sensor.x1_last_error
+        state: "301"
+    action:
+      - service: media_player.play_media
+        target:
+          entity_id: media_player.kitchen_echo
+        data:
+          media_content_type: routine
+          media_content_id: X1ReminderFillWater
+      - delay:
+          hours: 4
+          minutes: 0
+          seconds: 0
+          milliseconds: 0
 
 script kitchen_noti:
   kitchen_window_left_open_critical_notification:

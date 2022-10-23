@@ -10,28 +10,6 @@ group:
       - binary_sensor.ground_corridor_motion_sensor_motion
       - binary_sensor.first_corridor_motion_sensor_motion
 
-  indoor_motion:
-    name: Indoor Motion
-    entities:
-      - group.living_room_motion
-      #- group.garden_motion
-      - group.kitchen_motion
-      - group.corridor_motion
-      - group.study_motion
-      - group.ground_toilet_motion
-      - group.master_room_motion
-      - group.master_toilet_motion
-      - group.en_suite_room_motion
-      - group.en_suite_toilet_motion
-      - group.guest_room_motion
-      - group.guest_toilet_motion
-
-  alarm_motion:
-    name: Alarm Motion
-    entities:
-      - group.indoor_motion
-      - binary_sensor.kitchen_window
-
   whole_home_tv_slideshow:
     name: Whole Home TV Slideshow
     entities:
@@ -54,31 +32,31 @@ template:
   - binary_sensor:
       - name: "Upstairs Heating Required"
         state: >
-          {{ ((states.climate.master_toilet.attributes.temperature         >= 
+          {{ ((states.climate.master_toilet.attributes.temperature         > 
                states.climate.master_toilet.attributes.current_temperature     )  and 
               (states.climate.master_toilet.state != 'off')                          ) or
 
-             ((states.climate.master_room.attributes.temperature         >= 
+             ((states.climate.master_room.attributes.temperature         > 
                states.climate.master_room.attributes.current_temperature     )  and 
               (states.climate.master_room.state != 'off')                          ) or
              
-             ((states.climate.study.attributes.temperature         >= 
+             ((states.climate.study.attributes.temperature         > 
                states.climate.study.attributes.current_temperature     )  and 
               (states.climate.study.state != 'off')                          ) or
               
-             ((states.climate.guest_toilet.attributes.temperature         >= 
+             ((states.climate.guest_toilet.attributes.temperature         > 
                states.climate.guest_toilet.attributes.current_temperature     )  and 
               (states.climate.guest_toilet.state != 'off')                          ) or
 
-             ((states.climate.guest_room.attributes.temperature         >= 
+             ((states.climate.guest_room.attributes.temperature         > 
                states.climate.guest_room.attributes.current_temperature     )  and 
               (states.climate.guest_room.state != 'off')                          ) or
 
-             ((states.climate.en_suite_toilet.attributes.temperature         >= 
+             ((states.climate.en_suite_toilet.attributes.temperature         > 
                states.climate.en_suite_toilet.attributes.current_temperature     )  and 
               (states.climate.en_suite_toilet.state != 'off')                          ) or
 
-             ((states.climate.en_suite_room.attributes.temperature         >= 
+             ((states.climate.en_suite_room.attributes.temperature         > 
                states.climate.en_suite_room.attributes.current_temperature     )  and 
               (states.climate.en_suite_room.state != 'off')                          ) 
           }}
@@ -86,25 +64,23 @@ template:
   - binary_sensor:
       - name: "Downstairs Heating Required"
         state: >
-          {{ ((states.climate.kitchen.attributes.temperature         >= 
+          {{ ((states.climate.kitchen.attributes.temperature         > 
                states.climate.kitchen.attributes.current_temperature     )  and 
               (states.climate.kitchen.state != 'off')                          ) or
 
-             ((states.climate.living_room.attributes.temperature         >= 
+             ((states.climate.living_room.attributes.temperature         > 
                states.climate.living_room.attributes.current_temperature     )  and 
               (states.climate.living_room.state != 'off')                          ) or
              
-             ((states.climate.ground_toilet.attributes.temperature         >= 
+             ((states.climate.ground_toilet.attributes.temperature         > 
                states.climate.ground_toilet.attributes.current_temperature     )  and 
               (states.climate.ground_toilet.state != 'off')                          ) or
               
-             ((states.climate.ground_corridor.attributes.temperature         >= 
+             ((states.climate.ground_corridor.attributes.temperature         > 
                states.climate.ground_corridor.attributes.current_temperature     )  and 
               (states.climate.ground_corridor.state != 'off')                          ) 
           }}
 
-# Door sensor
-#.         - binary_sensor.master_room_balcony_door
 
 ###############################################
 #
@@ -140,52 +116,52 @@ automation:
   ###############################################
   # Heating Automation based on motion sensors
   ###############################################
-  - alias: H-GC Ground Corrdior Heating Set to 20 If People Present
-    id: "1599611792932"
-    description: "automation.ground_corrdior_heating_on_if_people_present"
-    trigger:
-      - entity_id: binary_sensor.ground_corridor_motion_sensor_motion
-        platform: state
-        from: "off"
-        to: "on"
-    condition: []
-    action:
-      - data:
-          hvac_mode: heat
-        entity_id: climate.ground_corridor
-        service: climate.set_hvac_mode
-      - data:
-          temperature: 20
-        entity_id: climate.ground_corridor
-        service: climate.set_temperature
-
-  - alias: H-GC Ground Corridor Heating Off If No Person For 20 Min
-    id: "1599611696918"
-    description: "automation.ground_corridor_heating_off_if_no_person"
-    trigger:
-      - entity_id: binary_sensor.ground_corridor_motion_sensor_motion
-        platform: state
-        from: "on"
-        to: "off"
-        for: 00:20:00
-      - minutes: /5
-        platform: time_pattern
-    condition:
-      - condition: and
-        conditions:
-          - condition: state
-            entity_id: binary_sensor.ground_corridor_motion_sensor_motion
-            for: 00:20:00
-            state: "off"
-          - condition: state
-            entity_id: binary_sensor.first_corridor_motion_sensor_motion
-            for: 00:20:00
-            state: "off"
-    action:
-      - service: climate.set_hvac_mode
-        entity_id: climate.ground_corridor
-        data:
-          hvac_mode: "off"
+#  - alias: H-GC Ground Corrdior Heating Set to 20 If People Present
+#    id: "1599611792932"
+#    description: "automation.ground_corrdior_heating_on_if_people_present"
+#    trigger:
+#      - entity_id: binary_sensor.ground_corridor_motion_sensor_motion
+#        platform: state
+#        from: "off"
+#        to: "on"
+#    condition: []
+#    action:
+#      - data:
+#          hvac_mode: heat
+#        entity_id: climate.ground_corridor
+#        service: climate.set_hvac_mode
+#      - data:
+#          temperature: 20
+#        entity_id: climate.ground_corridor
+#        service: climate.set_temperature
+#
+#  - alias: H-GC Ground Corridor Heating Off If No Person For 20 Min
+#    id: "1599611696918"
+#    description: "automation.ground_corridor_heating_off_if_no_person"
+#    trigger:
+#      - entity_id: binary_sensor.ground_corridor_motion_sensor_motion
+#        platform: state
+#        from: "on"
+#        to: "off"
+#        for: 00:20:00
+#      - minutes: /5
+#        platform: time_pattern
+#    condition:
+#      - condition: and
+#        conditions:
+#          - condition: state
+#            entity_id: binary_sensor.ground_corridor_motion_sensor_motion
+#            for: 00:20:00
+#            state: "off"
+#          - condition: state
+#            entity_id: binary_sensor.first_corridor_motion_sensor_motion
+#            for: 00:20:00
+#            state: "off"
+#    action:
+#      - service: climate.set_hvac_mode
+#        entity_id: climate.ground_corridor
+#        data:
+#          hvac_mode: "off"
 
   - alias: H-DS Downstairs Zone Heating On When Heating Required
     id: "1599612133872"

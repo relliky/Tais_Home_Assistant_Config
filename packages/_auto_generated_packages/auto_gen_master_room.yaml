@@ -15,6 +15,7 @@ input_select:
     - Outside
     - Just Entered
     - Stayed Inside
+    - In Sleep
 sensor:
 - platform: history_stats
   name: Master Room Motion On Ratio For Last 4 Minutes
@@ -32,23 +33,9 @@ sensor:
   duration:
     minutes: '8'
   end: '{{ (now() | as_timestamp) | as_datetime | as_local }}'
-group:
-  master_room_auto_gen_automations:
-    name: Master Room Auto-gen Automations
-    entities:
-    - automation.l_mr_master_room_ceiling_lights_on_or_open_curtains_if_entering_to_room
-    - automation.l_mr_master_room_lights_off_if_no_person
-    - automation.lb_mr_master_room_remote_button_single_applies_different_scenes_state_execution
-    - automation.lb_mr_master_room_remote_button_single_applies_different_scenes_execution
-    - automation.lb_mr_master_room_remote_button_double_toggle_lamps
-    - automation.lb_mr_master_room_remote_button_triple_set_scene
-    - automation.lb_mr_master_room_remote_button_long_toggle_leds
-    - automation.lb_mr_master_room_wall_switch_single_press_toggle_ceiling_light
-    - automation.lb_mr_master_room_wall_switch_double_press_leave_room_and_turn_off_everything
-    - automation.oc_mr_master_room_occupancy_update
 automation:
-- alias: L-MR Master Room Ceiling Lights On Or Open Curtains If Entering to Room
-  id: automation.l_mr_master_room_ceiling_lights_on_or_open_curtains_if_entering_to_room
+- alias: ZL-MR Ceiling Lights On Or Open Curtains If Entering to Room-Master Room
+  id: automation.zl_mr_ceiling_lights_on_or_open_curtains_if_entering_to_room_master_room
   trigger:
   - entity_id:
     - binary_sensor.master_room_entrance_motion_sensor_motion
@@ -56,7 +43,7 @@ automation:
     to: 'on'
   action:
   - service: automation.turn_off
-    entity_id: automation.l_mr_master_room_ceiling_lights_on_or_open_curtains_if_entering_to_room
+    entity_id: automation.zl_mr_ceiling_lights_on_or_open_curtains_if_entering_to_room_master_room
     data:
       stop_actions: false
   - choose:
@@ -69,8 +56,7 @@ automation:
         - condition: and
           conditions:
           - condition: numeric_state
-            entity_id:
-            - sensor.cambridge_city_airport_temperature
+            entity_id: sensor.cambridge_city_airport_temperature
             above: '20'
           - condition: time
             after: '13:00:00'
@@ -100,10 +86,8 @@ automation:
           entity_id: input_select.master_room_scene
         data:
           option: Lamp LED White
-
-
-- alias: L-MR Master Room Lights Off If No Person
-  id: automation.l_mr_master_room_lights_off_if_no_person
+- alias: ZL-MR Lights Off If No Person-Master Room
+  id: automation.zl_mr_lights_off_if_no_person_master_room
   trigger:
   - platform: state
     from: 'on'
@@ -135,7 +119,7 @@ automation:
         state: 'off'
   action:
   - service: homeassistant.turn_on
-    entity_id: automation.l_mr_master_room_ceiling_lights_on_or_open_curtains_if_entering_to_room
+    entity_id: automation.zl_mr_ceiling_lights_on_or_open_curtains_if_entering_to_room_master_room
   - service: input_select.select_option
     target:
       entity_id: input_select.master_room_scene
@@ -156,9 +140,7 @@ automation:
     entity_id:
     - cover.master_room_blind
     - cover.master_room_curtain
-
-
-- alias: LB-MR Master Room Remote Button - Single - Applies Different Scenes (State Execution)
+- alias: ZLB-MR Remote Button - Single - Applies Different Scenes (State Execution)-Master Room
   trigger:
   - platform: state
     entity_id:
@@ -244,10 +226,8 @@ automation:
         entity_id: input_select.master_room_scene
       data:
         option: Lamp LED White
-  id: automation.lb_mr_master_room_remote_button_single_applies_different_scenes_state_execution
-
-
-- alias: LB-MR Master Room Remote Button - Single - Applies Different Scenes (Execution)
+  id: automation.zlb_mr_remote_button_single_applies_different_scenes_state_execution_master_room
+- alias: ZLB-MR Applies Different Scenes Based on Scene Selections-Master Room
   trigger:
   - platform: state
     entity_id: input_select.master_room_scene
@@ -373,10 +353,8 @@ automation:
           - light.master_room_drawer_led
           - light.master_room_tv_led
           - light.master_room_bed_led
-  id: automation.lb_mr_master_room_remote_button_single_applies_different_scenes_execution
-
-
-- alias: LB-MR Master Room Remote Button - Double - Toggle Lamps
+  id: automation.zlb_mr_applies_different_scenes_based_on_scene_selections_master_room
+- alias: ZLB-MR Remote Button - Double - Toggle Lamps-Master Room
   trigger:
   - platform: state
     entity_id:
@@ -388,10 +366,8 @@ automation:
     entity_id:
     - light.master_room_lamp_1
     - light.master_room_lamp_2
-  id: automation.lb_mr_master_room_remote_button_double_toggle_lamps
-
-
-- alias: LB-MR Master Room Remote Button - Triple - Set Scene
+  id: automation.zlb_mr_remote_button_double_toggle_lamps_master_room
+- alias: ZLB-MR Remote Button - Triple - Set Scene-Master Room
   trigger:
   - platform: state
     entity_id:
@@ -403,10 +379,8 @@ automation:
     entity_id:
     - light.master_room_lamp_1
     - light.master_room_lamp_2
-  id: automation.lb_mr_master_room_remote_button_triple_set_scene
-
-
-- alias: LB-MR Master Room Remote Button - Long - Toggle LEDs
+  id: automation.zlb_mr_remote_button_triple_set_scene_master_room
+- alias: ZLB-MR Remote Button - Long - Toggle LEDs-Master Room
   trigger:
   - platform: state
     entity_id:
@@ -419,10 +393,8 @@ automation:
     - light.master_room_drawer_led
     - light.master_room_tv_led
     - light.master_room_bed_led
-  id: automation.lb_mr_master_room_remote_button_long_toggle_leds
-
-
-- alias: LB-MR Master Room Wall Switch - Single Press - Toggle Ceiling Light
+  id: automation.zlb_mr_remote_button_long_toggle_leds_master_room
+- alias: ZLB-MR Wall Switch - Single Press - Toggle Ceiling Light-Master Room
   trigger:
   - platform: state
     entity_id:
@@ -432,10 +404,8 @@ automation:
   - service: homeassistant.toggle
     entity_id:
     - light.master_room_ceiling_light
-  id: automation.lb_mr_master_room_wall_switch_single_press_toggle_ceiling_light
-
-
-- alias: LB-MR Master Room Wall Switch - Double Press - Leave Room and Turn Off Everything
+  id: automation.zlb_mr_wall_switch_single_press_toggle_ceiling_light_master_room
+- alias: ZLB-MR Wall Switch - Double Press - Leave Room and Turn Off Everything-Master Room
   trigger:
   - platform: state
     entity_id:
@@ -443,11 +413,9 @@ automation:
     to: double
   action:
   - service: automation.trigger
-    entity_id: automation.l_mr_master_room_lights_off_if_no_person
-  id: automation.lb_mr_master_room_wall_switch_double_press_leave_room_and_turn_off_everything
-
-
-- alias: Oc-MR Master Room Occupancy Update
+    entity_id: automation.zl_mr_lights_off_if_no_person_master_room
+  id: automation.zlb_mr_wall_switch_double_press_leave_room_and_turn_off_everything_master_room
+- alias: ZOc-MR Occupancy Update-Master Room
   trigger:
   - entity_id: group.master_room_motion
     platform: state
@@ -461,10 +429,65 @@ automation:
   action:
   - service: pyscript.room_occupancy_state_machine
     data:
-      occupancy_entity_str: master_room_occupancy
+      occupancy_entity_str: input_select.master_room_occupancy
       motion_str: group.master_room_motion
-      motion_ratio_for_x_min_str: sensor.master_room_motion_on_ratio_for_last_4_minutes
-      motion_ratio_for_2x_min_str: sensor.master_room_motion_on_ratio_for_last_8_minutes
-  id: automation.oc_mr_master_room_occupancy_update
-
-
+      motion_on_ratio_for_x_min_str: sensor.master_room_motion_on_ratio_for_last_4_minutes
+      motion_on_ratio_for_2x_min_str: sensor.master_room_motion_on_ratio_for_last_8_minutes
+      room_type: bedroom
+  id: automation.zoc_mr_occupancy_update_master_room
+- alias: ZH-MR Heating Schedule On If Staying In the Room-Master Room
+  trigger:
+  - platform: state
+    entity_id: input_select.master_room_occupancy
+    from:
+    - Just Entered
+    - Outside
+    to: Stayed Inside
+  action:
+  - if:
+    - condition: not
+      conditions:
+      - condition: state
+        entity_id: climate.master_room
+        state: heat
+    then:
+    - service: climate.set_hvac_mode
+      data:
+        hvac_mode: heat
+      target:
+        entity_id: climate.master_room
+    - service: switch.turn_on
+      target:
+        entity_id: switch.schedule_master_room_temperature
+  id: automation.zh_mr_heating_schedule_on_if_staying_in_the_room_master_room
+- alias: ZH-MR Heating Schedule Off If People Left the Room-Master Room
+  trigger:
+  - platform: state
+    entity_id: input_select.master_room_occupancy
+    to: Outside
+  action:
+  - service: climate.set_hvac_mode
+    data:
+      hvac_mode: 'off'
+    target:
+      entity_id: climate.master_room
+  - service: switch.turn_off
+    target:
+      entity_id: switch.schedule_master_room_temperature
+  id: automation.zh_mr_heating_schedule_off_if_people_left_the_room_master_room
+group:
+  master_room_auto_gen_automations:
+    name: Master Room Auto-gen Automations
+    entities:
+    - automation.zl_mr_ceiling_lights_on_or_open_curtains_if_entering_to_room_master_room
+    - automation.zl_mr_lights_off_if_no_person_master_room
+    - automation.zlb_mr_remote_button_single_applies_different_scenes_state_execution_master_room
+    - automation.zlb_mr_applies_different_scenes_based_on_scene_selections_master_room
+    - automation.zlb_mr_remote_button_double_toggle_lamps_master_room
+    - automation.zlb_mr_remote_button_triple_set_scene_master_room
+    - automation.zlb_mr_remote_button_long_toggle_leds_master_room
+    - automation.zlb_mr_wall_switch_single_press_toggle_ceiling_light_master_room
+    - automation.zlb_mr_wall_switch_double_press_leave_room_and_turn_off_everything_master_room
+    - automation.zoc_mr_occupancy_update_master_room
+    - automation.zh_mr_heating_schedule_on_if_staying_in_the_room_master_room
+    - automation.zh_mr_heating_schedule_off_if_people_left_the_room_master_room
