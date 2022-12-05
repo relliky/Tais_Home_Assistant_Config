@@ -1,0 +1,39 @@
+# Temperature Sensor
+template:
+  - sensor:
+      - name: "Master Room Temperature Sensor Backup1"
+        unit_of_measurement: "°C"
+        state: >
+          {{ states('sensor.qingping_temp_sensor_582d343b6a27_temperature') | float | round(1) }}
+
+      - name: "Master Room Temperature Sensor Backup2"
+        unit_of_measurement: "°C"
+        state: >
+          {{ states('sensor.temp_sensor_2_a4c138ecdbba_temperature') | float | round(1) }}
+
+      - name: "Master Room Temperature Sensor"
+        unit_of_measurement: "°C"
+        state: >
+          {% if   states('sensor.master_room_temperature_sensor_backup1') != 'unavailable' and
+                  states('sensor.master_room_temperature_sensor_backup2') == 'unavailable'     %}
+                 {{states('sensor.master_room_temperature_sensor_backup1')}}
+          {% elif states('sensor.master_room_temperature_sensor_backup2') == 'unavailable' and
+                  states('sensor.master_room_temperature_sensor_backup2') != 'unavailable'     %}
+                {{states('sensor.master_room_temperature_sensor_backup2')}}
+          {% else %}
+              {% set sensor_1 = states('sensor.master_room_temperature_sensor_backup1') | float | round(1) %}
+              {% set sensor_2 = states('sensor.master_room_temperature_sensor_backup2') | float | round(1) %}
+              {% if sensor_1 < 1.0 or sensor_2 < 1.0 or (sensor_1 + sensor_2) < 1.0 %}
+                    22.0
+              {% else %}
+                   {{ ((sensor_1 + sensor_2) / 2) | round(1) }}
+              {% endif %}
+          {% endif %}
+
+
+      - name: "Kitchen Temperature Sensor"
+        unit_of_measurement: "°C"
+        state: >
+          {{ states('sensor.temp_sensor_2_a4c1380e91a7_temperature') | float | round(1) }}
+
+
