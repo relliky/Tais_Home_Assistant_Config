@@ -4,11 +4,6 @@
 #
 ###########################################
 group:
-  guest_toilet_motion:
-    name: Guest Toilet Motion
-    entities:
-      - binary_sensor.guest_toilet_motion_sensor_motion
-
   guest_toilet_appliances:
     name: Guest Toilet Appliances
     entities:
@@ -157,108 +152,109 @@ automation:
 #      - service: input_boolean.turn_off
 #        entity_id: input_boolean.guest_toilet_short_presence
 #
-  ###############################################
-  # Lighting Automation based on motion sensors
-  ###############################################
-
-  - alias: L-GT Guest Toilet Lights On Daytime If People Present and Dark
-    id: "1600014313749"
-    trigger:
-      - entity_id: binary_sensor.guest_toilet_motion_sensor_motion
-        platform: state
-        from: "off"
-        to: "on"
-    condition:
-      - condition: and
-        conditions:
-          - after: "05:00:00"
-            before: "00:00:00"
-            condition: time
-          - condition: and
-            conditions:
-              - entity_id: binary_sensor.guest_toilet_motion_sensor_motion
-                condition: state
-                state: "on"
-              - entity_id: sensor.guest_toilet_motion_sensor_light
-                condition: numeric_state
-                below: "30"
-    action:
-      - service: script.guest_toilet_ceiling_light_turn_on
-
-  - alias: L-GT Guest Toilet Lights On Nighttime If People Present and Dark
-    id: "1600014313770"
-    trigger:
-      - entity_id: binary_sensor.guest_toilet_motion_sensor_motion
-        platform: state
-        from: "off"
-        to: "on"
-    condition:
-      - condition: and
-        conditions:
-          - after: "00:00:00"
-            before: "05:00:00"
-            condition: time
-          - condition: and
-            conditions:
-              - entity_id: binary_sensor.guest_toilet_motion_sensor_motion
-                condition: state
-                state: "on"
-              - entity_id: sensor.guest_toilet_motion_sensor_light
-                condition: numeric_state
-                below: "30"
-    action:
-      - service: script.guest_toilet_floor_led_light_turn_on
-
-  - alias: L-GT Guest Toilet Lights Off If No Person For 10 Min
-    id: "16000143133727"
-    trigger:
-      - entity_id: binary_sensor.guest_toilet_motion_sensor_motion
-        platform: state
-        from: "on"
-        to: "off"
-        for: 00:10:00
-      - minutes: /5
-        platform: time_pattern
-    condition:
-      - entity_id: binary_sensor.guest_toilet_motion_sensor_motion
-        condition: state
-        state: "off"
-        for: 00:10:00
-    action:
-      - service: script.guest_toilet_all_lights_turn_off
-
-  - alias: L-GT Guest Toilet Lights Off If No Person For 2 Min And Door Open
-    id: "1600014323522"
-    trigger:
-      - entity_id: binary_sensor.guest_toilet_motion_sensor_motion
-        platform: state
-        from: "on"
-        to: "off"
-        for: 00:02:00
-      - minutes: /5
-        platform: time_pattern
-    condition:
-      - condition: and
-        conditions:
-          - entity_id: binary_sensor.guest_toilet_door
-            condition: state
-            state: "on"
-          - entity_id: binary_sensor.guest_toilet_motion_sensor_motion
-            condition: state
-            state: "off"
-            for: 00:02:00
-    action:
-      - service: script.guest_toilet_all_lights_turn_off
-  ###############################################
-  # Actions based on buttons
-  ###############################################
-  - alias: B-GT Guest Toilet Wall Switch - Single Press - Toggle Ceiling Lights
-    id: "1600014318539"
-    trigger:
-      - entity_id: sensor.guest_toilet_light_wall_button
-        platform: state
-        to:
-          - button_1_single
-    action:
-      - service: light.toggle
-        entity_id: light.guest_toilet_ceiling_light
+#  ###############################################
+#  # Lighting Automation based on motion sensors
+#  ###############################################
+#
+#  - alias: L-GT Guest Toilet Lights On Daytime If People Present and Dark
+#    id: "1600014313749"
+#    trigger:
+#      - entity_id: binary_sensor.guest_toilet_motion_sensor_motion
+#        platform: state
+#        from: "off"
+#        to: "on"
+#    condition:
+#      - condition: and
+#        conditions:
+#          - after: "05:00:00"
+#            before: "00:00:00"
+#            condition: time
+#          - condition: and
+#            conditions:
+#              - entity_id: binary_sensor.guest_toilet_motion_sensor_motion
+#                condition: state
+#                state: "on"
+#              - entity_id: sensor.guest_toilet_motion_sensor_light
+#                condition: numeric_state
+#                below: "30"
+#    action:
+#      - service: script.guest_toilet_ceiling_light_turn_on
+#
+#  - alias: L-GT Guest Toilet Lights On Nighttime If People Present and Dark
+#    id: "1600014313770"
+#    trigger:
+#      - entity_id: binary_sensor.guest_toilet_motion_sensor_motion
+#        platform: state
+#        from: "off"
+#        to: "on"
+#    condition:
+#      - condition: and
+#        conditions:
+#          - after: "00:00:00"
+#            before: "05:00:00"
+#            condition: time
+#          - condition: and
+#            conditions:
+#              - entity_id: binary_sensor.guest_toilet_motion_sensor_motion
+#                condition: state
+#                state: "on"
+#              - entity_id: sensor.guest_toilet_motion_sensor_light
+#                condition: numeric_state
+#                below: "30"
+#    action:
+#      - service: script.guest_toilet_floor_led_light_turn_on
+#
+#  - alias: L-GT Guest Toilet Lights Off If No Person For 10 Min
+#    id: "16000143133727"
+#    trigger:
+#      - entity_id: binary_sensor.guest_toilet_motion_sensor_motion
+#        platform: state
+#        from: "on"
+#        to: "off"
+#        for: 00:10:00
+#      - minutes: /5
+#        platform: time_pattern
+#    condition:
+#      - entity_id: binary_sensor.guest_toilet_motion_sensor_motion
+#        condition: state
+#        state: "off"
+#        for: 00:10:00
+#    action:
+#      - service: script.guest_toilet_all_lights_turn_off
+#
+#  - alias: L-GT Guest Toilet Lights Off If No Person For 2 Min And Door Open
+#    id: "1600014323522"
+#    trigger:
+#      - entity_id: binary_sensor.guest_toilet_motion_sensor_motion
+#        platform: state
+#        from: "on"
+#        to: "off"
+#        for: 00:02:00
+#      - minutes: /5
+#        platform: time_pattern
+#    condition:
+#      - condition: and
+#        conditions:
+#          - entity_id: binary_sensor.guest_toilet_door
+#            condition: state
+#            state: "on"
+#          - entity_id: binary_sensor.guest_toilet_motion_sensor_motion
+#            condition: state
+#            state: "off"
+#            for: 00:02:00
+#    action:
+#      - service: script.guest_toilet_all_lights_turn_off
+#  ###############################################
+#  # Actions based on buttons
+#  ###############################################
+#  - alias: B-GT Guest Toilet Wall Switch - Single Press - Toggle Ceiling Lights
+#    id: "1600014318539"
+#    trigger:
+#      - entity_id: sensor.guest_toilet_light_wall_button
+#        platform: state
+#        to:
+#          - button_1_single
+#    action:
+#      - service: light.toggle
+#        entity_id: light.guest_toilet_ceiling_light
+#

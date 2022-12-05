@@ -1,49 +1,107 @@
-input_select:
-  kitchen_occupancy:
-    name: Kitchen Occupancy
-    options:
-    - Outside
-    - Just Entered
-    - Stayed Inside
-    - In Sleep
-sensor:
-- platform: history_stats
-  name: Kitchen Motion On Ratio For Last 4 Minutes
-  entity_id: group.kitchen_motion
-  state: 'on'
-  type: ratio
-  duration:
-    minutes: '4'
-  end: '{{ (now() | as_timestamp) | as_datetime | as_local }}'
-- platform: history_stats
-  name: Kitchen Motion On Ratio For Last 8 Minutes
-  entity_id: group.kitchen_motion
-  state: 'on'
-  type: ratio
-  duration:
-    minutes: '8'
-  end: '{{ (now() | as_timestamp) | as_datetime | as_local }}'
 automation:
-- alias: ZOc-KC Occupancy Update-Kitchen
+- alias: ZL-KC Ceiling Lights On Or Open Curtains If Entering to Room-Kitchen
+  id: automation.zl_kc_ceiling_lights_on_or_open_curtains_if_entering_to_room_kitchen
   trigger:
-  - entity_id: group.kitchen_motion
+    entity_id:
+    - group.kitchen_motion
     platform: state
     to: 'on'
-  - entity_id: group.kitchen_motion
-    platform: state
-    to: 'off'
-    for: 05:00:00
+  action:
+  - service: automation.turn_off
+    entity_id: automation.zl_kc_ceiling_lights_on_or_open_curtains_if_entering_to_room_kitchen
+    data:
+      stop_actions: false
+  - choose:
+    - conditions:
+        condition: state
+        entity_id: input_boolean.always_on
+        state: 'on'
+      sequence:
+      - service: input_select.select_option
+        target:
+          entity_id: input_select.kitchen_scene
+        data:
+          option: Ceiling Light White
+      - condition: state
+        entity_id: sun.sun
+        state: below_horizon
+      - service: input_select.select_option
+        target:
+          entity_id: input_select.kitchen_scene
+        data:
+          option: All White
+    - conditions:
+      - condition: state
+        entity_id: input_boolean.always_off
+        state: 'on'
+      - condition: state
+        entity_id: input_select.indoor_brightness
+        state: bright
+      - condition: not
+        conditions:
+        - condition: and
+          conditions:
+          - condition: numeric_state
+            entity_id: sensor.cambridge_city_airport_temperature
+            above: '20'
+          - condition: time
+            after: '13:00:00'
+            before: '22:00:00'
+          - condition: template
+            value_template: '{{ now().month > 4 and now().month < 9 }}'
+      sequence:
+        service: cover.open_cover
+        entity_id: []
+    - conditions:
+      - condition: time
+        after: '10:00:00'
+        before: '22:00:00'
+      sequence:
+        service: input_select.select_option
+        target:
+          entity_id: input_select.kitchen_scene
+        data:
+          option: All White
+    default:
+      service: input_select.select_option
+      target:
+        entity_id: input_select.kitchen_scene
+      data:
+        option: All White
+- alias: ZL-KC Lights Off If No Person-Kitchen
+  id: automation.zl_kc_lights_off_if_no_person_kitchen
+  trigger:
+  - platform: state
+    entity_id: input_select.kitchen_occupancy
+    to: Outside
   - minutes: /5
     platform: time_pattern
+  condition:
+  - condition: state
+    entity_id: input_select.kitchen_occupancy
+    state: Outside
+  - condition: state
+    entity_id: group.kitchen_motion
+    state: 'off'
+    for: 00:01:00
   action:
-  - service: pyscript.room_occupancy_state_machine
+  - service: homeassistant.turn_on
+    entity_id: automation.zl_kc_ceiling_lights_on_or_open_curtains_if_entering_to_room_kitchen
+  - service: input_select.select_option
+    target:
+      entity_id: input_select.kitchen_scene
     data:
-      occupancy_entity_str: input_select.kitchen_occupancy
-      motion_str: group.kitchen_motion
-      motion_on_ratio_for_x_min_str: sensor.kitchen_motion_on_ratio_for_last_4_minutes
-      motion_on_ratio_for_2x_min_str: sensor.kitchen_motion_on_ratio_for_last_8_minutes
-      room_type: common_area
-  id: automation.zoc_kc_occupancy_update_kitchen
+      option: All Off
+  - service: homeassistant.turn_off
+    entity_id:
+    - switch.kitchen_floor_led
+    - light.kitchen_ceiling_light
+    - light.kitchen_dining_light
+  - service: homeassistant.turn_off
+    entity_id:
+    - media_player.kitchen_tv
+  - service: cover.close_cover
+    entity_id: []
 - alias: ZH-KC Heating Schedule On If Staying In the Room-Kitchen
   trigger:
   - platform: state
@@ -70,10 +128,21 @@ automation:
         entity_id: switch.schedule_kitchen_temperature
   id: automation.zh_kc_heating_schedule_on_if_staying_in_the_room_kitchen
 - alias: ZH-KC Heating Schedule Off If People Left the Room-Kitchen
+  id: automation.zh_kc_heating_schedule_off_if_people_left_the_room_kitchen
   trigger:
   - platform: state
     entity_id: input_select.kitchen_occupancy
     to: Outside
+  - minutes: /5
+    platform: time_pattern
+  condition:
+  - condition: state
+    entity_id: input_select.kitchen_occupancy
+    state: Outside
+  - condition: state
+    entity_id: group.kitchen_motion
+    state: 'off'
+    for: 00:01:00
   action:
   - service: climate.set_hvac_mode
     data:
@@ -83,11 +152,261 @@ automation:
   - service: switch.turn_off
     target:
       entity_id: switch.schedule_kitchen_temperature
-  id: automation.zh_kc_heating_schedule_off_if_people_left_the_room_kitchen
+  - service: input_select.select_option
+    target:
+      entity_id: input_select.kitchen_occupancy
+    data:
+      option: Outside
+- alias: ZH-KC Valve Calibrate Temperature Using External Sensor-Kitchen
+  use_blueprint:
+    path: calibrate_valve_temperature.yaml
+    input:
+      tado_valve_entity: climate.kitchen
+      external_temperature_sensor_entity: sensor.kitchen_temperature_sensor
+  id: automation.zh_kc_valve_calibrate_temperature_using_external_sensor_kitchen
+- alias: ZLB-KC Applies Different Scenes Based on Scene Selections (State Execution)-Kitchen
+  trigger:
+  - platform: state
+    entity_id: input_select.kitchen_scene
+  mode: queued
+  action:
+  - choose:
+    - conditions:
+      - condition: state
+        entity_id: input_select.kitchen_scene
+        state: All White
+      sequence:
+      - parallel:
+        - service: homeassistant.turn_on
+          entity_id:
+          - light.kitchen_ceiling_light
+          - light.kitchen_dining_light
+          - switch.kitchen_floor_led
+        - service: samsungtv_smart.select_picture_mode
+          data:
+            entity_id:
+            - media_player.kitchen_tv
+            picture_mode: Standard
+    - conditions:
+      - condition: state
+        entity_id: input_select.kitchen_scene
+        state: Ceiling Light White
+      sequence:
+      - parallel:
+        - service: homeassistant.turn_off
+          entity_id:
+          - switch.kitchen_floor_led
+        - service: homeassistant.turn_on
+          entity_id:
+          - light.kitchen_ceiling_light
+          - light.kitchen_dining_light
+        - service: samsungtv_smart.select_picture_mode
+          data:
+            entity_id:
+            - media_player.kitchen_tv
+            picture_mode: Standard
+    - conditions:
+      - condition: state
+        entity_id: input_select.kitchen_scene
+        state: Lamp LED White
+      sequence:
+      - parallel:
+        - service: homeassistant.turn_off
+          entity_id:
+          - light.kitchen_ceiling_light
+          - light.kitchen_dining_light
+        - service: homeassistant.turn_on
+          entity_id:
+          - switch.kitchen_floor_led
+        - service: samsungtv_smart.select_picture_mode
+          data:
+            entity_id:
+            - media_player.kitchen_tv
+            picture_mode: Standard
+    - conditions:
+      - condition: state
+        entity_id: input_select.kitchen_scene
+        state: LED White
+      sequence:
+      - parallel:
+        - service: homeassistant.turn_off
+          entity_id:
+          - light.kitchen_ceiling_light
+          - light.kitchen_dining_light
+        - service: homeassistant.turn_on
+          entity_id:
+          - switch.kitchen_floor_led
+        - service: samsungtv_smart.select_picture_mode
+          data:
+            entity_id:
+            - media_player.kitchen_tv
+            picture_mode: Natural
+    - conditions:
+      - condition: state
+        entity_id: input_select.kitchen_scene
+        state: Hue
+      sequence:
+      - service: light.turn_on
+        entity_id:
+        - switch.kitchen_floor_led
+        data:
+          brightness_pct: 100
+      - service: pyscript.set_rgb_light_list
+        data:
+          light_list:
+          - light.kitchen_ceiling_light
+          - light.kitchen_dining_light
+          - switch.kitchen_floor_led
+      - service: samsungtv_smart.select_picture_mode
+        data:
+          entity_id:
+          - media_player.kitchen_tv
+          picture_mode: Standard
+    - conditions:
+      - condition: state
+        entity_id: input_select.kitchen_scene
+        state: Night Mode
+      sequence:
+      - parallel:
+        - service: homeassistant.turn_on
+          entity_id: scene.kitchen_night_mode
+    - conditions:
+      - condition: state
+        entity_id: input_select.kitchen_scene
+        state: Dark Night Mode
+      sequence:
+      - parallel:
+        - service: homeassistant.turn_on
+          entity_id: scene.kitchen_dark_night_mode
+    - conditions:
+      - condition: state
+        entity_id: input_select.kitchen_scene
+        state: All Off
+      sequence:
+      - parallel:
+        - service: homeassistant.turn_off
+          entity_id:
+          - light.kitchen_ceiling_light
+          - light.kitchen_dining_light
+          - switch.kitchen_floor_led
+  id: automation.zlb_kc_applies_different_scenes_based_on_scene_selections_state_execution_kitchen
+- alias: ZLB-KC Wall Switch-Single Left Press - Toggle Ceiling Light-Kitchen
+  trigger:
+  - platform: state
+    entity_id:
+    - sensor.kitchen_wall_button
+    to:
+    - single_left
+  action:
+  - service: homeassistant.toggle
+    entity_id:
+    - light.kitchen_ceiling_light
+    - light.kitchen_dining_light
+  id: automation.zlb_kc_wall_switch_single_left_press_toggle_ceiling_light_kitchen
+- alias: ZLB-KC Wall Switch-Single Right Press - Toggle Floor LED-Kitchen
+  trigger:
+  - platform: state
+    entity_id:
+    - sensor.kitchen_wall_button
+    to:
+    - single_right
+  action:
+  - service: homeassistant.toggle
+    entity_id:
+    - switch.kitchen_floor_led
+  id: automation.zlb_kc_wall_switch_single_right_press_toggle_floor_led_kitchen
+- alias: ZLB-KC Wall Switch - Double Press - Leave Room and Turn Off Everything-Kitchen
+  trigger:
+  - platform: state
+    entity_id:
+    - sensor.kitchen_wall_button
+    to:
+    - '2'
+    - double
+    - double_left
+    - double_right
+    - double_center
+  action:
+  - service: automation.trigger
+    entity_id:
+    - automation.zl_kc_lights_off_if_no_person_kitchen
+    - automation.zh_kc_heating_schedule_off_if_people_left_the_room_kitchen
+  id: automation.zlb_kc_wall_switch_double_press_leave_room_and_turn_off_everything_kitchen
+- alias: ZOc-KC Occupancy Update-Kitchen
+  trigger:
+  - entity_id: group.kitchen_motion
+    platform: state
+    to: 'on'
+  - entity_id: group.kitchen_motion
+    platform: state
+    to: 'off'
+    for: 05:00:00
+  - minutes: /5
+    platform: time_pattern
+  action:
+  - service: pyscript.room_occupancy_state_machine
+    data:
+      occupancy_entity_str: input_select.kitchen_occupancy
+      motion_str: group.kitchen_motion
+      motion_on_ratio_for_x_min_str: sensor.kitchen_motion_on_ratio_for_last_4_minutes
+      motion_on_ratio_for_2x_min_str: sensor.kitchen_motion_on_ratio_for_last_8_minutes
+      room_type: common_area
+  id: automation.zoc_kc_occupancy_update_kitchen
+input_select:
+  kitchen_scene:
+    name: Kitchen Scene
+    options:
+    - LED White
+    - All White
+    - Ceiling Light White
+    - All Off
+  kitchen_occupancy:
+    name: Kitchen Occupancy
+    options:
+    - Outside
+    - Just Entered
+    - Stayed Inside
+    - In Sleep
+sensor:
+- platform: history_stats
+  name: Kitchen Motion On Ratio For Last 4 Minutes
+  entity_id: group.kitchen_motion
+  state: 'on'
+  type: ratio
+  duration:
+    minutes: '4'
+  end: '{{ (now() | as_timestamp) | as_datetime | as_local }}'
+- platform: history_stats
+  name: Kitchen Motion On Ratio For Last 8 Minutes
+  entity_id: group.kitchen_motion
+  state: 'on'
+  type: ratio
+  duration:
+    minutes: '8'
+  end: '{{ (now() | as_timestamp) | as_datetime | as_local }}'
 group:
+  kitchen_occupancy_group:
+    name: Kitchen Occuapancy Group
+    entities:
+    - input_select.kitchen_occupancy
+    - group.kitchen_motion
+    - binary_sensor.kitchen_worktop_motion_sensor_motion
+    - binary_sensor.kitchen_dining_motion_sensor_motion
+  kitchen_motion:
+    name: Kitchen Motion
+    entities:
+    - binary_sensor.kitchen_worktop_motion_sensor_motion
+    - binary_sensor.kitchen_dining_motion_sensor_motion
   kitchen_auto_gen_automations:
     name: Kitchen Auto-gen Automations
     entities:
-    - automation.zoc_kc_occupancy_update_kitchen
+    - automation.zl_kc_ceiling_lights_on_or_open_curtains_if_entering_to_room_kitchen
+    - automation.zl_kc_lights_off_if_no_person_kitchen
     - automation.zh_kc_heating_schedule_on_if_staying_in_the_room_kitchen
     - automation.zh_kc_heating_schedule_off_if_people_left_the_room_kitchen
+    - automation.zh_kc_valve_calibrate_temperature_using_external_sensor_kitchen
+    - automation.zlb_kc_applies_different_scenes_based_on_scene_selections_state_execution_kitchen
+    - automation.zlb_kc_wall_switch_single_left_press_toggle_ceiling_light_kitchen
+    - automation.zlb_kc_wall_switch_single_right_press_toggle_floor_led_kitchen
+    - automation.zlb_kc_wall_switch_double_press_leave_room_and_turn_off_everything_kitchen
+    - automation.zoc_kc_occupancy_update_kitchen

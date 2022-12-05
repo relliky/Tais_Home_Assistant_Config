@@ -1,3 +1,24 @@
+automation:
+- alias: ZOc-WH Occupancy Update-Whole Home
+  trigger:
+  - entity_id: group.whole_home_motion
+    platform: state
+    to: 'on'
+  - entity_id: group.whole_home_motion
+    platform: state
+    to: 'off'
+    for: 05:00:00
+  - minutes: /5
+    platform: time_pattern
+  action:
+  - service: pyscript.room_occupancy_state_machine
+    data:
+      occupancy_entity_str: input_select.whole_home_occupancy
+      motion_str: group.whole_home_motion
+      motion_on_ratio_for_x_min_str: sensor.whole_home_motion_on_ratio_for_last_4_minutes
+      motion_on_ratio_for_2x_min_str: sensor.whole_home_motion_on_ratio_for_last_8_minutes
+      room_type: common_area
+  id: automation.zoc_wh_occupancy_update_whole_home
 input_select:
   whole_home_occupancy:
     name: Whole Home Occupancy
@@ -23,24 +44,34 @@ sensor:
   duration:
     minutes: '8'
   end: '{{ (now() | as_timestamp) | as_datetime | as_local }}'
-automation:
-- alias: ZOc-WH Occupancy Update-Whole Home
-  trigger:
-  - entity_id: group.whole_home_motion
-    platform: state
-    to: 'on'
-  - entity_id: group.whole_home_motion
-    platform: state
-    to: 'off'
-    for: 05:00:00
-  - minutes: /5
-    platform: time_pattern
-  action:
-  - service: pyscript.room_occupancy_state_machine
-    data:
-      occupancy_entity_str: input_select.whole_home_occupancy
-      motion_str: group.whole_home_motion
-      motion_on_ratio_for_x_min_str: sensor.whole_home_motion_on_ratio_for_last_4_minutes
-      motion_on_ratio_for_2x_min_str: sensor.whole_home_motion_on_ratio_for_last_8_minutes
-      room_type: common_area
-  id: automation.zoc_wh_occupancy_update_whole_home
+group:
+  whole_home_occupancy_group:
+    name: Whole Home Occuapancy Group
+    entities:
+    - input_select.whole_home_occupancy
+    - group.whole_home_motion
+    - group.living_room_motion
+    - group.kitchen_motion
+    - group.corridor_motion
+    - group.study_motion
+    - group.ground_toilet_motion
+    - group.master_room_motion
+    - group.master_toilet_motion
+    - group.en_suite_room_motion
+    - group.en_suite_toilet_motion
+    - group.guest_room_motion
+    - group.guest_toilet_motion
+  whole_home_motion:
+    name: Whole Home Motion
+    entities:
+    - group.living_room_motion
+    - group.kitchen_motion
+    - group.corridor_motion
+    - group.study_motion
+    - group.ground_toilet_motion
+    - group.master_room_motion
+    - group.master_toilet_motion
+    - group.en_suite_room_motion
+    - group.en_suite_toilet_motion
+    - group.guest_room_motion
+    - group.guest_toilet_motion

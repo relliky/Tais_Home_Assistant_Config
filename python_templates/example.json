@@ -1,45 +1,35 @@
 {
-  "alias": "Living Room Heating Schedule On If Staying In The Room",
+  "alias": "L-MR-M Master Room Bed LED Strip On For 3 Min If People Are Walking In the Dark",
+  "mode": "restart",
   "trigger": [
     {
+      "entity_id": self.non_bed_motion_sensors,
       "platform": "state",
-      "entity_id": [
-        "input_select.living_room_occupancy"
-      ],
-      "to": "Stayed Inside"
+      "to": "on"
+    }
+  ],
+  "condition": [
+    {
+      "condition": "state",
+      "entity_id": "input_select.indoor_brightness",
+      "state": "dark"
+    },
+    {
+      "entity_id": self.lights,
+      "condition": "state",
+      "state": "off"
     }
   ],
   "action": [
     {
-      "if": [
-        {
-          "condition": "not",
-          "conditions": [
-            {
-              "condition": "state",
-              "entity_id": "climate.living_room",
-              "state": "heat"
-            }
-          ]
-        }
-      ],
-      "then": [
-        {
-          "service": "climate.set_hvac_mode",
-          "data": {
-            "hvac_mode": "heat"
-          },
-          "target": {
-            "entity_id": "climate.living_room"
-          }
-        },
-        {
-          "service": "switch.turn_on",
-          "target": {
-            "entity_id": "switch.schedule_living_room_temperature"
-          }
-        }
-      ]
+      "service": "script.master_room_bed_led_set_dark_yellow"
+    },
+    {
+      "delay": "00:03:00"
+    },
+    {
+      "service": "light.turn_off",
+      "entity_id": "light.master_room_leds"
     }
   ]
 }

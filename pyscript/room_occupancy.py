@@ -85,10 +85,9 @@ def room_occupancy_state_machine(occupancy_entity_str,
             
         # c3. Just Entered -> Outside:
         #     (currently off for 5min) & largely off in [0,2x]
-        elif motion == 'off' and \
-           motion_state_lasts_for >= 5*60 and \
-           motion_off_ratio_for_2x_min >= 0.5:
-            nxt_state = "Outside"
+        elif motion_off_for >= 5*60 and \
+             motion_off_ratio_for_2x_min >= 0.5:
+               nxt_state = "Outside"
         
         # c4. just_entered -> just_entered
         #     all other conditions
@@ -152,9 +151,9 @@ def room_occupancy_state_machine(occupancy_entity_str,
     
     
     
-#room_occupancy_state_machine(  'input_select.master_room_occupancy', 
-#                               'group.master_room_motion',
-#                               'sensor.master_room_motion_on_ratio_for_last_4_minutes',
-#                               'sensor.master_room_motion_on_ratio_for_last_8_minutes',
-#                               'bedroom')
+#room_occupancy_state_machine(  occupancy_entity_str=input_select.en_suite_room_occupancy,
+#                               motion_str=group.en_suite_room_motion,
+#                               motion_on_ratio_for_x_min_str=sensor.en_suite_room_motion_on_ratio_for_last_4_minutes,
+#                               motion_on_ratio_for_2x_min_str=sensor.en_suite_room_motion_on_ratio_for_last_8_minutes,
+#                               room_type=bedroom
     

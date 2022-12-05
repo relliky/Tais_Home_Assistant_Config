@@ -1,42 +1,8 @@
-input_select:
-  living_room_scene:
-    name: Living Room Scene
-    options:
-    - All White
-    - Lamp LED White
-    - LED White
-    - Night Mode
-    - Dark Night Mode
-    - All Off
-  living_room_occupancy:
-    name: Living Room Occupancy
-    options:
-    - Outside
-    - Just Entered
-    - Stayed Inside
-    - In Sleep
-sensor:
-- platform: history_stats
-  name: Living Room Motion On Ratio For Last 4 Minutes
-  entity_id: group.living_room_motion
-  state: 'on'
-  type: ratio
-  duration:
-    minutes: '4'
-  end: '{{ (now() | as_timestamp) | as_datetime | as_local }}'
-- platform: history_stats
-  name: Living Room Motion On Ratio For Last 8 Minutes
-  entity_id: group.living_room_motion
-  state: 'on'
-  type: ratio
-  duration:
-    minutes: '8'
-  end: '{{ (now() | as_timestamp) | as_datetime | as_local }}'
 automation:
 - alias: ZL-LR Ceiling Lights On Or Open Curtains If Entering to Room-Living Room
   id: automation.zl_lr_ceiling_lights_on_or_open_curtains_if_entering_to_room_living_room
   trigger:
-  - entity_id:
+    entity_id:
     - group.living_room_motion
     platform: state
     to: 'on'
@@ -47,6 +13,27 @@ automation:
       stop_actions: false
   - choose:
     - conditions:
+        condition: state
+        entity_id: input_boolean.always_on
+        state: 'on'
+      sequence:
+      - service: input_select.select_option
+        target:
+          entity_id: input_select.living_room_scene
+        data:
+          option: Ceiling Light White
+      - condition: state
+        entity_id: sun.sun
+        state: below_horizon
+      - service: input_select.select_option
+        target:
+          entity_id: input_select.living_room_scene
+        data:
+          option: All White
+    - conditions:
+      - condition: state
+        entity_id: input_boolean.always_off
+        state: 'on'
       - condition: state
         entity_id: input_select.indoor_brightness
         state: bright
@@ -63,56 +50,40 @@ automation:
           - condition: template
             value_template: '{{ now().month > 4 and now().month < 9 }}'
       sequence:
-        service: script.do_nothing
-    default:
-    - choose:
-      - conditions:
-        - condition: time
-          after: '10:00:00'
-          before: '22:00:00'
-        sequence:
-          service: input_select.select_option
-          target:
-            entity_id: input_select.living_room_scene
-          data:
-            option: All White
-      default:
+        service: cover.open_cover
+        entity_id: []
+    - conditions:
+      - condition: time
+        after: '10:00:00'
+        before: '22:00:00'
+      sequence:
         service: input_select.select_option
         target:
           entity_id: input_select.living_room_scene
         data:
           option: All White
+    default:
+      service: input_select.select_option
+      target:
+        entity_id: input_select.living_room_scene
+      data:
+        option: Lamp LED White
 - alias: ZL-LR Lights Off If No Person-Living Room
   id: automation.zl_lr_lights_off_if_no_person_living_room
   trigger:
   - platform: state
-    from: 'on'
-    to: 'off'
-    for: 00:15:00
-    entity_id: group.living_room_motion
+    entity_id: input_select.living_room_occupancy
+    to: Outside
   - minutes: /5
     platform: time_pattern
   condition:
-  - condition: or
-    conditions:
-    - condition: and
-      conditions:
-      - after: '10:00:00'
-        before: '22:00:00'
-        condition: time
-      - condition: state
-        entity_id: group.living_room_motion
-        for: 00:15:00
-        state: 'off'
-    - condition: and
-      conditions:
-      - after: '22:00:00'
-        before: '10:00:00'
-        condition: time
-      - condition: state
-        entity_id: group.living_room_motion
-        for: 00:15:00
-        state: 'off'
+  - condition: state
+    entity_id: input_select.living_room_occupancy
+    state: Outside
+  - condition: state
+    entity_id: group.living_room_motion
+    state: 'off'
+    for: 00:01:00
   action:
   - service: homeassistant.turn_on
     entity_id: automation.zl_lr_ceiling_lights_on_or_open_curtains_if_entering_to_room_living_room
@@ -134,13 +105,78 @@ automation:
   - service: homeassistant.turn_off
     entity_id:
     - media_player.living_room_tv
-  - service: script.do_nothing
-- alias: ZLB-LR Remote Button - Single - Applies Different Scenes (State Execution)-Living Room
+  - service: cover.close_cover
+    entity_id: []
+- alias: ZH-LR Heating Schedule On If Staying In the Room-Living Room
+  trigger:
+  - platform: state
+    entity_id: input_select.living_room_occupancy
+    from:
+    - Just Entered
+    - Outside
+    to: Stayed Inside
+  action:
+  - if:
+    - condition: not
+      conditions:
+      - condition: state
+        entity_id: climate.living_room
+        state: heat
+    then:
+    - service: climate.set_hvac_mode
+      data:
+        hvac_mode: heat
+      target:
+        entity_id: climate.living_room
+    - service: switch.turn_on
+      target:
+        entity_id: switch.schedule_living_room_temperature
+  id: automation.zh_lr_heating_schedule_on_if_staying_in_the_room_living_room
+- alias: ZH-LR Heating Schedule Off If People Left the Room-Living Room
+  id: automation.zh_lr_heating_schedule_off_if_people_left_the_room_living_room
+  trigger:
+  - platform: state
+    entity_id: input_select.living_room_occupancy
+    to: Outside
+  - minutes: /5
+    platform: time_pattern
+  condition:
+  - condition: state
+    entity_id: input_select.living_room_occupancy
+    state: Outside
+  - condition: state
+    entity_id: group.living_room_motion
+    state: 'off'
+    for: 00:01:00
+  action:
+  - service: climate.set_hvac_mode
+    data:
+      hvac_mode: 'off'
+    target:
+      entity_id: climate.living_room
+  - service: switch.turn_off
+    target:
+      entity_id: switch.schedule_living_room_temperature
+  - service: input_select.select_option
+    target:
+      entity_id: input_select.living_room_occupancy
+    data:
+      option: Outside
+- alias: ZH-LR Valve Calibrate Temperature Using External Sensor-Living Room
+  use_blueprint:
+    path: calibrate_valve_temperature.yaml
+    input:
+      tado_valve_entity: climate.living_room
+      external_temperature_sensor_entity: sensor.living_room_temperature_sensor
+  id: automation.zh_lr_valve_calibrate_temperature_using_external_sensor_living_room
+- alias: ZLB-LR Remote Button - Single - Applies Different Scenes (State Machine)-Living Room
   trigger:
   - platform: state
     entity_id:
     - sensor.living_room_button
-    to: single
+    to:
+    - single
+    - '1'
   mode: queued
   action:
   - choose:
@@ -173,25 +209,15 @@ automation:
         target:
           entity_id: input_select.living_room_scene
         data:
-          option: LED White
-    - conditions:
-        condition: state
-        entity_id: input_select.living_room_scene
-        state: LED White
-      sequence:
-        service: input_select.select_option
-        target:
-          entity_id: input_select.living_room_scene
-        data:
           option: All Off
     default:
       service: input_select.select_option
       target:
         entity_id: input_select.living_room_scene
       data:
-        option: Lamp LED White
-  id: automation.zlb_lr_remote_button_single_applies_different_scenes_state_execution_living_room
-- alias: ZLB-LR Applies Different Scenes Based on Scene Selections-Living Room
+        option: All Off
+  id: automation.zlb_lr_remote_button_single_applies_different_scenes_state_machine_living_room
+- alias: ZLB-LR Applies Different Scenes Based on Scene Selections (State Execution)-Living Room
   trigger:
   - platform: state
     entity_id: input_select.living_room_scene
@@ -214,6 +240,29 @@ automation:
           - light.living_room_ceiling_light
           - light.living_room_tv_led
           - light.living_room_sofa_led
+        - service: samsungtv_smart.select_picture_mode
+          data:
+            entity_id:
+            - media_player.living_room_tv
+            picture_mode: Standard
+    - conditions:
+      - condition: state
+        entity_id: input_select.living_room_scene
+        state: Ceiling Light White
+      sequence:
+      - parallel:
+        - service: homeassistant.turn_off
+          entity_id:
+          - light.living_room_tv_led
+          - light.living_room_sofa_led
+          - light.living_room_floor_light_1
+          - light.living_room_3_head_lamp_1
+          - light.living_room_3_head_lamp_2
+          - light.living_room_3_head_lamp_3
+          - switch.living_room_floor_light_3
+        - service: homeassistant.turn_on
+          entity_id:
+          - light.living_room_ceiling_light
         - service: samsungtv_smart.select_picture_mode
           data:
             entity_id:
@@ -329,13 +378,15 @@ automation:
           - light.living_room_ceiling_light
           - light.living_room_tv_led
           - light.living_room_sofa_led
-  id: automation.zlb_lr_applies_different_scenes_based_on_scene_selections_living_room
+  id: automation.zlb_lr_applies_different_scenes_based_on_scene_selections_state_execution_living_room
 - alias: ZLB-LR Remote Button - Double - Toggle Lamps-Living Room
   trigger:
   - platform: state
     entity_id:
     - sensor.living_room_button
-    to: double
+    to:
+    - double
+    - '2'
   action:
   - service: homeassistant.toggle
     entity_id:
@@ -345,21 +396,19 @@ automation:
     - light.living_room_3_head_lamp_3
     - switch.living_room_floor_light_3
   id: automation.zlb_lr_remote_button_double_toggle_lamps_living_room
-- alias: ZLB-LR Remote Button - Triple - Set Scene-Living Room
+- alias: ZLB-LR Remote Button - Triple - Toggle Ceiling Lights-Living Room
   trigger:
   - platform: state
     entity_id:
     - sensor.living_room_button
-    to: triple
+    to:
+    - triple
+    - '3'
   action:
   - service: homeassistant.toggle
     entity_id:
-    - light.living_room_floor_light_1
-    - light.living_room_3_head_lamp_1
-    - light.living_room_3_head_lamp_2
-    - light.living_room_3_head_lamp_3
-    - switch.living_room_floor_light_3
-  id: automation.zlb_lr_remote_button_triple_set_scene_living_room
+    - light.living_room_ceiling_light
+  id: automation.zlb_lr_remote_button_triple_toggle_ceiling_lights_living_room
 - alias: ZLB-LR Remote Button - Long - Toggle LEDs-Living Room
   trigger:
   - platform: state
@@ -372,12 +421,20 @@ automation:
     - light.living_room_tv_led
     - light.living_room_sofa_led
   id: automation.zlb_lr_remote_button_long_toggle_leds_living_room
-- alias: ZLB-LR Wall Switch - Single Press - Toggle Ceiling Light-Living Room
+- alias: ZLB-LR Wall Switch-Single Press - Toggle Ceiling Light-Living Room
   trigger:
   - platform: state
     entity_id:
     - sensor.living_room_wall_button
-    to: single
+    to:
+    - '1'
+    - single
+    - single_left
+    - single_right
+    - single_center
+    - button_1_single
+    - button_2_single
+    - button_3_single
   action:
   - service: homeassistant.toggle
     entity_id:
@@ -388,10 +445,17 @@ automation:
   - platform: state
     entity_id:
     - sensor.living_room_wall_button
-    to: double
+    to:
+    - '2'
+    - double
+    - double_left
+    - double_right
+    - double_center
   action:
   - service: automation.trigger
-    entity_id: automation.zl_lr_lights_off_if_no_person_living_room
+    entity_id:
+    - automation.zl_lr_lights_off_if_no_person_living_room
+    - automation.zh_lr_heating_schedule_off_if_people_left_the_room_living_room
   id: automation.zlb_lr_wall_switch_double_press_leave_room_and_turn_off_everything_living_room
 - alias: ZOc-LR Occupancy Update-Living Room
   trigger:
@@ -413,59 +477,67 @@ automation:
       motion_on_ratio_for_2x_min_str: sensor.living_room_motion_on_ratio_for_last_8_minutes
       room_type: common_area
   id: automation.zoc_lr_occupancy_update_living_room
-- alias: ZH-LR Heating Schedule On If Staying In the Room-Living Room
-  trigger:
-  - platform: state
-    entity_id: input_select.living_room_occupancy
-    from:
-    - Just Entered
+input_select:
+  living_room_scene:
+    name: Living Room Scene
+    options:
+    - Lamp LED White
+    - LED White
+    - All White
+    - Ceiling Light White
+    - All Off
+  living_room_occupancy:
+    name: Living Room Occupancy
+    options:
     - Outside
-    to: Stayed Inside
-  action:
-  - if:
-    - condition: not
-      conditions:
-      - condition: state
-        entity_id: climate.living_room
-        state: heat
-    then:
-    - service: climate.set_hvac_mode
-      data:
-        hvac_mode: heat
-      target:
-        entity_id: climate.living_room
-    - service: switch.turn_on
-      target:
-        entity_id: switch.schedule_living_room_temperature
-  id: automation.zh_lr_heating_schedule_on_if_staying_in_the_room_living_room
-- alias: ZH-LR Heating Schedule Off If People Left the Room-Living Room
-  trigger:
-  - platform: state
-    entity_id: input_select.living_room_occupancy
-    to: Outside
-  action:
-  - service: climate.set_hvac_mode
-    data:
-      hvac_mode: 'off'
-    target:
-      entity_id: climate.living_room
-  - service: switch.turn_off
-    target:
-      entity_id: switch.schedule_living_room_temperature
-  id: automation.zh_lr_heating_schedule_off_if_people_left_the_room_living_room
+    - Just Entered
+    - Stayed Inside
+    - In Sleep
+sensor:
+- platform: history_stats
+  name: Living Room Motion On Ratio For Last 4 Minutes
+  entity_id: group.living_room_motion
+  state: 'on'
+  type: ratio
+  duration:
+    minutes: '4'
+  end: '{{ (now() | as_timestamp) | as_datetime | as_local }}'
+- platform: history_stats
+  name: Living Room Motion On Ratio For Last 8 Minutes
+  entity_id: group.living_room_motion
+  state: 'on'
+  type: ratio
+  duration:
+    minutes: '8'
+  end: '{{ (now() | as_timestamp) | as_datetime | as_local }}'
 group:
+  living_room_occupancy_group:
+    name: Living Room Occuapancy Group
+    entities:
+    - input_select.living_room_occupancy
+    - group.living_room_motion
+    - binary_sensor.living_room_sofa_motion_sensor_motion
+    - binary_sensor.living_room_tv_motion_sensor_motion
+    - binary_sensor.tais_desk_motion_sensor_motion
+  living_room_motion:
+    name: Living Room Motion
+    entities:
+    - binary_sensor.living_room_sofa_motion_sensor_motion
+    - binary_sensor.living_room_tv_motion_sensor_motion
+    - binary_sensor.tais_desk_motion_sensor_motion
   living_room_auto_gen_automations:
     name: Living Room Auto-gen Automations
     entities:
     - automation.zl_lr_ceiling_lights_on_or_open_curtains_if_entering_to_room_living_room
     - automation.zl_lr_lights_off_if_no_person_living_room
-    - automation.zlb_lr_remote_button_single_applies_different_scenes_state_execution_living_room
-    - automation.zlb_lr_applies_different_scenes_based_on_scene_selections_living_room
+    - automation.zh_lr_heating_schedule_on_if_staying_in_the_room_living_room
+    - automation.zh_lr_heating_schedule_off_if_people_left_the_room_living_room
+    - automation.zh_lr_valve_calibrate_temperature_using_external_sensor_living_room
+    - automation.zlb_lr_remote_button_single_applies_different_scenes_state_machine_living_room
+    - automation.zlb_lr_applies_different_scenes_based_on_scene_selections_state_execution_living_room
     - automation.zlb_lr_remote_button_double_toggle_lamps_living_room
-    - automation.zlb_lr_remote_button_triple_set_scene_living_room
+    - automation.zlb_lr_remote_button_triple_toggle_ceiling_lights_living_room
     - automation.zlb_lr_remote_button_long_toggle_leds_living_room
     - automation.zlb_lr_wall_switch_single_press_toggle_ceiling_light_living_room
     - automation.zlb_lr_wall_switch_double_press_leave_room_and_turn_off_everything_living_room
     - automation.zoc_lr_occupancy_update_living_room
-    - automation.zh_lr_heating_schedule_on_if_staying_in_the_room_living_room
-    - automation.zh_lr_heating_schedule_off_if_people_left_the_room_living_room

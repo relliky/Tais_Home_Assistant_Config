@@ -1,22 +1,44 @@
-alias: Living Room Heating Schedule On If Staying In The Room
+alias: L-MR-M Master Room Bed LED Strip On For 3 Min If People Are Walking In the Dark
+id: "1603640027693"
+description: ""
+mode: restart
 trigger:
-  - platform: state
-    entity_id:
-      - input_select.living_room_occupancy
-    to: Stayed Inside
+ - entity_id:
+     - binary_sensor.master_room_entrance_motion_sensor_motion
+     - binary_sensor.master_room_stair_motion_sensor_motion
+     - binary_sensor.master_room_dressing_table_motion_sensor_motion
+     - binary_sensor.master_room_tv_motion_sensor_motion
+     - binary_sensor.master_room_drawer_motion_sensor_motion
+   platform: state
+   to: "on"
+condition:
+ # In the night or curtain shut
+ - condition: or
+   conditions:
+     - condition: state
+       entity_id: input_select.indoor_brightness
+       state: dark
+     - entity_id:
+         - cover.master_room_blind
+         - cover.master_room_curtain
+       condition: state
+       state: "closed"
+ # And all lights off in the master room
+ - entity_id: light.master_room_lamps
+   condition: state
+   state: "off"
+ - entity_id: light.master_room_leds
+   condition: state
+   state: "off"
+ - entity_id: light.master_room_ceiling_lights
+   condition: state
+   state: "off"
+ - entity_id: switch.master_room_dressing_table_light
+   condition: state
+   state: "off"
 action:
-  - if:
-      - condition: not
-        conditions:
-          - condition: state
-            entity_id: climate.living_room
-            state: heat
-    then:
-      - service: climate.set_hvac_mode
-        data:
-          hvac_mode: heat
-        target:
-          entity_id: climate.living_room
-      - service: switch.turn_on
-        target:
-          entity_id: switch.schedule_living_room_temperature
+ # Turn on bed LED on night mode for 2 min to walk to toilet or back from toilet
+ - service: script.master_room_bed_led_set_dark_yellow
+ - delay: "00:03:00"
+ - service: light.turn_off
+   entity_id: light.master_room_leds

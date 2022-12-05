@@ -67,40 +67,7 @@ input_number:
     max: 25
     step: 0.5
 
-# Temperature Sensor
-template:
-  - sensor:
-      - name: "Master Room Temperature Sensor"
-        unit_of_measurement: "°C"
-        state: >
-          {% if   states('sensor.master_room_temperature_sensor_1') != 'unavailable' and
-                  states('sensor.master_room_temperature_sensor_2') == 'unavailable'     %}
-                 {{states('sensor.master_room_temperature_sensor_1')}}
-          {% elif states('sensor.master_room_temperature_sensor_1') == 'unavailable' and
-                  states('sensor.master_room_temperature_sensor_2') != 'unavailable'     %}
-                {{states('sensor.master_room_temperature_sensor_2')}}
-          {% else %}
-              {% set sensor_1 = states('sensor.master_room_temperature_sensor_1') | float | round(1) %}
-              {% set sensor_2 = states('sensor.master_room_temperature_sensor_2') | float | round(1) %}
-              {% if sensor_1 < 1.0 or sensor_2 < 1.0 or (sensor_1 + sensor_2) < 1.0 %}
-                    22.0
-              {% else %}
-                   {{ ((sensor_1 + sensor_2) / 2) | round(1) }}
-              {% endif %}
-          {% endif %}
-
 group:
-  master_room_motion:
-    name: Master Room Motion
-    entities:
-      - binary_sensor.master_room_bed_motion_sensor_motion
-      - binary_sensor.master_room_entrance_motion_sensor_motion
-      - binary_sensor.master_room_stair_motion_sensor_motion
-      - binary_sensor.master_room_dressing_table_motion_sensor_motion
-      - binary_sensor.master_room_tv_motion_sensor_motion
-      - binary_sensor.master_room_drawer_motion_sensor_motion
-      - binary_sensor.master_toilet_dressing_room_motion_sensor_motion
-
   master_room_stair_motion:
     name: Master Room Stair Motion
     entities:
@@ -115,16 +82,10 @@ group:
       - light.master_room_leds
       - light.master_room_entrance_led_light
       - light.master_room_ceiling_lights
-      - switch.master_room_dressing_table_light      
+      - switch.master_room_dressing_table_light
       - cover.master_room_blind
-      - cover.master_room_curtain      
+      - cover.master_room_curtain
       - media_player.master_room_tv
-      
-  master_room_automations:
-    name: Master Room Automations
-    entities:
-      - automation.master_room_heating_scheduler
-      - automation.h_mr_master_room_valve_calibrate_temperature
 
 # Custom Thermostat
 climate:
@@ -176,7 +137,6 @@ input_boolean:
   master_room_slideshow_enable:
     name: "Master Room Slideshow Enable"
 
-
 # TV picture mode
 input_select:
   master_room_tv_picture_mode:
@@ -205,132 +165,132 @@ switch:
 # Long presence automation
 ###############################################
 automation heating:
-  - alias: HL-MR-M Master Room Heating/Lighting Off If No Person
-    id: "1599910386760"
-    description: ""
-    trigger:
-      - platform: state
-        from: "on"
-        to: "off"
-        for: 00:15:00
-        entity_id: group.master_room_motion
-      - minutes: /5
-        platform: time_pattern
-    condition:
-      - condition: or
-        conditions:
-          # in daytime, turn off if no person for 15 min
-          - condition: and
-            conditions:
-              - after: "10:00:00"
-                before: "22:00:00"
-                condition: time
-              - condition: state
-                entity_id: group.master_room_motion
-                for: 00:15:00
-                state: "off"
-          # in nighttime, turn off and re-eable automation
-          #               if no person for 2 hours
-          - condition: and
-            conditions:
-              - after: "22:00:00"
-                before: "10:00:00"
-                condition: time
-              - condition: state
-                entity_id: group.master_room_motion
-                for: 02:00:00
-                state: "off"
-    action:
-      # Heating scheduler off and turn on entering automation
-      - service: automation.turn_off
-        entity_id: automation.master_room_heating_scheduler
-      - service: climate.set_hvac_mode
-        entity_id: climate.master_room
-        data:
-          hvac_mode: "off"
-      ## Auto heating/lighting on
-      #- service: automation.turn_on
-      #  entity_id:
-      #    - automation.master_room_heating_on_if_people_present
+  #  - alias: HL-MR-M Master Room Heating/Lighting Off If No Person
+  #    id: "1599910386760"
+  #    description: ""
+  #    trigger:
+  #      - platform: state
+  #        from: "on"
+  #        to: "off"
+  #        for: 00:15:00
+  #        entity_id: group.master_room_motion
+  #      - minutes: /5
+  #        platform: time_pattern
+  #    condition:
+  #      - condition: or
+  #        conditions:
+  #          # in daytime, turn off if no person for 15 min
+  #          - condition: and
+  #            conditions:
+  #              - after: "10:00:00"
+  #                before: "22:00:00"
+  #                condition: time
+  #              - condition: state
+  #                entity_id: group.master_room_motion
+  #                for: 00:15:00
+  #                state: "off"
+  #          # in nighttime, turn off and re-eable automation
+  #          #               if no person for 2 hours
+  #          - condition: and
+  #            conditions:
+  #              - after: "22:00:00"
+  #                before: "10:00:00"
+  #                condition: time
+  #              - condition: state
+  #                entity_id: group.master_room_motion
+  #                for: 02:00:00
+  #                state: "off"
+  #    action:
+  #      # Heating scheduler off and turn on entering automation
+  #      - service: automation.turn_off
+  #        entity_id: automation.master_room_heating_scheduler
+  #      - service: climate.set_hvac_mode
+  #        entity_id: climate.master_room
+  #        data:
+  #          hvac_mode: "off"
+  #      ## Auto heating/lighting on
+  #      #- service: automation.turn_on
+  #      #  entity_id:
+  #      #    - automation.master_room_heating_on_if_people_present
 
-#  - alias: H-MR-M Master Room Turn On Schedule If People Present
-#    id: "1543510386760"
-#    description: "automation.master_room_heating_on_if_people_present"
-#    use_blueprint:
-#      path: room_delayed_action.yaml
-#      input:
-#        binary_sensor_motion_sensors: group.master_room_motion
-#        input_boolean_short_presence: input_boolean.master_room_short_presence
-#        automation_this_automation_entity: automation.master_room_heating_on_if_people_present
-#        automations_to_be_triggered_and_on: automation.master_room_heating_scheduler
-#        #scripts_to_be_run: script.master_room_tv_slideshow
+  #  - alias: H-MR-M Master Room Turn On Schedule If People Present
+  #    id: "1543510386760"
+  #    description: "automation.master_room_heating_on_if_people_present"
+  #    use_blueprint:
+  #      path: room_delayed_action.yaml
+  #      input:
+  #        binary_sensor_motion_sensors: group.master_room_motion
+  #        input_boolean_short_presence: input_boolean.master_room_short_presence
+  #        automation_this_automation_entity: automation.master_room_heating_on_if_people_present
+  #        automations_to_be_triggered_and_on: automation.master_room_heating_scheduler
+  #        #scripts_to_be_run: script.master_room_tv_slideshow
 
-#  # If scheduled normally, set heating temperature
-#  - alias: H-MR Master Room Heating Scheduler
-#    id: "1599909948789"
-#    description: "automation.master_room_heating_scheduler"
-#    trigger:
-#      - platform: state
-#        entity_id: input_number.master_room_default_temperature
-#    action:
-#      #- condition: state
-#      #  entity_id: climate.master_room
-#      #  state: 'heat'
-#      #  for: "00:01:00"
-#      - data:
-#          temperature: "{{states('input_number.master_room_default_temperature')}}"
-#          hvac_mode: "heat"
-#        entity_id: climate.master_room
-#        service: climate.set_temperature
+  #  # If scheduled normally, set heating temperature
+  #  - alias: H-MR Master Room Heating Scheduler
+  #    id: "1599909948789"
+  #    description: "automation.master_room_heating_scheduler"
+  #    trigger:
+  #      - platform: state
+  #        entity_id: input_number.master_room_default_temperature
+  #    action:
+  #      #- condition: state
+  #      #  entity_id: climate.master_room
+  #      #  state: 'heat'
+  #      #  for: "00:01:00"
+  #      - data:
+  #          temperature: "{{states('input_number.master_room_default_temperature')}}"
+  #          hvac_mode: "heat"
+  #        entity_id: climate.master_room
+  #        service: climate.set_temperature
 
-  - alias: H-MR Master Room Valve Calibrate Temperature
-    id: "1543517389461"
-    use_blueprint:
-      path: calibrate_valve_temperature.yaml
-      input:
-        tado_valve_entity: climate.master_room
-        external_temperature_sensor_entity: sensor.master_room_temperature_sensor
-        log_input_text_entity: input_text.master_room_valve_log
-
+  #  - alias: H-MR Master Room Valve Calibrate Temperature
+  #    id: "1543517389461"
+  #    use_blueprint:
+  #      path: calibrate_valve_temperature.yaml
+  #      input:
+  #        tado_valve_entity: climate.master_room
+  #        external_temperature_sensor_entity: sensor.master_room_temperature_sensor
+  #        log_input_text_entity: input_text.master_room_valve_log
+  #
   #################################################################
   # Disable the entering automation if people present in the bedroom
   #################################################################
-#  - alias: HL-MR-T Master Room Disable The Entering Room Automation If People Present
-#    id: "1599110313838"
-#    trigger:
-#      - platform: state
-#        to: "on"
-#        entity_id:
-#          - binary_sensor.master_room_bed_motion_sensor_motion
-#          - binary_sensor.master_room_stair_motion_sensor_motion
-#          - binary_sensor.master_room_dressing_table_motion_sensor_motion
-#          - binary_sensor.master_room_tv_motion_sensor_motion
-#          - binary_sensor.master_room_drawer_motion_sensor_motion
-#    condition: []
-#    action:
-#      - delay: 00:00:05
-#      - service: automation.turn_off
-#        entity_id:
-#          - automation.master_room_ceiling_lights_on_or_open_curtain_if_entering_room
-#      - delay: 00:03:00
-#      # IF sleeping in the daytime caused the issue, i.e. entering automation is on,
-#      # turn the heating back on and turn off the entering automations
-#      - choose:
-#          - conditions:
-#              - condition: state
-#                entity_id: automation.master_room_heating_on_if_people_present
-#                state: "on"
-#            sequence:
-#              - service: automation.trigger
-#                entity_id: automation.master_room_heating_on_if_people_present
-#              # Turn on heating if it is off
-#              - service: automation.trigger
-#                entity_id: automation.master_room_heating_scheduler
-#      # Turn off all entering automations
-#      - service: automation.turn_off
-#        entity_id:
-#          - automation.master_room_ceiling_lights_on_or_open_curtain_if_entering_room
-#          - automation.master_room_heating_on_if_people_present
+  #  - alias: HL-MR-T Master Room Disable The Entering Room Automation If People Present
+  #    id: "1599110313838"
+  #    trigger:
+  #      - platform: state
+  #        to: "on"
+  #        entity_id:
+  #          - binary_sensor.master_room_bed_motion_sensor_motion
+  #          - binary_sensor.master_room_stair_motion_sensor_motion
+  #          - binary_sensor.master_room_dressing_table_motion_sensor_motion
+  #          - binary_sensor.master_room_tv_motion_sensor_motion
+  #          - binary_sensor.master_room_drawer_motion_sensor_motion
+  #    condition: []
+  #    action:
+  #      - delay: 00:00:05
+  #      - service: automation.turn_off
+  #        entity_id:
+  #          - automation.master_room_ceiling_lights_on_or_open_curtain_if_entering_room
+  #      - delay: 00:03:00
+  #      # IF sleeping in the daytime caused the issue, i.e. entering automation is on,
+  #      # turn the heating back on and turn off the entering automations
+  #      - choose:
+  #          - conditions:
+  #              - condition: state
+  #                entity_id: automation.master_room_heating_on_if_people_present
+  #                state: "on"
+  #            sequence:
+  #              - service: automation.trigger
+  #                entity_id: automation.master_room_heating_on_if_people_present
+  #              # Turn on heating if it is off
+  #              - service: automation.trigger
+  #                entity_id: automation.master_room_heating_scheduler
+  #      # Turn off all entering automations
+  #      - service: automation.turn_off
+  #        entity_id:
+  #          - automation.master_room_ceiling_lights_on_or_open_curtain_if_entering_room
+  #          - automation.master_room_heating_on_if_people_present
 
   ###############################################
   # Curtain autmation based on time
@@ -629,50 +589,50 @@ automation light:
         entity_id: switch.master_room_dressing_table_light
         service: switch.turn_off
 
-  - alias: L-MR-M Master Room Bed LED Strip On For 3 Min If People Are Walking In the Dark
-    id: "1603640027693"
-    description: ""
-    mode: restart
-    trigger:
-      - entity_id:
-          - binary_sensor.master_room_entrance_motion_sensor_motion
-          - binary_sensor.master_room_stair_motion_sensor_motion
-          - binary_sensor.master_room_dressing_table_motion_sensor_motion
-          - binary_sensor.master_room_tv_motion_sensor_motion
-          - binary_sensor.master_room_drawer_motion_sensor_motion
-        platform: state
-        to: "on"
-    condition:
-      # In the night or curtain shut
-      - condition: or
-        conditions:
-          - condition: state
-            entity_id: input_select.indoor_brightness
-            state: dark
-          - entity_id:
-              - cover.master_room_blind
-              - cover.master_room_curtain
-            condition: state
-            state: "closed"
-      # And all lights off in the master room
-      - entity_id: light.master_room_lamps
-        condition: state
-        state: "off"
-      - entity_id: light.master_room_leds
-        condition: state
-        state: "off"
-      - entity_id: light.master_room_ceiling_lights
-        condition: state
-        state: "off"
-      - entity_id: switch.master_room_dressing_table_light
-        condition: state
-        state: "off"
-    action:
-      # Turn on bed LED on night mode for 2 min to walk to toilet or back from toilet
-      - service: script.master_room_bed_led_set_dark_yellow
-      - delay: "00:03:00"
-      - service: light.turn_off
-        entity_id: light.master_room_leds
+  #  - alias: L-MR-M Master Room Bed LED Strip On For 3 Min If People Are Walking In the Dark
+  #    id: "1603640027693"
+  #    description: ""
+  #    mode: restart
+  #    trigger:
+  #      - entity_id:
+  #          - binary_sensor.master_room_entrance_motion_sensor_motion
+  #          - binary_sensor.master_room_stair_motion_sensor_motion
+  #          - binary_sensor.master_room_dressing_table_motion_sensor_motion
+  #          - binary_sensor.master_room_tv_motion_sensor_motion
+  #          - binary_sensor.master_room_drawer_motion_sensor_motion
+  #        platform: state
+  #        to: "on"
+  #    condition:
+  #      # In the night or curtain shut
+  #      - condition: or
+  #        conditions:
+  #          - condition: state
+  #            entity_id: input_select.indoor_brightness
+  #            state: dark
+  #          - entity_id:
+  #              - cover.master_room_blind
+  #              - cover.master_room_curtain
+  #            condition: state
+  #            state: "closed"
+  #      # And all lights off in the master room
+  #      - entity_id: light.master_room_lamps
+  #        condition: state
+  #        state: "off"
+  #      - entity_id: light.master_room_leds
+  #        condition: state
+  #        state: "off"
+  #      - entity_id: light.master_room_ceiling_lights
+  #        condition: state
+  #        state: "off"
+  #      - entity_id: switch.master_room_dressing_table_light
+  #        condition: state
+  #        state: "off"
+  #    action:
+  #      # Turn on bed LED on night mode for 2 min to walk to toilet or back from toilet
+  #      - service: script.master_room_bed_led_set_dark_yellow
+  #      - delay: "00:03:00"
+  #      - service: light.turn_off
+  #        entity_id: light.master_room_leds
 
   - alias: L-MR-T Master Room Turn Off all Lights/Curtains/TV at 3/4/5am
     description: ""
@@ -882,18 +842,18 @@ automation button:
       - service: light.toggle
         entity_id: light.master_room_entrance_led_light
 
-  - alias: L-MR-B Master Room Six Key - Middle Keys Double Press - Toggle Bedside Lights
-    id: "1603640020890"
-    trigger:
-      - platform: state
-        entity_id: sensor.master_room_six_key_button
-        to: button_4_double
-      - platform: state
-        entity_id: sensor.master_room_six_key_button
-        to: button_3_double
-    action:
-      - service: script.master_room_bedside_lights_toggle
-
+  #  - alias: L-MR-B Master Room Six Key - Middle Keys Double Press - Toggle Bedside Lights
+  #    id: "1603640020890"
+  #    trigger:
+  #      - platform: state
+  #        entity_id: sensor.master_room_six_key_button
+  #        to: button_4_double
+  #      - platform: state
+  #        entity_id: sensor.master_room_six_key_button
+  #        to: button_3_double
+  #    action:
+  #      - service: script.master_room_bedside_lights_toggle
+  #
   #- alias: B-MR Master Room Six Key - Middle Key 3 Single Press - Toggle Bedside Light Door
   #  id: "1603640020891"
   #  trigger:
@@ -1222,7 +1182,6 @@ automation tv:
         input_select_tv_picture_mode: input_select.master_room_tv_picture_mode
         tv_entity: media_player.master_room_tv
         automation_tv_pic_on_ha: automation.master_room_tv_picture_mode
-        
 #################################################################
 # Sonos Speakers Grouping/Ungrouping Based On Motion Sensor
 #################################################################

@@ -5,7 +5,7 @@ browser_mod:
 logger:
   default: error
   logs:
-    #custom_components.pyscript: info
+    custom_components.pyscript: info
     #custom_components.pyscript.file.my_scripts.z_alexa_set_tv_brightness: debug    
     
     
@@ -25,6 +25,8 @@ sensor:
       - type: swap_use
       - type: swap_free      
       - type: load_1m
+      - type: load_5m
+      - type: load_15m
       - type: processor_use 
       - type: processor_temperature
 
@@ -106,7 +108,16 @@ input_select:
 #      - network_tx
 #      - volume_percentage_used
 #      - volume_size_free
-    
+
+template:
+  - sensor:
+      - name: "DS920 Memory Used"
+        unit_of_measurement: "GB"
+        state: >
+          {{ (states('sensor.ds920_memory_usage_real')|int * 12 /100) | round(1)  }}
+
+
+
 # Remote Acccess via HTTPS
 http:
   ssl_certificate: /ssl/fullchain.pem
@@ -153,6 +164,10 @@ binary_sensor:
     host: 192.168.1.20
     name: Kes Work Laptop
 
+  - platform: ping
+    host: google.co.uk
+    name: Ping Google
+
 #  - platform: ping
 #    mac: 24:5E:BE:09:3D:E0
 #    name: QNAP NAS
@@ -178,33 +193,36 @@ script:
   do_nothing:
     alias: Do nothing
     sequence:
+      - service: script.do_nothing
 
-  reload_all_config:
-    alias: Reload All Config
+  reload_all_configs:
+    alias: Reload All Configs
+    mode: restart
     sequence:
     - service: automation.reload
-    - service: frontend.reload_themes
-    - service: generic_thermostat.reload
+    - service: history_stats.reload
+    - service: schedule.reload
+    - service: script.reload
+    - service: template.reload
     - service: group.reload
     - service: history_stats.reload
-    - service: homekit.reload
     - service: input_boolean.reload
-    - service: input_button.reload
-    - service: input_datetime.reload
     - service: input_number.reload
     - service: input_select.reload
+    - service: input_datetime.reload
+    - service: input_button.reload
     - service: input_text.reload
     - service: localtuya.reload
+    - service: generic_thermostat.reload
+    - service: homekit.reload
     - service: mqtt.reload
     - service: person.reload
     - service: pyscript.reload
     - service: scene.reload
-    - service: schedule.reload
-    - service: script.reload
-    - service: template.reload
     - service: timer.reload
     - service: xiaomi_miot.reload
     - service: zone.reload
+    - service: frontend.reload_themes
 
 
 

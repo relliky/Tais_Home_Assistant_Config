@@ -24,12 +24,6 @@ template:
           {{ states('sensor.master_toilet_mirror_light_meter')|int > 1000 }}
 
 group:
-  master_toilet_motion:
-    name: Master Toilet Motion
-    entities:
-      - binary_sensor.master_toilet_basin_motion_sensor_motion
-      - binary_sensor.master_toilet_shower_motion_sensor_motion
-
   master_dressing_room_motion:
     name: Master Dressing Room Motion
     entities:
@@ -242,120 +236,120 @@ automation:
 #      - service: input_boolean.turn_off
 #        entity_id: input_boolean.master_toilet_short_presence
 
-  # Master Toilet
-  - alias: L-MT Master Toilet Lights On If People Present and Dark
-    id: "1600015728994"
-    description: "automation.master_toilet_lights_on_if_people_present"
-    trigger:
-      - entity_id: group.master_toilet_motion
-        platform: state
-        from: "off"
-        to: "on"
-    condition:
-      - condition: or
-        conditions:
-          - condition: and
-            conditions:
-              - entity_id: binary_sensor.master_toilet_basin_motion_sensor_motion
-                condition: state
-                state: "on"
-              - entity_id: sensor.master_toilet_basin_motion_sensor_light
-                condition: numeric_state
-                below: "150"
-          - condition: and
-            conditions:
-              - entity_id: binary_sensor.master_toilet_shower_motion_sensor_motion
-                condition: state
-                state: "on"
-              - entity_id: sensor.master_toilet_shower_motion_sensor_light
-                condition: numeric_state
-                below: "10"
-    action:
-      - service: light.turn_on
-        entity_id: light.master_toilet_ceiling_light
-      # turn on floor led if mirror light is on
-      - condition: state
-        entity_id: binary_sensor.master_toilet_mirror_light
-        state: "off"
-      - service: switch.turn_on
-        entity_id: switch.master_toilet_floor_led
+#  # Master Toilet
+#  - alias: L-MT Master Toilet Lights On If People Present and Dark
+#    id: "1600015728994"
+#    description: "automation.master_toilet_lights_on_if_people_present"
+#    trigger:
+#      - entity_id: group.master_toilet_motion
+#        platform: state
+#        from: "off"
+#        to: "on"
+#    condition:
+#      - condition: or
+#        conditions:
+#          - condition: and
+#            conditions:
+#              - entity_id: binary_sensor.master_toilet_basin_motion_sensor_motion
+#                condition: state
+#                state: "on"
+#              - entity_id: sensor.master_toilet_basin_motion_sensor_light
+#                condition: numeric_state
+#                below: "150"
+#          - condition: and
+#            conditions:
+#              - entity_id: binary_sensor.master_toilet_shower_motion_sensor_motion
+#                condition: state
+#                state: "on"
+#              - entity_id: sensor.master_toilet_shower_motion_sensor_light
+#                condition: numeric_state
+#                below: "10"
+#    action:
+#      - service: light.turn_on
+#        entity_id: light.master_toilet_ceiling_light
+#      # turn on floor led if mirror light is on
+#      - condition: state
+#        entity_id: binary_sensor.master_toilet_mirror_light
+#        state: "off"
+#      - service: switch.turn_on
+#        entity_id: switch.master_toilet_floor_led
 
-  - alias: L-MT Master Toilet Mirror Light On/Off Changes The Colour Of Ceilight Light
-    trigger:
-      - entity_id: binary_sensor.master_toilet_mirror_light
-        platform: state
-        from: "on"
-        to: "off"
-      - entity_id: binary_sensor.master_toilet_mirror_light
-        platform: state
-        from: "off"
-        to: "on"
-    action:
-      - choose:
-          # IF mirror light on, change the ceiling light to cool 5000k
-          #.                    turn off warm floor led
-          - conditions:
-              - entity_id: binary_sensor.master_toilet_mirror_light
-                condition: state
-                state: "on"
-            sequence:
-              - service: light.turn_on
-                entity_id: light.master_toilet_ceiling_light
-                data:
-                  kelvin: 5000
-              - service: switch.turn_off
-                entity_id: switch.master_toilet_floor_led
-        # ELSE - change the ceiling light to warm 3000k
-        #        turn on warm floor led
-        default:
-          - service: light.turn_on
-            entity_id: light.master_toilet_ceiling_light
-            data:
-              kelvin: 3000
-          - service: switch.turn_on
-            entity_id: switch.master_toilet_floor_led
+#  - alias: L-MT Master Toilet Mirror Light On/Off Changes The Colour Of Ceilight Light
+#    trigger:
+#      - entity_id: binary_sensor.master_toilet_mirror_light
+#        platform: state
+#        from: "on"
+#        to: "off"
+#      - entity_id: binary_sensor.master_toilet_mirror_light
+#        platform: state
+#        from: "off"
+#        to: "on"
+#    action:
+#      - choose:
+#          # IF mirror light on, change the ceiling light to cool 5000k
+#          #.                    turn off warm floor led
+#          - conditions:
+#              - entity_id: binary_sensor.master_toilet_mirror_light
+#                condition: state
+#                state: "on"
+#            sequence:
+#              - service: light.turn_on
+#                entity_id: light.master_toilet_ceiling_light
+#                data:
+#                  kelvin: 5000
+#              - service: switch.turn_off
+#                entity_id: switch.master_toilet_floor_led
+#        # ELSE - change the ceiling light to warm 3000k
+#        #        turn on warm floor led
+#        default:
+#          - service: light.turn_on
+#            entity_id: light.master_toilet_ceiling_light
+#            data:
+#              kelvin: 3000
+#          - service: switch.turn_on
+#            entity_id: switch.master_toilet_floor_led
 
-  - alias: L-MT Master Toilet Lights Off If No Person For 10 Min
-    id: "1603640011745"
-    description: ""
-    trigger:
-      - entity_id: group.master_toilet_motion
-        platform: state
-        from: "on"
-        to: "off"
-        for: 00:10:00
-      - minutes: /5
-        platform: time_pattern
-    condition:
-      - entity_id: group.master_toilet_motion
-        condition: state
-        state: "off"
-        for: 00:10:00
-    action:
-      - service: script.master_toilet_all_lights_turn_off
-
-  - alias: L-MT Master Toilet Lights Off If No Person For 2 Min And Door Open
-    id: "1603640027495"
-    description: ""
-    trigger:
-      - entity_id: group.master_toilet_motion
-        platform: state
-        from: "on"
-        to: "off"
-        for: 00:02:00
-      - minutes: /5
-        platform: time_pattern
-    condition:
-      - entity_id: binary_sensor.master_toilet_door
-        condition: state
-        state: "on"
-      - entity_id: group.master_toilet_motion
-        condition: state
-        state: "off"
-        for: 00:02:00
-    action:
-      - service: script.master_toilet_all_lights_turn_off
-
+#  - alias: L-MT Master Toilet Lights Off If No Person For 10 Min
+#    id: "1603640011745"
+#    description: ""
+#    trigger:
+#      - entity_id: group.master_toilet_motion
+#        platform: state
+#        from: "on"
+#        to: "off"
+#        for: 00:10:00
+#      - minutes: /5
+#        platform: time_pattern
+#    condition:
+#      - entity_id: group.master_toilet_motion
+#        condition: state
+#        state: "off"
+#        for: 00:10:00
+#    action:
+#      - service: script.master_toilet_all_lights_turn_off
+#
+#  - alias: L-MT Master Toilet Lights Off If No Person For 2 Min And Door Open
+#    id: "1603640027495"
+#    description: ""
+#    trigger:
+#      - entity_id: group.master_toilet_motion
+#        platform: state
+#        from: "on"
+#        to: "off"
+#        for: 00:02:00
+#      - minutes: /5
+#        platform: time_pattern
+#    condition:
+#      - entity_id: binary_sensor.master_toilet_door
+#        condition: state
+#        state: "on"
+#      - entity_id: group.master_toilet_motion
+#        condition: state
+#        state: "off"
+#        for: 00:02:00
+#    action:
+#      - service: script.master_toilet_all_lights_turn_off
+#
   # Master Toilet Dressing Room
   - alias: L-MT Master Toilet Dressing Lights On If People Present
     description: ""
@@ -407,53 +401,53 @@ automation:
         service: light.turn_off
 
   # Lighting Automation based on buttons
-  - alias: B-MT Master Toilet Wall Switch Single Press - Toggle All Toilet Lights
-    trigger:
-      - platform: state
-        entity_id: sensor.master_toilet_light_wall_button
-        to: single
-    action:
-      - service: script.master_toilet_all_lights_toggle
-
-  - alias: B-MT Master Toilet Wall Switch Double Press - Toggle Toilet Ceiling Lights
-    trigger:
-      - platform: state
-        entity_id: sensor.master_toilet_light_wall_button
-        to: double
-    action:
-      - service: light.toggle
-        entity_id:
-          - light.master_toilet_ceiling_light
-
-  - alias: B-MT Master Toilet Dressing Room Wall Switch Single Press - Turn On Dressing Room Lights/Turn Off All Toilet Lights
-    trigger:
-      - platform: state
-        entity_id: sensor.master_toilet_dressing_room_light_wall_button
-        to: single
-    action:
-      - choose:
-          # IF - all lights off - turn on dressing room light
-          - conditions:
-              - condition: and
-                conditions:
-                  - condition: state
-                    entity_id: switch.master_toilet_floor_led
-                    state: "off"
-                  - condition: state
-                    entity_id: light.master_toilet_ceiling_light
-                    state: "off"
-                  - condition: state
-                    entity_id: light.master_toilet_dressing_room_light
-                    state: "off"
-            sequence:
-              - service: light.turn_on
-                entity_id: light.master_toilet_dressing_room_light
-        # ELSE - some lights on - turn off all toilet lights and dressing room lights
-        default:
-          - service: script.master_toilet_all_lights_turn_off
-          - service: light.turn_off
-            entity_id: light.master_toilet_dressing_room_light
-
+#  - alias: B-MT Master Toilet Wall Switch Single Press - Toggle All Toilet Lights
+#    trigger:
+#      - platform: state
+#        entity_id: sensor.master_toilet_light_wall_button
+#        to: single
+#    action:
+#      - service: script.master_toilet_all_lights_toggle
+#
+#  - alias: B-MT Master Toilet Wall Switch Double Press - Toggle Toilet Ceiling Lights
+#    trigger:
+#      - platform: state
+#        entity_id: sensor.master_toilet_light_wall_button
+#        to: double
+#    action:
+#      - service: light.toggle
+#        entity_id:
+#          - light.master_toilet_ceiling_light
+#
+#  - alias: B-MT Master Toilet Dressing Room Wall Switch Single Press - Turn On Dressing Room Lights/Turn Off All Toilet Lights
+#    trigger:
+#      - platform: state
+#        entity_id: sensor.master_toilet_dressing_room_light_wall_button
+#        to: single
+#    action:
+#      - choose:
+#          # IF - all lights off - turn on dressing room light
+#          - conditions:
+#              - condition: and
+#                conditions:
+#                  - condition: state
+#                    entity_id: switch.master_toilet_floor_led
+#                    state: "off"
+#                  - condition: state
+#                    entity_id: light.master_toilet_ceiling_light
+#                    state: "off"
+#                  - condition: state
+#                    entity_id: light.master_toilet_dressing_room_light
+#                    state: "off"
+#            sequence:
+#              - service: light.turn_on
+#                entity_id: light.master_toilet_dressing_room_light
+#        # ELSE - some lights on - turn off all toilet lights and dressing room lights
+#        default:
+#          - service: script.master_toilet_all_lights_turn_off
+#          - service: light.turn_off
+#            entity_id: light.master_toilet_dressing_room_light
+#
   #################################################################
   # Master Toilet Speakers Grouping/Ungrouping Based On Motion Sensor
   #################################################################

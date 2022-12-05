@@ -34,12 +34,6 @@
 
 # Room Motion
 group:
-  guest_room_motion:
-    name: Guest Room Motion
-    entities:
-      - binary_sensor.guest_room_door_motion_sensor_motion
-      - binary_sensor.guest_room_bed_motion_sensor_motion
-
   guest_room_entrance_motion:
     name: Guest Room Entrance Motion
     entities:
@@ -125,94 +119,94 @@ script:
 #
 ###############################################
 automation:
-  ###############################################
-  # Heating Automation based on motion sensors
-  ###############################################
-  - alias: HL-GR Guest Room Heating Off If No Person For 10 Min
-    id: "1599910386222"
-    trigger:
-      - entity_id: group.guest_room_motion
-        platform: state
-        from: "on"
-        to: "off"
-        for: 00:10:00
-      - minutes: /5
-        platform: time_pattern
-    condition:
-      - condition: state
-        entity_id: group.guest_room_motion
-        for: 00:10:00
-        state: "off"    
-    action:
-      # Turn Off Lighting
-      - service: script.guest_room_all_lights_turn_off
-      - service: automation.turn_on
-        entity_id: automation.guest_room_lights_on_if_people_present
+#  ###############################################
+#  # Heating Automation based on motion sensors
+#  ###############################################
+#  - alias: HL-GR Guest Room Heating Off If No Person For 10 Min
+#    id: "1599910386222"
+#    trigger:
+#      - entity_id: group.guest_room_motion
+#        platform: state
+#        from: "on"
+#        to: "off"
+#        for: 00:10:00
+#      - minutes: /5
+#        platform: time_pattern
+#    condition:
+#      - condition: state
+#        entity_id: group.guest_room_motion
+#        for: 00:10:00
+#        state: "off"    
+#    action:
+#      # Turn Off Lighting
+#      - service: script.guest_room_all_lights_turn_off
+#      - service: automation.turn_on
+#        entity_id: automation.guest_room_lights_on_if_people_present
+#
 
 
-
-  ###############################################
-  # Lighting Automation based on motion sensors
-  ###############################################
-  - alias: L-GR Guest Room Ceiling Lights On If People Present
-    id: "1599910376296"
-    description: "automation.guest_room_lights_on_if_people_present"
-    trigger:
-      - entity_id: group.guest_room_motion
-        platform: state
-        from: "off"
-        to: "on"
-    condition:
-      - condition: or
-        conditions:
-          - condition: and
-            conditions:
-              - entity_id: binary_sensor.guest_room_door_motion_sensor_motion
-                condition: state
-                state: "on"
-              - entity_id: sensor.guest_room_door_motion_sensor_light
-                condition: numeric_state
-                below: "30"
-          - condition: and
-            conditions:
-              - entity_id: binary_sensor.guest_room_bed_motion_sensor_motion
-                condition: state
-                state: "on"
-              - entity_id: binary_sensor.guest_room_bed_motion_sensor_light
-                condition: numeric_state
-                below: "30"
-    action:
-      - service: light.turn_on
-        entity_id: light.guest_room_ceiling_light
-      - service: automation.turn_off
-        entity_id: automation.guest_room_lights_on_if_people_present
-
-  ###############################################
-  # Lighting Automation based on buttons
-  ###############################################
-  - alias: B-GR Guest Room Wall Switch - Single Press - Toggle Ceiling Light
-    trigger:
-      - platform: state
-        entity_id: sensor.guest_room_ceiling_light_wall_switch
-        to: single
-    action:
-      - choose:
-          # IF - all lights off - turn on ceiling light
-          - conditions:
-              - condition: and
-                conditions:
-                  - condition: state
-                    entity_id: light.guest_room_ceiling_light
-                    state: "off"
-            sequence:
-              - service: light.turn_on
-                entity_id: light.guest_room_ceiling_light
-        # ELSE - some lights on - turn off all lights
-        default:
-          - service: light.turn_off
-            entity_id:
-              - light.guest_room_ceiling_light
-
+#  ###############################################
+#  # Lighting Automation based on motion sensors
+#  ###############################################
+#  - alias: L-GR Guest Room Ceiling Lights On If People Present
+#    id: "1599910376296"
+#    description: "automation.guest_room_lights_on_if_people_present"
+#    trigger:
+#      - entity_id: group.guest_room_motion
+#        platform: state
+#        from: "off"
+#        to: "on"
+#    condition:
+#      - condition: or
+#        conditions:
+#          - condition: and
+#            conditions:
+#              - entity_id: binary_sensor.guest_room_door_motion_sensor_motion
+#                condition: state
+#                state: "on"
+#              - entity_id: sensor.guest_room_door_motion_sensor_light
+#                condition: numeric_state
+#                below: "30"
+#          - condition: and
+#            conditions:
+#              - entity_id: binary_sensor.guest_room_bed_motion_sensor_motion
+#                condition: state
+#                state: "on"
+#              - entity_id: binary_sensor.guest_room_bed_motion_sensor_light
+#                condition: numeric_state
+#                below: "30"
+#    action:
+#      - service: light.turn_on
+#        entity_id: light.guest_room_ceiling_light
+#      - service: automation.turn_off
+#        entity_id: automation.guest_room_lights_on_if_people_present
+#
+#  ###############################################
+#  # Lighting Automation based on buttons
+#  ###############################################
+#  - alias: B-GR Guest Room Wall Switch - Single Press - Toggle Ceiling Light
+#    trigger:
+#      - platform: state
+#        entity_id: sensor.guest_room_ceiling_light_wall_switch
+#        to: single
+#    action:
+#      - choose:
+#          # IF - all lights off - turn on ceiling light
+#          - conditions:
+#              - condition: and
+#                conditions:
+#                  - condition: state
+#                    entity_id: light.guest_room_ceiling_light
+#                    state: "off"
+#            sequence:
+#              - service: light.turn_on
+#                entity_id: light.guest_room_ceiling_light
+#        # ELSE - some lights on - turn off all lights
+#        default:
+#          - service: light.turn_off
+#            entity_id:
+#              - light.guest_room_ceiling_light
+#
   #- alias: B-GR Guest Room Button Single Press - Toggle Ceiling Lights
   #  trigger:
   #    - platform: state

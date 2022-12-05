@@ -35,7 +35,6 @@ group:
       - switch.master_toilet_wall_switch
       - switch.master_toilet_dressing_room_wall_switch
       - automation.always_on_switches_stays_on
-    
 
 ###########################################
 #
@@ -43,12 +42,15 @@ group:
 #
 ###########################################
 switch:
+  #######################
+  # Aqara Wall Switches #
+  #######################
   - platform: group
     name: Garden Wall Light
     entities:
       - switch.garden_spotlight
       # Garden Wall Light
-      - switch.garden_light_wall_switch_right 
+      - switch.garden_light_wall_switch_right
 
   - platform: group
     name: Upstairs Heating
@@ -84,8 +86,45 @@ switch:
     name: Guest Toilet Floor LED
     entities:
       - switch.guest_toilet_wall_switch_right
-
-
+      
+  ################################################
+  # Homekit Switches (homekit requires fixed IP) #
+  ################################################
+#  - platform: group
+#    name: Air conditioner
+#    entities:
+#      - switch.mss210_cebd
+#
+#  - platform: group
+#    name: MR Gateway Plug
+#    entities:
+#      - switch.mss210_b083
+#
+#  - platform: group
+#    name: Living Room Landing Light 3
+#    entities:
+#      - switch.mss210_ef0f
+#
+#  - platform: group
+#    name: Kitchen Decro Light
+#    entities:
+#      - switch.mss210_c2da
+#
+#  - platform: group
+#    name: Master Room Dressing Table Light
+#    entities:
+#      - switch.MSS210-d3bd
+#
+#  - platform: group
+#    name: Kitchen Drinking Hot Water
+#    entities:
+#      - switch.mss210-c944
+#
+#  - platform: group
+#    name: Kitchen Worktop LED Left
+#    entities:
+#      - switch.mss210_c519
+#
 ###########################################
 #
 # Smart Light Renaming
@@ -118,13 +157,12 @@ light:
       - light.kes_desk_lamp_1_hue
       - light.kes_desk_lamp_1_tuya_v1
 
-
   - platform: group
     name: En-suite Room Lamps
     entities:
       - light.en_suite_room_lamp_1
       - light.en_suite_room_lamp_2
-      
+
   - platform: group
     name: En-suite Room Lamp 1
     entities:
@@ -279,14 +317,16 @@ light:
 
   - platform: group
     name: Living Room Ceiling Light
-    entities: 
-    - light.living_room_ceiling_light_yeelight
-    
+    entities:
+      - light.living_room_ceiling_light_yeelight
+      - light.living_room_ceiling_light_miot
+
   - platform: group
     name: Kitchen Dining Light
-    entities: 
-    - light.kitchen_dining_light_yeelight
-    
+    entities:
+      - light.kitchen_dining_light_yeelight
+      - light.kitchen_dining_light_miot
+
   - platform: group
     name: Master Room Bed LED
     entities:
@@ -655,7 +695,8 @@ automation adaptive_lighting:
             sequence:
               - service: switch.turn_off
                 entity_id:
-                  - switch.adaptive_lighting_sleep_mode_non_bedroom
+                  - switch.adaptive_lighting_sleep_mode_non_bedroom_1_percent
+                  - switch.adaptive_lighting_sleep_mode_non_bedroom_20_percent
                   - switch.adaptive_lighting_sleep_mode_office
                   - switch.adaptive_lighting_sleep_mode_bedroom
 
@@ -669,7 +710,8 @@ automation adaptive_lighting:
             sequence:
               - service: switch.turn_on
                 entity_id:
-                  - switch.adaptive_lighting_sleep_mode_non_bedroom
+                  - switch.adaptive_lighting_sleep_mode_non_bedroom_1_percent
+                  - switch.adaptive_lighting_sleep_mode_non_bedroom_20_percent
                   - switch.adaptive_lighting_sleep_mode_office
                   - switch.adaptive_lighting_sleep_mode_bedroom
                   - switch.adaptive_lighting_sleep_mode_master_room_toilet
@@ -689,8 +731,19 @@ automation adaptive_lighting:
     trigger:
       - platform: state
         to: "on"
-        entity_id: group.indoor_motion
+        entity_id: group.whole_home_motion
     action:
       - service: switch.turn_on
         entity_id: group.always_on_switch
+
+  - alias: L- Turn On Living Room Switches If Accidentally Turned Off
+    id: "160545493499"
+    trigger:
+      - platform: state
+        to: "off"
+        entity_id: switch.living_room_wall_switch
+    action:
+      - delay: "00:00:05"
+      - service: switch.turn_on
+        entity_id: switch.living_room_wall_switch
 
