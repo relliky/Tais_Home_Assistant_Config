@@ -14,7 +14,7 @@ automation:
   - choose:
     - conditions:
         condition: state
-        entity_id: input_boolean.always_on_constant
+        entity_id: input_boolean.always_off_constant
         state: 'on'
       sequence:
       - service: input_select.select_option
@@ -32,7 +32,7 @@ automation:
           option: All White
     - conditions:
       - condition: state
-        entity_id: input_boolean.always_off_constant
+        entity_id: input_boolean.always_on_constant
         state: 'on'
       - condition: state
         entity_id: input_select.indoor_brightness
@@ -50,8 +50,17 @@ automation:
           - condition: template
             value_template: '{{ now().month > 4 and now().month < 9 }}'
       sequence:
-        service: cover.open_cover
-        entity_id: []
+      - service: cover.open_cover
+        entity_id:
+        - cover.kitchen_curtain
+      - condition: state
+        entity_id: input_boolean.always_on_constant
+        state: 'on'
+      - service: input_select.select_option
+        target:
+          entity_id: input_select.kitchen_scene
+        data:
+          option: Ceiling Light White with Curtain Open
     - conditions:
       - condition: time
         after: '10:00:00'
@@ -101,7 +110,8 @@ automation:
     entity_id:
     - media_player.kitchen_tv
   - service: cover.close_cover
-    entity_id: []
+    entity_id:
+    - cover.kitchen_curtain
 - alias: ZH-KC Heating Schedule On If Staying In the Room-Kitchen
   id: automation.zh_kc_heating_schedule_on_if_staying_in_the_room_kitchen
   trigger:
@@ -139,10 +149,6 @@ automation:
   - condition: state
     entity_id: input_select.kitchen_occupancy
     state: Outside
-  - condition: state
-    entity_id: group.kitchen_motion
-    state: 'off'
-    for: 00:01:00
   - condition: state
     entity_id: input_boolean.kitchen_heating_override
     state: 'off'
@@ -241,6 +247,27 @@ automation:
     - conditions:
       - condition: state
         entity_id: input_select.kitchen_scene
+        state: Ceiling Light White with Curtain Open
+      sequence:
+      - parallel:
+        - service: homeassistant.turn_off
+          entity_id:
+          - switch.kitchen_floor_led
+        - service: homeassistant.turn_on
+          entity_id:
+          - light.kitchen_ceiling_light
+          - light.kitchen_dining_light
+        - service: samsungtv_smart.select_picture_mode
+          data:
+            entity_id:
+            - media_player.kitchen_tv
+            picture_mode: Standard
+        - service: cover.open_cover
+          entity_id:
+          - cover.kitchen_curtain
+    - conditions:
+      - condition: state
+        entity_id: input_select.kitchen_scene
         state: LED White
       sequence:
       - parallel:
@@ -304,6 +331,9 @@ automation:
           - light.kitchen_ceiling_light
           - light.kitchen_dining_light
           - switch.kitchen_floor_led
+        - service: cover.close_cover
+          entity_id:
+          - cover.kitchen_curtain
   id: automation.zlb_kc_applies_different_scenes_based_on_scene_selections_state_execution_kitchen
 - alias: ZLB-KC Wall Switch-Single Left Press - Toggle Ceiling Light-Kitchen
   trigger:
@@ -377,6 +407,7 @@ input_select:
     name: Kitchen Scene
     options:
     - LED White
+    - Ceiling Light White with Curtain Open
     - All White
     - Ceiling Light White
     - All Off
@@ -410,6 +441,8 @@ input_boolean:
     initial: 'off'
 switch: []
 template: []
+binary_sensor: []
+light: []
 group:
   kitchen_occupancy_group:
     name: Kitchen Occuapancy Group

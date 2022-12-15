@@ -14,7 +14,7 @@ automation:
   - choose:
     - conditions:
         condition: state
-        entity_id: input_boolean.always_off_constant
+        entity_id: input_boolean.always_on_constant
         state: 'on'
       sequence:
       - service: input_select.select_option
@@ -50,8 +50,16 @@ automation:
           - condition: template
             value_template: '{{ now().month > 4 and now().month < 9 }}'
       sequence:
-        service: cover.open_cover
+      - service: cover.open_cover
         entity_id: []
+      - condition: state
+        entity_id: input_boolean.always_off_constant
+        state: 'on'
+      - service: input_select.select_option
+        target:
+          entity_id: input_select.en_suite_room_scene
+        data:
+          option: Ceiling Light White with Curtain Open
     - conditions:
       - condition: time
         after: '10:00:00'
@@ -168,10 +176,6 @@ automation:
   - condition: state
     entity_id: input_select.en_suite_room_occupancy
     state: Outside
-  - condition: state
-    entity_id: group.en_suite_room_motion
-    state: 'off'
-    for: 00:01:00
   - condition: state
     entity_id: input_boolean.en_suite_room_heating_override
     state: 'off'
@@ -331,6 +335,27 @@ automation:
     - conditions:
       - condition: state
         entity_id: input_select.en_suite_room_scene
+        state: Ceiling Light White with Curtain Open
+      sequence:
+      - parallel:
+        - service: homeassistant.turn_off
+          entity_id:
+          - light.en_suite_room_bed_led
+          - light.en_suite_room_lamp_1
+          - light.en_suite_room_lamp_2
+        - service: homeassistant.turn_on
+          entity_id:
+          - light.en_suite_room_ceiling_light
+        - service: samsungtv_smart.select_picture_mode
+          data:
+            entity_id:
+            - media_player.portable_tv
+            picture_mode: Standard
+        - service: cover.open_cover
+          entity_id: []
+    - conditions:
+      - condition: state
+        entity_id: input_select.en_suite_room_scene
         state: LED White
       sequence:
       - parallel:
@@ -399,6 +424,8 @@ automation:
           - light.en_suite_room_lamp_2
           - light.en_suite_room_ceiling_light
           - light.en_suite_room_bed_led
+        - service: cover.close_cover
+          entity_id: []
   id: automation.zlb_er_applies_different_scenes_based_on_scene_selections_state_execution_en_suite_room
 - alias: ZLB-ER Remote Button - Double - Toggle Lamps-En-suite Room
   trigger:
@@ -538,6 +565,8 @@ input_boolean:
     initial: 'off'
 switch: []
 template: []
+binary_sensor: []
+light: []
 group:
   en_suite_room_occupancy_group:
     name: En-suite Room Occuapancy Group

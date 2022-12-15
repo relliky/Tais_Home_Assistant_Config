@@ -207,7 +207,7 @@ class RoomBase:
     return ratio_sensor_config
 
 
-  def add_mac_device(self, name, mac, model, integration='XiaoMiGateway3'):
+  def add_mac_device(self, mac, name, model, integration='XiaoMiGateway3'):
     ###################################################################################################
     # Aqara D1 Wall Switch (With Neutral, Triple Rocker)  QBKG26LM  ZigbeeID: ["lumi.switch.n3acn3"]
     ###################################################################################################
@@ -340,9 +340,10 @@ class RoomBase:
             "Dark Night Mode"] if self.en_cst_scene else[])
         + (["Lamp LED White" ] if len(self.lamps) > 0 else [])  
         + (["LED White"      ] if len(self.leds)  > 0 else [])  
-        +  [ "All White",
-             "Ceiling Light White",
-             "All Off"
+        + (["Ceiling Light White with Curtain Open"] if len(self.curtains)  > 0 else [])  
+        +  ["All White",
+            "Ceiling Light White",
+            "All Off"
            ],
           "enabled": self.en_scene 
         }
@@ -459,11 +460,11 @@ class RoomBase:
           },
           {
             "choose": [
-              #  IF the room is a common_room/toilet     
+              #  IF the room does not have curtain,  
               #  Turn on all ceiling light and LED after sunset 
               #  but only turn on ceiling light during daytime       
               {
-                "conditions": self.alwaysOnIf(self.room_type != 'bedroom'),
+                "conditions": self.alwaysOnIf(len(self.curtains) == 0),
                 "sequence": [
                   self.setNewScene("Ceiling Light White"),
                   {
@@ -518,7 +519,13 @@ class RoomBase:
                     ]
                   }
                 ],
-                "sequence": self.turn(self.curtains, 'on')
+                "sequence": [
+                  self.turn(self.curtains, 'on'),
+                  # If room forces to turn on lights when curtain is open in daytime
+                  self.alwaysOnIf(len(self.curtains) > 0),
+                  self.setNewScene("Ceiling Light White with Curtain Open")    
+                ]
+
               },
             # ELSE - in nighttime/hot days in summer afternoon
             #.       turn on master room ceiling/bed lights
@@ -674,13 +681,13 @@ class RoomBase:
                "entity_id": self.room_occupancy,
                "state": "Outside"
              },
-             # Make sure that if room_occupany is forced to Outside because of people override (by button for example)
-             # and people are going back to the room, the lights should not be turned off
-             { "condition": "state",
-               "entity_id": self.room_motion_sensor,
-               "state": "off",
-               "for": "00:01:00"
-             },      
+             ## Make sure that if room_occupany is forced to Outside because of people override (by button for example)
+             ## and people are going back to the room, the lights should not be turned off
+             #{ "condition": "state",
+             #  "entity_id": self.room_motion_sensor,
+             #  "state": "off",
+             #  "for": "00:01:00"
+             #},      
              # Won't turn off heating unless override is off
              {"condition": "state",
               "entity_id": self.room_heating_override,
@@ -817,6 +824,7 @@ class RoomBase:
               self.callSceneServiceIfSelected("All White"),
               self.callSceneServiceIfSelected("Ceiling Light White"),
               self.callSceneServiceIfSelected("Lamp LED White"),
+              self.callSceneServiceIfSelected("Ceiling Light White with Curtain Open"),
               self.callSceneServiceIfSelected("LED White"),
               self.callSceneServiceIfSelected("Hue"),
               self.callSceneServiceIfSelected("Night Mode"),
@@ -1019,6 +1027,9 @@ class RoomBase:
                                    "cover.close_cover"      if state == 'off'    else \
                                    "cover.toggle"           if state == 'toggle' else None,
                         "entity_id": entity_list}
+
+    # TODO make sure that it only turns a directory or a list.
+    # use a different way to handle this case                    
     elif entity_list == 'heating':
       if state == 'on':
         action_service = [{ "service": "climate.set_hvac_mode",
@@ -1056,7 +1067,12 @@ class RoomBase:
       elif scene_name == 'Ceiling Light White':
           scene_service += [self.turn(self.leds + self.lamps, "off"),
                             self.turn(self.ceiling_lights, "on"),
-                            self.turn(self.tvs, tv_brightness=3)]                            
+                            self.turn(self.tvs, tv_brightness=3)]   
+      elif scene_name == 'Ceiling Light White with Curtain Open':
+          scene_service += [self.turn(self.leds + self.lamps, "off"),
+                            self.turn(self.ceiling_lights, "on"),
+                            self.turn(self.tvs, tv_brightness=3),
+                            self.turn(self.curtains, 'on')]   
       elif scene_name == 'Lamp LED White':
           scene_service += [self.turn(self.ceiling_lights, "off"),
                             self.turn(self.lamps + self.leds, "on"),
@@ -1078,7 +1094,8 @@ class RoomBase:
           scene_service += [{ "service": "homeassistant.turn_on",
                               "entity_id": "scene." + self.room_entity + "_dark_night_mode" }]
       elif scene_name == 'All Off':
-          scene_service += [self.turn(self.lamps + self.ceiling_lights+ self.leds, "off")]
+          scene_service += [self.turn(self.lamps + self.ceiling_lights+ self.leds, "off"),
+                            self.turn(self.curtains, "off")]
 
       if parallel_enable == True:
         scene_service = [{"parallel":scene_service}] 
@@ -1251,8 +1268,8 @@ class MasterRoom(RoomBase):
 
   def get_entity_declarations(self):
     super().get_entity_declarations()
-    self.add_mac_device("Master Room",                 "0x04cf8cdf3c7ad638", "Aqara D1 Wall Switch (With Neutral, Triple Rocker)")
-    self.add_mac_device("Master Room TV",              "0x00158d0005228ba8", "Aqara Motion and Illuminance Sensor")
+    #self.add_mac_device("0x04cf8cdf3c7ad638", "Master Room",     "Aqara D1 Wall Switch (With Neutral, Triple Rocker)")
+    #self.add_mac_device("0x00158d0005228ba8", "Master Room TV",  "Aqara Motion and Illuminance Sensor")
 
 
   def get_motion_sensor_entities(self):
@@ -1311,8 +1328,8 @@ class MasterToilet(RoomBase):
 
   def get_entity_declarations(self):
     super().get_entity_declarations()
-    self.add_mac_device("Master Toilet",               "0x00158d00047d69be", "Aqara D1 Wall Switch (With Neutral, Single Rocker)")
-    self.add_mac_device("Master Toilet Dressing Room", "0x00158d00042d4092", "Aqara D1 Wall Switch (With Neutral, Single Rocker)")
+    #self.add_mac_device( "0x00158d00047d69be", "Master Toilet",               "Aqara D1 Wall Switch (With Neutral, Single Rocker)")
+    #self.add_mac_device( "0x00158d00042d4092", "Master Toilet Dressing Room", "Aqara D1 Wall Switch (With Neutral, Single Rocker)")
 
 
   def get_motion_sensor_entities(self):
@@ -1357,6 +1374,11 @@ class Kitchen(RoomBase):
                                     "light.kitchen_dining_light"]
     self.leds                    = ["switch.kitchen_floor_led"]
     self.lights                  = self.leds + self.lamps + self.ceiling_lights
+
+  def get_cover_entities(self):
+    super().get_cover_entities()
+    # Cover entities
+    self.curtains               = ["cover.kitchen_curtain"] 
 
   # Kitchen - Left - Ceiling light & Dining light
   # Kitchen - Right - Floor LED
@@ -1462,7 +1484,7 @@ class EnSuiteToilet(RoomBase):
 
   def get_entity_declarations(self):
     super().get_entity_declarations()
-    self.add_mac_device("En-suite Toilet",               "0x158d00053fdaba", "Aqara Door & Window Sensor")
+    #self.add_mac_device("0x158d00053fdaba", "En-suite Toilet", "Aqara Door & Window Sensor")
     
 
   def get_motion_sensor_entities(self):
@@ -1588,7 +1610,7 @@ class Corridor(RoomBase):
 
   def get_entity_declarations(self):
     super().get_entity_declarations()
-    self.add_mac_device("Corridor",                 "13321cbe6c471000_group", "Generic Lights")
+    #self.add_mac_device("Corridor",                 "13321cbe6c471000_group", "Generic Lights")
 
   def get_motion_sensor_entities(self):
     super().get_motion_sensor_entities()
@@ -1753,3 +1775,57 @@ if args.create_system_config:
   write_core_entity_entries_json()
 
 
+
+
+# All Zigbee devices mac-name mapping
+#('0x00158d00045f640a', 'Upstairs Heating',           'Wall Switch')
+#('0x00158d00045e2300', 'Living Room',                'Wall Switch')
+#('0x00158d00047d69be', 'Master Toilet',              'Wall Switch')
+#('0x04cf8cdf3c7ad638', 'Master Room',                'Wall Switch')
+#('0x00158d00052e2124', 'Master Room Entrance',       'Wall Switch')
+#('0x00158d00042d4092', 'Master Toilet Dressing Room','Wall Switch')
+#('0x04cf8cdf3c7ad647', 'Kitchen',                    'Wall Switch')
+#('0x00158d0005210fa9', 'Kitchen Extractor',          'Wall Switch')
+#('0x00158d000522e00e', 'Garden Light',               'Wall Switch')
+#('0x00158d00048783e5', 'Ground Corridor',            'Wall Switch')
+#('0x00158d0005435643', 'Ground Toilet',              'Wall Switch')
+#('0x00158d0005210fcf', 'First Corridor',             'Wall Switch')
+#('0x00158d00045245be', 'Study',                      'Wall Switch')
+#('0x00158d00047b69d2', 'Guest Room',                 'Wall Switch')
+#('0x00158d000487851a', 'Guest Toilet',               'Wall Switch')
+#('0x00158d0005227632', 'Downstairs Heating',         'Wall Switch')
+#
+#('0x00158d00054750ca', 'Master Toilet Shower',       'Motion Sensor')
+#('0x00158d0003140ea8', 'Living Room TV',             'Motion Sensor')
+#('0x00158d0005228ba8', 'Master Room TV',             'Motion Sensor')
+#('0x00158d00054a6f3a', 'Master Room Drawer',         'Motion Sensor')
+#('0x00158d000460247b', 'Master Toilet Dressing Room','Motion Sensor')
+#('0x00158d00054deda4', 'Master Room Stair',          'Motion Sensor')
+#('0x00158d000122393b', 'Master Room Entrance',       'Motion Sensor')
+#('0x00158d0004525183', 'First Corridor',             'Motion Sensor')
+#('0x00158d00054a6eb9', 'Study',                      'Motion Sensor')
+#('0x00158d00052b35f7', 'Guest Toilet',               'Motion Sensor')
+#('0x00158d00045019fd', 'Ground Corridor',            'Motion Sensor')
+#('0x00158d0004667569', 'Ground Toilet',              'Motion Sensor')
+#('0x00158d0004501b0a', 'Living Room Sofa',           'Motion Sensor')
+#('0x00158d000548b8a5', 'Living Room Sliding Door',   'Motion Sensor')
+#('0x00158d00057acaac', 'Kitchen Dining',             'Motion Sensor')
+#('0x00158d0004660308', 'Kitchen Worktop',            'Motion Sensor')
+#('0x00158d000171bd29', 'Master Room Dressing Table', 'Motion Sensor')
+#('0x00158d00057b2b4c', 'Master Toilet Basin',        'Motion Sensor')
+#
+#('0x001788010c4c1cc8', 'E27',  'HUE W Z2M 4')
+#('0x001788010c45edfc', 'E27',  'HUE W Z2M 3')
+#('0x001788010c45f13e', 'E27',  'HUE W Z2M 1')
+#('0x001788010c45f2d5', 'E27',  'HUE W Z2M 2')
+#  
+#('0x04cf8cdf3c7b36b1', 'Master Room',         'Light Meter')
+#('0x04cf8cdf3c73a19b', 'Master Room',         'Curtain')
+#('0x00158d0001212747', 'Boiler Room',         'Door')
+#('0x00158d00052d5691', 'Ground Toilet',       'Door')
+#('0x00158d00053e96ae', 'Guest Toilet',        'Door')
+#('0x00158d00053e95f6', 'Master Room Balcony', 'Door')
+#('0x00158d00053fdaa8', 'Master Toilet',       'Door')
+#('0x00158d000424f995', 'Living Room',         'Button')
+#('0x00158d00012262a5', 'Master Room 1'        'Button')
+#('0x00158d000424f98c', 'Master Room 2'        'Button')

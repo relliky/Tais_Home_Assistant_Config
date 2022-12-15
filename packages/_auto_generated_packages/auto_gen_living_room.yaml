@@ -50,8 +50,16 @@ automation:
           - condition: template
             value_template: '{{ now().month > 4 and now().month < 9 }}'
       sequence:
-        service: cover.open_cover
+      - service: cover.open_cover
         entity_id: []
+      - condition: state
+        entity_id: input_boolean.always_off_constant
+        state: 'on'
+      - service: input_select.select_option
+        target:
+          entity_id: input_select.living_room_scene
+        data:
+          option: Ceiling Light White with Curtain Open
     - conditions:
       - condition: time
         after: '10:00:00'
@@ -144,10 +152,6 @@ automation:
   - condition: state
     entity_id: input_select.living_room_occupancy
     state: Outside
-  - condition: state
-    entity_id: group.living_room_motion
-    state: 'off'
-    for: 00:01:00
   - condition: state
     entity_id: input_boolean.living_room_heating_override
     state: 'off'
@@ -309,6 +313,31 @@ automation:
     - conditions:
       - condition: state
         entity_id: input_select.living_room_scene
+        state: Ceiling Light White with Curtain Open
+      sequence:
+      - parallel:
+        - service: homeassistant.turn_off
+          entity_id:
+          - light.living_room_tv_led
+          - light.living_room_sofa_led
+          - light.living_room_floor_light_1
+          - light.living_room_3_head_lamp_1
+          - light.living_room_3_head_lamp_2
+          - light.living_room_3_head_lamp_3
+          - switch.living_room_floor_light_3
+        - service: homeassistant.turn_on
+          entity_id:
+          - light.living_room_ceiling_light
+        - service: samsungtv_smart.select_picture_mode
+          data:
+            entity_id:
+            - media_player.living_room_tv
+            picture_mode: Standard
+        - service: cover.open_cover
+          entity_id: []
+    - conditions:
+      - condition: state
+        entity_id: input_select.living_room_scene
         state: LED White
       sequence:
       - parallel:
@@ -393,6 +422,8 @@ automation:
           - light.living_room_ceiling_light
           - light.living_room_tv_led
           - light.living_room_sofa_led
+        - service: cover.close_cover
+          entity_id: []
   id: automation.zlb_lr_applies_different_scenes_based_on_scene_selections_state_execution_living_room
 - alias: ZLB-LR Remote Button - Double - Toggle Lamps-Living Room
   trigger:
@@ -536,6 +567,8 @@ input_boolean:
     initial: 'off'
 switch: []
 template: []
+binary_sensor: []
+light: []
 group:
   living_room_occupancy_group:
     name: Living Room Occuapancy Group
