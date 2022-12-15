@@ -136,6 +136,8 @@ class RoomBase:
     self.thermostat                       = "climate." + self.room_entity
     self.thermostat_schedule              = "switch.schedule_" + self.room_entity + "_temperature"
     self.temperature_sensor               = "sensor." + self.room_entity + "_temperature_sensor"
+    self.room_heating_override_postfix    = self.room_entity + "_heating_override"
+    self.room_heating_override            = "input_boolean." + self.room_heating_override_postfix
     
   def get_post_room_config(self):
 
@@ -168,7 +170,11 @@ class RoomBase:
     self.input_select_dict   = {}
     self.sensor_list         = []
     self.group_dict          = {}
-    
+    self.input_boolean_dict  = {}
+    self.switch_list         = []
+    self.template_list       = []
+    self.binary_sensor_list  = []
+    self.light_list          = []
     
   def get_occupancy_ratio_sensor_config(self, x_minutes_multiple_str):
     x_minutes_multiple = 1 if x_minutes_multiple_str == '1x' else \
@@ -199,9 +205,130 @@ class RoomBase:
         "enabled": self.en_occupancy
       }
     return ratio_sensor_config
-    
-    
 
+
+  def add_mac_device(self, name, mac, model, integration='XiaoMiGateway3'):
+    ###################################################################################################
+    # Aqara D1 Wall Switch (With Neutral, Triple Rocker)  QBKG26LM  ZigbeeID: ["lumi.switch.n3acn3"]
+    ###################################################################################################
+    if model == "Aqara D1 Wall Switch (With Neutral, Triple Rocker)": 
+      self.add_wall_switch(name, mac, key_num=3)
+      self.add_wall_button(name, mac)  
+      
+    ###################################################################################################
+    # Aqara D1 Wall Switch (With Neutral, Single Rocker) QBKG23LM  ZigbeeID: ["lumi.switch.b1nacn02"]
+    ###################################################################################################
+    elif model == "Aqara D1 Wall Switch (With Neutral, Single Rocker)": 
+      self.add_wall_switch(name, mac, key_num=1)
+      self.add_wall_button(name, mac)  
+    
+    ###################################################################################################
+    # Aqara Door & Window Sensor MCCGQ11LM ZigbeeID: ["lumi.sensor_magnet.aq2"]
+    ###################################################################################################
+    elif model == "Aqara Door & Window Sensor": 
+      self.add_door(name, mac)
+      
+    ###################################################################################################
+    # Xiaomi Mi Light Detection Sensor GZCGQ01LM ZigbeeID: ["lumi.sen_ill.mgl01"]
+    ###################################################################################################
+
+
+    ###################################################################################################
+    # Aqara Motion and Illuminance Sensor RTCGQ11LM ZigbeeID: ["lumi.sensor_motion.aq2"]
+    ###################################################################################################
+    elif model == "Aqara Motion and Illuminance Sensor": 
+      self.add_motion_sensor(name, mac)
+
+
+    elif model == "Generic Lights": 
+      self.add_light(name, mac)
+
+
+  def add_light(self, name, mac):
+    self.light_list += [
+      {
+        "platform": "group",
+        "name": name + " Light",
+        "entities": "light." + mac,
+        "enabled": True 
+      }        
+    ]
+
+  def add_door(self, name, mac):
+    self.binary_sensor_list += [
+      {
+        "platform": "group",
+        "name": name + " Door",
+        "entities": "binary_sensor." + mac + '_contact',
+        "enabled": True 
+      }        
+    ]
+
+  def add_motion_sensor(self, name, mac):
+    self.binary_sensor_list += [
+      {
+        "platform": "group",
+        "name": name + " Motion Sensor Motion",
+        "entities": "binary_sensor." + mac + '_motion',
+        "enabled": True 
+      }        
+    ]
+
+    self.template_list += [
+      {
+        "sensor": [
+          {
+            "name": name + " Motion Sensor Light",
+            "unit_of_measurement": "lx",
+            "state": '{{states.sensor["' + mac + '_illuminance"].state}}'
+          }
+        ],
+        "enabled": True 
+      }        
+    ]
+    
+    self.template_list += [
+      {
+        "sensor": [
+          {
+            "name": name + " Motion Sensor Battery",
+            "unit_of_measurement": "%",
+            "state": '{{states.sensor["' + mac + '_battery"].state}}'
+          }
+        ],
+        "enabled": True 
+      }        
+    ]
+    
+  def add_wall_switch(self, name, mac, key_num):
+    
+    for i in range(1,key_num+1):
+      # single switch is with different postfix
+      i = '' if key_num == 1 else i
+      self.switch_list += [
+        {
+          "platform": "group",
+          "name": name + " Wall Switch " + str(i),
+          "entities": "switch." + mac + ('_switch' if key_num == 1 else '_channel_' + str(i)),
+          "enabled": True 
+        }        
+      ]
+    
+  def add_wall_button(self, name, mac):
+    self.template_list += [
+      {
+        "sensor": [
+          {
+            "name": name + " Wall Button",
+            # Entity id starts with 0 so have to use a different format
+            # https://community.home-assistant.io/t/error-in-template-i-am-missing-something/92464/3
+            "state": '{{states.sensor["' + mac + '_action"].state}}'
+          }
+        ],
+        "enabled": True 
+      }        
+    ]
+    
   def get_entity_declarations(self):
 
       self.input_select_dict |= {
@@ -234,6 +361,14 @@ class RoomBase:
         }
       }
     
+      self.input_boolean_dict |= {
+        self.room_heating_override_postfix : {
+          "name" : self.room_name + " Heating Override",
+          "initial": "off",
+          "enabled": self.en_temp_control
+        }
+      }
+      
       self.sensor_list += [
         self.get_occupancy_ratio_sensor_config('1x'),
         self.get_occupancy_ratio_sensor_config('2x')
@@ -293,7 +428,12 @@ class RoomBase:
   def populate_entnties_into_database(self):
       self.entity_declarations |= {
         "input_select":  self.input_select_dict,
-        "sensor":        self.sensor_list
+        "sensor":        self.sensor_list,
+        "input_boolean": self.input_boolean_dict,
+        "switch":        self.switch_list,
+        "template":      self.template_list,
+        "binary_sensor": self.binary_sensor_list,
+        "light":         self.light_list
       }
 
 
@@ -482,9 +622,10 @@ class RoomBase:
 
 
   def gen_temp_control_automations(self):
-    self.automations += [
-      {
-        "alias" : "ZH-" + self.automation_room_name + "Heating Schedule On If Staying In the Room" + "-" + self.room_name,
+    
+    self.automation_heating_on = {"alias":"ZH-" + self.automation_room_name + "Heating Schedule On If Staying In the Room" + "-" + self.room_name}
+    self.automation_heating_on['id'] = self.getIDFromAlias(self.automation_heating_on['alias'])
+    self.automations += [self.automation_heating_on | {      
         "enabled": self.en_temp_control and self.en_occupancy,
         "trigger": [
           { "platform": "state",
@@ -507,15 +648,7 @@ class RoomBase:
                 ]
               }
             ],
-            "then": [
-              { "service": "climate.set_hvac_mode",
-                "data":   {"hvac_mode": "heat"},
-                "target": {"entity_id": self.thermostat}
-              },
-              { "service": "switch.turn_on",
-                "target": {"entity_id": self.thermostat_schedule}
-              }
-            ]
+            "then": self.turn('heating', 'on')
           }
         ]
       }      
@@ -533,36 +666,71 @@ class RoomBase:
           {
             "minutes": "/5",
             "platform": "time_pattern"
-          }
+          }          
         ],
-        "condition": [
-          { "condition": "state",
-            "entity_id": self.room_occupancy,
-            "state": "Outside"
-          },
-          # Make sure that if room_occupany is forced to Outside because of people override (by button for example)
-          # and people are going back to the room, the lights should not be turned off
-          { "condition": "state",
-            "entity_id": self.room_motion_sensor,
-            "state": "off",
-            "for": "00:01:00"
-          }],
-        "action": [
-            { "service": "climate.set_hvac_mode",
-              "data":   {"hvac_mode": "off"},
-              "target": {"entity_id": self.thermostat}
-            },
-            { "service": "switch.turn_off",
-              "target": {"entity_id": self.thermostat_schedule}
-            },
-            # If it is not triggered by Outside condition (e.g. manual override by double click button)
-            # set occupancy to Outside
-            {"service": "input_select.select_option",
-             "target":  {"entity_id": self.room_occupancy},
-             "data":    {"option": "Outside"}
-            }]
+        "action": 
+            [
+             { "condition": "state",
+               "entity_id": self.room_occupancy,
+               "state": "Outside"
+             },
+             # Make sure that if room_occupany is forced to Outside because of people override (by button for example)
+             # and people are going back to the room, the lights should not be turned off
+             { "condition": "state",
+               "entity_id": self.room_motion_sensor,
+               "state": "off",
+               "for": "00:01:00"
+             },      
+             # Won't turn off heating unless override is off
+             {"condition": "state",
+              "entity_id": self.room_heating_override,
+              "state": "off"
+             }
+            ]  + self.turn('heating', 'off') 
       }      
     ]
+
+    self.automations += [
+      {
+        "alias" : "ZH-" + self.automation_room_name + "Heaeting Manual Override" + "-" + self.room_name,
+        "enabled": self.en_temp_control,
+        "trigger": [
+          { "platform": "state",
+            "entity_id": self.room_heating_override
+          }
+        ],
+        "action": [
+          {
+            "if": [
+              {
+                "condition": "state",
+                "entity_id": self.room_heating_override,
+                "state": "on"
+              }
+            ],
+            "then": [
+              #{ "service": "automation.turn_off",
+              #  "entity_id": [self.automation_heating_on['id'],
+              #                self.automation_heating_off['id']]
+              #},
+              { "service": "automation.trigger",
+                "entity_id": [self.automation_heating_on['id']]
+              }
+            ],
+           "else": [
+              #{ "service": "automation.turn_on",
+              #  "entity_id": [self.automation_heating_on['id'],
+              #                self.automation_heating_off['id']]
+              #},
+              { "service": "automation.trigger",
+                "entity_id": [self.automation_heating_off['id']]
+              }
+            ]
+          }
+        ]
+      }      
+    ]
+
 
     self.automations += [
       {
@@ -760,12 +928,16 @@ class RoomBase:
           }
         ],
         "action": [
-          {
-            "service": "automation.trigger",
+          { "service": "automation.trigger",
             "entity_id": [self.automation_lights_off['id'],
                           self.automation_heating_off['id']]
+          },
+          # set occupancy to Outside eariler to make sure if we enter the room shortly again, the auto-heating can be enabled
+          {"service": "input_select.select_option",
+           "target":  {"entity_id": self.room_occupancy},
+           "data":    {"option": "Outside"}
           }
-        ]
+        ]        
       }
     ]
 
@@ -842,20 +1014,28 @@ class RoomBase:
                                                  "Natural"  if tv_brightness in [2, '2'] else \
                                                  "Standard" if tv_brightness in [3, '3'] else \
                                                  "Dynamic"}}
-      #action_service = {"service": "input_select.select_option",
-      #                  "target": {
-      #                    "entity_id": self.room_entity + "_tv_picture_mode"
-      #                  },
-      #                  "data":{
-      #                    "option": "Movie"    if tv_brightness in [1, '1'] else \
-      #                              "Natural"  if tv_brightness in [2, '2'] else \
-      #                              "Standard" if tv_brightness in [3, '3'] else \
-      #                              "Dynamic"}} 
     elif entity_list == self.curtains:
       action_service = {"service": "cover.open_cover"       if state == 'on'     else \
                                    "cover.close_cover"      if state == 'off'    else \
                                    "cover.toggle"           if state == 'toggle' else None,
                         "entity_id": entity_list}
+    elif entity_list == 'heating':
+      if state == 'on':
+        action_service = [{ "service": "climate.set_hvac_mode",
+                            "data":   {"hvac_mode": "heat"},
+                            "target": {"entity_id": self.thermostat}
+                          },
+                          { "service": "switch.turn_on",
+                            "target": {"entity_id": self.thermostat_schedule}
+                          }]
+      else:
+        action_service = [{ "service": "climate.set_hvac_mode",
+                            "data":   {"hvac_mode": "off"},
+                            "target": {"entity_id": self.thermostat}
+                          },
+                          { "service": "switch.turn_off",
+                            "target": {"entity_id": self.thermostat_schedule}
+                          }]
     else:
       action_service = {"service": "homeassistant.turn_on"  if state == 'on'     else \
                                    "homeassistant.turn_off" if state == 'off'    else \
@@ -1069,6 +1249,12 @@ class MasterRoom(RoomBase):
     self.en_cst_scene          = True
     self.en_motion_bed_led     = True
 
+  def get_entity_declarations(self):
+    super().get_entity_declarations()
+    self.add_mac_device("Master Room",                 "0x04cf8cdf3c7ad638", "Aqara D1 Wall Switch (With Neutral, Triple Rocker)")
+    self.add_mac_device("Master Room TV",              "0x00158d0005228ba8", "Aqara Motion and Illuminance Sensor")
+
+
   def get_motion_sensor_entities(self):
     super().get_motion_sensor_entities()
     self.all_motion_sensors = [
@@ -1122,6 +1308,12 @@ class MasterToilet(RoomBase):
     self.en_scene              = True            
     self.en_motion_light       = True
     self.en_remote_light       = True
+
+  def get_entity_declarations(self):
+    super().get_entity_declarations()
+    self.add_mac_device("Master Toilet",               "0x00158d00047d69be", "Aqara D1 Wall Switch (With Neutral, Single Rocker)")
+    self.add_mac_device("Master Toilet Dressing Room", "0x00158d00042d4092", "Aqara D1 Wall Switch (With Neutral, Single Rocker)")
+
 
   def get_motion_sensor_entities(self):
     super().get_motion_sensor_entities()
@@ -1267,6 +1459,12 @@ class EnSuiteToilet(RoomBase):
     self.en_remote_light       = True
     self.en_led_only_scene     = True
 
+
+  def get_entity_declarations(self):
+    super().get_entity_declarations()
+    self.add_mac_device("En-suite Toilet",               "0x158d00053fdaba", "Aqara Door & Window Sensor")
+    
+
   def get_motion_sensor_entities(self):
     super().get_motion_sensor_entities()
     self.all_motion_sensors = [
@@ -1387,6 +1585,10 @@ class Corridor(RoomBase):
     self.en_occupancy          = True       
     self.en_group_auto         = True
     self.en_temp_control       = True
+
+  def get_entity_declarations(self):
+    super().get_entity_declarations()
+    self.add_mac_device("Corridor",                 "13321cbe6c471000_group", "Generic Lights")
 
   def get_motion_sensor_entities(self):
     super().get_motion_sensor_entities()
