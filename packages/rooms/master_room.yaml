@@ -80,8 +80,9 @@ group:
       - climate.master_room
       - light.master_room_lamps
       - light.master_room_leds
-      - light.master_room_entrance_led_light
-      - light.master_room_ceiling_lights
+      #- light.master_room_entrance_led_light
+      - switch.master_room_entrance_wall_switch
+      - light.master_room_ceiling_light
       - switch.master_room_dressing_table_light
       - cover.master_room_blind
       - cover.master_room_curtain
@@ -386,7 +387,7 @@ script light:
     sequence:
       - service: light.turn_on
         entity_id:
-          - light.master_room_ceiling_lights
+          - light.master_room_ceiling_light
         data:
           brightness: 255
           kelvin: 4000
@@ -398,7 +399,7 @@ script light:
     sequence:
       - service: light.turn_on
         entity_id:
-          - light.master_room_ceiling_lights
+          - light.master_room_ceiling_light
 
   master_room_ceiling_lights_turn_off:
     alias: Master Room Ceiling Lights Turn Off
@@ -407,7 +408,7 @@ script light:
     sequence:
       - service: light.turn_off
         entity_id:
-          - light.master_room_ceiling_lights
+          - light.master_room_ceiling_light
 
   master_room_bed_led_set_dark_yellow:
     alias: Master Room Bed LED Strip Set Dark Yellow
@@ -470,7 +471,7 @@ script light:
       - service: light.turn_off
         entity_id:
           - light.master_room_leds
-          - light.master_room_ceiling_lights
+          - light.master_room_ceiling_light
       - service: switch.turn_off
         entity_id:
           - switch.master_room_dressing_table_light
@@ -488,8 +489,10 @@ automation light:
         platform: state
         to: "on"
     action:
-      - service: light.turn_on
-        entity_id: light.master_room_entrance_led_light
+      - service: homeassistant.turn_on
+        entity_id: 
+          #- light.master_room_entrance_led_light
+          - switch.master_room_entrance_wall_switch
       - choose:
           # IF - in the nighttime, also turn on corridor lights
           - conditions:
@@ -515,8 +518,11 @@ automation light:
         state: "off"
         for: 00:02:00
     action:
-      - service: light.turn_off
-        entity_id: light.master_room_entrance_led_light
+      - service: homeassistant.turn_off
+        entity_id: 
+        #- light.master_room_entrance_led_light
+        - switch.master_room_entrance_wall_switch
+
 
   - alias: L-MR-M Master Room Balcony Lights On If Door Open
     id: "1615068441570"
@@ -621,7 +627,7 @@ automation light:
   #      - entity_id: light.master_room_leds
   #        condition: state
   #        state: "off"
-  #      - entity_id: light.master_room_ceiling_lights
+  #      - entity_id: light.master_room_ceiling_light
   #        condition: state
   #        state: "off"
   #      - entity_id: switch.master_room_dressing_table_light
@@ -839,8 +845,11 @@ automation button:
         entity_id: sensor.master_room_entrance_light_wall_button
         to: single
     action:
-      - service: light.toggle
-        entity_id: light.master_room_entrance_led_light
+      - service: homeassistant.toggle
+        entity_id: 
+        #- light.master_room_entrance_led_light
+        - switch.master_room_entrance_wall_switch
+        
 
   #  - alias: L-MR-B Master Room Six Key - Middle Keys Double Press - Toggle Bedside Lights
   #    id: "1603640020890"

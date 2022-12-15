@@ -14,7 +14,7 @@ automation:
   - choose:
     - conditions:
         condition: state
-        entity_id: input_boolean.always_off
+        entity_id: input_boolean.always_off_constant
         state: 'on'
       sequence:
       - service: input_select.select_option
@@ -32,7 +32,7 @@ automation:
           option: All White
     - conditions:
       - condition: state
-        entity_id: input_boolean.always_off
+        entity_id: input_boolean.always_off_constant
         state: 'on'
       - condition: state
         entity_id: input_select.indoor_brightness
@@ -102,6 +102,7 @@ automation:
   - service: cover.close_cover
     entity_id: []
 - alias: ZH-GR Heating Schedule On If Staying In the Room-Guest Room
+  id: automation.zh_gr_heating_schedule_on_if_staying_in_the_room_guest_room
   trigger:
   - platform: state
     entity_id: input_select.guest_room_occupancy
@@ -125,7 +126,6 @@ automation:
     - service: switch.turn_on
       target:
         entity_id: switch.schedule_guest_room_temperature
-  id: automation.zh_gr_heating_schedule_on_if_staying_in_the_room_guest_room
 - alias: ZH-GR Heating Schedule Off If People Left the Room-Guest Room
   id: automation.zh_gr_heating_schedule_off_if_people_left_the_room_guest_room
   trigger:
@@ -134,7 +134,7 @@ automation:
     to: Outside
   - minutes: /5
     platform: time_pattern
-  condition:
+  action:
   - condition: state
     entity_id: input_select.guest_room_occupancy
     state: Outside
@@ -142,7 +142,9 @@ automation:
     entity_id: group.guest_room_motion
     state: 'off'
     for: 00:01:00
-  action:
+  - condition: state
+    entity_id: input_boolean.guest_room_heating_override
+    state: 'off'
   - service: climate.set_hvac_mode
     data:
       hvac_mode: 'off'
@@ -151,11 +153,24 @@ automation:
   - service: switch.turn_off
     target:
       entity_id: switch.schedule_guest_room_temperature
-  - service: input_select.select_option
-    target:
-      entity_id: input_select.guest_room_occupancy
-    data:
-      option: Outside
+- alias: ZH-GR Heaeting Manual Override-Guest Room
+  trigger:
+  - platform: state
+    entity_id: input_boolean.guest_room_heating_override
+  action:
+  - if:
+    - condition: state
+      entity_id: input_boolean.guest_room_heating_override
+      state: 'on'
+    then:
+    - service: automation.trigger
+      entity_id:
+      - automation.zh_gr_heating_schedule_on_if_staying_in_the_room_guest_room
+    else:
+    - service: automation.trigger
+      entity_id:
+      - automation.zh_gr_heating_schedule_off_if_people_left_the_room_guest_room
+  id: automation.zh_gr_heaeting_manual_override_guest_room
 - alias: ZLB-GR Applies Different Scenes Based on Scene Selections (State Execution)-Guest Room
   trigger:
   - platform: state
@@ -311,6 +326,11 @@ automation:
     entity_id:
     - automation.zl_gr_lights_off_if_no_person_guest_room
     - automation.zh_gr_heating_schedule_off_if_people_left_the_room_guest_room
+  - service: input_select.select_option
+    target:
+      entity_id: input_select.guest_room_occupancy
+    data:
+      option: Outside
   id: automation.zlb_gr_wall_switch_double_press_leave_room_and_turn_off_everything_guest_room
 - alias: ZOc-GR Occupancy Update-Guest Room
   trigger:
@@ -364,6 +384,12 @@ sensor:
   duration:
     minutes: '8'
   end: '{{ (now() | as_timestamp) | as_datetime | as_local }}'
+input_boolean:
+  guest_room_heating_override:
+    name: Guest Room Heating Override
+    initial: 'off'
+switch: []
+template: []
 group:
   guest_room_occupancy_group:
     name: Guest Room Occuapancy Group
@@ -384,6 +410,7 @@ group:
     - automation.zl_gr_lights_off_if_no_person_guest_room
     - automation.zh_gr_heating_schedule_on_if_staying_in_the_room_guest_room
     - automation.zh_gr_heating_schedule_off_if_people_left_the_room_guest_room
+    - automation.zh_gr_heaeting_manual_override_guest_room
     - automation.zlb_gr_applies_different_scenes_based_on_scene_selections_state_execution_guest_room
     - automation.zlb_gr_wall_switch_single_press_toggle_ceiling_light_guest_room
     - automation.zlb_gr_wall_switch_double_press_leave_room_and_turn_off_everything_guest_room

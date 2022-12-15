@@ -1,5 +1,6 @@
 automation:
 - alias: ZH-CR Heating Schedule On If Staying In the Room-Corridor
+  id: automation.zh_cr_heating_schedule_on_if_staying_in_the_room_corridor
   trigger:
   - platform: state
     entity_id: input_select.corridor_occupancy
@@ -23,7 +24,6 @@ automation:
     - service: switch.turn_on
       target:
         entity_id: switch.schedule_corridor_temperature
-  id: automation.zh_cr_heating_schedule_on_if_staying_in_the_room_corridor
 - alias: ZH-CR Heating Schedule Off If People Left the Room-Corridor
   id: automation.zh_cr_heating_schedule_off_if_people_left_the_room_corridor
   trigger:
@@ -32,7 +32,7 @@ automation:
     to: Outside
   - minutes: /5
     platform: time_pattern
-  condition:
+  action:
   - condition: state
     entity_id: input_select.corridor_occupancy
     state: Outside
@@ -40,7 +40,9 @@ automation:
     entity_id: group.corridor_motion
     state: 'off'
     for: 00:01:00
-  action:
+  - condition: state
+    entity_id: input_boolean.corridor_heating_override
+    state: 'off'
   - service: climate.set_hvac_mode
     data:
       hvac_mode: 'off'
@@ -49,11 +51,24 @@ automation:
   - service: switch.turn_off
     target:
       entity_id: switch.schedule_corridor_temperature
-  - service: input_select.select_option
-    target:
-      entity_id: input_select.corridor_occupancy
-    data:
-      option: Outside
+- alias: ZH-CR Heaeting Manual Override-Corridor
+  trigger:
+  - platform: state
+    entity_id: input_boolean.corridor_heating_override
+  action:
+  - if:
+    - condition: state
+      entity_id: input_boolean.corridor_heating_override
+      state: 'on'
+    then:
+    - service: automation.trigger
+      entity_id:
+      - automation.zh_cr_heating_schedule_on_if_staying_in_the_room_corridor
+    else:
+    - service: automation.trigger
+      entity_id:
+      - automation.zh_cr_heating_schedule_off_if_people_left_the_room_corridor
+  id: automation.zh_cr_heaeting_manual_override_corridor
 - alias: ZOc-CR Occupancy Update-Corridor
   trigger:
   - entity_id: group.corridor_motion
@@ -99,6 +114,12 @@ sensor:
   duration:
     minutes: '8'
   end: '{{ (now() | as_timestamp) | as_datetime | as_local }}'
+input_boolean:
+  corridor_heating_override:
+    name: Corridor Heating Override
+    initial: 'off'
+switch: []
+template: []
 group:
   corridor_occupancy_group:
     name: Corridor Occuapancy Group
@@ -117,4 +138,5 @@ group:
     entities:
     - automation.zh_cr_heating_schedule_on_if_staying_in_the_room_corridor
     - automation.zh_cr_heating_schedule_off_if_people_left_the_room_corridor
+    - automation.zh_cr_heaeting_manual_override_corridor
     - automation.zoc_cr_occupancy_update_corridor

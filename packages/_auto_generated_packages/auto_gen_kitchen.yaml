@@ -14,7 +14,7 @@ automation:
   - choose:
     - conditions:
         condition: state
-        entity_id: input_boolean.always_on
+        entity_id: input_boolean.always_on_constant
         state: 'on'
       sequence:
       - service: input_select.select_option
@@ -32,7 +32,7 @@ automation:
           option: All White
     - conditions:
       - condition: state
-        entity_id: input_boolean.always_off
+        entity_id: input_boolean.always_off_constant
         state: 'on'
       - condition: state
         entity_id: input_select.indoor_brightness
@@ -103,6 +103,7 @@ automation:
   - service: cover.close_cover
     entity_id: []
 - alias: ZH-KC Heating Schedule On If Staying In the Room-Kitchen
+  id: automation.zh_kc_heating_schedule_on_if_staying_in_the_room_kitchen
   trigger:
   - platform: state
     entity_id: input_select.kitchen_occupancy
@@ -126,7 +127,6 @@ automation:
     - service: switch.turn_on
       target:
         entity_id: switch.schedule_kitchen_temperature
-  id: automation.zh_kc_heating_schedule_on_if_staying_in_the_room_kitchen
 - alias: ZH-KC Heating Schedule Off If People Left the Room-Kitchen
   id: automation.zh_kc_heating_schedule_off_if_people_left_the_room_kitchen
   trigger:
@@ -135,7 +135,7 @@ automation:
     to: Outside
   - minutes: /5
     platform: time_pattern
-  condition:
+  action:
   - condition: state
     entity_id: input_select.kitchen_occupancy
     state: Outside
@@ -143,7 +143,9 @@ automation:
     entity_id: group.kitchen_motion
     state: 'off'
     for: 00:01:00
-  action:
+  - condition: state
+    entity_id: input_boolean.kitchen_heating_override
+    state: 'off'
   - service: climate.set_hvac_mode
     data:
       hvac_mode: 'off'
@@ -152,11 +154,24 @@ automation:
   - service: switch.turn_off
     target:
       entity_id: switch.schedule_kitchen_temperature
-  - service: input_select.select_option
-    target:
-      entity_id: input_select.kitchen_occupancy
-    data:
-      option: Outside
+- alias: ZH-KC Heaeting Manual Override-Kitchen
+  trigger:
+  - platform: state
+    entity_id: input_boolean.kitchen_heating_override
+  action:
+  - if:
+    - condition: state
+      entity_id: input_boolean.kitchen_heating_override
+      state: 'on'
+    then:
+    - service: automation.trigger
+      entity_id:
+      - automation.zh_kc_heating_schedule_on_if_staying_in_the_room_kitchen
+    else:
+    - service: automation.trigger
+      entity_id:
+      - automation.zh_kc_heating_schedule_off_if_people_left_the_room_kitchen
+  id: automation.zh_kc_heaeting_manual_override_kitchen
 - alias: ZH-KC Valve Calibrate Temperature Using External Sensor-Kitchen
   use_blueprint:
     path: calibrate_valve_temperature.yaml
@@ -331,6 +346,11 @@ automation:
     entity_id:
     - automation.zl_kc_lights_off_if_no_person_kitchen
     - automation.zh_kc_heating_schedule_off_if_people_left_the_room_kitchen
+  - service: input_select.select_option
+    target:
+      entity_id: input_select.kitchen_occupancy
+    data:
+      option: Outside
   id: automation.zlb_kc_wall_switch_double_press_leave_room_and_turn_off_everything_kitchen
 - alias: ZOc-KC Occupancy Update-Kitchen
   trigger:
@@ -384,6 +404,12 @@ sensor:
   duration:
     minutes: '8'
   end: '{{ (now() | as_timestamp) | as_datetime | as_local }}'
+input_boolean:
+  kitchen_heating_override:
+    name: Kitchen Heating Override
+    initial: 'off'
+switch: []
+template: []
 group:
   kitchen_occupancy_group:
     name: Kitchen Occuapancy Group
@@ -404,6 +430,7 @@ group:
     - automation.zl_kc_lights_off_if_no_person_kitchen
     - automation.zh_kc_heating_schedule_on_if_staying_in_the_room_kitchen
     - automation.zh_kc_heating_schedule_off_if_people_left_the_room_kitchen
+    - automation.zh_kc_heaeting_manual_override_kitchen
     - automation.zh_kc_valve_calibrate_temperature_using_external_sensor_kitchen
     - automation.zlb_kc_applies_different_scenes_based_on_scene_selections_state_execution_kitchen
     - automation.zlb_kc_wall_switch_single_left_press_toggle_ceiling_light_kitchen

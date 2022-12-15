@@ -158,13 +158,14 @@
                 },
                 {
                   "type": "custom:mushroom-entity-card",
+                  "fill_container": true,
                   "tap_action": {
                     "action": "toggle"
                   },
-                  "fill_container": true,
-                  "entity": "switch.kitchen_drinking_hot_water",
-                  "name": "Hot Water",
-                  "icon": "mdi:coffee"
+                  "entity": "input_boolean.kitchen_heating_override",
+                  "icon": "mdi:heating-coil",
+                  "layout": "horizontal",
+                  "name": "Heating Override"
                 },
                 {
                   "type": "custom:mushroom-entity-card",
@@ -187,6 +188,16 @@
                   "icon": "hass:window-closed"
                 },
                 {
+                  "type": "custom:mushroom-entity-card",
+                  "tap_action": {
+                    "action": "toggle"
+                  },
+                  "fill_container": true,
+                  "entity": "switch.kitchen_drinking_hot_water",
+                  "name": "Hot Water",
+                  "icon": "mdi:coffee"
+                },
+                {
                   "type": "sensor",
                   "entity": "sensor.kitchen_temperature_sensor",
                   "graph": "line",
@@ -204,8 +215,31 @@
               ]
             },
             {
-              "type": "custom:webrtc-camera",
-              "url": "rtsp://relliky:Lt985426@192.168.1.100:554//h264Preview_01_main"
+              "type": "conditional",
+              "conditions": [
+                {
+                  "entity": "input_select.kitchen_occupancy",
+                  "state_not": "Outside"
+                }
+              ],
+              "card": {
+                "type": "custom:mushroom-title-card",
+                "title": "Camera is not accessiable when people are present in the kitchen",
+                "subtitle": ""
+              }
+            },
+            {
+              "type": "conditional",
+              "conditions": [
+                {
+                  "entity": "input_select.kitchen_occupancy",
+                  "state": "Outside"
+                }
+              ],
+              "card": {
+                "type": "custom:webrtc-camera",
+                "url": "rtsp://relliky:Lt985426@192.168.1.100:554//h264Preview_01_main"
+              }
             },
             {
               "type": "custom:restriction-card",
@@ -286,7 +320,18 @@
             {
               "type": "custom:scheduler-card",
               "include": [
-                "climate.kitchen"
+                "climate.kitchen",
+                "input_boolean.corridor_heating_override",
+                "input_boolean.en_suite_room_heating_override",
+                "input_boolean.en_suite_toilet_heating_override",
+                "input_boolean.ground_toilet_heating_override",
+                "input_boolean.guest_room_heating_override",
+                "input_boolean.guest_toilet_heating_override",
+                "input_boolean.kitchen_heating_override",
+                "input_boolean.living_room_heating_override",
+                "input_boolean.master_room_heating_override",
+                "input_boolean.master_toilet_heating_override",
+                "input_boolean.study_heating_override"
               ],
               "exclude": [],
               "title": false,
@@ -299,6 +344,18 @@
                 "title": "Automations"
               },
               "group": "group.kitchen_auto_gen_automations"
+            },
+            {
+              "type": "entities",
+              "entities": [
+                {
+                  "entity": "switch.kitchen_wall_switch_left"
+                },
+                {
+                  "entity": "switch.kitchen_wall_switch_center"
+                }
+              ],
+              "title": "Wall Switches"
             }
           ]
         },
@@ -337,13 +394,15 @@
                       "state_color": false
                     },
                     {
+                      "show_name": true,
+                      "show_icon": true,
                       "type": "button",
                       "tap_action": {
                         "action": "toggle"
                       },
                       "icon": "mdi:power",
                       "name": "TV Power",
-                      "entity": "switch.kitchen_tv_power"
+                      "entity": "media_player.kitchen_tv"
                     }
                   ]
                 }

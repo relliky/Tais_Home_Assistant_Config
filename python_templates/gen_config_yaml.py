@@ -175,7 +175,7 @@ class RoomBase:
     self.template_list       = []
     self.binary_sensor_list  = []
     self.light_list          = []
-    
+
   def get_occupancy_ratio_sensor_config(self, x_minutes_multiple_str):
     x_minutes_multiple = 1 if x_minutes_multiple_str == '1x' else \
                          2 if x_minutes_multiple_str == '2x' else \
@@ -1126,7 +1126,7 @@ class RoomBase:
 
   def alwaysOnIf(self, cond):
     return {"condition": "state",
-            "entity_id": "input_boolean.always_on" if cond else "input_boolean.always_off",
+            "entity_id": "input_boolean.always_on_constant" if cond else "input_boolean.always_off_constant",
             "state": "on"
            }
 

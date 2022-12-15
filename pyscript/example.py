@@ -26,15 +26,20 @@ def get_sec_of_cur_state(entity_name):
 
 
 @service
-def alexa_set_tv_brightness( brightness='Standard' ):
-   
+def alexa_set_tv(action=None, brightness='Standard', power='on'):
+    
     # Get TV id for the room alexa is called
     alexa_room_tv = 'media_player.' + sensor.last_alexa + '_tv'
     
-    # Set brightness if TV exists and is on
-    samsungtv_smart.select_picture_mode(entity_id=alexa_room_tv, picture_mode=brightness)
-
-
+    if action == 'brightness':
+        # Set brightness if TV exists and is on
+        samsungtv_smart.select_picture_mode(entity_id=alexa_room_tv, picture_mode=brightness)
+    elif action == 'power':
+        # Turn on/off TV
+        if power == 'on':
+            homeassistant.turn_on( entity_id=alexa_room_tv, power='on')
+        else:
+            homeassistant.turn_off(entity_id=alexa_room_tv, power='off')
 
 @service
 def set_room_heat_temperature(room=None, temperature=None ):
