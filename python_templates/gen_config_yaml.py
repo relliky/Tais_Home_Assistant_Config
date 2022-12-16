@@ -210,128 +210,130 @@ class RoomBase:
 
   def add_mac_device(self, mac, name, model, integration='XiaoMiGateway3'):
     ###################################################################################################
+    # Wall Switches
+    #
     # Aqara D1 Wall Switch (With Neutral, Triple Rocker)  QBKG26LM  ZigbeeID: ["lumi.switch.n3acn3"]
+    # Aqara D1 Wall Switch (With Neutral, Single Rocker)  QBKG23LM  ZigbeeID: ["lumi.switch.b1nacn02"]
     ###################################################################################################
-    if model == "Aqara D1 Wall Switch (With Neutral, Triple Rocker)": 
-      self.add_wall_switch(name, mac, key_num=3)
-      self.add_wall_button(name, mac)  
+    if  model == "Aqara D1 Wall Switch (With Neutral, Triple Rocker)" or \
+        model == "Aqara D1 Wall Switch (With Neutral, Single Rocker)": 
       
+      key_num = 0
+      if   model == "Aqara D1 Wall Switch (With Neutral, Triple Rocker)": 
+        key_num = 3
+      elif model == "Aqara D1 Wall Switch (With Neutral, Single Rocker)": 
+        key_num = 1
+      
+      # Wall Switches
+      for i in range(1,key_num+1):
+        # single switch is with different postfix
+        i = '' if key_num == 1 else i
+        self.switch_list += [
+          {
+            "platform": "group",
+            "name": name + " Wall Switch " + str(i),
+            "entities": "switch." + mac + ('_switch' if key_num == 1 else '_channel_' + str(i)),
+            "enabled": True 
+          }        
+        ]
+
+      # Wall Buttons
+      self.template_list += [
+        {
+          "sensor": [
+            {
+              "name": name + " Wall Button",
+              # Entity id starts with 0 so have to use a different format
+              # https://community.home-assistant.io/t/error-in-template-i-am-missing-something/92464/3
+              "state": '{{states.sensor["' + mac + '_action"].state}}'
+            }
+          ],
+          "enabled": True 
+        }        
+      ]
     ###################################################################################################
-    # Aqara D1 Wall Switch (With Neutral, Single Rocker) QBKG23LM  ZigbeeID: ["lumi.switch.b1nacn02"]
-    ###################################################################################################
-    elif model == "Aqara D1 Wall Switch (With Neutral, Single Rocker)": 
-      self.add_wall_switch(name, mac, key_num=1)
-      self.add_wall_button(name, mac)  
-    
-    ###################################################################################################
+    # Contacts
+    #
     # Aqara Door & Window Sensor MCCGQ11LM ZigbeeID: ["lumi.sensor_magnet.aq2"]
     ###################################################################################################
     elif model == "Aqara Door & Window Sensor": 
-      self.add_door(name, mac)
-      
+
+      self.binary_sensor_list += [
+        {
+          "platform": "group",
+          "name": name + " Door",
+          "entities": "binary_sensor." + mac + '_contact',
+          "enabled": True 
+        }        
+      ]      
     ###################################################################################################
+    # Light Sensors
     # Xiaomi Mi Light Detection Sensor GZCGQ01LM ZigbeeID: ["lumi.sen_ill.mgl01"]
     ###################################################################################################
 
 
     ###################################################################################################
+    # Motion Sensors
+    #
     # Aqara Motion and Illuminance Sensor RTCGQ11LM ZigbeeID: ["lumi.sensor_motion.aq2"]
     ###################################################################################################
     elif model == "Aqara Motion and Illuminance Sensor": 
-      self.add_motion_sensor(name, mac)
 
-
-    elif model == "Generic Lights": 
-      self.add_light(name, mac)
-
-
-  def add_light(self, name, mac):
-    self.light_list += [
-      {
-        "platform": "group",
-        "name": name + " Light",
-        "entities": "light." + mac,
-        "enabled": True 
-      }        
-    ]
-
-  def add_door(self, name, mac):
-    self.binary_sensor_list += [
-      {
-        "platform": "group",
-        "name": name + " Door",
-        "entities": "binary_sensor." + mac + '_contact',
-        "enabled": True 
-      }        
-    ]
-
-  def add_motion_sensor(self, name, mac):
-    self.binary_sensor_list += [
-      {
-        "platform": "group",
-        "name": name + " Motion Sensor Motion",
-        "entities": "binary_sensor." + mac + '_motion',
-        "enabled": True 
-      }        
-    ]
-
-    self.template_list += [
-      {
-        "sensor": [
-          {
-            "name": name + " Motion Sensor Light",
-            "unit_of_measurement": "lx",
-            "state": '{{states.sensor["' + mac + '_illuminance"].state}}'
-          }
-        ],
-        "enabled": True 
-      }        
-    ]
-    
-    self.template_list += [
-      {
-        "sensor": [
-          {
-            "name": name + " Motion Sensor Battery",
-            "unit_of_measurement": "%",
-            "state": '{{states.sensor["' + mac + '_battery"].state}}'
-          }
-        ],
-        "enabled": True 
-      }        
-    ]
-    
-  def add_wall_switch(self, name, mac, key_num):
-    
-    for i in range(1,key_num+1):
-      # single switch is with different postfix
-      i = '' if key_num == 1 else i
-      self.switch_list += [
+      self.binary_sensor_list += [
         {
           "platform": "group",
-          "name": name + " Wall Switch " + str(i),
-          "entities": "switch." + mac + ('_switch' if key_num == 1 else '_channel_' + str(i)),
+          "name": name + " Motion Sensor Motion",
+          "entities": "binary_sensor." + mac + '_motion',
           "enabled": True 
         }        
       ]
-    
-  def add_wall_button(self, name, mac):
-    self.template_list += [
-      {
-        "sensor": [
-          {
-            "name": name + " Wall Button",
-            # Entity id starts with 0 so have to use a different format
-            # https://community.home-assistant.io/t/error-in-template-i-am-missing-something/92464/3
-            "state": '{{states.sensor["' + mac + '_action"].state}}'
-          }
-        ],
-        "enabled": True 
-      }        
-    ]
-    
-  def get_entity_declarations(self):
 
+      self.template_list += [
+        {
+          "sensor": [
+            {
+              "name": name + " Motion Sensor Light",
+              "unit_of_measurement": "lx",
+              "state": '{{states.sensor["' + mac + '_illuminance"].state}}'
+            }
+          ],
+          "enabled": True 
+        }        
+      ]
+      
+      self.template_list += [
+        {
+          "sensor": [
+            {
+              "name": name + " Motion Sensor Battery",
+              "unit_of_measurement": "%",
+              "state": '{{states.sensor["' + mac + '_battery"].state}}'
+            }
+          ],
+          "enabled": True 
+        }        
+      ]
+
+    ###################################################################################################
+    # Generic lights
+    ###################################################################################################
+    elif model == "Generic Lights": 
+      self.light_list += [
+        {
+          "platform": "group",
+          "name": name + " Light",
+          "entities": "light." + mac,
+          "enabled": True 
+        }        
+      ]    
+    ###################################################################################################
+    # Model not found, throw an error
+    ###################################################################################################
+    else:
+      raise TypeError("Model " + model + " is not supported. Name = " + name)
+
+
+  def get_entity_declarations(self):
       self.input_select_dict |= {
         self.room_scene_postfix : {
           "name" : self.room_name + " Scene",
