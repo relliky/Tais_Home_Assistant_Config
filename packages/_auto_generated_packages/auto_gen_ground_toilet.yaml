@@ -11,66 +11,49 @@ automation:
     entity_id: automation.zl_0t_ceiling_lights_on_or_open_curtains_if_entering_to_room_ground_toilet
     data:
       stop_actions: false
-  - choose:
-    - conditions:
-        condition: state
-        entity_id: input_boolean.always_on_constant
-        state: 'on'
-      sequence:
-      - service: input_select.select_option
-        target:
-          entity_id: input_select.ground_toilet_scene
-        data:
-          option: Ceiling Light White
-      - condition: state
-        entity_id: sun.sun
-        state: below_horizon
-      - service: input_select.select_option
-        target:
-          entity_id: input_select.ground_toilet_scene
-        data:
-          option: All White
-    - conditions:
+  - if:
+    - condition: state
+      entity_id: sun.sun
+      state: above_horizon
+    then:
+    - if:
       - condition: state
         entity_id: input_boolean.always_off_constant
         state: 'on'
-      - condition: state
-        entity_id: input_select.indoor_brightness
-        state: bright
-      - condition: not
-        conditions:
-        - condition: and
-          conditions:
-          - condition: numeric_state
-            entity_id: sensor.cambridge_city_airport_temperature
-            above: '20'
-          - condition: time
-            after: '10:00:00'
-            before: '13:00:00'
-          - condition: template
-            value_template: '{{ now().month > 4 and now().month < 9 }}'
-      sequence:
-      - service: cover.open_cover
-        entity_id: []
-      - condition: state
-        entity_id: input_boolean.always_off_constant
-        state: 'on'
-      - service: input_select.select_option
-        target:
-          entity_id: input_select.ground_toilet_scene
-        data:
-          option: Ceiling Light White with Curtain Open
-    - conditions:
-      - condition: time
-        after: '10:00:00'
-        before: '22:00:00'
-      sequence:
+      then:
+      - if:
+        - condition: numeric_state
+          entity_id: sensor.cambridge_city_airport_temperature
+          above: '20'
+        - condition: time
+          after: '10:00:00'
+          before: '13:00:00'
+        - condition: template
+          value_template: '{{ now().month > 4 and now().month < 9 }}'
+        then:
+          service: input_select.select_option
+          target:
+            entity_id: input_select.ground_toilet_scene
+          data:
+            option: Ceiling Light White
+        else:
+        - service: cover.open_cover
+          entity_id: []
+        - condition: state
+          entity_id: input_boolean.always_off_constant
+          state: 'on'
+        - service: input_select.select_option
+          target:
+            entity_id: input_select.ground_toilet_scene
+          data:
+            option: Ceiling Light White
+      else:
         service: input_select.select_option
         target:
           entity_id: input_select.ground_toilet_scene
         data:
-          option: All White
-    default:
+          option: Ceiling Light White
+    else:
       service: input_select.select_option
       target:
         entity_id: input_select.ground_toilet_scene
@@ -95,19 +78,16 @@ automation:
   action:
   - service: homeassistant.turn_on
     entity_id: automation.zl_0t_ceiling_lights_on_or_open_curtains_if_entering_to_room_ground_toilet
+  - service: cover.close_cover
+    entity_id: []
+  - service: homeassistant.turn_off
+    entity_id:
+    - media_player.ground_toilet_tv
   - service: input_select.select_option
     target:
       entity_id: input_select.ground_toilet_scene
     data:
       option: All Off
-  - service: homeassistant.turn_off
-    entity_id:
-    - light.ground_toilet_ceiling_light
-  - service: homeassistant.turn_off
-    entity_id:
-    - media_player.ground_toilet_tv
-  - service: cover.close_cover
-    entity_id: []
 - alias: ZH-0T Heating Schedule On If Staying In the Room-Ground Toilet
   id: automation.zh_0t_heating_schedule_on_if_staying_in_the_room_ground_toilet
   trigger:
@@ -230,24 +210,6 @@ automation:
     - conditions:
       - condition: state
         entity_id: input_select.ground_toilet_scene
-        state: Ceiling Light White with Curtain Open
-      sequence:
-      - parallel:
-        - service: cover.close_cover
-          entity_id: []
-        - service: homeassistant.turn_on
-          entity_id:
-          - light.ground_toilet_ceiling_light
-        - service: samsungtv_smart.select_picture_mode
-          data:
-            entity_id:
-            - media_player.ground_toilet_tv
-            picture_mode: Standard
-        - service: cover.open_cover
-          entity_id: []
-    - conditions:
-      - condition: state
-        entity_id: input_select.ground_toilet_scene
         state: LED White
       sequence:
       - parallel:
@@ -304,8 +266,6 @@ automation:
         - service: homeassistant.turn_off
           entity_id:
           - light.ground_toilet_ceiling_light
-        - service: cover.close_cover
-          entity_id: []
   id: automation.zlb_0t_applies_different_scenes_based_on_scene_selections_state_execution_ground_toilet
 - alias: ZLB-0T Wall Switch-Single Press - Toggle Ceiling Light-Ground Toilet
   trigger:

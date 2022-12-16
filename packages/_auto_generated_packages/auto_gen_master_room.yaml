@@ -11,73 +11,56 @@ automation:
     entity_id: automation.zl_mr_ceiling_lights_on_or_open_curtains_if_entering_to_room_master_room
     data:
       stop_actions: false
-  - choose:
-    - conditions:
-        condition: state
-        entity_id: input_boolean.always_off_constant
-        state: 'on'
-      sequence:
-      - service: input_select.select_option
-        target:
-          entity_id: input_select.master_room_scene
-        data:
-          option: Ceiling Light White
-      - condition: state
-        entity_id: sun.sun
-        state: below_horizon
-      - service: input_select.select_option
-        target:
-          entity_id: input_select.master_room_scene
-        data:
-          option: All White
-    - conditions:
+  - if:
+    - condition: state
+      entity_id: sun.sun
+      state: above_horizon
+    then:
+    - if:
       - condition: state
         entity_id: input_boolean.always_on_constant
         state: 'on'
-      - condition: state
-        entity_id: input_select.indoor_brightness
-        state: bright
-      - condition: not
-        conditions:
-        - condition: and
-          conditions:
-          - condition: numeric_state
-            entity_id: sensor.cambridge_city_airport_temperature
-            above: '20'
-          - condition: time
-            after: '13:00:00'
-            before: '22:00:00'
-          - condition: template
-            value_template: '{{ now().month > 4 and now().month < 9 }}'
-      sequence:
-      - service: cover.open_cover
-        entity_id:
-        - cover.master_room_blind
-        - cover.master_room_curtain
-      - condition: state
-        entity_id: input_boolean.always_on_constant
-        state: 'on'
-      - service: input_select.select_option
-        target:
-          entity_id: input_select.master_room_scene
-        data:
-          option: Ceiling Light White with Curtain Open
-    - conditions:
-      - condition: time
-        after: '10:00:00'
-        before: '22:00:00'
-      sequence:
+      then:
+      - if:
+        - condition: numeric_state
+          entity_id: sensor.cambridge_city_airport_temperature
+          above: '20'
+        - condition: time
+          after: '13:00:00'
+          before: '22:00:00'
+        - condition: template
+          value_template: '{{ now().month > 4 and now().month < 9 }}'
+        then:
+          service: input_select.select_option
+          target:
+            entity_id: input_select.master_room_scene
+          data:
+            option: Ceiling Light White
+        else:
+        - service: cover.open_cover
+          entity_id:
+          - cover.master_room_blind
+          - cover.master_room_curtain
+        - condition: state
+          entity_id: input_boolean.always_off_constant
+          state: 'on'
+        - service: input_select.select_option
+          target:
+            entity_id: input_select.master_room_scene
+          data:
+            option: Ceiling Light White
+      else:
         service: input_select.select_option
         target:
           entity_id: input_select.master_room_scene
         data:
-          option: All White
-    default:
+          option: Ceiling Light White
+    else:
       service: input_select.select_option
       target:
         entity_id: input_select.master_room_scene
       data:
-        option: Lamp LED White
+        option: All White
 - alias: ZL-MR Lights Off If No Person-Master Room
   id: automation.zl_mr_lights_off_if_no_person_master_room
   trigger:
@@ -97,26 +80,18 @@ automation:
   action:
   - service: homeassistant.turn_on
     entity_id: automation.zl_mr_ceiling_lights_on_or_open_curtains_if_entering_to_room_master_room
+  - service: cover.close_cover
+    entity_id:
+    - cover.master_room_blind
+    - cover.master_room_curtain
+  - service: homeassistant.turn_off
+    entity_id:
+    - media_player.master_room_tv
   - service: input_select.select_option
     target:
       entity_id: input_select.master_room_scene
     data:
       option: All Off
-  - service: homeassistant.turn_off
-    entity_id:
-    - light.master_room_drawer_led
-    - light.master_room_tv_led
-    - light.master_room_bed_led
-    - light.master_room_ceiling_light
-    - light.master_room_lamp_1
-    - light.master_room_lamp_2
-  - service: homeassistant.turn_off
-    entity_id:
-    - media_player.master_room_tv
-  - service: cover.close_cover
-    entity_id:
-    - cover.master_room_blind
-    - cover.master_room_curtain
 - alias: ZL-MR LED On for 3 Min if Walking In the Dark-Master Room
   mode: restart
   trigger:
@@ -368,31 +343,6 @@ automation:
     - conditions:
       - condition: state
         entity_id: input_select.master_room_scene
-        state: Ceiling Light White with Curtain Open
-      sequence:
-      - parallel:
-        - service: homeassistant.turn_off
-          entity_id:
-          - light.master_room_drawer_led
-          - light.master_room_tv_led
-          - light.master_room_bed_led
-          - light.master_room_lamp_1
-          - light.master_room_lamp_2
-        - service: homeassistant.turn_on
-          entity_id:
-          - light.master_room_ceiling_light
-        - service: samsungtv_smart.select_picture_mode
-          data:
-            entity_id:
-            - media_player.master_room_tv
-            picture_mode: Standard
-        - service: cover.open_cover
-          entity_id:
-          - cover.master_room_blind
-          - cover.master_room_curtain
-    - conditions:
-      - condition: state
-        entity_id: input_select.master_room_scene
         state: LED White
       sequence:
       - parallel:
@@ -469,10 +419,6 @@ automation:
           - light.master_room_drawer_led
           - light.master_room_tv_led
           - light.master_room_bed_led
-        - service: cover.close_cover
-          entity_id:
-          - cover.master_room_blind
-          - cover.master_room_curtain
   id: automation.zlb_mr_applies_different_scenes_based_on_scene_selections_state_execution_master_room
 - alias: ZLB-MR Remote Button - Double - Toggle Lamps-Master Room
   trigger:
@@ -587,7 +533,6 @@ input_select:
     - Dark Night Mode
     - Lamp LED White
     - LED White
-    - Ceiling Light White with Curtain Open
     - All White
     - Ceiling Light White
     - All Off
@@ -619,9 +564,32 @@ input_boolean:
   master_room_heating_override:
     name: Master Room Heating Override
     initial: 'off'
-switch: []
-template: []
-binary_sensor: []
+switch:
+- platform: group
+  name: Master Room Wall Switch 1
+  entities: switch.0x04cf8cdf3c7ad638_channel_1
+- platform: group
+  name: Master Room Wall Switch 2
+  entities: switch.0x04cf8cdf3c7ad638_channel_2
+- platform: group
+  name: Master Room Wall Switch 3
+  entities: switch.0x04cf8cdf3c7ad638_channel_3
+template:
+- sensor:
+  - name: Master Room Wall Button
+    state: '{{states.sensor["0x04cf8cdf3c7ad638_action"].state}}'
+- sensor:
+  - name: Master Room TV Motion Sensor Light
+    unit_of_measurement: lx
+    state: '{{states.sensor["0x00158d0005228ba8_illuminance"].state}}'
+- sensor:
+  - name: Master Room TV Motion Sensor Battery
+    unit_of_measurement: '%'
+    state: '{{states.sensor["0x00158d0005228ba8_battery"].state}}'
+binary_sensor:
+- platform: group
+  name: Master Room TV Motion Sensor Motion
+  entities: binary_sensor.0x00158d0005228ba8_motion
 light: []
 group:
   master_room_occupancy_group:

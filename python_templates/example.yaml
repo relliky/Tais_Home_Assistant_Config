@@ -1,12 +1,36 @@
-switch:
-  - platform: group
-    name: name + " " + num
-    entities:
-      - switch.mac + "_channel_" + num
-
-
-template:
-  - sensor:
-      - name: name + " Wall Button"
-        state: states.sensor. + mac + _action.state
-
+alias: kitchen lights
+description: ""
+trigger: []
+condition: []
+action:
+  - if:
+      - condition: state
+        entity_id: sun.sun
+        state: above_horizon
+    then:
+      - if:
+          - condition: state
+            entity_id: cover.kitchen_curtain
+            state: open
+        then:
+          - if:
+              - condition: state
+                entity_id: switch.kitchen_drinking_hot_water
+                state: ""
+            then:
+              - service: homeassistant.turn_on
+                data: {}
+                target:
+                  entity_id: light.kitchen_ceiling_light
+            else:
+              - service: cover.open_cover
+                data: {}
+                target:
+                  entity_id: cover.kitchen_curtain
+        else: []
+    else:
+      - service: homeassistant.turn_on
+        data: {}
+        target:
+          entity_id: group.kitchen_appliances
+mode: single
