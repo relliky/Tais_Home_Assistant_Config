@@ -23,7 +23,7 @@ automation:
       then:
       - if:
         - condition: numeric_state
-          entity_id: sensor.cambridge_city_airport_temperature
+          entity_id: sensor.met_office_cambridge_city_airport_temperature_3_hourly
           above: '20'
         - condition: time
           after: '10:00:00'
@@ -37,16 +37,19 @@ automation:
           data:
             option: Ceiling Light White
         else:
-        - service: cover.open_cover
-          entity_id: []
-        - condition: state
-          entity_id: input_boolean.always_off_constant
-          state: 'on'
-        - service: input_select.select_option
-          target:
-            entity_id: input_select.master_toilet_scene
-          data:
-            option: Ceiling Light White
+          parallel:
+          - service: cover.open_cover
+            entity_id: []
+          - if:
+            - condition: state
+              entity_id: input_boolean.master_toilet_light_in_daytime
+              state: 'on'
+            then:
+              service: input_select.select_option
+              target:
+                entity_id: input_select.master_toilet_scene
+              data:
+                option: Ceiling Light White
       else:
         service: input_select.select_option
         target:
@@ -54,11 +57,19 @@ automation:
         data:
           option: Ceiling Light White
     else:
-      service: input_select.select_option
-      target:
-        entity_id: input_select.master_toilet_scene
-      data:
-        option: All White
+      parallel:
+      - service: input_select.select_option
+        target:
+          entity_id: input_select.master_toilet_scene
+        data:
+          option: All White
+      - if:
+        - condition: state
+          entity_id: input_boolean.master_toilet_curtain_in_nighttime
+          state: 'on'
+        then:
+          service: cover.open_cover
+          entity_id: []
 - alias: ZL-MT Lights Off If No Person-Master Toilet
   id: automation.zl_mt_lights_off_if_no_person_master_toilet
   trigger:
@@ -136,7 +147,8 @@ automation:
   - service: switch.turn_off
     target:
       entity_id: switch.schedule_master_toilet_temperature
-- alias: ZH-MT Heaeting Manual Override-Master Toilet
+- alias: ZH-MT Heating Manual Override-Master Toilet
+  mode: restart
   trigger:
   - platform: state
     entity_id: input_boolean.master_toilet_heating_override
@@ -153,7 +165,22 @@ automation:
     - service: automation.trigger
       entity_id:
       - automation.zh_mt_heating_schedule_off_if_people_left_the_room_master_toilet
-  id: automation.zh_mt_heaeting_manual_override_master_toilet
+  id: automation.zh_mt_heating_manual_override_master_toilet
+- alias: ZH-MT Heating Manual Override Timeout in Few Hours-Master Toilet
+  trigger:
+  - platform: state
+    entity_id: input_boolean.master_toilet_heating_override
+    from: 'off'
+    to: 'on'
+  action:
+  - delay:
+      hours: 3
+      minutes: 0
+      seconds: 0
+      milliseconds: 0
+  - service: homeassistant.turn_off
+    entity_id: input_boolean.master_toilet_heating_override
+  id: automation.zh_mt_heating_manual_override_timeout_in_few_hours_master_toilet
 - alias: ZLB-MT Applies Different Scenes Based on Scene Selections (State Execution)-Master Toilet
   trigger:
   - platform: state
@@ -371,6 +398,12 @@ input_boolean:
   master_toilet_heating_override:
     name: Master Toilet Heating Override
     initial: 'off'
+  master_toilet_light_in_daytime:
+    name: Master Toilet Light in Daytime Enable
+    initial: 'off'
+  master_toilet_curtain_in_nighttime:
+    name: Master Toilet Curtain In Nighttime Enable
+    initial: 'off'
 switch:
 - platform: group
   name: 'Master Toilet Wall Switch '
@@ -407,7 +440,8 @@ group:
     - automation.zl_mt_lights_off_if_no_person_master_toilet
     - automation.zh_mt_heating_schedule_on_if_staying_in_the_room_master_toilet
     - automation.zh_mt_heating_schedule_off_if_people_left_the_room_master_toilet
-    - automation.zh_mt_heaeting_manual_override_master_toilet
+    - automation.zh_mt_heating_manual_override_master_toilet
+    - automation.zh_mt_heating_manual_override_timeout_in_few_hours_master_toilet
     - automation.zlb_mt_applies_different_scenes_based_on_scene_selections_state_execution_master_toilet
     - automation.zlb_mt_wall_switch_single_press_toggle_ceiling_light_master_toilet
     - automation.zlb_mt_wall_switch_double_press_leave_room_and_turn_off_everything_master_toilet

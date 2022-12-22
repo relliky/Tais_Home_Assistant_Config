@@ -23,7 +23,7 @@ automation:
       then:
       - if:
         - condition: numeric_state
-          entity_id: sensor.cambridge_city_airport_temperature
+          entity_id: sensor.met_office_cambridge_city_airport_temperature_3_hourly
           above: '20'
         - condition: time
           after: '13:00:00'
@@ -37,17 +37,20 @@ automation:
           data:
             option: Ceiling Light White
         else:
-        - service: cover.open_cover
-          entity_id:
-          - cover.kitchen_curtain
-        - condition: state
-          entity_id: input_boolean.always_on_constant
-          state: 'on'
-        - service: input_select.select_option
-          target:
-            entity_id: input_select.kitchen_scene
-          data:
-            option: Ceiling Light White
+          parallel:
+          - service: cover.open_cover
+            entity_id:
+            - cover.kitchen_curtain
+          - if:
+            - condition: state
+              entity_id: input_boolean.kitchen_light_in_daytime
+              state: 'on'
+            then:
+              service: input_select.select_option
+              target:
+                entity_id: input_select.kitchen_scene
+              data:
+                option: Ceiling Light White
       else:
         service: input_select.select_option
         target:
@@ -55,11 +58,20 @@ automation:
         data:
           option: Ceiling Light White
     else:
-      service: input_select.select_option
-      target:
-        entity_id: input_select.kitchen_scene
-      data:
-        option: All White
+      parallel:
+      - service: input_select.select_option
+        target:
+          entity_id: input_select.kitchen_scene
+        data:
+          option: All White
+      - if:
+        - condition: state
+          entity_id: input_boolean.kitchen_curtain_in_nighttime
+          state: 'on'
+        then:
+          service: cover.open_cover
+          entity_id:
+          - cover.kitchen_curtain
 - alias: ZL-KC Lights Off If No Person-Kitchen
   id: automation.zl_kc_lights_off_if_no_person_kitchen
   trigger:
@@ -138,7 +150,8 @@ automation:
   - service: switch.turn_off
     target:
       entity_id: switch.schedule_kitchen_temperature
-- alias: ZH-KC Heaeting Manual Override-Kitchen
+- alias: ZH-KC Heating Manual Override-Kitchen
+  mode: restart
   trigger:
   - platform: state
     entity_id: input_boolean.kitchen_heating_override
@@ -155,7 +168,22 @@ automation:
     - service: automation.trigger
       entity_id:
       - automation.zh_kc_heating_schedule_off_if_people_left_the_room_kitchen
-  id: automation.zh_kc_heaeting_manual_override_kitchen
+  id: automation.zh_kc_heating_manual_override_kitchen
+- alias: ZH-KC Heating Manual Override Timeout in Few Hours-Kitchen
+  trigger:
+  - platform: state
+    entity_id: input_boolean.kitchen_heating_override
+    from: 'off'
+    to: 'on'
+  action:
+  - delay:
+      hours: 3
+      minutes: 0
+      seconds: 0
+      milliseconds: 0
+  - service: homeassistant.turn_off
+    entity_id: input_boolean.kitchen_heating_override
+  id: automation.zh_kc_heating_manual_override_timeout_in_few_hours_kitchen
 - alias: ZH-KC Valve Calibrate Temperature Using External Sensor-Kitchen
   use_blueprint:
     path: calibrate_valve_temperature.yaml
@@ -392,6 +420,10 @@ input_boolean:
   kitchen_heating_override:
     name: Kitchen Heating Override
     initial: 'off'
+  kitchen_light_in_daytime:
+    name: Kitchen Light in Daytime Enable
+  kitchen_curtain_in_nighttime:
+    name: Kitchen Curtain In Nighttime Enable
 switch: []
 template: []
 binary_sensor: []
@@ -412,11 +444,14 @@ group:
   kitchen_auto_gen_automations:
     name: Kitchen Auto-gen Automations
     entities:
+    - input_boolean.kitchen_light_in_daytime
+    - input_boolean.kitchen_curtain_in_nighttime
     - automation.zl_kc_ceiling_lights_on_or_open_curtains_if_entering_to_room_kitchen
     - automation.zl_kc_lights_off_if_no_person_kitchen
     - automation.zh_kc_heating_schedule_on_if_staying_in_the_room_kitchen
     - automation.zh_kc_heating_schedule_off_if_people_left_the_room_kitchen
-    - automation.zh_kc_heaeting_manual_override_kitchen
+    - automation.zh_kc_heating_manual_override_kitchen
+    - automation.zh_kc_heating_manual_override_timeout_in_few_hours_kitchen
     - automation.zh_kc_valve_calibrate_temperature_using_external_sensor_kitchen
     - automation.zlb_kc_applies_different_scenes_based_on_scene_selections_state_execution_kitchen
     - automation.zlb_kc_wall_switch_single_left_press_toggle_ceiling_light_kitchen

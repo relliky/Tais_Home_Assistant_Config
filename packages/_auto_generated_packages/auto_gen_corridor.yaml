@@ -47,7 +47,8 @@ automation:
   - service: switch.turn_off
     target:
       entity_id: switch.schedule_corridor_temperature
-- alias: ZH-CR Heaeting Manual Override-Corridor
+- alias: ZH-CR Heating Manual Override-Corridor
+  mode: restart
   trigger:
   - platform: state
     entity_id: input_boolean.corridor_heating_override
@@ -64,7 +65,22 @@ automation:
     - service: automation.trigger
       entity_id:
       - automation.zh_cr_heating_schedule_off_if_people_left_the_room_corridor
-  id: automation.zh_cr_heaeting_manual_override_corridor
+  id: automation.zh_cr_heating_manual_override_corridor
+- alias: ZH-CR Heating Manual Override Timeout in Few Hours-Corridor
+  trigger:
+  - platform: state
+    entity_id: input_boolean.corridor_heating_override
+    from: 'off'
+    to: 'on'
+  action:
+  - delay:
+      hours: 3
+      minutes: 0
+      seconds: 0
+      milliseconds: 0
+  - service: homeassistant.turn_off
+    entity_id: input_boolean.corridor_heating_override
+  id: automation.zh_cr_heating_manual_override_timeout_in_few_hours_corridor
 - alias: ZOc-CR Occupancy Update-Corridor
   trigger:
   - entity_id: group.corridor_motion
@@ -114,6 +130,12 @@ input_boolean:
   corridor_heating_override:
     name: Corridor Heating Override
     initial: 'off'
+  corridor_light_in_daytime:
+    name: Corridor Light in Daytime Enable
+    initial: 'off'
+  corridor_curtain_in_nighttime:
+    name: Corridor Curtain In Nighttime Enable
+    initial: 'off'
 switch: []
 template: []
 binary_sensor: []
@@ -136,5 +158,6 @@ group:
     entities:
     - automation.zh_cr_heating_schedule_on_if_staying_in_the_room_corridor
     - automation.zh_cr_heating_schedule_off_if_people_left_the_room_corridor
-    - automation.zh_cr_heaeting_manual_override_corridor
+    - automation.zh_cr_heating_manual_override_corridor
+    - automation.zh_cr_heating_manual_override_timeout_in_few_hours_corridor
     - automation.zoc_cr_occupancy_update_corridor

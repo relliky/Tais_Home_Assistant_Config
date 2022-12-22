@@ -23,7 +23,7 @@ automation:
       then:
       - if:
         - condition: numeric_state
-          entity_id: sensor.cambridge_city_airport_temperature
+          entity_id: sensor.met_office_cambridge_city_airport_temperature_3_hourly
           above: '20'
         - condition: time
           after: '10:00:00'
@@ -37,16 +37,19 @@ automation:
           data:
             option: Ceiling Light White
         else:
-        - service: cover.open_cover
-          entity_id: []
-        - condition: state
-          entity_id: input_boolean.always_off_constant
-          state: 'on'
-        - service: input_select.select_option
-          target:
-            entity_id: input_select.living_room_scene
-          data:
-            option: Ceiling Light White
+          parallel:
+          - service: cover.open_cover
+            entity_id: []
+          - if:
+            - condition: state
+              entity_id: input_boolean.living_room_light_in_daytime
+              state: 'on'
+            then:
+              service: input_select.select_option
+              target:
+                entity_id: input_select.living_room_scene
+              data:
+                option: Ceiling Light White
       else:
         service: input_select.select_option
         target:
@@ -54,11 +57,19 @@ automation:
         data:
           option: Ceiling Light White
     else:
-      service: input_select.select_option
-      target:
-        entity_id: input_select.living_room_scene
-      data:
-        option: All White
+      parallel:
+      - service: input_select.select_option
+        target:
+          entity_id: input_select.living_room_scene
+        data:
+          option: All White
+      - if:
+        - condition: state
+          entity_id: input_boolean.living_room_curtain_in_nighttime
+          state: 'on'
+        then:
+          service: cover.open_cover
+          entity_id: []
 - alias: ZL-LR Lights Off If No Person-Living Room
   id: automation.zl_lr_lights_off_if_no_person_living_room
   trigger:
@@ -136,7 +147,8 @@ automation:
   - service: switch.turn_off
     target:
       entity_id: switch.schedule_living_room_temperature
-- alias: ZH-LR Heaeting Manual Override-Living Room
+- alias: ZH-LR Heating Manual Override-Living Room
+  mode: restart
   trigger:
   - platform: state
     entity_id: input_boolean.living_room_heating_override
@@ -153,7 +165,22 @@ automation:
     - service: automation.trigger
       entity_id:
       - automation.zh_lr_heating_schedule_off_if_people_left_the_room_living_room
-  id: automation.zh_lr_heaeting_manual_override_living_room
+  id: automation.zh_lr_heating_manual_override_living_room
+- alias: ZH-LR Heating Manual Override Timeout in Few Hours-Living Room
+  trigger:
+  - platform: state
+    entity_id: input_boolean.living_room_heating_override
+    from: 'off'
+    to: 'on'
+  action:
+  - delay:
+      hours: 3
+      minutes: 0
+      seconds: 0
+      milliseconds: 0
+  - service: homeassistant.turn_off
+    entity_id: input_boolean.living_room_heating_override
+  id: automation.zh_lr_heating_manual_override_timeout_in_few_hours_living_room
 - alias: ZH-LR Valve Calibrate Temperature Using External Sensor-Living Room
   use_blueprint:
     path: calibrate_valve_temperature.yaml
@@ -511,6 +538,12 @@ input_boolean:
   living_room_heating_override:
     name: Living Room Heating Override
     initial: 'off'
+  living_room_light_in_daytime:
+    name: Living Room Light in Daytime Enable
+    initial: 'off'
+  living_room_curtain_in_nighttime:
+    name: Living Room Curtain In Nighttime Enable
+    initial: 'off'
 switch: []
 template: []
 binary_sensor: []
@@ -537,7 +570,8 @@ group:
     - automation.zl_lr_lights_off_if_no_person_living_room
     - automation.zh_lr_heating_schedule_on_if_staying_in_the_room_living_room
     - automation.zh_lr_heating_schedule_off_if_people_left_the_room_living_room
-    - automation.zh_lr_heaeting_manual_override_living_room
+    - automation.zh_lr_heating_manual_override_living_room
+    - automation.zh_lr_heating_manual_override_timeout_in_few_hours_living_room
     - automation.zh_lr_valve_calibrate_temperature_using_external_sensor_living_room
     - automation.zlb_lr_remote_button_single_applies_different_scenes_state_machine_living_room
     - automation.zlb_lr_applies_different_scenes_based_on_scene_selections_state_execution_living_room

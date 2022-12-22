@@ -32,7 +32,7 @@ class RoomBase:
     
     # Remove disabled entities
     self.remove_disabed_entities()
-    # Generate automation group
+    # Generate user control group including automations and other controls
     self.get_automation_group_declarations()
 
     
@@ -41,7 +41,7 @@ class RoomBase:
     self.room_entity           = False
     self.num_of_xiaomi_button  = 0
     self.num_of_lamps          = 0
-    # Enables
+    # Basic Enables
     self.en_scene              = False            
     self.en_occupancy          = False        
     self.en_group_auto         = False       
@@ -49,19 +49,18 @@ class RoomBase:
     self.en_remote_light       = False
     self.en_temp_control       = False
     self.en_temp_calibration   = False
-    # Optional Enables
+    # Adavanced Enables
     self.en_scene_colour_led   = False
     self.en_scene_colour_lamp  = False
-    self.en_cst_scene          = False
+    self.en_custom_scene       = False
     self.en_led_only_scene     = False
     self.en_motion_bed_led     = False
-    self.en_light_in_daytime   = False
+    self.en_auto_curtain_ctl   = False
     
     self.room_entity           = 'uninitialized_room_entity'
     self.room_name             = 'Uninitialized_room_name'    
     self.room_short_name       = 'uninitialized_room_short_name'
-    
-    
+
   def get_room_name_and_property(self):  
     self.room_entity          = self.getIDFromName(self.room_name)
     self.automation_room_name = self.room_short_name + " " 
@@ -128,10 +127,15 @@ class RoomBase:
   def get_cover_entities(self):
     # Cover entities
     self.curtains               = []
+    # Cover extra controls
+    self.light_in_daytime_postfix      = self.room_entity + "_light_in_daytime" 
+    self.light_in_daytime              = "input_boolean." + self.room_entity + "_light_in_daytime" 
+    self.curtain_in_nighttime_postfix = self.room_entity + "_curtain_in_nighttime" 
+    self.curtain_in_nighttime          = "input_boolean." + self.room_entity + "_curtain_in_nighttime" 
 
   def get_temperature_control_entities(self):
     # Temperature sensor entities
-    self.outside_temperature              = "sensor.cambridge_city_airport_temperature"
+    self.outside_temperature              = "sensor.met_office_cambridge_city_airport_temperature_3_hourly"
     self.room_default_temperature_postfix = self.room_entity + "_default_temperature" 
     self.room_default_temperature         = "input_number." + self.room_default_temperature_postfix
     self.thermostat                       = "climate." + self.room_entity
@@ -340,7 +344,7 @@ class RoomBase:
           "options": \
           (["Hue"            ] if self.en_scene_colour_lamp else [])  
         + (["Night Mode",
-            "Dark Night Mode"] if self.en_cst_scene else[])
+            "Dark Night Mode"] if self.en_custom_scene else[])
         + (["Lamp LED White" ] if len(self.lamps) > 0 else [])  
         + (["LED White"      ] if len(self.leds)  > 0 else [])  
         #+ (["Ceiling Light White with Curtain Open"] if len(self.curtains)  > 0 else [])  
@@ -372,7 +376,21 @@ class RoomBase:
           "enabled": self.en_temp_control
         }
       }
-      
+
+      self.input_boolean_dict |= {
+        self.light_in_daytime_postfix : {
+          "name" : self.room_name + " Light in Daytime Enable",
+          "enabled": True
+            # Initialized it to 'off' if auto curtain control is not supported  
+        } | ({} if self.en_auto_curtain_ctl else {"initial": "off"}), 
+
+        self.curtain_in_nighttime_postfix : {
+          "name" : self.room_name + " Curtain In Nighttime Enable",
+          "enabled": True
+        } | ({} if self.en_auto_curtain_ctl else {"initial": "off"}), 
+      }
+
+
       self.sensor_list += [
         self.get_occupancy_ratio_sensor_config('1x'),
         self.get_occupancy_ratio_sensor_config('2x')
@@ -412,8 +430,15 @@ class RoomBase:
 
     
   def get_automation_group_declarations(self):    
-    # Generate automations group 
+
     self.automation_entity_list = []
+
+    # TODO rename this method because it includes other controls
+    # Including auto curtain controls
+    self.automation_entity_list = ([self.light_in_daytime, 
+                                    self.curtain_in_nighttime] if self.en_auto_curtain_ctl else [])
+
+    # Generate automations group 
     for automation in self.entity_declarations['automation']:
       self.automation_entity_list += [automation['id']]
 
@@ -470,6 +495,8 @@ class RoomBase:
                   # turn on ceiling lights
           # else daytime_dark
               # turn on all lights
+              # if force_curtains_on, open curtains
+              
           {
             "if": self.condition_list_is('Outdoor is daytime and bright'),
             "then": [
@@ -479,9 +506,12 @@ class RoomBase:
                     "if": self.condition_list_is('Hot summer'), "then": 
                       self.setNewScene("Ceiling Light White"),
                     "else":  # else not hot summer
-                      [ self.turn(self.curtains, 'on')] + 
-                        self.condition_list_is('Room forces ceiling light in the daytime') +  # Optional
-                      [ self.setNewScene("Ceiling Light White")]
+                      {"parallel":
+                        [ self.turn(self.curtains, 'on'), 
+                         {"if":self.condition_list_is('Enable ceiling light in the daytime'),
+                          "then": self.setNewScene("Ceiling Light White")}
+                        ]
+                      } 
                   }
                 ], 
                 "else": # no curtain 
@@ -489,7 +519,12 @@ class RoomBase:
               }
             ], 
             "else": # nighttime_dark
-              self.setNewScene("All White")
+              {"parallel":
+                [ self.setNewScene("All White"), 
+                 {"if":self.condition_list_is('Enable curtain open in the nighttime'),
+                  "then": self.turn(self.curtains, 'on')}
+                ]
+              } 
           }
         ]          
     }]              
@@ -639,8 +674,9 @@ class RoomBase:
 
     self.automations += [
       {
-        "alias" : "ZH-" + self.automation_room_name + "Heaeting Manual Override" + "-" + self.room_name,
+        "alias" : "ZH-" + self.automation_room_name + "Heating Manual Override" + "-" + self.room_name,
         "enabled": self.en_temp_control,
+        "mode": "restart",
         "trigger": [
           { "platform": "state",
             "entity_id": self.room_heating_override
@@ -678,6 +714,34 @@ class RoomBase:
       }      
     ]
 
+    self.automations += [
+      {
+        "alias" : "ZH-" + self.automation_room_name + "Heating Manual Override Timeout in Few Hours" + "-" + self.room_name,
+        "enabled": self.en_temp_control,
+        "trigger": [
+          {
+            "platform": "state",
+            "entity_id": self.room_heating_override,
+            "from": "off",
+            "to": "on"
+          }
+        ],
+        "action": [
+          {
+            "delay": {
+              "hours": 3,
+              "minutes": 0,
+              "seconds": 0,
+              "milliseconds": 0
+            }
+          },
+          {
+            "service": "homeassistant.turn_off",
+            "entity_id": self.room_heating_override
+          }
+        ]
+      }
+    ]
 
     self.automations += [
       {
@@ -704,7 +768,7 @@ class RoomBase:
   #
   #     [self.setNewSceneFromOldScene(cur_scene="All Off", nxt_scene="All White"),
   #     self.setNewSceneFromOldScene(nxt_scene="Lamp LED White")] 
-  # + ([self.setNewSceneFromOldScene(nxt_scene="Night Mode")]    if self.en_cst_scene else []) 
+  # + ([self.setNewSceneFromOldScene(nxt_scene="Night Mode")]    if self.en_custom_scene else []) 
   # + ([self.setNewSceneFromOldScene(nxt_scene="LED White")])    if self.en_led_only_scene else [] 
   # + ([self.setNewSceneFromOldScene(nxt_scene="All Off")])
   #
@@ -718,7 +782,7 @@ class RoomBase:
       cond_seq += [self.setNewSceneFromOldScene(nxt_scene="Hue")]          
     if self.en_led_only_scene:
       cond_seq += [self.setNewSceneFromOldScene(nxt_scene="LED White")]
-    if self.en_cst_scene:
+    if self.en_custom_scene:
       cond_seq += [self.setNewSceneFromOldScene(nxt_scene="Night Mode")] 
       #cond_seq+= [self.setNewSceneFromOldScene(nxt_scene="Dark Night Mode")]
       
@@ -988,9 +1052,9 @@ class RoomBase:
                             "target": {"entity_id": self.thermostat_schedule}
                           }]
     else:
-      action_service = {"service": "homeassistant.turn_on"  if state == 'on'     else \
-                                   "homeassistant.turn_off" if state == 'off'    else \
-                                   "homeassistant.toggle"   if state == 'toggle' else None,
+      action_service = {"service":"homeassistant.turn_on"  if state == 'on'     else \
+                                  "homeassistant.turn_off" if state == 'off'    else \
+                                  "homeassistant.toggle"   if state == 'toggle' else None,
                         "entity_id": entity_list}
 
     if entity_list != None:
@@ -1081,25 +1145,10 @@ class RoomBase:
 
 
   def alwaysOnIf(self, cond):
-    return {"condition": "state",
+    return{ "condition": "state",
             "entity_id": "input_boolean.always_on_constant" if cond else "input_boolean.always_off_constant",
             "state": "on"
-           }
-
-  def setTvBrightness (self, brightness):
-    seq = {
-       "service": "input_select.select_option",
-       "target": {
-         "entity_id": self.room_entity + "_tv"
-       },
-       "data":{
-         "option": "Movie"    if brightness in [1, '1'] else \
-                   "Natural"  if brightness in [2, '2'] else \
-                   "Standard" if brightness in [3, '3'] else \
-                   "Dynamic"
-       }
-      }
-    return seq
+          }
 
   def callSceneServiceIfSelected(self, scene_name):
     cond_seq = {
@@ -1143,8 +1192,18 @@ class RoomBase:
                   "value_template": "{{ now().month > 4 and now().month < 9 }}"
                 }
               ]
-    elif condition_name == 'Room forces ceiling light in the daytime':
-      return [self.alwaysOnIf(self.en_light_in_daytime)]
+    elif condition_name == 'Enable ceiling light in the daytime':
+      return [{
+                "condition": "state",
+                "entity_id": self.light_in_daytime,
+                "state": "on"
+              }]
+    elif condition_name == 'Enable curtain open in the nighttime':  
+      return [{
+                "condition": "state",
+                "entity_id": self.curtain_in_nighttime,
+                "state": "on"
+              }]
     else:
       raise TypeError("Condition " + condition_name + "is not supported.")
 
@@ -1236,8 +1295,9 @@ class MasterRoom(RoomBase):
     self.en_temp_calibration   = True
     self.en_scene_colour_led   = True
     self.en_scene_colour_lamp  = True
-    self.en_cst_scene          = True
+    self.en_custom_scene       = True
     self.en_motion_bed_led     = True
+    self.en_auto_curtain_ctl   = True
 
   def get_entity_declarations(self):
     super().get_entity_declarations()
@@ -1332,7 +1392,7 @@ class Kitchen(RoomBase):
     self.en_scene              = True            
     self.en_motion_light       = True
     self.en_remote_light       = True
-    self.en_light_in_daytime   = True
+    self.en_auto_curtain_ctl   = True
 
   def get_motion_sensor_entities(self):
     super().get_motion_sensor_entities()
@@ -1423,6 +1483,8 @@ class EnSuiteRoom(RoomBase):
     self.en_temp_calibration   = True
     self.en_led_only_scene     = True
     self.en_motion_bed_led     = True
+    self.en_auto_curtain_ctl   = True
+
 
   def get_motion_sensor_entities(self):
     super().get_motion_sensor_entities()
@@ -1440,7 +1502,10 @@ class EnSuiteRoom(RoomBase):
     self.leds                    = ["light.en_suite_room_bed_led"] 
     self.lights                  = self.leds + self.lamps + self.ceiling_lights
 
-
+  def get_cover_entities(self):
+    super().get_cover_entities()
+    # Cover entities
+    self.curtains               = [ "cover.en_suite_room_curtain"] 
 
 class EnSuiteToilet(RoomBase):
   def get_room_config(self):
@@ -1810,4 +1875,36 @@ if args.create_system_config:
 #('0x001788010c45edfc', 'E27',  'HUE W Z2M 3')
 #('0x001788010c45f13e', 'E27',  'HUE W Z2M 1')
 #('0x001788010c45f2d5', 'E27',  'HUE W Z2M 2')
+
+
+
+
+
+#
+  # vaccum_idle
+# elif people_have_cooked_in_kitchen_and_left & vacuum_idle
+  # vaccum_start
+# elif people_in_the_kitchen & vaccum_start
+  # vacuum_paused
+# elif people_left_the_kitchen & vacuum_paused
+  # vaccum_resume(or start)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
