@@ -87,18 +87,19 @@ automation:
     state: 'off'
     for: 00:01:00
   action:
-  - service: homeassistant.turn_on
-    entity_id: automation.zl_gt_ceiling_lights_on_or_open_curtains_if_entering_to_room_guest_toilet
-  - service: cover.close_cover
-    entity_id: []
-  - service: homeassistant.turn_off
-    entity_id:
-    - media_player.guest_toilet_tv
-  - service: input_select.select_option
-    target:
-      entity_id: input_select.guest_toilet_scene
-    data:
-      option: All Off
+    parallel:
+    - service: homeassistant.turn_on
+      entity_id: automation.zl_gt_ceiling_lights_on_or_open_curtains_if_entering_to_room_guest_toilet
+    - service: cover.close_cover
+      entity_id: []
+    - service: homeassistant.turn_off
+      entity_id:
+      - media_player.guest_toilet_tv
+    - service: input_select.select_option
+      target:
+        entity_id: input_select.guest_toilet_scene
+      data:
+        option: All Off
 - alias: ZH-GT Heating Schedule On If Staying In the Room-Guest Toilet
   id: automation.zh_gt_heating_schedule_on_if_staying_in_the_room_guest_toilet
   trigger:
@@ -181,6 +182,13 @@ automation:
   - service: homeassistant.turn_off
     entity_id: input_boolean.guest_toilet_heating_override
   id: automation.zh_gt_heating_manual_override_timeout_in_few_hours_guest_toilet
+- alias: ZH-GT Valve Calibrate Temperature Using External Sensor-Guest Toilet
+  use_blueprint:
+    path: calibrate_valve_temperature.yaml
+    input:
+      tado_valve_entity: climate.guest_toilet
+      external_temperature_sensor_entity: sensor.guest_toilet_temperature_sensor
+  id: automation.zh_gt_valve_calibrate_temperature_using_external_sensor_guest_toilet
 - alias: ZLB-GT Applies Different Scenes Based on Scene Selections (State Execution)-Guest Toilet
   trigger:
   - platform: state
@@ -410,7 +418,11 @@ input_boolean:
     name: Guest Toilet Curtain In Nighttime Enable
     initial: 'off'
 switch: []
-template: []
+template:
+- sensor:
+  - name: Guest Toilet Temperature Sensor
+    unit_of_measurement: "\xB0C"
+    state: '{{states.sensor["a4c1387a7b78_temperature"].state | float | round(1)}}'
 binary_sensor: []
 light: []
 group:
@@ -433,6 +445,7 @@ group:
     - automation.zh_gt_heating_schedule_off_if_people_left_the_room_guest_toilet
     - automation.zh_gt_heating_manual_override_guest_toilet
     - automation.zh_gt_heating_manual_override_timeout_in_few_hours_guest_toilet
+    - automation.zh_gt_valve_calibrate_temperature_using_external_sensor_guest_toilet
     - automation.zlb_gt_applies_different_scenes_based_on_scene_selections_state_execution_guest_toilet
     - automation.zlb_gt_wall_switch_single_left_press_toggle_ceiling_light_guest_toilet
     - automation.zlb_gt_wall_switch_single_right_press_toggle_floor_leds_guest_toilet

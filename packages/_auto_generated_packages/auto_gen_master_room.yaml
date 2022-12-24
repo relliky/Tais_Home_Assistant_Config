@@ -91,20 +91,21 @@ automation:
     state: 'off'
     for: 00:01:00
   action:
-  - service: homeassistant.turn_on
-    entity_id: automation.zl_mr_ceiling_lights_on_or_open_curtains_if_entering_to_room_master_room
-  - service: cover.close_cover
-    entity_id:
-    - cover.master_room_blind
-    - cover.master_room_curtain
-  - service: homeassistant.turn_off
-    entity_id:
-    - media_player.master_room_tv
-  - service: input_select.select_option
-    target:
-      entity_id: input_select.master_room_scene
-    data:
-      option: All Off
+    parallel:
+    - service: homeassistant.turn_on
+      entity_id: automation.zl_mr_ceiling_lights_on_or_open_curtains_if_entering_to_room_master_room
+    - service: cover.close_cover
+      entity_id:
+      - cover.master_room_blind
+      - cover.master_room_curtain
+    - service: homeassistant.turn_off
+      entity_id:
+      - media_player.master_room_tv
+    - service: input_select.select_option
+      target:
+        entity_id: input_select.master_room_scene
+      data:
+        option: All Off
 - alias: ZL-MR LED On for 3 Min if Walking In the Dark-Master Room
   mode: restart
   trigger:
@@ -619,10 +620,17 @@ template:
   - name: Master Room TV Motion Sensor Battery
     unit_of_measurement: '%'
     state: '{{states.sensor["0x00158d0005228ba8_battery"].state}}'
+- sensor:
+  - name: Master Room Occupancy Sensor Light
+    unit_of_measurement: lx
+    state: '{{states.sensor["dced830908fb_illuminance"].state}}'
 binary_sensor:
 - platform: group
   name: Master Room TV Motion Sensor Motion
   entities: binary_sensor.0x00158d0005228ba8_motion
+- platform: group
+  name: Master Room Occupancy Sensor Occupancy
+  entities: binary_sensor.dced830908fb_occupancy
 light: []
 group:
   master_room_occupancy_group:

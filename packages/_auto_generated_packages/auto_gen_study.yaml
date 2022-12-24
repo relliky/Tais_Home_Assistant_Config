@@ -87,18 +87,19 @@ automation:
     state: 'off'
     for: 00:01:00
   action:
-  - service: homeassistant.turn_on
-    entity_id: automation.zl_st_ceiling_lights_on_or_open_curtains_if_entering_to_room_study
-  - service: cover.close_cover
-    entity_id: []
-  - service: homeassistant.turn_off
-    entity_id:
-    - media_player.study_tv
-  - service: input_select.select_option
-    target:
-      entity_id: input_select.study_scene
-    data:
-      option: All Off
+    parallel:
+    - service: homeassistant.turn_on
+      entity_id: automation.zl_st_ceiling_lights_on_or_open_curtains_if_entering_to_room_study
+    - service: cover.close_cover
+      entity_id: []
+    - service: homeassistant.turn_off
+      entity_id:
+      - media_player.study_tv
+    - service: input_select.select_option
+      target:
+        entity_id: input_select.study_scene
+      data:
+        option: All Off
 - alias: ZH-ST Heating Schedule On If Staying In the Room-Study
   id: automation.zh_st_heating_schedule_on_if_staying_in_the_room_study
   trigger:
@@ -181,6 +182,13 @@ automation:
   - service: homeassistant.turn_off
     entity_id: input_boolean.study_heating_override
   id: automation.zh_st_heating_manual_override_timeout_in_few_hours_study
+- alias: ZH-ST Valve Calibrate Temperature Using External Sensor-Study
+  use_blueprint:
+    path: calibrate_valve_temperature.yaml
+    input:
+      tado_valve_entity: climate.study
+      external_temperature_sensor_entity: sensor.study_temperature_sensor
+  id: automation.zh_st_valve_calibrate_temperature_using_external_sensor_study
 - alias: ZLB-ST Applies Different Scenes Based on Scene Selections (State Execution)-Study
   trigger:
   - platform: state
@@ -422,6 +430,7 @@ group:
     - automation.zh_st_heating_schedule_off_if_people_left_the_room_study
     - automation.zh_st_heating_manual_override_study
     - automation.zh_st_heating_manual_override_timeout_in_few_hours_study
+    - automation.zh_st_valve_calibrate_temperature_using_external_sensor_study
     - automation.zlb_st_applies_different_scenes_based_on_scene_selections_state_execution_study
     - automation.zlb_st_wall_switch_single_press_toggle_ceiling_light_study
     - automation.zlb_st_wall_switch_double_press_leave_room_and_turn_off_everything_study

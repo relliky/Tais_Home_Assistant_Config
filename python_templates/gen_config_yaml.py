@@ -277,9 +277,10 @@ class RoomBase:
 
 
     ###################################################################################################
-    # Motion Sensors
+    # Motion Sensors, Occupancy Sensor
     #
     # Aqara Motion and Illuminance Sensor RTCGQ11LM ZigbeeID: ["lumi.sensor_motion.aq2"]
+    # Ziqing Occupancy Sensor, Mesh model: "mesh IZQ-24"
     ###################################################################################################
     elif model == "Aqara Motion and Illuminance Sensor": 
 
@@ -312,6 +313,51 @@ class RoomBase:
               "name": name + " Motion Sensor Battery",
               "unit_of_measurement": "%",
               "state": '{{states.sensor["' + mac + '_battery"].state}}'
+            }
+          ],
+          "enabled": True 
+        }        
+      ]
+
+    elif model == "Ziqing Occupancy Sensor": 
+
+      self.binary_sensor_list += [
+        {
+          "platform": "group",
+          "name": name + " Occupancy Sensor Occupancy",
+          "entities": "binary_sensor." + mac + '_occupancy',
+          "enabled": True 
+        }        
+      ]
+
+      self.template_list += [
+        {
+          "sensor": [
+            {
+              "name": name + " Occupancy Sensor Light",
+              "unit_of_measurement": "lx",
+              "state": '{{states.sensor["' + mac + '_illuminance"].state}}'
+            }
+          ],
+          "enabled": True 
+        }        
+      ]
+
+    ###################################################################################################
+    # Temperature Sensor
+    # Qingping Temperature Sensor, id: "ble LYWSDCGQ/01ZM"
+    # Mijia2 Temperature Sensor,   id: "ble LYWSD03MMC"
+    ###################################################################################################
+    elif model in [ "Qingping Temperature Sensor", 
+                    "Mijia2 Temperature Sensor"    ] : 
+
+      self.template_list += [
+        {
+          "sensor": [
+            {
+              "name": name + " Temperature Sensor",
+              "unit_of_measurement": "°C",
+              "state": '{{states.sensor["' + mac + '_temperature"].state | float | round(1)}}'
             }
           ],
           "enabled": True 
@@ -555,17 +601,19 @@ class RoomBase:
             "state": "off",
             "for": "00:01:00"
           }],
-        "action": [
-          # Re-enable lights on automation
-          {
-            "service": "homeassistant.turn_on",
-            "entity_id": self.automation_lights_on['id']
-          },
-          # Turn off lights/curtains/tv
-          self.turn(self.curtains, 'off'),
-          self.turn(self.tvs, 'off'),
-          self.setNewScene("All Off")          
-        ]
+        "action": { 
+          'parallel': [
+            # Re-enable lights on automation
+            {
+              "service": "homeassistant.turn_on",
+              "entity_id": self.automation_lights_on['id']
+            },
+            # Turn off lights/curtains/tv
+            self.turn(self.curtains, 'off'),
+            self.turn(self.tvs, 'off'),
+            self.setNewScene("All Off")          
+          ]
+        }    
       }
     ]
 
@@ -1303,7 +1351,8 @@ class MasterRoom(RoomBase):
     super().get_entity_declarations()
     self.add_mac_device("0x04cf8cdf3c7ad638", "Master Room",     "Aqara D1 Wall Switch (With Neutral, Triple Rocker)")
     self.add_mac_device("0x00158d0005228ba8", "Master Room TV",  "Aqara Motion and Illuminance Sensor")
-
+    self.add_mac_device("dced830908fb",       "Master Room",     "Ziqing Occupancy Sensor")
+    
 
   def get_motion_sensor_entities(self):
     super().get_motion_sensor_entities()
@@ -1355,6 +1404,7 @@ class MasterToilet(RoomBase):
     self.en_occupancy          = True       
     self.en_group_auto         = True
     self.en_temp_control       = True
+    self.en_temp_calibration   = True
     self.en_scene              = True            
     self.en_motion_light       = True
     self.en_remote_light       = True
@@ -1363,7 +1413,7 @@ class MasterToilet(RoomBase):
     super().get_entity_declarations()
     self.add_mac_device( "0x00158d00047d69be", "Master Toilet",               "Aqara D1 Wall Switch (With Neutral, Single Rocker)")
     self.add_mac_device( "0x00158d00042d4092", "Master Toilet Dressing Room", "Aqara D1 Wall Switch (With Neutral, Single Rocker)")
-
+    self.add_mac_device( "a4c1381d6ddb",       "Master Toilet",               "Mijia2 Temperature Sensor")
 
   def get_motion_sensor_entities(self):
     super().get_motion_sensor_entities()
@@ -1570,6 +1620,7 @@ class GuestToilet(RoomBase):
     self.en_occupancy          = True       
     self.en_group_auto         = True
     self.en_temp_control       = True
+    self.en_temp_calibration   = True
     self.en_scene              = True            
     self.en_motion_light       = True
     self.en_remote_light       = True
@@ -1585,6 +1636,11 @@ class GuestToilet(RoomBase):
     # Light/Switch entities
     self.leds                    = ["switch.guest_toilet_floor_led"]
     self.lights                  = self.leds + self.lamps + self.ceiling_lights
+
+
+  def get_entity_declarations(self):
+    super().get_entity_declarations()
+    self.add_mac_device("a4c1387a7b78",       "Guest Toilet",     "Mijia2 Temperature Sensor")
 
   # Guest Toilet - Left key - Ceiling light
   # Guest Toilet - Right key - Floor LED
@@ -1610,6 +1666,7 @@ class Study(RoomBase):
     self.en_occupancy          = True       
     self.en_group_auto         = True
     self.en_temp_control       = True
+    self.en_temp_calibration   = True
     self.en_scene              = True            
     self.en_motion_light       = True
     self.en_remote_light       = True
@@ -1637,6 +1694,9 @@ class Garden(RoomBase):
       "binary_sensor.garden_bike_shed_motion_sensor_motion"
     ]
 
+  def get_entity_declarations(self):
+    super().get_entity_declarations()
+    self.add_mac_device("a4c138e25da9",       "Study",     "Mijia2 Temperature Sensor")
 
 class Corridor(RoomBase):
   def get_room_config(self):
@@ -1667,6 +1727,7 @@ class GroundToilet(RoomBase):
     self.en_occupancy          = True       
     self.en_group_auto         = True
     self.en_temp_control       = True
+    self.en_temp_calibration   = True
     self.en_scene              = True            
     self.en_motion_light       = True
     self.en_remote_light       = True
@@ -1677,6 +1738,9 @@ class GroundToilet(RoomBase):
       "binary_sensor.ground_toilet_motion_sensor_motion"
     ]
 
+  def get_entity_declarations(self):
+    super().get_entity_declarations()
+    self.add_mac_device("a4c1387c09bd",       "Ground Toilet",     "Mijia2 Temperature Sensor")
 
 class WholeHome(RoomBase):
   def get_room_config(self):
