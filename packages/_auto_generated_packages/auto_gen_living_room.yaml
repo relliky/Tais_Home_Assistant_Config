@@ -12,64 +12,37 @@ automation:
     data:
       stop_actions: false
   - if:
-    - condition: state
-      entity_id: sun.sun
-      state: above_horizon
+    - condition: numeric_state
+      entity_id: sensor.met_office_cambridge_city_airport_temperature_3_hourly
+      above: '20'
+    - condition: time
+      after: '10:00:00'
+      before: '13:00:00'
+    - condition: template
+      value_template: '{{ now().month > 4 and now().month < 9 }}'
     then:
-    - if:
+      service: input_select.select_option
+      target:
+        entity_id: input_select.living_room_scene
+      data:
+        option: Lights on in hot sunshine
+    else:
+      if:
       - condition: state
-        entity_id: input_boolean.always_off_constant
-        state: 'on'
+        entity_id: sun.sun
+        state: above_horizon
       then:
-      - if:
-        - condition: numeric_state
-          entity_id: sensor.met_office_cambridge_city_airport_temperature_3_hourly
-          above: '20'
-        - condition: time
-          after: '10:00:00'
-          before: '13:00:00'
-        - condition: template
-          value_template: '{{ now().month > 4 and now().month < 9 }}'
-        then:
-          service: input_select.select_option
-          target:
-            entity_id: input_select.living_room_scene
-          data:
-            option: Ceiling Light White
-        else:
-          parallel:
-          - service: cover.open_cover
-            entity_id: []
-          - if:
-            - condition: state
-              entity_id: input_boolean.living_room_light_in_daytime
-              state: 'on'
-            then:
-              service: input_select.select_option
-              target:
-                entity_id: input_select.living_room_scene
-              data:
-                option: Ceiling Light White
+        service: input_select.select_option
+        target:
+          entity_id: input_select.living_room_scene
+        data:
+          option: Lights on when bright outdoor
       else:
         service: input_select.select_option
         target:
           entity_id: input_select.living_room_scene
         data:
-          option: Ceiling Light White
-    else:
-      parallel:
-      - service: input_select.select_option
-        target:
-          entity_id: input_select.living_room_scene
-        data:
-          option: All White
-      - if:
-        - condition: state
-          entity_id: input_boolean.living_room_curtain_in_nighttime
-          state: 'on'
-        then:
-          service: cover.open_cover
-          entity_id: []
+          option: Lights on when dark outdoor
 - alias: ZL-LR Lights Off If No Person-Living Room
   id: automation.zl_lr_lights_off_if_no_person_living_room
   trigger:
@@ -398,6 +371,135 @@ automation:
           - light.living_room_ceiling_light
           - light.living_room_tv_led
           - light.living_room_sofa_led
+    - conditions:
+      - condition: state
+        entity_id: input_select.living_room_scene
+        state: Lights on in hot sunshine
+      sequence:
+      - parallel:
+        - parallel:
+          - if:
+              condition: state
+              entity_id: input_boolean.ceiling_light_control_in_hot_sunshine_living_room
+              state: 'on'
+            then:
+              service: homeassistant.turn_on
+              entity_id:
+              - light.living_room_ceiling_light
+          - if:
+              condition: state
+              entity_id: input_boolean.lamp_control_in_hot_sunshine_living_room
+              state: 'on'
+            then:
+              service: homeassistant.turn_on
+              entity_id:
+              - light.living_room_floor_light_1
+              - light.living_room_3_head_lamp_1
+              - light.living_room_3_head_lamp_2
+              - light.living_room_3_head_lamp_3
+              - switch.living_room_floor_light_3
+          - if:
+              condition: state
+              entity_id: input_boolean.led_control_in_hot_sunshine_living_room
+              state: 'on'
+            then:
+              service: homeassistant.turn_on
+              entity_id:
+              - light.living_room_tv_led
+              - light.living_room_sofa_led
+          - if:
+              condition: state
+              entity_id: input_boolean.curtain_control_in_hot_sunshine_living_room
+              state: 'on'
+            then:
+              service: cover.open_cover
+              entity_id: []
+    - conditions:
+      - condition: state
+        entity_id: input_select.living_room_scene
+        state: Lights on when bright outdoor
+      sequence:
+      - parallel:
+        - parallel:
+          - if:
+              condition: state
+              entity_id: input_boolean.ceiling_light_control_when_bright_outdoor_living_room
+              state: 'on'
+            then:
+              service: homeassistant.turn_on
+              entity_id:
+              - light.living_room_ceiling_light
+          - if:
+              condition: state
+              entity_id: input_boolean.lamp_control_when_bright_outdoor_living_room
+              state: 'on'
+            then:
+              service: homeassistant.turn_on
+              entity_id:
+              - light.living_room_floor_light_1
+              - light.living_room_3_head_lamp_1
+              - light.living_room_3_head_lamp_2
+              - light.living_room_3_head_lamp_3
+              - switch.living_room_floor_light_3
+          - if:
+              condition: state
+              entity_id: input_boolean.led_control_when_bright_outdoor_living_room
+              state: 'on'
+            then:
+              service: homeassistant.turn_on
+              entity_id:
+              - light.living_room_tv_led
+              - light.living_room_sofa_led
+          - if:
+              condition: state
+              entity_id: input_boolean.curtain_control_when_bright_outdoor_living_room
+              state: 'on'
+            then:
+              service: cover.open_cover
+              entity_id: []
+    - conditions:
+      - condition: state
+        entity_id: input_select.living_room_scene
+        state: Lights on when dark outdoor
+      sequence:
+      - parallel:
+        - parallel:
+          - if:
+              condition: state
+              entity_id: input_boolean.ceiling_light_control_when_dark_outdoor_living_room
+              state: 'on'
+            then:
+              service: homeassistant.turn_on
+              entity_id:
+              - light.living_room_ceiling_light
+          - if:
+              condition: state
+              entity_id: input_boolean.lamp_control_when_dark_outdoor_living_room
+              state: 'on'
+            then:
+              service: homeassistant.turn_on
+              entity_id:
+              - light.living_room_floor_light_1
+              - light.living_room_3_head_lamp_1
+              - light.living_room_3_head_lamp_2
+              - light.living_room_3_head_lamp_3
+              - switch.living_room_floor_light_3
+          - if:
+              condition: state
+              entity_id: input_boolean.led_control_when_dark_outdoor_living_room
+              state: 'on'
+            then:
+              service: homeassistant.turn_on
+              entity_id:
+              - light.living_room_tv_led
+              - light.living_room_sofa_led
+          - if:
+              condition: state
+              entity_id: input_boolean.curtain_control_when_dark_outdoor_living_room
+              state: 'on'
+            then:
+              service: cover.open_cover
+              entity_id: []
   id: automation.zlb_lr_applies_different_scenes_based_on_scene_selections_state_execution_living_room
 - alias: ZLB-LR Remote Button - Double - Toggle Lamps-Living Room
   trigger:
@@ -511,6 +613,9 @@ input_select:
     - All White
     - Ceiling Light White
     - All Off
+    - Lights on in hot sunshine
+    - Lights on when bright outdoor
+    - Lights on when dark outdoor
   living_room_occupancy:
     name: Living Room Occupancy
     options:
@@ -539,11 +644,41 @@ input_boolean:
   living_room_heating_override:
     name: Living Room Heating Override
     initial: 'off'
-  living_room_light_in_daytime:
-    name: Living Room Light in Daytime Enable
+  ceiling_light_control_in_hot_sunshine_living_room:
+    name: Ceiling Light Control In Hot Sunshine Living Room
     initial: 'off'
-  living_room_curtain_in_nighttime:
-    name: Living Room Curtain In Nighttime Enable
+  lamp_control_in_hot_sunshine_living_room:
+    name: Lamp Control In Hot Sunshine Living Room
+    initial: 'off'
+  led_control_in_hot_sunshine_living_room:
+    name: Led Control In Hot Sunshine Living Room
+    initial: 'off'
+  curtain_control_in_hot_sunshine_living_room:
+    name: Curtain Control In Hot Sunshine Living Room
+    initial: 'off'
+  ceiling_light_control_when_bright_outdoor_living_room:
+    name: Ceiling Light Control When Bright Outdoor Living Room
+    initial: 'on'
+  lamp_control_when_bright_outdoor_living_room:
+    name: Lamp Control When Bright Outdoor Living Room
+    initial: 'on'
+  led_control_when_bright_outdoor_living_room:
+    name: Led Control When Bright Outdoor Living Room
+    initial: 'off'
+  curtain_control_when_bright_outdoor_living_room:
+    name: Curtain Control When Bright Outdoor Living Room
+    initial: 'off'
+  ceiling_light_control_when_dark_outdoor_living_room:
+    name: Ceiling Light Control When Dark Outdoor Living Room
+    initial: 'on'
+  lamp_control_when_dark_outdoor_living_room:
+    name: Lamp Control When Dark Outdoor Living Room
+    initial: 'on'
+  led_control_when_dark_outdoor_living_room:
+    name: Led Control When Dark Outdoor Living Room
+    initial: 'on'
+  curtain_control_when_dark_outdoor_living_room:
+    name: Curtain Control When Dark Outdoor Living Room
     initial: 'off'
 switch: []
 template: []
@@ -567,6 +702,14 @@ group:
   living_room_auto_gen_automations:
     name: Living Room Auto-gen Automations
     entities:
+    - input_boolean.ceiling_light_control_when_bright_outdoor_living_room
+    - input_boolean.lamp_control_when_bright_outdoor_living_room
+    - input_boolean.led_control_when_bright_outdoor_living_room
+    - input_boolean.curtain_control_when_bright_outdoor_living_room
+    - input_boolean.ceiling_light_control_when_dark_outdoor_living_room
+    - input_boolean.lamp_control_when_dark_outdoor_living_room
+    - input_boolean.led_control_when_dark_outdoor_living_room
+    - input_boolean.curtain_control_when_dark_outdoor_living_room
     - automation.zl_lr_ceiling_lights_on_or_open_curtains_if_entering_to_room_living_room
     - automation.zl_lr_lights_off_if_no_person_living_room
     - automation.zh_lr_heating_schedule_on_if_staying_in_the_room_living_room

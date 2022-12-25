@@ -12,64 +12,37 @@ automation:
     data:
       stop_actions: false
   - if:
-    - condition: state
-      entity_id: sun.sun
-      state: above_horizon
+    - condition: numeric_state
+      entity_id: sensor.met_office_cambridge_city_airport_temperature_3_hourly
+      above: '20'
+    - condition: time
+      after: '10:00:00'
+      before: '13:00:00'
+    - condition: template
+      value_template: '{{ now().month > 4 and now().month < 9 }}'
     then:
-    - if:
+      service: input_select.select_option
+      target:
+        entity_id: input_select.guest_toilet_scene
+      data:
+        option: Lights on in hot sunshine
+    else:
+      if:
       - condition: state
-        entity_id: input_boolean.always_off_constant
-        state: 'on'
+        entity_id: sun.sun
+        state: above_horizon
       then:
-      - if:
-        - condition: numeric_state
-          entity_id: sensor.met_office_cambridge_city_airport_temperature_3_hourly
-          above: '20'
-        - condition: time
-          after: '10:00:00'
-          before: '13:00:00'
-        - condition: template
-          value_template: '{{ now().month > 4 and now().month < 9 }}'
-        then:
-          service: input_select.select_option
-          target:
-            entity_id: input_select.guest_toilet_scene
-          data:
-            option: Ceiling Light White
-        else:
-          parallel:
-          - service: cover.open_cover
-            entity_id: []
-          - if:
-            - condition: state
-              entity_id: input_boolean.guest_toilet_light_in_daytime
-              state: 'on'
-            then:
-              service: input_select.select_option
-              target:
-                entity_id: input_select.guest_toilet_scene
-              data:
-                option: Ceiling Light White
+        service: input_select.select_option
+        target:
+          entity_id: input_select.guest_toilet_scene
+        data:
+          option: Lights on when bright outdoor
       else:
         service: input_select.select_option
         target:
           entity_id: input_select.guest_toilet_scene
         data:
-          option: Ceiling Light White
-    else:
-      parallel:
-      - service: input_select.select_option
-        target:
-          entity_id: input_select.guest_toilet_scene
-        data:
-          option: All White
-      - if:
-        - condition: state
-          entity_id: input_boolean.guest_toilet_curtain_in_nighttime
-          state: 'on'
-        then:
-          service: cover.open_cover
-          entity_id: []
+          option: Lights on when dark outdoor
 - alias: ZL-GT Lights Off If No Person-Guest Toilet
   id: automation.zl_gt_lights_off_if_no_person_guest_toilet
   trigger:
@@ -308,6 +281,117 @@ automation:
           entity_id:
           - light.guest_toilet_ceiling_light
           - switch.guest_toilet_floor_led
+    - conditions:
+      - condition: state
+        entity_id: input_select.guest_toilet_scene
+        state: Lights on in hot sunshine
+      sequence:
+      - parallel:
+        - parallel:
+          - if:
+              condition: state
+              entity_id: input_boolean.ceiling_light_control_in_hot_sunshine_guest_toilet
+              state: 'on'
+            then:
+              service: homeassistant.turn_on
+              entity_id:
+              - light.guest_toilet_ceiling_light
+          - if:
+              condition: state
+              entity_id: input_boolean.lamp_control_in_hot_sunshine_guest_toilet
+              state: 'on'
+            then:
+              service: cover.open_cover
+              entity_id: []
+          - if:
+              condition: state
+              entity_id: input_boolean.led_control_in_hot_sunshine_guest_toilet
+              state: 'on'
+            then:
+              service: homeassistant.turn_on
+              entity_id:
+              - switch.guest_toilet_floor_led
+          - if:
+              condition: state
+              entity_id: input_boolean.curtain_control_in_hot_sunshine_guest_toilet
+              state: 'on'
+            then:
+              service: cover.open_cover
+              entity_id: []
+    - conditions:
+      - condition: state
+        entity_id: input_select.guest_toilet_scene
+        state: Lights on when bright outdoor
+      sequence:
+      - parallel:
+        - parallel:
+          - if:
+              condition: state
+              entity_id: input_boolean.ceiling_light_control_when_bright_outdoor_guest_toilet
+              state: 'on'
+            then:
+              service: homeassistant.turn_on
+              entity_id:
+              - light.guest_toilet_ceiling_light
+          - if:
+              condition: state
+              entity_id: input_boolean.lamp_control_when_bright_outdoor_guest_toilet
+              state: 'on'
+            then:
+              service: cover.open_cover
+              entity_id: []
+          - if:
+              condition: state
+              entity_id: input_boolean.led_control_when_bright_outdoor_guest_toilet
+              state: 'on'
+            then:
+              service: homeassistant.turn_on
+              entity_id:
+              - switch.guest_toilet_floor_led
+          - if:
+              condition: state
+              entity_id: input_boolean.curtain_control_when_bright_outdoor_guest_toilet
+              state: 'on'
+            then:
+              service: cover.open_cover
+              entity_id: []
+    - conditions:
+      - condition: state
+        entity_id: input_select.guest_toilet_scene
+        state: Lights on when dark outdoor
+      sequence:
+      - parallel:
+        - parallel:
+          - if:
+              condition: state
+              entity_id: input_boolean.ceiling_light_control_when_dark_outdoor_guest_toilet
+              state: 'on'
+            then:
+              service: homeassistant.turn_on
+              entity_id:
+              - light.guest_toilet_ceiling_light
+          - if:
+              condition: state
+              entity_id: input_boolean.lamp_control_when_dark_outdoor_guest_toilet
+              state: 'on'
+            then:
+              service: cover.open_cover
+              entity_id: []
+          - if:
+              condition: state
+              entity_id: input_boolean.led_control_when_dark_outdoor_guest_toilet
+              state: 'on'
+            then:
+              service: homeassistant.turn_on
+              entity_id:
+              - switch.guest_toilet_floor_led
+          - if:
+              condition: state
+              entity_id: input_boolean.curtain_control_when_dark_outdoor_guest_toilet
+              state: 'on'
+            then:
+              service: cover.open_cover
+              entity_id: []
   id: automation.zlb_gt_applies_different_scenes_based_on_scene_selections_state_execution_guest_toilet
 - alias: ZLB-GT Wall Switch-Single Left Press - Toggle Ceiling Light-Guest Toilet
   trigger:
@@ -383,6 +467,9 @@ input_select:
     - All White
     - Ceiling Light White
     - All Off
+    - Lights on in hot sunshine
+    - Lights on when bright outdoor
+    - Lights on when dark outdoor
   guest_toilet_occupancy:
     name: Guest Toilet Occupancy
     options:
@@ -411,11 +498,41 @@ input_boolean:
   guest_toilet_heating_override:
     name: Guest Toilet Heating Override
     initial: 'off'
-  guest_toilet_light_in_daytime:
-    name: Guest Toilet Light in Daytime Enable
+  ceiling_light_control_in_hot_sunshine_guest_toilet:
+    name: Ceiling Light Control In Hot Sunshine Guest Toilet
     initial: 'off'
-  guest_toilet_curtain_in_nighttime:
-    name: Guest Toilet Curtain In Nighttime Enable
+  lamp_control_in_hot_sunshine_guest_toilet:
+    name: Lamp Control In Hot Sunshine Guest Toilet
+    initial: 'off'
+  led_control_in_hot_sunshine_guest_toilet:
+    name: Led Control In Hot Sunshine Guest Toilet
+    initial: 'off'
+  curtain_control_in_hot_sunshine_guest_toilet:
+    name: Curtain Control In Hot Sunshine Guest Toilet
+    initial: 'off'
+  ceiling_light_control_when_bright_outdoor_guest_toilet:
+    name: Ceiling Light Control When Bright Outdoor Guest Toilet
+    initial: 'on'
+  lamp_control_when_bright_outdoor_guest_toilet:
+    name: Lamp Control When Bright Outdoor Guest Toilet
+    initial: 'on'
+  led_control_when_bright_outdoor_guest_toilet:
+    name: Led Control When Bright Outdoor Guest Toilet
+    initial: 'off'
+  curtain_control_when_bright_outdoor_guest_toilet:
+    name: Curtain Control When Bright Outdoor Guest Toilet
+    initial: 'off'
+  ceiling_light_control_when_dark_outdoor_guest_toilet:
+    name: Ceiling Light Control When Dark Outdoor Guest Toilet
+    initial: 'on'
+  lamp_control_when_dark_outdoor_guest_toilet:
+    name: Lamp Control When Dark Outdoor Guest Toilet
+    initial: 'on'
+  led_control_when_dark_outdoor_guest_toilet:
+    name: Led Control When Dark Outdoor Guest Toilet
+    initial: 'on'
+  curtain_control_when_dark_outdoor_guest_toilet:
+    name: Curtain Control When Dark Outdoor Guest Toilet
     initial: 'off'
 switch: []
 template:
@@ -439,6 +556,14 @@ group:
   guest_toilet_auto_gen_automations:
     name: Guest Toilet Auto-gen Automations
     entities:
+    - input_boolean.ceiling_light_control_when_bright_outdoor_guest_toilet
+    - input_boolean.lamp_control_when_bright_outdoor_guest_toilet
+    - input_boolean.led_control_when_bright_outdoor_guest_toilet
+    - input_boolean.curtain_control_when_bright_outdoor_guest_toilet
+    - input_boolean.ceiling_light_control_when_dark_outdoor_guest_toilet
+    - input_boolean.lamp_control_when_dark_outdoor_guest_toilet
+    - input_boolean.led_control_when_dark_outdoor_guest_toilet
+    - input_boolean.curtain_control_when_dark_outdoor_guest_toilet
     - automation.zl_gt_ceiling_lights_on_or_open_curtains_if_entering_to_room_guest_toilet
     - automation.zl_gt_lights_off_if_no_person_guest_toilet
     - automation.zh_gt_heating_schedule_on_if_staying_in_the_room_guest_toilet

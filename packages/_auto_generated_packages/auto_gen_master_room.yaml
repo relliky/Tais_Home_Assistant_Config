@@ -12,68 +12,37 @@ automation:
     data:
       stop_actions: false
   - if:
-    - condition: state
-      entity_id: sun.sun
-      state: above_horizon
+    - condition: numeric_state
+      entity_id: sensor.met_office_cambridge_city_airport_temperature_3_hourly
+      above: '20'
+    - condition: time
+      after: '13:00:00'
+      before: '22:00:00'
+    - condition: template
+      value_template: '{{ now().month > 4 and now().month < 9 }}'
     then:
-    - if:
+      service: input_select.select_option
+      target:
+        entity_id: input_select.master_room_scene
+      data:
+        option: Lights on in hot sunshine
+    else:
+      if:
       - condition: state
-        entity_id: input_boolean.always_on_constant
-        state: 'on'
+        entity_id: sun.sun
+        state: above_horizon
       then:
-      - if:
-        - condition: numeric_state
-          entity_id: sensor.met_office_cambridge_city_airport_temperature_3_hourly
-          above: '20'
-        - condition: time
-          after: '13:00:00'
-          before: '22:00:00'
-        - condition: template
-          value_template: '{{ now().month > 4 and now().month < 9 }}'
-        then:
-          service: input_select.select_option
-          target:
-            entity_id: input_select.master_room_scene
-          data:
-            option: Ceiling Light White
-        else:
-          parallel:
-          - service: cover.open_cover
-            entity_id:
-            - cover.master_room_blind
-            - cover.master_room_curtain
-          - if:
-            - condition: state
-              entity_id: input_boolean.master_room_light_in_daytime
-              state: 'on'
-            then:
-              service: input_select.select_option
-              target:
-                entity_id: input_select.master_room_scene
-              data:
-                option: Ceiling Light White
+        service: input_select.select_option
+        target:
+          entity_id: input_select.master_room_scene
+        data:
+          option: Lights on when bright outdoor
       else:
         service: input_select.select_option
         target:
           entity_id: input_select.master_room_scene
         data:
-          option: Ceiling Light White
-    else:
-      parallel:
-      - service: input_select.select_option
-        target:
-          entity_id: input_select.master_room_scene
-        data:
-          option: All White
-      - if:
-        - condition: state
-          entity_id: input_boolean.master_room_curtain_in_nighttime
-          state: 'on'
-        then:
-          service: cover.open_cover
-          entity_id:
-          - cover.master_room_blind
-          - cover.master_room_curtain
+          option: Lights on when dark outdoor
 - alias: ZL-MR Lights Off If No Person-Master Room
   id: automation.zl_mr_lights_off_if_no_person_master_room
   trigger:
@@ -284,11 +253,11 @@ automation:
         target:
           entity_id: input_select.master_room_scene
         data:
-          option: Night Mode
+          option: Dark Night Mode
     - conditions:
         condition: state
         entity_id: input_select.master_room_scene
-        state: Night Mode
+        state: Dark Night Mode
       sequence:
         service: input_select.select_option
         target:
@@ -449,6 +418,135 @@ automation:
           - light.master_room_drawer_led
           - light.master_room_tv_led
           - light.master_room_bed_led
+    - conditions:
+      - condition: state
+        entity_id: input_select.master_room_scene
+        state: Lights on in hot sunshine
+      sequence:
+      - parallel:
+        - parallel:
+          - if:
+              condition: state
+              entity_id: input_boolean.ceiling_light_control_in_hot_sunshine_master_room
+              state: 'on'
+            then:
+              service: homeassistant.turn_on
+              entity_id:
+              - light.master_room_ceiling_light
+          - if:
+              condition: state
+              entity_id: input_boolean.lamp_control_in_hot_sunshine_master_room
+              state: 'on'
+            then:
+              service: homeassistant.turn_on
+              entity_id:
+              - light.master_room_lamp_1
+              - light.master_room_lamp_2
+          - if:
+              condition: state
+              entity_id: input_boolean.led_control_in_hot_sunshine_master_room
+              state: 'on'
+            then:
+              service: homeassistant.turn_on
+              entity_id:
+              - light.master_room_drawer_led
+              - light.master_room_tv_led
+              - light.master_room_bed_led
+          - if:
+              condition: state
+              entity_id: input_boolean.curtain_control_in_hot_sunshine_master_room
+              state: 'on'
+            then:
+              service: cover.open_cover
+              entity_id:
+              - cover.master_room_blind
+              - cover.master_room_curtain
+    - conditions:
+      - condition: state
+        entity_id: input_select.master_room_scene
+        state: Lights on when bright outdoor
+      sequence:
+      - parallel:
+        - parallel:
+          - if:
+              condition: state
+              entity_id: input_boolean.ceiling_light_control_when_bright_outdoor_master_room
+              state: 'on'
+            then:
+              service: homeassistant.turn_on
+              entity_id:
+              - light.master_room_ceiling_light
+          - if:
+              condition: state
+              entity_id: input_boolean.lamp_control_when_bright_outdoor_master_room
+              state: 'on'
+            then:
+              service: homeassistant.turn_on
+              entity_id:
+              - light.master_room_lamp_1
+              - light.master_room_lamp_2
+          - if:
+              condition: state
+              entity_id: input_boolean.led_control_when_bright_outdoor_master_room
+              state: 'on'
+            then:
+              service: homeassistant.turn_on
+              entity_id:
+              - light.master_room_drawer_led
+              - light.master_room_tv_led
+              - light.master_room_bed_led
+          - if:
+              condition: state
+              entity_id: input_boolean.curtain_control_when_bright_outdoor_master_room
+              state: 'on'
+            then:
+              service: cover.open_cover
+              entity_id:
+              - cover.master_room_blind
+              - cover.master_room_curtain
+    - conditions:
+      - condition: state
+        entity_id: input_select.master_room_scene
+        state: Lights on when dark outdoor
+      sequence:
+      - parallel:
+        - parallel:
+          - if:
+              condition: state
+              entity_id: input_boolean.ceiling_light_control_when_dark_outdoor_master_room
+              state: 'on'
+            then:
+              service: homeassistant.turn_on
+              entity_id:
+              - light.master_room_ceiling_light
+          - if:
+              condition: state
+              entity_id: input_boolean.lamp_control_when_dark_outdoor_master_room
+              state: 'on'
+            then:
+              service: homeassistant.turn_on
+              entity_id:
+              - light.master_room_lamp_1
+              - light.master_room_lamp_2
+          - if:
+              condition: state
+              entity_id: input_boolean.led_control_when_dark_outdoor_master_room
+              state: 'on'
+            then:
+              service: homeassistant.turn_on
+              entity_id:
+              - light.master_room_drawer_led
+              - light.master_room_tv_led
+              - light.master_room_bed_led
+          - if:
+              condition: state
+              entity_id: input_boolean.curtain_control_when_dark_outdoor_master_room
+              state: 'on'
+            then:
+              service: cover.open_cover
+              entity_id:
+              - cover.master_room_blind
+              - cover.master_room_curtain
   id: automation.zlb_mr_applies_different_scenes_based_on_scene_selections_state_execution_master_room
 - alias: ZLB-MR Remote Button - Double - Toggle Lamps-Master Room
   trigger:
@@ -566,6 +664,9 @@ input_select:
     - All White
     - Ceiling Light White
     - All Off
+    - Lights on in hot sunshine
+    - Lights on when bright outdoor
+    - Lights on when dark outdoor
   master_room_occupancy:
     name: Master Room Occupancy
     options:
@@ -594,10 +695,42 @@ input_boolean:
   master_room_heating_override:
     name: Master Room Heating Override
     initial: 'off'
-  master_room_light_in_daytime:
-    name: Master Room Light in Daytime Enable
-  master_room_curtain_in_nighttime:
-    name: Master Room Curtain In Nighttime Enable
+  ceiling_light_control_in_hot_sunshine_master_room:
+    name: Ceiling Light Control In Hot Sunshine Master Room
+    initial: 'off'
+  lamp_control_in_hot_sunshine_master_room:
+    name: Lamp Control In Hot Sunshine Master Room
+    initial: 'off'
+  led_control_in_hot_sunshine_master_room:
+    name: Led Control In Hot Sunshine Master Room
+    initial: 'off'
+  curtain_control_in_hot_sunshine_master_room:
+    name: Curtain Control In Hot Sunshine Master Room
+    initial: 'off'
+  ceiling_light_control_when_bright_outdoor_master_room:
+    name: Ceiling Light Control When Bright Outdoor Master Room
+    initial: 'on'
+  lamp_control_when_bright_outdoor_master_room:
+    name: Lamp Control When Bright Outdoor Master Room
+    initial: 'on'
+  led_control_when_bright_outdoor_master_room:
+    name: Led Control When Bright Outdoor Master Room
+    initial: 'off'
+  curtain_control_when_bright_outdoor_master_room:
+    name: Curtain Control When Bright Outdoor Master Room
+    initial: 'off'
+  ceiling_light_control_when_dark_outdoor_master_room:
+    name: Ceiling Light Control When Dark Outdoor Master Room
+    initial: 'on'
+  lamp_control_when_dark_outdoor_master_room:
+    name: Lamp Control When Dark Outdoor Master Room
+    initial: 'on'
+  led_control_when_dark_outdoor_master_room:
+    name: Led Control When Dark Outdoor Master Room
+    initial: 'on'
+  curtain_control_when_dark_outdoor_master_room:
+    name: Curtain Control When Dark Outdoor Master Room
+    initial: 'off'
 switch:
 - platform: group
   name: Master Room Wall Switch 1
@@ -658,8 +791,18 @@ group:
   master_room_auto_gen_automations:
     name: Master Room Auto-gen Automations
     entities:
-    - input_boolean.master_room_light_in_daytime
-    - input_boolean.master_room_curtain_in_nighttime
+    - input_boolean.ceiling_light_control_in_hot_sunshine_master_room
+    - input_boolean.lamp_control_in_hot_sunshine_master_room
+    - input_boolean.led_control_in_hot_sunshine_master_room
+    - input_boolean.curtain_control_in_hot_sunshine_master_room
+    - input_boolean.ceiling_light_control_when_bright_outdoor_master_room
+    - input_boolean.lamp_control_when_bright_outdoor_master_room
+    - input_boolean.led_control_when_bright_outdoor_master_room
+    - input_boolean.curtain_control_when_bright_outdoor_master_room
+    - input_boolean.ceiling_light_control_when_dark_outdoor_master_room
+    - input_boolean.lamp_control_when_dark_outdoor_master_room
+    - input_boolean.led_control_when_dark_outdoor_master_room
+    - input_boolean.curtain_control_when_dark_outdoor_master_room
     - automation.zl_mr_ceiling_lights_on_or_open_curtains_if_entering_to_room_master_room
     - automation.zl_mr_lights_off_if_no_person_master_room
     - automation.zl_mr_led_on_for_3_min_if_walking_in_the_dark_master_room
