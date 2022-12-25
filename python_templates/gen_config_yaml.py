@@ -467,64 +467,64 @@ class RoomBase:
       self.input_boolean_dict |= {
         self.getPostfix(self.ceiling_light_control_when['Lights on in hot sunshine']) : {
           "name" :  self.getName(self.ceiling_light_control_when['Lights on in hot sunshine']),
-          "initial": "off",
+          #"initial": "on",
           "configured": True
-        },
+        } | ({"initial": "off"} if len(self.ceiling_lights) > 0 and len(self.curtains) > 0 else {}),
         self.getPostfix(self.lamp_control_when['Lights on in hot sunshine']) : {
           "name" :  self.getName(self.lamp_control_when['Lights on in hot sunshine']),
-          "initial": "off",
+          #"initial": "off",
           "configured": True
-        },
+        } | ({"initial": "off"} if len(self.lamps) > 0 and len(self.curtains) > 0 else {}), 
         self.getPostfix(self.led_control_when['Lights on in hot sunshine']) : {
           "name" :  self.getName(self.led_control_when['Lights on in hot sunshine']),
-          "initial": "off",
+          #"initial": "off",
           "configured": True
-        },
+        } | ({"initial": "off"} if len(self.leds) > 0 and len(self.curtains) > 0 else {}),
         self.getPostfix(self.curtain_control_when['Lights on in hot sunshine']) : {
           "name" :  self.getName(self.curtain_control_when['Lights on in hot sunshine']),
-          "initial": "off",
+          #"initial": "off",
           "configured": True
-        },
+        } | ({"initial": "off"} if len(self.curtains) > 0 else {}),
         self.getPostfix(self.ceiling_light_control_when['Lights on when bright outdoor']) : {
           "name" :  self.getName(self.ceiling_light_control_when['Lights on when bright outdoor']),
-          "initial": "on",
+          #"initial": "on",
           "configured": True
-        },
+        } | ({"initial": "off"} if len(self.ceiling_lights) > 0 else {}),
         self.getPostfix(self.lamp_control_when['Lights on when bright outdoor']) : {
           "name" :  self.getName(self.lamp_control_when['Lights on when bright outdoor']),
-          "initial": "on",
+          #"initial": "on",
           "configured": True
-        },
+        } | ({"initial": "off"} if len(self.lamps) > 0 else {}),
         self.getPostfix(self.led_control_when['Lights on when bright outdoor']) : {
           "name" :  self.getName(self.led_control_when['Lights on when bright outdoor']),
-          "initial": "off",
+          #"initial": "off",
           "configured": True
-        },
+        } | ({"initial": "off"} if len(self.leds) > 0 else {}),
         self.getPostfix(self.curtain_control_when['Lights on when bright outdoor']) : {
           "name" :  self.getName(self.curtain_control_when['Lights on when bright outdoor']),
-          "initial": "off",
+          #"initial": "off",
           "configured": True
-        },
+        } | ({"initial": "off"} if len(self.curtains) > 0 else {}),
         self.getPostfix(self.ceiling_light_control_when['Lights on when dark outdoor']) : {
           "name" :  self.getName(self.ceiling_light_control_when['Lights on when dark outdoor']),
-          "initial": "on",
+          #"initial": "on",
           "configured": True
-        },
+        } | ({"initial": "off"} if len(self.ceiling_lights) > 0 else {}),
         self.getPostfix(self.lamp_control_when['Lights on when dark outdoor']) : {
           "name" :  self.getName(self.lamp_control_when['Lights on when dark outdoor']),
-          "initial": "on",
+          #"initial": "on",
           "configured": True
-        },
+        } | ({"initial": "off"} if len(self.lamps) > 0 else {}),
         self.getPostfix(self.led_control_when['Lights on when dark outdoor']) : {
           "name" :  self.getName(self.led_control_when['Lights on when dark outdoor']),
-          "initial": "on",
+          #"initial": "on",
           "configured": True
-        },
+        } | ({"initial": "off"} if len(self.leds) > 0 else {}),
         self.getPostfix(self.curtain_control_when['Lights on when dark outdoor']) : {
           "name" :  self.getName(self.curtain_control_when['Lights on when dark outdoor']),
-          "initial": "off",
+          #"initial": "off",
           "configured": True
-        }
+        } | ({"initial": "off"} if len(self.curtains) > 0 else {}),
       }
 
 #      self.input_boolean_dict |= {
@@ -592,21 +592,19 @@ class RoomBase:
 
     # TODO rename this method because it includes other controls
     # Including auto curtain controls
-    self.automation_entity_list = ([
-      self.ceiling_light_control_when['Lights on in hot sunshine'],     
-      self.lamp_control_when['Lights on in hot sunshine'],      
-      self.led_control_when['Lights on in hot sunshine'],     
-      self.curtain_control_when['Lights on in hot sunshine']
-    ] if len(self.curtains) > 0 else []) +[
-      self.ceiling_light_control_when['Lights on when bright outdoor'], 
-      self.lamp_control_when['Lights on when bright outdoor'],  
-      self.led_control_when['Lights on when bright outdoor'], 
-      self.curtain_control_when['Lights on when bright outdoor'],
-      self.ceiling_light_control_when['Lights on when dark outdoor'],   
-      self.lamp_control_when['Lights on when dark outdoor'],    
-      self.led_control_when['Lights on when dark outdoor'],    
-      self.curtain_control_when['Lights on when dark outdoor']  
-    ]
+    self.automation_entity_list = [] + \
+      ([self.ceiling_light_control_when['Lights on in hot sunshine']    ] if len(self.ceiling_lights) > 0 and len(self.curtains) > 0 else []) + \
+      ([self.lamp_control_when['Lights on in hot sunshine']             ] if len(self.lamps) > 0          and len(self.curtains) > 0 else []) + \
+      ([self.led_control_when['Lights on in hot sunshine']              ] if len(self.leds) > 0           and len(self.curtains) > 0 else []) + \
+      ([self.curtain_control_when['Lights on in hot sunshine']          ] if len(self.curtains) > 0       and len(self.curtains) > 0 else []) + \
+      ([self.ceiling_light_control_when['Lights on when bright outdoor']] if len(self.ceiling_lights) > 0 else [])                            + \
+      ([self.lamp_control_when['Lights on when bright outdoor']         ] if len(self.lamps) > 0          else [])                            + \
+      ([self.led_control_when['Lights on when bright outdoor']          ] if len(self.leds) > 0           else [])                            + \
+      ([self.curtain_control_when['Lights on when bright outdoor']      ] if len(self.curtains) > 0       else [])                            + \
+      ([self.ceiling_light_control_when['Lights on when dark outdoor']  ] if len(self.ceiling_lights) > 0 else [])                            + \
+      ([self.lamp_control_when['Lights on when dark outdoor']           ] if len(self.lamps) > 0          else [])                            + \
+      ([self.led_control_when['Lights on when dark outdoor']            ] if len(self.leds) > 0           else [])                            + \
+      ([self.curtain_control_when['Lights on when dark outdoor']        ] if len(self.curtains) > 0       else [])                        
 
     # Generate automations group 
     for automation in self.entity_declarations['automation']:
@@ -1357,7 +1355,9 @@ class RoomBase:
                 {
                   "condition": "template",
                   "value_template": "{{ now().month > 4 and now().month < 9 }}"
-                }
+                },
+                # Room has curtain
+                self.alwaysOnIf(len(self.curtains) > 0)
               ]
     elif condition_name == 'Enable ceiling light in the daytime':
       return [{
