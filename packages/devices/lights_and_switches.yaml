@@ -242,7 +242,8 @@ light:
   - platform: group
     name: Kitchen Ceiling Light
     entities:
-      - light.kitchen_spotlight_bulb_1_localtuya
+      #- light.kitchen_spotlight_bulb_1_localtuya
+      - light.kitchen_spotlight_bulb_1_tuya
       - light.kitchen_spotlight_bulb_2_localtuya
       - light.kitchen_spotlight_bulb_3_localtuya
       - light.kitchen_spotlight_bulb_4_localtuya
@@ -270,10 +271,10 @@ light:
   - platform: group
     name: Ground Toilet Ceiling Light
     entities:
-      - light.ground_toilet_bulb_1_localtuya
+      #- light.ground_toilet_bulb_1_localtuya
       - light.ground_toilet_bulb_2_localtuya
-      #- light.ground_toilet_spotlight_1_tuya
-      #- light.ground_toilet_spotlight_2_tuya
+      - light.ground_toilet_bulb_1_tuya
+      #- light.light.ground_toilet_bulb_2_tuya
 
   - platform: group
     name: En-suite Toilet Ceiling Light
@@ -440,6 +441,27 @@ input_datetime:
     initial: "22:59:50"
 
 script:
+  call_room_scene:
+    alias: Call Room Scene
+    fields:
+      room_scene_select:
+        example: input_select.living_room_scene
+      scene:
+        example: 'All White'
+    max: 999
+    mode: parallel
+    sequence:
+    - service: input_select.select_option
+      target:
+        entity_id: '{{ room_scene_select }}'
+      data:
+        option: 'Idle'
+    - service: input_select.select_option
+      target:
+        entity_id: '{{ room_scene_select }}'
+      data:
+        option: '{{ scene }}'
+
   light_color_profile_for_non_bedroom_lights:
     alias: Light Colour Porfile Throughput the Day
     sequence:
@@ -748,15 +770,15 @@ automation adaptive_lighting:
       - service: switch.turn_on
         entity_id: switch.living_room_wall_switch
 
-  - alias: L- Reload Localtuya When Lights Are Offline
-    id: automation.l_reload_localtuya_when_lights_are_offline
+  - alias: L- Restart HA When localtuya lights Are Offline
+    id: automation.restart_ha_when_localtuya_lights_are_offline
     mode: single
     trigger:
       - platform: state
         entity_id:
-        - light.ground_toilet_bulb_1_localtuya
+        #- light.ground_toilet_bulb_1_localtuya
         - light.ground_toilet_bulb_2_localtuya
-        - light.kitchen_spotlight_bulb_1_localtuya
+        #- light.kitchen_spotlight_bulb_1_localtuya
         - light.kitchen_spotlight_bulb_2_localtuya
         - light.kitchen_spotlight_bulb_3_localtuya
         - light.kitchen_spotlight_bulb_4_localtuya
@@ -778,9 +800,10 @@ automation adaptive_lighting:
       #  A tuya device is online but one of its localtuya integration is offline and needs to be reloaded 
       - condition: or
         conditions:
-          - "{{(states.light.ground_toilet_bulb_1_localtuya.state == 'unavailable')        and (states.light.ground_toilet_bulb_1_tuya.state != 'unavailable')}}"
+          # Ground toilet 1/kitchen 1 have a large packet loss rate due to poor wifi connection
+          #- "{{(states.light.ground_toilet_bulb_1_localtuya.state == 'unavailable')        and (states.light.ground_toilet_bulb_1_tuya.state != 'unavailable')}}"
           - "{{(states.light.ground_toilet_bulb_2_localtuya.state == 'unavailable')        and (states.light.ground_toilet_bulb_2_tuya.state != 'unavailable')}}"
-          - "{{(states.light.kitchen_spotlight_bulb_1_localtuya.state == 'unavailable')    and (states.light.kitchen_spotlight_bulb_1_tuya.state != 'unavailable')}}"
+          #- "{{(states.light.kitchen_spotlight_bulb_1_localtuya.state == 'unavailable')    and (states.light.kitchen_spotlight_bulb_1_tuya.state != 'unavailable')}}"
           - "{{(states.light.kitchen_spotlight_bulb_2_localtuya.state == 'unavailable')    and (states.light.kitchen_spotlight_bulb_2_tuya.state != 'unavailable')}}"
           - "{{(states.light.kitchen_spotlight_bulb_3_localtuya.state == 'unavailable')    and (states.light.kitchen_spotlight_bulb_3_tuya.state != 'unavailable')}}"
           - "{{(states.light.kitchen_spotlight_bulb_4_localtuya.state == 'unavailable')    and (states.light.kitchen_spotlight_bulb_4_tuya.state != 'unavailable')}}"
@@ -798,13 +821,13 @@ automation adaptive_lighting:
           - "{{(states.light.living_room_3_head_lamp_3_localtuya.state == 'unavailable')   and (states.light.living_room_3_head_lamp_3_tuya.state != 'unavailable')}}"
     action:
       # Wait for 1 min to confirm the the localtuya device is still offline
-      - delay: "00:01:00"
+      - delay: "00:03:00"
       #  A tuya device is online but one of its localtuya integration is offline and needs to be reloaded 
       - condition: or
         conditions:
-          - "{{(states.light.ground_toilet_bulb_1_localtuya.state == 'unavailable')        and (states.light.ground_toilet_bulb_1_tuya.state != 'unavailable')}}"
+          #- "{{(states.light.ground_toilet_bulb_1_localtuya.state == 'unavailable')        and (states.light.ground_toilet_bulb_1_tuya.state != 'unavailable')}}"
           - "{{(states.light.ground_toilet_bulb_2_localtuya.state == 'unavailable')        and (states.light.ground_toilet_bulb_2_tuya.state != 'unavailable')}}"
-          - "{{(states.light.kitchen_spotlight_bulb_1_localtuya.state == 'unavailable')    and (states.light.kitchen_spotlight_bulb_1_tuya.state != 'unavailable')}}"
+          #- "{{(states.light.kitchen_spotlight_bulb_1_localtuya.state == 'unavailable')    and (states.light.kitchen_spotlight_bulb_1_tuya.state != 'unavailable')}}"
           - "{{(states.light.kitchen_spotlight_bulb_2_localtuya.state == 'unavailable')    and (states.light.kitchen_spotlight_bulb_2_tuya.state != 'unavailable')}}"
           - "{{(states.light.kitchen_spotlight_bulb_3_localtuya.state == 'unavailable')    and (states.light.kitchen_spotlight_bulb_3_tuya.state != 'unavailable')}}"
           - "{{(states.light.kitchen_spotlight_bulb_4_localtuya.state == 'unavailable')    and (states.light.kitchen_spotlight_bulb_4_tuya.state != 'unavailable')}}"

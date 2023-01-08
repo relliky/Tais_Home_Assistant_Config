@@ -24,28 +24,25 @@ automation:
       entity_id: input_boolean.always_off_constant
       state: 'on'
     then:
-      service: input_select.select_option
-      target:
-        entity_id: input_select.guest_toilet_scene
+      service: script.call_room_scene
       data:
-        option: Lights on in hot sunshine
+        room_scene_select: input_select.guest_toilet_scene
+        scene: Lights on in hot sunshine
     else:
       if:
       - condition: state
         entity_id: sun.sun
         state: above_horizon
       then:
-        service: input_select.select_option
-        target:
-          entity_id: input_select.guest_toilet_scene
+        service: script.call_room_scene
         data:
-          option: Lights on when bright outdoor
+          room_scene_select: input_select.guest_toilet_scene
+          scene: Lights on when bright outdoor
       else:
-        service: input_select.select_option
-        target:
-          entity_id: input_select.guest_toilet_scene
+        service: script.call_room_scene
         data:
-          option: Lights on when dark outdoor
+          room_scene_select: input_select.guest_toilet_scene
+          scene: Lights on when dark outdoor
 - alias: ZL-GT Lights Off If No Person-Guest Toilet
   id: automation.zl_gt_lights_off_if_no_person_guest_toilet
   trigger:
@@ -71,11 +68,10 @@ automation:
     - service: homeassistant.turn_off
       entity_id:
       - media_player.guest_toilet_tv
-    - service: input_select.select_option
-      target:
-        entity_id: input_select.guest_toilet_scene
+    - service: script.call_room_scene
       data:
-        option: All Off
+        room_scene_select: input_select.guest_toilet_scene
+        scene: All Off
 - alias: ZH-GT Heating Schedule On If Staying In the Room-Guest Toilet
   id: automation.zh_gt_heating_schedule_on_if_staying_in_the_room_guest_toilet
   trigger:
@@ -151,7 +147,7 @@ automation:
     to: 'on'
   action:
   - delay:
-      hours: 3
+      hours: 2
       minutes: 0
       seconds: 0
       milliseconds: 0
@@ -165,7 +161,7 @@ automation:
       tado_valve_entity: climate.guest_toilet
       external_temperature_sensor_entity: sensor.guest_toilet_temperature_sensor
   id: automation.zh_gt_valve_calibrate_temperature_using_external_sensor_guest_toilet
-- alias: ZLB-GT Applies Different Scenes Based on Scene Selections (State Execution)-Guest Toilet
+- alias: ZL-GT Applies Different Scenes Based on Scene Selections (State Execution)-Guest Toilet
   trigger:
   - platform: state
     entity_id: input_select.guest_toilet_scene
@@ -395,7 +391,7 @@ automation:
             then:
               service: cover.open_cover
               entity_id: []
-  id: automation.zlb_gt_applies_different_scenes_based_on_scene_selections_state_execution_guest_toilet
+  id: automation.zl_gt_applies_different_scenes_based_on_scene_selections_state_execution_guest_toilet
 - alias: ZLB-GT Wall Switch-Single Left Press - Toggle Ceiling Light-Guest Toilet
   trigger:
   - platform: state
@@ -466,6 +462,7 @@ input_select:
   guest_toilet_scene:
     name: Guest Toilet Scene
     options:
+    - Idle
     - LED White
     - All White
     - Ceiling Light White
@@ -503,32 +500,36 @@ input_boolean:
     initial: 'off'
   ceiling_light_control_in_hot_sunshine_guest_toilet:
     name: Ceiling Light Control In Hot Sunshine Guest Toilet
+    initial: 'off'
   lamp_control_in_hot_sunshine_guest_toilet:
     name: Lamp Control In Hot Sunshine Guest Toilet
+    initial: 'off'
   led_control_in_hot_sunshine_guest_toilet:
     name: Led Control In Hot Sunshine Guest Toilet
+    initial: 'off'
   curtain_control_in_hot_sunshine_guest_toilet:
     name: Curtain Control In Hot Sunshine Guest Toilet
+    initial: 'off'
   ceiling_light_control_when_bright_outdoor_guest_toilet:
     name: Ceiling Light Control When Bright Outdoor Guest Toilet
-    initial: 'off'
   lamp_control_when_bright_outdoor_guest_toilet:
     name: Lamp Control When Bright Outdoor Guest Toilet
+    initial: 'off'
   led_control_when_bright_outdoor_guest_toilet:
     name: Led Control When Bright Outdoor Guest Toilet
-    initial: 'off'
   curtain_control_when_bright_outdoor_guest_toilet:
     name: Curtain Control When Bright Outdoor Guest Toilet
+    initial: 'off'
   ceiling_light_control_when_dark_outdoor_guest_toilet:
     name: Ceiling Light Control When Dark Outdoor Guest Toilet
-    initial: 'off'
   lamp_control_when_dark_outdoor_guest_toilet:
     name: Lamp Control When Dark Outdoor Guest Toilet
+    initial: 'off'
   led_control_when_dark_outdoor_guest_toilet:
     name: Led Control When Dark Outdoor Guest Toilet
-    initial: 'off'
   curtain_control_when_dark_outdoor_guest_toilet:
     name: Curtain Control When Dark Outdoor Guest Toilet
+    initial: 'off'
 switch: []
 template:
 - sensor:
@@ -548,6 +549,12 @@ group:
     name: Guest Toilet Motion
     entities:
     - binary_sensor.guest_toilet_motion_sensor_motion
+  guest_toilet_lights_and_tvs:
+    name: Guest Toilet Lights And Tvs
+    entities:
+    - switch.guest_toilet_floor_led
+    - light.guest_toilet_ceiling_light
+    - media_player.guest_toilet_tv
   guest_toilet_auto_gen_automations:
     name: Guest Toilet Auto-gen Automations
     entities:
@@ -562,7 +569,7 @@ group:
     - automation.zh_gt_heating_manual_override_guest_toilet
     - automation.zh_gt_heating_manual_override_timeout_in_few_hours_guest_toilet
     - automation.zh_gt_valve_calibrate_temperature_using_external_sensor_guest_toilet
-    - automation.zlb_gt_applies_different_scenes_based_on_scene_selections_state_execution_guest_toilet
+    - automation.zl_gt_applies_different_scenes_based_on_scene_selections_state_execution_guest_toilet
     - automation.zlb_gt_wall_switch_single_left_press_toggle_ceiling_light_guest_toilet
     - automation.zlb_gt_wall_switch_single_right_press_toggle_floor_leds_guest_toilet
     - automation.zlb_gt_wall_switch_double_press_leave_room_and_turn_off_everything_guest_toilet

@@ -24,28 +24,25 @@ automation:
       entity_id: input_boolean.always_on_constant
       state: 'on'
     then:
-      service: input_select.select_option
-      target:
-        entity_id: input_select.master_room_scene
+      service: script.call_room_scene
       data:
-        option: Lights on in hot sunshine
+        room_scene_select: input_select.master_room_scene
+        scene: Lights on in hot sunshine
     else:
       if:
       - condition: state
         entity_id: sun.sun
         state: above_horizon
       then:
-        service: input_select.select_option
-        target:
-          entity_id: input_select.master_room_scene
+        service: script.call_room_scene
         data:
-          option: Lights on when bright outdoor
+          room_scene_select: input_select.master_room_scene
+          scene: Lights on when bright outdoor
       else:
-        service: input_select.select_option
-        target:
-          entity_id: input_select.master_room_scene
+        service: script.call_room_scene
         data:
-          option: Lights on when dark outdoor
+          room_scene_select: input_select.master_room_scene
+          scene: Lights on when dark outdoor
 - alias: ZL-MR Lights Off If No Person-Master Room
   id: automation.zl_mr_lights_off_if_no_person_master_room
   trigger:
@@ -73,11 +70,10 @@ automation:
     - service: homeassistant.turn_off
       entity_id:
       - media_player.master_room_tv
-    - service: input_select.select_option
-      target:
-        entity_id: input_select.master_room_scene
+    - service: script.call_room_scene
       data:
-        option: All Off
+        room_scene_select: input_select.master_room_scene
+        scene: All Off
 - alias: ZL-MR LED On for 3 Min if Walking In the Dark-Master Room
   mode: restart
   trigger:
@@ -99,17 +95,22 @@ automation:
     - light.master_room_tv_led
     - light.master_room_bed_led
     - light.master_room_ceiling_light
+    - light.master_room_lamp_1
+    - light.master_room_lamp_2
     condition: state
     state: 'off'
   action:
-  - service: light.turn_on
-    entity_id:
-    - light.master_room_drawer_led
-    - light.master_room_tv_led
-    - light.master_room_bed_led
+  - service: script.call_room_scene
     data:
-      brightness_pct: 40
+      room_scene_select: input_select.master_room_scene
+      scene: Dark Night Mode
   - delay: 00:03:00
+  - entity_id:
+    - light.master_room_ceiling_light
+    - light.master_room_lamp_1
+    - light.master_room_lamp_2
+    condition: state
+    state: 'off'
   - service: homeassistant.turn_off
     entity_id:
     - light.master_room_drawer_led
@@ -191,7 +192,7 @@ automation:
     to: 'on'
   action:
   - delay:
-      hours: 3
+      hours: 2
       minutes: 0
       seconds: 0
       milliseconds: 0
@@ -215,6 +216,12 @@ automation:
     - single
     - '1'
   mode: queued
+  condition:
+  - condition: not
+    conditions:
+    - condition: state
+      entity_id: input_select.master_room_scene
+      state: Reset
   action:
   - choose:
     - conditions:
@@ -222,59 +229,53 @@ automation:
         entity_id: input_select.master_room_scene
         state: All Off
       sequence:
-        service: input_select.select_option
-        target:
-          entity_id: input_select.master_room_scene
+        service: script.call_room_scene
         data:
-          option: All White
+          room_scene_select: input_select.master_room_scene
+          scene: All White
     - conditions:
         condition: state
         entity_id: input_select.master_room_scene
         state: All White
       sequence:
-        service: input_select.select_option
-        target:
-          entity_id: input_select.master_room_scene
+        service: script.call_room_scene
         data:
-          option: Lamp LED White
+          room_scene_select: input_select.master_room_scene
+          scene: Lamp LED White
     - conditions:
         condition: state
         entity_id: input_select.master_room_scene
         state: Lamp LED White
       sequence:
-        service: input_select.select_option
-        target:
-          entity_id: input_select.master_room_scene
+        service: script.call_room_scene
         data:
-          option: Hue
+          room_scene_select: input_select.master_room_scene
+          scene: Hue
     - conditions:
         condition: state
         entity_id: input_select.master_room_scene
         state: Hue
       sequence:
-        service: input_select.select_option
-        target:
-          entity_id: input_select.master_room_scene
+        service: script.call_room_scene
         data:
-          option: Dark Night Mode
+          room_scene_select: input_select.master_room_scene
+          scene: Dark Night Mode
     - conditions:
         condition: state
         entity_id: input_select.master_room_scene
         state: Dark Night Mode
       sequence:
-        service: input_select.select_option
-        target:
-          entity_id: input_select.master_room_scene
+        service: script.call_room_scene
         data:
-          option: All Off
+          room_scene_select: input_select.master_room_scene
+          scene: All Off
     default:
-      service: input_select.select_option
-      target:
-        entity_id: input_select.master_room_scene
+      service: script.call_room_scene
       data:
-        option: All Off
+        room_scene_select: input_select.master_room_scene
+        scene: All White
   id: automation.zlb_mr_remote_button_single_applies_different_scenes_state_machine_master_room
-- alias: ZLB-MR Applies Different Scenes Based on Scene Selections (State Execution)-Master Room
+- alias: ZL-MR Applies Different Scenes Based on Scene Selections (State Execution)-Master Room
   trigger:
   - platform: state
     entity_id: input_select.master_room_scene
@@ -550,7 +551,7 @@ automation:
               entity_id:
               - cover.master_room_blind
               - cover.master_room_curtain
-  id: automation.zlb_mr_applies_different_scenes_based_on_scene_selections_state_execution_master_room
+  id: automation.zl_mr_applies_different_scenes_based_on_scene_selections_state_execution_master_room
 - alias: ZLB-MR Remote Button - Double - Toggle Lamps-Master Room
   trigger:
   - platform: state
@@ -659,6 +660,7 @@ input_select:
   master_room_scene:
     name: Master Room Scene
     options:
+    - Idle
     - Hue
     - Night Mode
     - Dark Night Mode
@@ -700,40 +702,28 @@ input_boolean:
     initial: 'off'
   ceiling_light_control_in_hot_sunshine_master_room:
     name: Ceiling Light Control In Hot Sunshine Master Room
-    initial: 'off'
   lamp_control_in_hot_sunshine_master_room:
     name: Lamp Control In Hot Sunshine Master Room
-    initial: 'off'
   led_control_in_hot_sunshine_master_room:
     name: Led Control In Hot Sunshine Master Room
-    initial: 'off'
   curtain_control_in_hot_sunshine_master_room:
     name: Curtain Control In Hot Sunshine Master Room
-    initial: 'off'
   ceiling_light_control_when_bright_outdoor_master_room:
     name: Ceiling Light Control When Bright Outdoor Master Room
-    initial: 'off'
   lamp_control_when_bright_outdoor_master_room:
     name: Lamp Control When Bright Outdoor Master Room
-    initial: 'off'
   led_control_when_bright_outdoor_master_room:
     name: Led Control When Bright Outdoor Master Room
-    initial: 'off'
   curtain_control_when_bright_outdoor_master_room:
     name: Curtain Control When Bright Outdoor Master Room
-    initial: 'off'
   ceiling_light_control_when_dark_outdoor_master_room:
     name: Ceiling Light Control When Dark Outdoor Master Room
-    initial: 'off'
   lamp_control_when_dark_outdoor_master_room:
     name: Lamp Control When Dark Outdoor Master Room
-    initial: 'off'
   led_control_when_dark_outdoor_master_room:
     name: Led Control When Dark Outdoor Master Room
-    initial: 'off'
   curtain_control_when_dark_outdoor_master_room:
     name: Curtain Control When Dark Outdoor Master Room
-    initial: 'off'
 switch:
 - platform: group
   name: Master Room Wall Switch 1
@@ -781,6 +771,7 @@ group:
     - binary_sensor.master_room_tv_motion_sensor_motion
     - binary_sensor.master_room_drawer_motion_sensor_motion
     - binary_sensor.master_toilet_dressing_room_motion_sensor_motion
+    - binary_sensor.master_room_occupancy_sensor_occupancy
   master_room_motion:
     name: Master Room Motion
     entities:
@@ -791,6 +782,17 @@ group:
     - binary_sensor.master_room_tv_motion_sensor_motion
     - binary_sensor.master_room_drawer_motion_sensor_motion
     - binary_sensor.master_toilet_dressing_room_motion_sensor_motion
+    - binary_sensor.master_room_occupancy_sensor_occupancy
+  master_room_lights_and_tvs:
+    name: Master Room Lights And Tvs
+    entities:
+    - light.master_room_drawer_led
+    - light.master_room_tv_led
+    - light.master_room_bed_led
+    - light.master_room_lamp_1
+    - light.master_room_lamp_2
+    - light.master_room_ceiling_light
+    - media_player.master_room_tv
   master_room_auto_gen_automations:
     name: Master Room Auto-gen Automations
     entities:
@@ -815,7 +817,7 @@ group:
     - automation.zh_mr_heating_manual_override_timeout_in_few_hours_master_room
     - automation.zh_mr_valve_calibrate_temperature_using_external_sensor_master_room
     - automation.zlb_mr_remote_button_single_applies_different_scenes_state_machine_master_room
-    - automation.zlb_mr_applies_different_scenes_based_on_scene_selections_state_execution_master_room
+    - automation.zl_mr_applies_different_scenes_based_on_scene_selections_state_execution_master_room
     - automation.zlb_mr_remote_button_double_toggle_lamps_master_room
     - automation.zlb_mr_remote_button_triple_toggle_ceiling_lights_master_room
     - automation.zlb_mr_remote_button_long_toggle_leds_master_room

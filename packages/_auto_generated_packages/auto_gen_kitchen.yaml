@@ -24,28 +24,25 @@ automation:
       entity_id: input_boolean.always_on_constant
       state: 'on'
     then:
-      service: input_select.select_option
-      target:
-        entity_id: input_select.kitchen_scene
+      service: script.call_room_scene
       data:
-        option: Lights on in hot sunshine
+        room_scene_select: input_select.kitchen_scene
+        scene: Lights on in hot sunshine
     else:
       if:
       - condition: state
         entity_id: sun.sun
         state: above_horizon
       then:
-        service: input_select.select_option
-        target:
-          entity_id: input_select.kitchen_scene
+        service: script.call_room_scene
         data:
-          option: Lights on when bright outdoor
+          room_scene_select: input_select.kitchen_scene
+          scene: Lights on when bright outdoor
       else:
-        service: input_select.select_option
-        target:
-          entity_id: input_select.kitchen_scene
+        service: script.call_room_scene
         data:
-          option: Lights on when dark outdoor
+          room_scene_select: input_select.kitchen_scene
+          scene: Lights on when dark outdoor
 - alias: ZL-KC Lights Off If No Person-Kitchen
   id: automation.zl_kc_lights_off_if_no_person_kitchen
   trigger:
@@ -72,11 +69,10 @@ automation:
     - service: homeassistant.turn_off
       entity_id:
       - media_player.kitchen_tv
-    - service: input_select.select_option
-      target:
-        entity_id: input_select.kitchen_scene
+    - service: script.call_room_scene
       data:
-        option: All Off
+        room_scene_select: input_select.kitchen_scene
+        scene: All Off
 - alias: ZH-KC Heating Schedule On If Staying In the Room-Kitchen
   id: automation.zh_kc_heating_schedule_on_if_staying_in_the_room_kitchen
   trigger:
@@ -152,7 +148,7 @@ automation:
     to: 'on'
   action:
   - delay:
-      hours: 3
+      hours: 2
       minutes: 0
       seconds: 0
       milliseconds: 0
@@ -166,7 +162,7 @@ automation:
       tado_valve_entity: climate.kitchen
       external_temperature_sensor_entity: sensor.kitchen_temperature_sensor
   id: automation.zh_kc_valve_calibrate_temperature_using_external_sensor_kitchen
-- alias: ZLB-KC Applies Different Scenes Based on Scene Selections (State Execution)-Kitchen
+- alias: ZL-KC Applies Different Scenes Based on Scene Selections (State Execution)-Kitchen
   trigger:
   - platform: state
     entity_id: input_select.kitchen_scene
@@ -408,7 +404,7 @@ automation:
               service: cover.open_cover
               entity_id:
               - cover.kitchen_curtain
-  id: automation.zlb_kc_applies_different_scenes_based_on_scene_selections_state_execution_kitchen
+  id: automation.zl_kc_applies_different_scenes_based_on_scene_selections_state_execution_kitchen
 - alias: ZLB-KC Wall Switch-Single Left Press - Toggle Ceiling Light-Kitchen
   trigger:
   - platform: state
@@ -480,6 +476,7 @@ input_select:
   kitchen_scene:
     name: Kitchen Scene
     options:
+    - Idle
     - LED White
     - All White
     - Ceiling Light White
@@ -517,37 +514,31 @@ input_boolean:
     initial: 'off'
   ceiling_light_control_in_hot_sunshine_kitchen:
     name: Ceiling Light Control In Hot Sunshine Kitchen
-    initial: 'off'
   lamp_control_in_hot_sunshine_kitchen:
     name: Lamp Control In Hot Sunshine Kitchen
+    initial: 'off'
   led_control_in_hot_sunshine_kitchen:
     name: Led Control In Hot Sunshine Kitchen
-    initial: 'off'
   curtain_control_in_hot_sunshine_kitchen:
     name: Curtain Control In Hot Sunshine Kitchen
-    initial: 'off'
   ceiling_light_control_when_bright_outdoor_kitchen:
     name: Ceiling Light Control When Bright Outdoor Kitchen
-    initial: 'off'
   lamp_control_when_bright_outdoor_kitchen:
     name: Lamp Control When Bright Outdoor Kitchen
+    initial: 'off'
   led_control_when_bright_outdoor_kitchen:
     name: Led Control When Bright Outdoor Kitchen
-    initial: 'off'
   curtain_control_when_bright_outdoor_kitchen:
     name: Curtain Control When Bright Outdoor Kitchen
-    initial: 'off'
   ceiling_light_control_when_dark_outdoor_kitchen:
     name: Ceiling Light Control When Dark Outdoor Kitchen
-    initial: 'off'
   lamp_control_when_dark_outdoor_kitchen:
     name: Lamp Control When Dark Outdoor Kitchen
+    initial: 'off'
   led_control_when_dark_outdoor_kitchen:
     name: Led Control When Dark Outdoor Kitchen
-    initial: 'off'
   curtain_control_when_dark_outdoor_kitchen:
     name: Curtain Control When Dark Outdoor Kitchen
-    initial: 'off'
 switch: []
 template: []
 binary_sensor: []
@@ -565,6 +556,13 @@ group:
     entities:
     - binary_sensor.kitchen_worktop_motion_sensor_motion
     - binary_sensor.kitchen_dining_motion_sensor_motion
+  kitchen_lights_and_tvs:
+    name: Kitchen Lights And Tvs
+    entities:
+    - switch.kitchen_floor_led
+    - light.kitchen_ceiling_light
+    - light.kitchen_dining_light
+    - media_player.kitchen_tv
   kitchen_auto_gen_automations:
     name: Kitchen Auto-gen Automations
     entities:
@@ -584,7 +582,7 @@ group:
     - automation.zh_kc_heating_manual_override_kitchen
     - automation.zh_kc_heating_manual_override_timeout_in_few_hours_kitchen
     - automation.zh_kc_valve_calibrate_temperature_using_external_sensor_kitchen
-    - automation.zlb_kc_applies_different_scenes_based_on_scene_selections_state_execution_kitchen
+    - automation.zl_kc_applies_different_scenes_based_on_scene_selections_state_execution_kitchen
     - automation.zlb_kc_wall_switch_single_left_press_toggle_ceiling_light_kitchen
     - automation.zlb_kc_wall_switch_single_right_press_toggle_floor_led_kitchen
     - automation.zlb_kc_wall_switch_double_press_leave_room_and_turn_off_everything_kitchen

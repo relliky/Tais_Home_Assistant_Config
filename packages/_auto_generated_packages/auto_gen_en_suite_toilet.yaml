@@ -24,28 +24,25 @@ automation:
       entity_id: input_boolean.always_off_constant
       state: 'on'
     then:
-      service: input_select.select_option
-      target:
-        entity_id: input_select.en_suite_toilet_scene
+      service: script.call_room_scene
       data:
-        option: Lights on in hot sunshine
+        room_scene_select: input_select.en_suite_toilet_scene
+        scene: Lights on in hot sunshine
     else:
       if:
       - condition: state
         entity_id: sun.sun
         state: above_horizon
       then:
-        service: input_select.select_option
-        target:
-          entity_id: input_select.en_suite_toilet_scene
+        service: script.call_room_scene
         data:
-          option: Lights on when bright outdoor
+          room_scene_select: input_select.en_suite_toilet_scene
+          scene: Lights on when bright outdoor
       else:
-        service: input_select.select_option
-        target:
-          entity_id: input_select.en_suite_toilet_scene
+        service: script.call_room_scene
         data:
-          option: Lights on when dark outdoor
+          room_scene_select: input_select.en_suite_toilet_scene
+          scene: Lights on when dark outdoor
 - alias: ZL-ET Lights Off If No Person-En-suite Toilet
   id: automation.zl_et_lights_off_if_no_person_en_suite_toilet
   trigger:
@@ -71,11 +68,10 @@ automation:
     - service: homeassistant.turn_off
       entity_id:
       - media_player.en_suite_toilet_tv
-    - service: input_select.select_option
-      target:
-        entity_id: input_select.en_suite_toilet_scene
+    - service: script.call_room_scene
       data:
-        option: All Off
+        room_scene_select: input_select.en_suite_toilet_scene
+        scene: All Off
 - alias: ZH-ET Heating Schedule On If Staying In the Room-En-suite Toilet
   id: automation.zh_et_heating_schedule_on_if_staying_in_the_room_en_suite_toilet
   trigger:
@@ -151,14 +147,14 @@ automation:
     to: 'on'
   action:
   - delay:
-      hours: 3
+      hours: 2
       minutes: 0
       seconds: 0
       milliseconds: 0
   - service: homeassistant.turn_off
     entity_id: input_boolean.en_suite_toilet_heating_override
   id: automation.zh_et_heating_manual_override_timeout_in_few_hours_en_suite_toilet
-- alias: ZLB-ET Applies Different Scenes Based on Scene Selections (State Execution)-En-suite Toilet
+- alias: ZL-ET Applies Different Scenes Based on Scene Selections (State Execution)-En-suite Toilet
   trigger:
   - platform: state
     entity_id: input_select.en_suite_toilet_scene
@@ -378,7 +374,7 @@ automation:
             then:
               service: cover.open_cover
               entity_id: []
-  id: automation.zlb_et_applies_different_scenes_based_on_scene_selections_state_execution_en_suite_toilet
+  id: automation.zl_et_applies_different_scenes_based_on_scene_selections_state_execution_en_suite_toilet
 - alias: ZLB-ET Wall Switch-Single Press - Toggle Ceiling Light-En-suite Toilet
   trigger:
   - platform: state
@@ -444,6 +440,7 @@ input_select:
   en_suite_toilet_scene:
     name: En Suite Toilet Scene
     options:
+    - Idle
     - All White
     - Ceiling Light White
     - All Off
@@ -480,30 +477,38 @@ input_boolean:
     initial: 'off'
   ceiling_light_control_in_hot_sunshine_en_suite_toilet:
     name: Ceiling Light Control In Hot Sunshine En Suite Toilet
+    initial: 'off'
   lamp_control_in_hot_sunshine_en_suite_toilet:
     name: Lamp Control In Hot Sunshine En Suite Toilet
+    initial: 'off'
   led_control_in_hot_sunshine_en_suite_toilet:
     name: Led Control In Hot Sunshine En Suite Toilet
+    initial: 'off'
   curtain_control_in_hot_sunshine_en_suite_toilet:
     name: Curtain Control In Hot Sunshine En Suite Toilet
+    initial: 'off'
   ceiling_light_control_when_bright_outdoor_en_suite_toilet:
     name: Ceiling Light Control When Bright Outdoor En Suite Toilet
-    initial: 'off'
   lamp_control_when_bright_outdoor_en_suite_toilet:
     name: Lamp Control When Bright Outdoor En Suite Toilet
+    initial: 'off'
   led_control_when_bright_outdoor_en_suite_toilet:
     name: Led Control When Bright Outdoor En Suite Toilet
+    initial: 'off'
   curtain_control_when_bright_outdoor_en_suite_toilet:
     name: Curtain Control When Bright Outdoor En Suite Toilet
+    initial: 'off'
   ceiling_light_control_when_dark_outdoor_en_suite_toilet:
     name: Ceiling Light Control When Dark Outdoor En Suite Toilet
-    initial: 'off'
   lamp_control_when_dark_outdoor_en_suite_toilet:
     name: Lamp Control When Dark Outdoor En Suite Toilet
+    initial: 'off'
   led_control_when_dark_outdoor_en_suite_toilet:
     name: Led Control When Dark Outdoor En Suite Toilet
+    initial: 'off'
   curtain_control_when_dark_outdoor_en_suite_toilet:
     name: Curtain Control When Dark Outdoor En Suite Toilet
+    initial: 'off'
 switch: []
 template: []
 binary_sensor: []
@@ -519,6 +524,11 @@ group:
     name: En-suite Toilet Motion
     entities:
     - binary_sensor.en_suite_toilet_motion_sensor_motion
+  en_suite_toilet_lights_and_tvs:
+    name: En Suite Toilet Lights And Tvs
+    entities:
+    - light.en_suite_toilet_ceiling_light
+    - media_player.en_suite_toilet_tv
   en_suite_toilet_auto_gen_automations:
     name: En-suite Toilet Auto-gen Automations
     entities:
@@ -530,7 +540,7 @@ group:
     - automation.zh_et_heating_schedule_off_if_people_left_the_room_en_suite_toilet
     - automation.zh_et_heating_manual_override_en_suite_toilet
     - automation.zh_et_heating_manual_override_timeout_in_few_hours_en_suite_toilet
-    - automation.zlb_et_applies_different_scenes_based_on_scene_selections_state_execution_en_suite_toilet
+    - automation.zl_et_applies_different_scenes_based_on_scene_selections_state_execution_en_suite_toilet
     - automation.zlb_et_wall_switch_single_press_toggle_ceiling_light_en_suite_toilet
     - automation.zlb_et_wall_switch_double_press_leave_room_and_turn_off_everything_en_suite_toilet
     - automation.zoc_et_occupancy_update_en_suite_toilet

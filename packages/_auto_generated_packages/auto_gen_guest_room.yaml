@@ -24,28 +24,25 @@ automation:
       entity_id: input_boolean.always_off_constant
       state: 'on'
     then:
-      service: input_select.select_option
-      target:
-        entity_id: input_select.guest_room_scene
+      service: script.call_room_scene
       data:
-        option: Lights on in hot sunshine
+        room_scene_select: input_select.guest_room_scene
+        scene: Lights on in hot sunshine
     else:
       if:
       - condition: state
         entity_id: sun.sun
         state: above_horizon
       then:
-        service: input_select.select_option
-        target:
-          entity_id: input_select.guest_room_scene
+        service: script.call_room_scene
         data:
-          option: Lights on when bright outdoor
+          room_scene_select: input_select.guest_room_scene
+          scene: Lights on when bright outdoor
       else:
-        service: input_select.select_option
-        target:
-          entity_id: input_select.guest_room_scene
+        service: script.call_room_scene
         data:
-          option: Lights on when dark outdoor
+          room_scene_select: input_select.guest_room_scene
+          scene: Lights on when dark outdoor
 - alias: ZL-GR Lights Off If No Person-Guest Room
   id: automation.zl_gr_lights_off_if_no_person_guest_room
   trigger:
@@ -71,11 +68,10 @@ automation:
     - service: homeassistant.turn_off
       entity_id:
       - media_player.guest_room_tv
-    - service: input_select.select_option
-      target:
-        entity_id: input_select.guest_room_scene
+    - service: script.call_room_scene
       data:
-        option: All Off
+        room_scene_select: input_select.guest_room_scene
+        scene: All Off
 - alias: ZH-GR Heating Schedule On If Staying In the Room-Guest Room
   id: automation.zh_gr_heating_schedule_on_if_staying_in_the_room_guest_room
   trigger:
@@ -151,14 +147,14 @@ automation:
     to: 'on'
   action:
   - delay:
-      hours: 3
+      hours: 2
       minutes: 0
       seconds: 0
       milliseconds: 0
   - service: homeassistant.turn_off
     entity_id: input_boolean.guest_room_heating_override
   id: automation.zh_gr_heating_manual_override_timeout_in_few_hours_guest_room
-- alias: ZLB-GR Applies Different Scenes Based on Scene Selections (State Execution)-Guest Room
+- alias: ZL-GR Applies Different Scenes Based on Scene Selections (State Execution)-Guest Room
   trigger:
   - platform: state
     entity_id: input_select.guest_room_scene
@@ -388,7 +384,7 @@ automation:
             then:
               service: cover.open_cover
               entity_id: []
-  id: automation.zlb_gr_applies_different_scenes_based_on_scene_selections_state_execution_guest_room
+  id: automation.zl_gr_applies_different_scenes_based_on_scene_selections_state_execution_guest_room
 - alias: ZLB-GR Wall Switch-Single Press - Toggle Ceiling Light-Guest Room
   trigger:
   - platform: state
@@ -454,6 +450,7 @@ input_select:
   guest_room_scene:
     name: Guest Room Scene
     options:
+    - Idle
     - LED White
     - All White
     - Ceiling Light White
@@ -491,32 +488,36 @@ input_boolean:
     initial: 'off'
   ceiling_light_control_in_hot_sunshine_guest_room:
     name: Ceiling Light Control In Hot Sunshine Guest Room
+    initial: 'off'
   lamp_control_in_hot_sunshine_guest_room:
     name: Lamp Control In Hot Sunshine Guest Room
+    initial: 'off'
   led_control_in_hot_sunshine_guest_room:
     name: Led Control In Hot Sunshine Guest Room
+    initial: 'off'
   curtain_control_in_hot_sunshine_guest_room:
     name: Curtain Control In Hot Sunshine Guest Room
+    initial: 'off'
   ceiling_light_control_when_bright_outdoor_guest_room:
     name: Ceiling Light Control When Bright Outdoor Guest Room
-    initial: 'off'
   lamp_control_when_bright_outdoor_guest_room:
     name: Lamp Control When Bright Outdoor Guest Room
+    initial: 'off'
   led_control_when_bright_outdoor_guest_room:
     name: Led Control When Bright Outdoor Guest Room
-    initial: 'off'
   curtain_control_when_bright_outdoor_guest_room:
     name: Curtain Control When Bright Outdoor Guest Room
+    initial: 'off'
   ceiling_light_control_when_dark_outdoor_guest_room:
     name: Ceiling Light Control When Dark Outdoor Guest Room
-    initial: 'off'
   lamp_control_when_dark_outdoor_guest_room:
     name: Lamp Control When Dark Outdoor Guest Room
+    initial: 'off'
   led_control_when_dark_outdoor_guest_room:
     name: Led Control When Dark Outdoor Guest Room
-    initial: 'off'
   curtain_control_when_dark_outdoor_guest_room:
     name: Curtain Control When Dark Outdoor Guest Room
+    initial: 'off'
 switch: []
 template: []
 binary_sensor: []
@@ -534,6 +535,12 @@ group:
     entities:
     - binary_sensor.guest_room_door_motion_sensor_motion
     - binary_sensor.guest_room_bed_motion_sensor_motion
+  guest_room_lights_and_tvs:
+    name: Guest Room Lights And Tvs
+    entities:
+    - light.guest_room_bed_led
+    - light.guest_room_ceiling_light
+    - media_player.guest_room_tv
   guest_room_auto_gen_automations:
     name: Guest Room Auto-gen Automations
     entities:
@@ -547,7 +554,7 @@ group:
     - automation.zh_gr_heating_schedule_off_if_people_left_the_room_guest_room
     - automation.zh_gr_heating_manual_override_guest_room
     - automation.zh_gr_heating_manual_override_timeout_in_few_hours_guest_room
-    - automation.zlb_gr_applies_different_scenes_based_on_scene_selections_state_execution_guest_room
+    - automation.zl_gr_applies_different_scenes_based_on_scene_selections_state_execution_guest_room
     - automation.zlb_gr_wall_switch_single_press_toggle_ceiling_light_guest_room
     - automation.zlb_gr_wall_switch_double_press_leave_room_and_turn_off_everything_guest_room
     - automation.zoc_gr_occupancy_update_guest_room

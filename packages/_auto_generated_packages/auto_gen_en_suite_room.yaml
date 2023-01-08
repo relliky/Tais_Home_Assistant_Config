@@ -24,28 +24,25 @@ automation:
       entity_id: input_boolean.always_on_constant
       state: 'on'
     then:
-      service: input_select.select_option
-      target:
-        entity_id: input_select.en_suite_room_scene
+      service: script.call_room_scene
       data:
-        option: Lights on in hot sunshine
+        room_scene_select: input_select.en_suite_room_scene
+        scene: Lights on in hot sunshine
     else:
       if:
       - condition: state
         entity_id: sun.sun
         state: above_horizon
       then:
-        service: input_select.select_option
-        target:
-          entity_id: input_select.en_suite_room_scene
+        service: script.call_room_scene
         data:
-          option: Lights on when bright outdoor
+          room_scene_select: input_select.en_suite_room_scene
+          scene: Lights on when bright outdoor
       else:
-        service: input_select.select_option
-        target:
-          entity_id: input_select.en_suite_room_scene
+        service: script.call_room_scene
         data:
-          option: Lights on when dark outdoor
+          room_scene_select: input_select.en_suite_room_scene
+          scene: Lights on when dark outdoor
 - alias: ZL-ER Lights Off If No Person-En-suite Room
   id: automation.zl_er_lights_off_if_no_person_en_suite_room
   trigger:
@@ -72,11 +69,10 @@ automation:
     - service: homeassistant.turn_off
       entity_id:
       - media_player.portable_tv
-    - service: input_select.select_option
-      target:
-        entity_id: input_select.en_suite_room_scene
+    - service: script.call_room_scene
       data:
-        option: All Off
+        room_scene_select: input_select.en_suite_room_scene
+        scene: All Off
 - alias: ZL-ER LED On for 3 Min if Walking In the Dark-En-suite Room
   mode: restart
   trigger:
@@ -101,6 +97,12 @@ automation:
     data:
       brightness_pct: 40
   - delay: 00:03:00
+  - entity_id:
+    - light.en_suite_room_ceiling_light
+    - light.en_suite_room_lamp_1
+    - light.en_suite_room_lamp_2
+    condition: state
+    state: 'off'
   - service: homeassistant.turn_off
     entity_id:
     - light.en_suite_room_bed_led
@@ -180,7 +182,7 @@ automation:
     to: 'on'
   action:
   - delay:
-      hours: 3
+      hours: 2
       minutes: 0
       seconds: 0
       milliseconds: 0
@@ -203,6 +205,12 @@ automation:
     - single
     - '1'
   mode: queued
+  condition:
+  - condition: not
+    conditions:
+    - condition: state
+      entity_id: input_select.en_suite_room_scene
+      state: Reset
   action:
   - choose:
     - conditions:
@@ -210,49 +218,44 @@ automation:
         entity_id: input_select.en_suite_room_scene
         state: All Off
       sequence:
-        service: input_select.select_option
-        target:
-          entity_id: input_select.en_suite_room_scene
+        service: script.call_room_scene
         data:
-          option: All White
+          room_scene_select: input_select.en_suite_room_scene
+          scene: All White
     - conditions:
         condition: state
         entity_id: input_select.en_suite_room_scene
         state: All White
       sequence:
-        service: input_select.select_option
-        target:
-          entity_id: input_select.en_suite_room_scene
+        service: script.call_room_scene
         data:
-          option: Lamp LED White
+          room_scene_select: input_select.en_suite_room_scene
+          scene: Lamp LED White
     - conditions:
         condition: state
         entity_id: input_select.en_suite_room_scene
         state: Lamp LED White
       sequence:
-        service: input_select.select_option
-        target:
-          entity_id: input_select.en_suite_room_scene
+        service: script.call_room_scene
         data:
-          option: LED White
+          room_scene_select: input_select.en_suite_room_scene
+          scene: LED White
     - conditions:
         condition: state
         entity_id: input_select.en_suite_room_scene
         state: LED White
       sequence:
-        service: input_select.select_option
-        target:
-          entity_id: input_select.en_suite_room_scene
+        service: script.call_room_scene
         data:
-          option: All Off
+          room_scene_select: input_select.en_suite_room_scene
+          scene: All Off
     default:
-      service: input_select.select_option
-      target:
-        entity_id: input_select.en_suite_room_scene
+      service: script.call_room_scene
       data:
-        option: All Off
+        room_scene_select: input_select.en_suite_room_scene
+        scene: All White
   id: automation.zlb_er_remote_button_single_applies_different_scenes_state_machine_en_suite_room
-- alias: ZLB-ER Applies Different Scenes Based on Scene Selections (State Execution)-En-suite Room
+- alias: ZL-ER Applies Different Scenes Based on Scene Selections (State Execution)-En-suite Room
   trigger:
   - platform: state
     entity_id: input_select.en_suite_room_scene
@@ -505,7 +508,7 @@ automation:
               service: cover.open_cover
               entity_id:
               - cover.en_suite_room_curtain
-  id: automation.zlb_er_applies_different_scenes_based_on_scene_selections_state_execution_en_suite_room
+  id: automation.zl_er_applies_different_scenes_based_on_scene_selections_state_execution_en_suite_room
 - alias: ZLB-ER Remote Button - Double - Toggle Lamps-En-suite Room
   trigger:
   - platform: state
@@ -609,6 +612,7 @@ input_select:
   en_suite_room_scene:
     name: En Suite Room Scene
     options:
+    - Idle
     - Lamp LED White
     - LED White
     - All White
@@ -647,40 +651,28 @@ input_boolean:
     initial: 'off'
   ceiling_light_control_in_hot_sunshine_en_suite_room:
     name: Ceiling Light Control In Hot Sunshine En Suite Room
-    initial: 'off'
   lamp_control_in_hot_sunshine_en_suite_room:
     name: Lamp Control In Hot Sunshine En Suite Room
-    initial: 'off'
   led_control_in_hot_sunshine_en_suite_room:
     name: Led Control In Hot Sunshine En Suite Room
-    initial: 'off'
   curtain_control_in_hot_sunshine_en_suite_room:
     name: Curtain Control In Hot Sunshine En Suite Room
-    initial: 'off'
   ceiling_light_control_when_bright_outdoor_en_suite_room:
     name: Ceiling Light Control When Bright Outdoor En Suite Room
-    initial: 'off'
   lamp_control_when_bright_outdoor_en_suite_room:
     name: Lamp Control When Bright Outdoor En Suite Room
-    initial: 'off'
   led_control_when_bright_outdoor_en_suite_room:
     name: Led Control When Bright Outdoor En Suite Room
-    initial: 'off'
   curtain_control_when_bright_outdoor_en_suite_room:
     name: Curtain Control When Bright Outdoor En Suite Room
-    initial: 'off'
   ceiling_light_control_when_dark_outdoor_en_suite_room:
     name: Ceiling Light Control When Dark Outdoor En Suite Room
-    initial: 'off'
   lamp_control_when_dark_outdoor_en_suite_room:
     name: Lamp Control When Dark Outdoor En Suite Room
-    initial: 'off'
   led_control_when_dark_outdoor_en_suite_room:
     name: Led Control When Dark Outdoor En Suite Room
-    initial: 'off'
   curtain_control_when_dark_outdoor_en_suite_room:
     name: Curtain Control When Dark Outdoor En Suite Room
-    initial: 'off'
 switch: []
 template: []
 binary_sensor: []
@@ -700,6 +692,14 @@ group:
     - binary_sensor.en_suite_room_bed_motion_sensor_motion
     - binary_sensor.en_suite_room_entrance_motion_sensor_motion
     - binary_sensor.en_suite_room_floor_motion_sensor_motion
+  en_suite_room_lights_and_tvs:
+    name: En Suite Room Lights And Tvs
+    entities:
+    - light.en_suite_room_bed_led
+    - light.en_suite_room_lamp_1
+    - light.en_suite_room_lamp_2
+    - light.en_suite_room_ceiling_light
+    - media_player.portable_tv
   en_suite_room_auto_gen_automations:
     name: En-suite Room Auto-gen Automations
     entities:
@@ -724,7 +724,7 @@ group:
     - automation.zh_er_heating_manual_override_timeout_in_few_hours_en_suite_room
     - automation.zh_er_valve_calibrate_temperature_using_external_sensor_en_suite_room
     - automation.zlb_er_remote_button_single_applies_different_scenes_state_machine_en_suite_room
-    - automation.zlb_er_applies_different_scenes_based_on_scene_selections_state_execution_en_suite_room
+    - automation.zl_er_applies_different_scenes_based_on_scene_selections_state_execution_en_suite_room
     - automation.zlb_er_remote_button_double_toggle_lamps_en_suite_room
     - automation.zlb_er_remote_button_triple_toggle_ceiling_lights_en_suite_room
     - automation.zlb_er_remote_button_long_toggle_leds_en_suite_room

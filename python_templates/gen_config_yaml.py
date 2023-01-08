@@ -36,7 +36,9 @@ class RoomBase:
     # Generate user control group including automations and other controls
     self.get_automation_group_declarations()
 
-    
+    # Get dashboard settings
+    self.getDashboardSettings()
+
   def get_room_config(self):  
     # Room configuration                    
     self.room_entity           = False
@@ -50,6 +52,7 @@ class RoomBase:
     self.cfg_remote_light       = False
     self.cfg_temp_control       = False
     self.cfg_temp_calibration   = False
+    self.cfg_tv                 = False
 
     # Adavanced Enables
     self.cfg_scene_colour_led   = False
@@ -81,7 +84,7 @@ class RoomBase:
     self.all_motion_sensors      =  ["uninitialized_all_motion_sensors"]
     self.entrance_motion_sensors =  ["binary_sensor." + self.room_entity + "_entrance_motion_sensor_motion"] if self.room_type == 'bedroom' else \
                                     [self.room_motion_sensor]
-    self.room_occupancy         = "input_select."  + self.room_entity + "_occupancy"               
+    self.room_occupancy          = "input_select."  + self.room_entity + "_occupancy"               
     self.occupancy_state_duration= 4 # Minutes
     self.occupancy_on_x_min_ratio_sensor  = "unitialized_ratio_sensor"
     self.occupancy_on_2x_min_ratio_sensor = "unitialized_ratio_sensor"
@@ -109,6 +112,8 @@ class RoomBase:
     self.leds                    = []
 
     self.lights                  = self.leds + self.lamps + self.ceiling_lights
+    self.room_lights_and_tvs =  'group.' + self.room_entity + '_lights_and_tvs'
+
 
   def get_lighting_control_entities(self):
     
@@ -150,11 +155,16 @@ class RoomBase:
     return re.sub("(^|\s)(\S)", lambda m: m.group(1) + m.group(2).upper(), s)
 
   def get_tv_entities(self):
-    # TV entities
-    self.tv_room_entity          = 'portable' if self.room_entity == 'en_suite_room' else self.room_entity
-    self.tvs                     = ["media_player." + self.tv_room_entity + "_tv"]
-    self.fire_tvs                = ["media_player." + self.tv_room_entity + "_fire_tv"]
-
+    if self.cfg_tv:
+      # TV entities
+      self.tv_room_entity          = 'portable' if self.room_entity == 'en_suite_room' else self.room_entity
+      self.tvs                     = ["media_player." + self.tv_room_entity + "_tv"]
+      self.fire_tvs                = ["media_player." + self.tv_room_entity + "_fire_tv"]
+    else:
+      self.tv_room_entity          = None
+      self.tvs                     = []
+      self.fire_tvs                = []
+      
   def get_time_setup(self):
     # Time setup
     self.daytime_lights_off_timeout   = "00:15:00"
@@ -185,7 +195,7 @@ class RoomBase:
   def get_post_room_config(self):
 
     # Scene 
-    self.room_scene          = "input_select." + self.room_entity + "_scene"
+    self.room_scene_ctl          = "input_select." + self.room_entity + "_scene"
     
     # Scene automation internal variable
     self.cur_scene           = 'unintialized_cur_scene'
@@ -213,6 +223,7 @@ class RoomBase:
     self.sensor_list         = []
     self.group_dict          = {}
     self.input_boolean_dict  = {}
+    self.script_dict         = {}
     self.switch_list         = []
     self.template_list       = []
     self.binary_sensor_list  = []
@@ -421,11 +432,13 @@ class RoomBase:
 
 
   def get_entity_declarations(self):
+      self.get_script_dict()
       self.input_select_dict |= {
-        self.getPostfix(self.room_scene) : {
-          "name" :  self.getName(self.room_scene),
+        self.getPostfix(self.room_scene_ctl) : {
+          "name" :  self.getName(self.room_scene_ctl),
           "options": \
-          (["Hue"            ] if self.cfg_scene_colour_lamp else [])  
+          [ "Idle"           ]
+        + (["Hue"            ] if self.cfg_scene_colour_lamp else [])  
         + (["Night Mode",
             "Dark Night Mode"] if self.cfg_custom_scene else[])
         + (["Lamp LED White" ] if len(self.lamps) > 0 else [])  
@@ -469,62 +482,62 @@ class RoomBase:
           "name" :  self.getName(self.ceiling_light_control_when['Lights on in hot sunshine']),
           #"initial": "on",
           "configured": True
-        } | ({"initial": "off"} if len(self.ceiling_lights) > 0 and len(self.curtains) > 0 else {}),
+        } | ({"initial": "off"} if len(self.ceiling_lights) == 0 or len(self.curtains) == 0 else {}),
         self.getPostfix(self.lamp_control_when['Lights on in hot sunshine']) : {
           "name" :  self.getName(self.lamp_control_when['Lights on in hot sunshine']),
           #"initial": "off",
           "configured": True
-        } | ({"initial": "off"} if len(self.lamps) > 0 and len(self.curtains) > 0 else {}), 
+        } | ({"initial": "off"} if len(self.lamps) == 0 or len(self.curtains) == 0 else {}), 
         self.getPostfix(self.led_control_when['Lights on in hot sunshine']) : {
           "name" :  self.getName(self.led_control_when['Lights on in hot sunshine']),
           #"initial": "off",
           "configured": True
-        } | ({"initial": "off"} if len(self.leds) > 0 and len(self.curtains) > 0 else {}),
+        } | ({"initial": "off"} if len(self.leds) == 0 or len(self.curtains) == 0 else {}),
         self.getPostfix(self.curtain_control_when['Lights on in hot sunshine']) : {
           "name" :  self.getName(self.curtain_control_when['Lights on in hot sunshine']),
           #"initial": "off",
           "configured": True
-        } | ({"initial": "off"} if len(self.curtains) > 0 else {}),
+        } | ({"initial": "off"} if len(self.curtains) == 0 else {}),
         self.getPostfix(self.ceiling_light_control_when['Lights on when bright outdoor']) : {
           "name" :  self.getName(self.ceiling_light_control_when['Lights on when bright outdoor']),
           #"initial": "on",
           "configured": True
-        } | ({"initial": "off"} if len(self.ceiling_lights) > 0 else {}),
+        } | ({"initial": "off"} if len(self.ceiling_lights) == 0 else {}),
         self.getPostfix(self.lamp_control_when['Lights on when bright outdoor']) : {
           "name" :  self.getName(self.lamp_control_when['Lights on when bright outdoor']),
           #"initial": "on",
           "configured": True
-        } | ({"initial": "off"} if len(self.lamps) > 0 else {}),
+        } | ({"initial": "off"} if len(self.lamps) == 0 else {}),
         self.getPostfix(self.led_control_when['Lights on when bright outdoor']) : {
           "name" :  self.getName(self.led_control_when['Lights on when bright outdoor']),
           #"initial": "off",
           "configured": True
-        } | ({"initial": "off"} if len(self.leds) > 0 else {}),
+        } | ({"initial": "off"} if len(self.leds) == 0 else {}),
         self.getPostfix(self.curtain_control_when['Lights on when bright outdoor']) : {
           "name" :  self.getName(self.curtain_control_when['Lights on when bright outdoor']),
           #"initial": "off",
           "configured": True
-        } | ({"initial": "off"} if len(self.curtains) > 0 else {}),
+        } | ({"initial": "off"} if len(self.curtains) == 0 else {}),
         self.getPostfix(self.ceiling_light_control_when['Lights on when dark outdoor']) : {
           "name" :  self.getName(self.ceiling_light_control_when['Lights on when dark outdoor']),
           #"initial": "on",
           "configured": True
-        } | ({"initial": "off"} if len(self.ceiling_lights) > 0 else {}),
+        } | ({"initial": "off"} if len(self.ceiling_lights) == 0 else {}),
         self.getPostfix(self.lamp_control_when['Lights on when dark outdoor']) : {
           "name" :  self.getName(self.lamp_control_when['Lights on when dark outdoor']),
           #"initial": "on",
           "configured": True
-        } | ({"initial": "off"} if len(self.lamps) > 0 else {}),
+        } | ({"initial": "off"} if len(self.lamps) == 0 else {}),
         self.getPostfix(self.led_control_when['Lights on when dark outdoor']) : {
           "name" :  self.getName(self.led_control_when['Lights on when dark outdoor']),
           #"initial": "on",
           "configured": True
-        } | ({"initial": "off"} if len(self.leds) > 0 else {}),
+        } | ({"initial": "off"} if len(self.leds) == 0 else {}),
         self.getPostfix(self.curtain_control_when['Lights on when dark outdoor']) : {
           "name" :  self.getName(self.curtain_control_when['Lights on when dark outdoor']),
           #"initial": "off",
           "configured": True
-        } | ({"initial": "off"} if len(self.curtains) > 0 else {}),
+        } | ({"initial": "off"} if len(self.curtains) == 0 else {}),
       }
 
 #      self.input_boolean_dict |= {
@@ -567,10 +580,19 @@ class RoomBase:
         self.room_entity + "_motion" : {
           "name": self.room_name + " Motion",
           "entities": self.all_motion_sensors
-        }  
+        }          
       }  
 
-    
+      self.group_dict |= {
+        self.getPostfix(self.room_lights_and_tvs): {
+          "name" : self.getName(self.room_lights_and_tvs),
+          "entities": self.lights + self.tvs
+        }          
+      }  
+
+  def get_script_dict(self):
+    pass
+
   # Lighting Automations
   def get_automation_declarations(self):
     self.gen_motion_light_automations()
@@ -732,16 +754,23 @@ class RoomBase:
             "state": "dark"
           },
           {
-            "entity_id":self.leds + self.ceiling_lights + self.lamps if self.room_entity == 'en_suite_room' else \
+            "entity_id":self.leds + self.ceiling_lights + self.lamps if self.room_entity != 'guest_room' else \
                         self.leds + self.ceiling_lights,
             "condition": "state",
             "state": "off"
           }
         ],
         "action": [
-          self.turn(self.leds, 'on', light_brightness=40),
+          self.setNewScene("Dark Night Mode") if self.room_entity == 'master_room' else self.turn(self.leds, 'on', light_brightness=40),
+          #self.turn(self.leds, 'on', light_brightness=40),
           {"delay": "00:03:00"},
-          self.turn(self.leds, 'off')
+          {
+            "entity_id": self.ceiling_lights + self.lamps if self.room_entity != 'guest_room' else \
+                         self.ceiling_lights,
+            "condition": "state",
+            "state": "off"
+          },
+          self.turn(self.leds, 'off') 
         ]
       }
     ]
@@ -873,7 +902,7 @@ class RoomBase:
         "action": [
           {
             "delay": {
-              "hours": 3,
+              "hours": 2,
               "minutes": 0,
               "seconds": 0,
               "milliseconds": 0
@@ -947,22 +976,35 @@ class RoomBase:
           }
         ],
         "mode":"queued",
+        # Skip the starting Reset scene as this is used to trigger transition when calling a scene
+        "condition": [
+          {
+            "condition": "not",
+            "conditions": [
+              {
+                "condition": "state",
+                "entity_id": self.room_scene_ctl,
+                "state": "Reset"
+              }
+            ]
+          }
+        ],
         "action": [
           {
             "choose": self.get_scene_state_machine(),
             # In the case no condition is matching, turn off everything
-            "default": self.setNewScene("All Off")
+            "default": self.setNewScene("All White")
           }
         ]
     }]
 
     self.automations += [{
-        "alias" : "ZLB-" + self.automation_room_name + "Applies Different Scenes Based on Scene Selections (State Execution)" + "-" + self.room_name,
+        "alias" : "ZL-" + self.automation_room_name + "Applies Different Scenes Based on Scene Selections (State Execution)" + "-" + self.room_name,
         "configured": self.cfg_scene,
         "trigger": [
           {
             "platform": "state",
-            "entity_id": self.room_scene,
+            "entity_id": self.room_scene_ctl,
           }
         ],
         "mode":"queued",
@@ -1264,13 +1306,12 @@ class RoomBase:
       return scene_service
 
   def setNewScene(self, new_scene):
+
     seq = {
-      "service": "input_select.select_option",
-      "target": {
-        "entity_id": self.room_scene
-      },
+      "service": "script.call_room_scene",
       "data":{
-        "option": new_scene
+        "room_scene_select": self.room_scene_ctl,
+        "scene": new_scene
       }
     }
     return seq
@@ -1279,7 +1320,7 @@ class RoomBase:
     cond_seq = {
         "conditions": 
           { "condition": "state",
-            "entity_id": self.room_scene,
+            "entity_id": self.room_scene_ctl,
             "state": old_scene
           },
         "sequence": self.setNewScene(new_scene)
@@ -1320,7 +1361,7 @@ class RoomBase:
         "conditions": [
           {
             "condition": "state",
-            "entity_id": self.room_scene,
+            "entity_id": self.room_scene_ctl,
             "state": scene_name
           }
         ],
@@ -1374,35 +1415,151 @@ class RoomBase:
     else:
       raise TypeError("Condition " + condition_name + "is not supported.")
 
+
+
+
+  def getDashboardSettings(self):
+    self.dashboard_root      = 'Uninitliazed_dashboard_root'
+    self.dashboard_view_name = 'Uninitliazed_dashboard_view_name'
+    self.room_icon           = 'Uninitliazed_room_icon'
+
+  def getRestricedAccess(self, user, inner_card):
+    if user not in ['us', 'en_suite_room_user', 'guest_room_user']:
+      raise TypeError("User " + user + "is not supported for restriction card")
+    
+    return {
+      "type": "custom:restriction-card",
+      "restrictions": {
+        "hide": {
+          "exemptions": [
+            {"user": "72e8e305715145febff1ba701fd78954"},
+            {"user": "60652445f3d14a8f822054569404b643"},
+            {"user": "317c743e4c8348b8a70d671db917dbe8"}
+          ]
+        }
+      },
+      "exemptions": [
+        {"user": "72e8e305715145febff1ba701fd78954"},
+        {"user": "60652445f3d14a8f822054569404b643"},
+        {"user": "317c743e4c8348b8a70d671db917dbe8"}
+      ],
+      "card": inner_card
+    }
+
+  def getTemplateCard(self, icon='mdi:head-alert-outline', icon_color='blue', primary=None, secondary=None):
+    
+    self.dashboard_view_path = "/" + self.dashboard_root + "/" + self.dashboard_view_name
+
+    return {
+      "type": "custom:mushroom-template-card",
+      "icon": icon,
+      "icon_color": icon_color,
+      "layout": "horizontal",
+      "entity": "input_boolean.placeholder",
+      "fill_container": True,
+      "primary": primary,
+      "secondary":  secondary,
+      "tap_action": {
+        "action": "navigate",
+        "navigation_path": self.dashboard_view_path
+      }      
+    }
+
+  def getRoomCard (self):
+    type = 'mushroom'
+
+    if type == 'mushroom':
+      room_card = {    
+        "type": "custom:stack-in-card",
+        "mode": "vertical",
+        "cards": [
+          self.getTemplateCard(
+            icon       = self.room_icon,
+            icon_color = "blue",
+            primary    = self.room_name,
+            secondary  = "{% set temperature_sensor = '"+self.temperature_sensor+"' %}\n" + \
+                         "{% set motion_postfix     = '"+self.getPostfix(self.room_motion_sensor)+"' %}\n{{ states(temperature_sensor) }}\u00b0C | {{\n (as_timestamp(now()) -\n as_timestamp(states.group[motion_postfix].last_changed)) |\n timestamp_custom(\"%H:%M\", false) }} "
+          ),
+          {
+            "type": "custom:stack-in-card",
+            "mode": "horizontal",
+            "cards": [
+              self.getTemplateCard(
+                icon       = "{% set occupancy = '"+self.room_occupancy+"' %} {% if   is_state(occupancy, 'Outside') %}\n  mdi:door-closed\n{% elif is_state(occupancy, 'Just Entered') %}\n  mdi:arrow-right-circle\n{% elif is_state(occupancy, 'In Sleep') %}\n  mdi:sleep\n{% else %}\n  mdi:account-multiple\n{% endif %}",
+                icon_color = "{% set occupancy = '"+self.room_occupancy+"' %}         {% if   is_state(occupancy, 'Outside') %} {% elif is_state(occupancy, 'Just Entered')%}\n  green\n{% elif is_state(occupancy, 'In Sleep') %}\n  blue            \n{% else %}\n  purple\n{% endif %}",
+              ),
+              self.getTemplateCard(
+                icon       = "{% set motion = '"+self.room_motion_sensor+"' %}        \n{% if is_state(motion, 'on') %}\n  mdi:run-fast\n{% else %}\n  mdi:shoe-print\n{% endif %}",
+                icon_color = "{% set motion = '"+self.room_motion_sensor+"' %}        \n{% if is_state(motion, 'on') %}\n  pink\n{% endif %}",
+              ),
+              self.getTemplateCard(
+                icon       = "{% set thermostat = '"+self.thermostat+"' %}        \n{% if is_state(thermostat, 'heat') %}\n  mdi:heating-coil\n{% else %}\n  mdi:snowflake\n{% endif %}",
+                icon_color = "{% set thermostat = '"+self.thermostat+"' %}        \n{% if is_state(thermostat, 'heat') %}\n  red\n{% endif %}",
+              ),
+              self.getTemplateCard(
+                icon       = "{% set light = '"+self.room_lights_and_tvs+"' %}        \n{% if is_state(light, 'on') %}\n  mdi:floor-lamp\n{% else %}\n  mdi:floor-lamp-outline\n{% endif %}",
+                icon_color = "{% set light = '"+self.room_lights_and_tvs+"' %}                \n{% if is_state(light, 'on') %}\n  yellow\n{% endif %}",
+              )
+            ]
+          }
+        ]
+      }    
+    elif type == 'button':
+      room_card =  {
+        "type": "custom:button-card",
+        "aspect_ratio": "1/1",
+        "tap_action": {
+          "action": "navigate",
+          "navigation_path": self.dashboard_view_path
+        },
+        "entity": "input_boolean.placeholder",
+        "show_state": False,
+        "name": self.room_name,
+        "icon": self.room_icon,
+        "show_icon": True,
+        "show_name": True
+      }
+
+    return self.getRestricedAccess('us', room_card)
+    #return room_card
+        
+    #print (self.room_card)    
+        
   # Create a new yaml and write to it
   def writeYaml (self):
-    # File Path
-    self.script_dir         = os.path.dirname(os.path.realpath(__file__))
-    self.auto_gen_dir       = self.script_dir + "/../packages/_auto_generated_packages/"
-    self.auto_gen_yaml_path = self.auto_gen_dir + "/auto_gen_" + self.room_entity + ".yaml"
+    #if type not in ['package', 'overall_dashboard']:
+    #  raise TypeError("Yaml type " + type + " is not supported.")
 
-    # Open a new file and write automation
-    f = open(self.auto_gen_yaml_path, "w")
-    
-    f.write(yaml.dump(self.entity_declarations, sort_keys=False, width=float("inf")))
-    #for category_name in self.entity_declarations:
-    #  category_entities = self.entity_declarations[category_name]
-    #  f.write(category_name + ":" + "\n")
-    #  
-    #  if type(category_entities) == list:
-    #    
-    #    for entity in category_entities:
-    #      f.write(yaml.dump(entity, sort_keys=False, width=float("inf")))
-    #      f.write("\n")
-    #      
-    #  elif type(category_entities) == dict:
-    #    
-    #    for entity_name in category_entities:
-    #      entity = category_entities[entity_name]
-    #      f.write(yaml.dump({entity_name : entity}, sort_keys=False, width=float("inf")))
-    #      f.write("\n")
-    #      
-    f.close()
+    #if type == 'package':
+      # File Path
+      self.script_dir         = os.path.dirname(os.path.realpath(__file__))
+      self.auto_gen_dir       = self.script_dir + "/../packages/_auto_generated_packages/"
+      self.auto_gen_yaml_path = self.auto_gen_dir + "/auto_gen_" + self.room_entity + ".yaml"
+
+      # Open a new file and write automation
+      f = open(self.auto_gen_yaml_path, "w")
+      
+      f.write(yaml.dump(self.entity_declarations, sort_keys=False, width=float("inf")))
+      #for category_name in self.entity_declarations:
+      #  category_entities = self.entity_declarations[category_name]
+      #  f.write(category_name + ":" + "\n")
+      #  
+      #  if type(category_entities) == list:
+      #    
+      #    for entity in category_entities:
+      #      f.write(yaml.dump(entity, sort_keys=False, width=float("inf")))
+      #      f.write("\n")
+      #      
+      #  elif type(category_entities) == dict:
+      #    
+      #    for entity_name in category_entities:
+      #      entity = category_entities[entity_name]
+      #      f.write(yaml.dump({entity_name : entity}, sort_keys=False, width=float("inf")))
+      #      f.write("\n")
+      #      
+      f.close()
+
+
 
   def remove_disabed_entities(self):
     filtered_entities = {}
@@ -1465,7 +1622,8 @@ class MasterRoom(RoomBase):
     self.cfg_custom_scene       = True
     self.cfg_motion_bed_led     = True
     self.cfg_auto_curtain_ctl   = True
-
+    self.cfg_tv                 = True
+    
   def get_entity_declarations(self):
     super().get_entity_declarations()
     self.add_mac_device("0x04cf8cdf3c7ad638", "Master Room",     "Aqara D1 Wall Switch (With Neutral, Triple Rocker)")
@@ -1482,7 +1640,8 @@ class MasterRoom(RoomBase):
       "binary_sensor.master_room_dressing_table_motion_sensor_motion",
       "binary_sensor.master_room_tv_motion_sensor_motion",
       "binary_sensor.master_room_drawer_motion_sensor_motion",
-      "binary_sensor.master_toilet_dressing_room_motion_sensor_motion"
+      "binary_sensor.master_toilet_dressing_room_motion_sensor_motion",
+      "binary_sensor.master_room_occupancy_sensor_occupancy"
     ]
     
     self.non_bed_motion_sensors = [
@@ -1513,6 +1672,11 @@ class MasterRoom(RoomBase):
     self.wall_buttons            = ["sensor." + self.room_entity + "_entrance_wall_button"]
     self.buttons                 = self.wall_buttons + self.xiaomi_buttons
 
+  def getDashboardSettings(self):
+    super().getDashboardSettings()
+    self.dashboard_root      = 'master-room'
+    self.dashboard_view_name = 'master-room'
+    self.room_icon           = 'mdi:bed-king-outline'
 
 
 class MasterToilet(RoomBase):
@@ -1548,6 +1712,12 @@ class MasterToilet(RoomBase):
     self.lights                  = self.leds + self.lamps + self.ceiling_lights
 
 
+  def getDashboardSettings(self):
+    super().getDashboardSettings()
+    self.dashboard_root      = 'master-room'
+    self.dashboard_view_name = 'master-toilet'
+    self.room_icon           = 'mdi:shower-head'
+
 
 class Kitchen(RoomBase):
   def get_room_config(self):
@@ -1562,6 +1732,7 @@ class Kitchen(RoomBase):
     self.cfg_motion_light       = True
     self.cfg_remote_light       = True
     self.cfg_auto_curtain_ctl   = True
+    self.cfg_tv                 = True
 
   def get_motion_sensor_entities(self):
     super().get_motion_sensor_entities()
@@ -1569,6 +1740,14 @@ class Kitchen(RoomBase):
       "binary_sensor.kitchen_worktop_motion_sensor_motion",
       "binary_sensor.kitchen_dining_motion_sensor_motion"
     ]
+
+
+  #def get_entity_declarations(self):
+  #  super().get_entity_declarations()
+  #  self.add_mac_device("0x04cf8cdf3c7ad638", "Master Room",     "Aqara D1 Wall Switch (With Neutral, Triple Rocker)")
+  #  self.add_mac_device("0x00158d0005228ba8", "Master Room TV",  "Aqara Motion and Illuminance Sensor")
+  #  self.add_mac_device("dced830908fb",       "Master Room",     "Ziqing Occupancy Sensor")
+    
 
   def get_light_entities(self):
     super().get_light_entities()
@@ -1598,6 +1777,19 @@ class Kitchen(RoomBase):
                                               light_list=self.leds,
                                               light_name='Floor LED')
 
+  def getDashboardSettings(self):
+    super().getDashboardSettings()
+    self.dashboard_root      = 'lovelace-kitchen'
+    self.dashboard_view_name = 'kitchen'
+    self.room_icon           = 'mdi:silverware-clean'
+
+  # Customize system card information
+  def getRoomCard (self):
+    room_card = super().getRoomCard()
+    # Adding vaccum info
+    room_card['card']['cards'][0]['secondary'] += " | {{states('vacuum.x1')}}"
+    return room_card
+
 class LivingRoom(RoomBase):
   def get_room_config(self):
     super().get_room_config()
@@ -1613,6 +1805,7 @@ class LivingRoom(RoomBase):
     self.cfg_remote_light       = True
     self.cfg_temp_control       = True
     self.cfg_temp_calibration   = True
+    self.cfg_tv                 = True
 
   def get_motion_sensor_entities(self):
     super().get_motion_sensor_entities()
@@ -1633,6 +1826,11 @@ class LivingRoom(RoomBase):
                                     "switch.living_room_floor_light_3"] 
     self.lights                  = self.leds + self.lamps + self.ceiling_lights
 
+  def getDashboardSettings(self):
+    super().getDashboardSettings()
+    self.dashboard_root      = 'living-room'
+    self.dashboard_view_name = 'living-room'
+    self.room_icon           = 'mdi:youtube-tv'
 
 
 class EnSuiteRoom(RoomBase):
@@ -1653,6 +1851,7 @@ class EnSuiteRoom(RoomBase):
     self.cfg_led_only_scene     = True
     self.cfg_motion_bed_led     = True
     self.cfg_auto_curtain_ctl   = True
+    self.cfg_tv                 = True
 
 
   def get_motion_sensor_entities(self):
@@ -1676,6 +1875,13 @@ class EnSuiteRoom(RoomBase):
     # Cover entities
     self.curtains               = [ "cover.en_suite_room_curtain"] 
 
+  def getDashboardSettings(self):
+    super().getDashboardSettings()
+    self.dashboard_root      = 'en-suite-room'
+    self.dashboard_view_name = 'en-suite-room'
+    self.room_icon           = 'mdi:bed-queen'
+
+
 class EnSuiteToilet(RoomBase):
   def get_room_config(self):
     super().get_room_config()
@@ -1689,18 +1895,22 @@ class EnSuiteToilet(RoomBase):
     self.cfg_remote_light       = True
     self.cfg_led_only_scene     = True
 
-
   def get_entity_declarations(self):
     super().get_entity_declarations()
     #self.add_mac_device("0x158d00053fdaba", "En-suite Toilet", "Aqara Door & Window Sensor")
     
-
   def get_motion_sensor_entities(self):
     super().get_motion_sensor_entities()
     self.all_motion_sensors = [
       "binary_sensor.en_suite_toilet_motion_sensor_motion"
     ]
 
+
+  def getDashboardSettings(self):
+    super().getDashboardSettings()
+    self.dashboard_root      = 'en-suite-room'
+    self.dashboard_view_name = 'en-suite-toilet'
+    self.room_icon           = 'mdi:shower-head'
 
 class GuestRoom(RoomBase):
   def get_room_config(self):
@@ -1730,6 +1940,11 @@ class GuestRoom(RoomBase):
     self.lights                  = self.leds + self.lamps + self.ceiling_lights
 
 
+  def getDashboardSettings(self):
+    super().getDashboardSettings()
+    self.dashboard_root      = 'guest-room'
+    self.dashboard_view_name = 'guest-room'
+    self.room_icon           = 'mdi:bed-queen-outline'
 
 class GuestToilet(RoomBase):
   def get_room_config(self):
@@ -1775,6 +1990,12 @@ class GuestToilet(RoomBase):
                                               light_name='Floor LEDs')
 
 
+  def getDashboardSettings(self):
+    super().getDashboardSettings()
+    self.dashboard_root      = 'guest-room'
+    self.dashboard_view_name = 'guest-toilet'
+    self.room_icon           = 'mdi:shower'
+
 class Study(RoomBase):
   def get_room_config(self):
     super().get_room_config()
@@ -1797,6 +2018,11 @@ class Study(RoomBase):
       "binary_sensor.kes_desk_motion_sensor_motion"
     ]
 
+  def getDashboardSettings(self):
+    super().getDashboardSettings()
+    self.dashboard_root      = 'lovelace-misc'
+    self.dashboard_view_name = 'study'
+    self.room_icon           = 'mdi:desk'
 
 class Garden(RoomBase):
   def get_room_config(self):
@@ -1816,6 +2042,12 @@ class Garden(RoomBase):
   def get_entity_declarations(self):
     super().get_entity_declarations()
     self.add_mac_device("a4c138e25da9",       "Study",     "Mijia2 Temperature Sensor")
+
+  def getDashboardSettings(self):
+    super().getDashboardSettings()
+    self.dashboard_root      = 'lovelace-garden'
+    self.dashboard_view_name = 'garden'
+    self.room_icon           = 'mdi:beach'
 
 class Corridor(RoomBase):
   def get_room_config(self):
@@ -1837,6 +2069,12 @@ class Corridor(RoomBase):
       "binary_sensor.first_corridor_motion_sensor_motion"
     ]
 
+
+  def getDashboardSettings(self):
+    super().getDashboardSettings()
+    self.dashboard_root      = 'lovelace-misc'
+    self.dashboard_view_name = 'corridors'
+    self.room_icon           = 'mdi:toilet'
 
 class GroundToilet(RoomBase):
   def get_room_config(self):
@@ -1861,6 +2099,12 @@ class GroundToilet(RoomBase):
     super().get_entity_declarations()
     self.add_mac_device("a4c1387c09bd",       "Ground Toilet",     "Mijia2 Temperature Sensor")
 
+  def getDashboardSettings(self):
+    super().getDashboardSettings()
+    self.dashboard_root      = 'lovelace-misc'
+    self.dashboard_view_name = 'corridors'
+    self.room_icon           = 'mdi:toilet'
+
 class WholeHome(RoomBase):
   def get_room_config(self):
     super().get_room_config()
@@ -1884,6 +2128,141 @@ class WholeHome(RoomBase):
       "group.guest_room_motion",
       "group.guest_toilet_motion"
     ]
+
+class System(RoomBase):
+  def get_room_config(self):
+    super().get_room_config()
+    self.room_name             = 'System'
+
+  def getDashboardSettings(self):
+    super().getDashboardSettings()
+    self.dashboard_root      = 'lovelace-system'
+    self.dashboard_view_name = 'system'
+    self.room_icon           = 'mdi:server'
+
+  # Customize system card information
+  def getRoomCard (self):
+    type = 'mushroom'
+
+    if type == 'mushroom':
+       room_card = { 
+        "type": "custom:stack-in-card",
+        "mode": "vertical",
+        "cards": [
+          {
+            "type": "custom:mushroom-template-card",
+            "icon": "mdi:server",
+            "icon_color": "blue",
+            "layout": "horizontal",
+            "entity": "input_boolean.placeholder",
+            "fill_container": True,
+            "primary": "System",
+            "secondary": "{{states('sensor.processor_use_percent')}}% | {{states('sensor.load_1m')}} | {{(states('sensor.memory_use') | float/1000) | round(1) }}GB ",
+            "tap_action": {
+              "action": "navigate",
+              "navigation_path": "/lovelace-system/system\\"
+            }
+          },
+          {
+            "type": "custom:stack-in-card",
+            "mode": "horizontal",
+            "cards": [
+              {
+                "type": "custom:mushroom-entity-card",
+                "entity": "switch.gaming_pc",
+                "icon": "mdi:desktop-classic",
+                "icon_color": "amber",
+                "primary_info": "state",
+                "secondary_info": "none",
+                "tap_action": {
+                  "action": "more-info"
+                }
+              },
+              {
+                "type": "custom:mushroom-entity-card",
+                "entity": "binary_sensor.fire_tv_streaming_pc_contents",
+                "icon": "mdi:television-box",
+                "icon_color": "deep-orange",
+                "primary_info": "state",
+                "secondary_info": "none",
+                "tap_action": {
+                  "action": "more-info"
+                }
+              }
+            ]
+          }
+        ]
+      }
+      
+    elif type == 'button':
+      room_card =  {
+        "type": "custom:button-card",
+        "aspect_ratio": "1/1",
+        "tap_action": {
+          "action": "navigate",
+          "navigation_path": self.dashboard_view_path
+        },
+        "entity": "input_boolean.placeholder",
+        "show_state": False,
+        "name": self.room_name,
+        "icon": self.room_icon,
+        "show_icon": True,
+        "show_name": True
+      }
+
+    return self.getRestricedAccess('us', room_card)
+
+
+class OverallDashboard(RoomBase):
+  def __init__ (self):
+    super().__init__()
+    self.getRooms()
+    self.getOverallDashboard()
+    self.writeYaml()
+    
+  def getOverallDashboard(self):
+    self.room_cards = []
+
+    for room in self.rooms:
+      self.room_cards += [room.getRoomCard()]
+      #print (self.room_card)
+
+    #print (self.room_cards)
+
+    self.overall_dashboard = {
+        "square": False,
+        "columns": 2,
+        "type": "grid",
+        "cards": self.room_cards}   
+
+  def getRooms(self):
+    self.rooms = [ 
+              LivingRoom(),
+              Kitchen(),
+              MasterRoom(),
+              MasterToilet(),
+              Study(),
+              System(),
+              GroundToilet(),
+              Corridor(),
+              Garden(),
+              EnSuiteRoom(),
+              EnSuiteToilet(),
+              GuestRoom(),
+              GuestToilet()]
+
+  def writeYaml(self):
+    
+    # File Path
+    self.script_dir         = os.path.dirname(os.path.realpath(__file__))
+    self.auto_gen_dir       = self.script_dir + "/../lovelace/"
+    self.auto_gen_yaml_path = self.auto_gen_dir + "/auto_gen_overall_dashboard.yaml"
+
+    # Open a new file and write automation
+    f = open(self.auto_gen_yaml_path, "w")
+    
+    f.write(yaml.dump(self.overall_dashboard, sort_keys=False, width=float("inf")))
+    f.close()
 
 ##################################################################
 #   Check core.entity_entries duplicated automation entities
@@ -1969,7 +2348,8 @@ parser.add_argument('-c', dest ='create_system_config', default=False,
 args = parser.parse_args()
 
 if args.render_auto_config :
-  rooms = [ LivingRoom(),
+  render_package_for_rooms = [ 
+            LivingRoom(),
             Kitchen(),
             EnSuiteToilet(),
             GuestRoom(),
@@ -1985,7 +2365,7 @@ if args.render_auto_config :
             ]         
   yaml.Dumper.ignore_aliases = lambda *args : True
   
-  for room in rooms:
+  for room in render_package_for_rooms:
     room.writeYaml()
 
 read_core_entity_entries_json()
@@ -1996,7 +2376,8 @@ if args.create_system_config:
   remove_auto_gen_automation_entities()
   write_core_entity_entries_json()
 
-
+# Render dashboard
+dashboaard = OverallDashboard()
 
 
 # All Zigbee devices mac-name mapping
