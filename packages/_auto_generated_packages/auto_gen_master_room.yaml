@@ -134,13 +134,16 @@ automation:
         entity_id: climate.master_room
         state: heat
     then:
-    - service: climate.set_hvac_mode
-      data:
-        hvac_mode: heat
-      target:
+      if:
+        condition: state
+        entity_id: input_boolean.always_on_constant
+        state: 'on'
+      then:
+      - service: climate.set_hvac_mode
+        data:
+          hvac_mode: heat
         entity_id: climate.master_room
-    - service: switch.turn_on
-      target:
+      - service: homeassistant.turn_on
         entity_id: switch.schedule_master_room_temperature
 - alias: ZH-MR Heating Schedule Off If People Left the Room-Master Room
   id: automation.zh_mr_heating_schedule_off_if_people_left_the_room_master_room
@@ -157,13 +160,16 @@ automation:
   - condition: state
     entity_id: input_boolean.master_room_heating_override
     state: 'off'
-  - service: climate.set_hvac_mode
-    data:
-      hvac_mode: 'off'
-    target:
+  - if:
+      condition: state
+      entity_id: input_boolean.always_on_constant
+      state: 'on'
+    then:
+    - service: climate.set_hvac_mode
+      data:
+        hvac_mode: 'off'
       entity_id: climate.master_room
-  - service: switch.turn_off
-    target:
+    - service: homeassistant.turn_off
       entity_id: switch.schedule_master_room_temperature
 - alias: ZH-MR Heating Manual Override-Master Room
   mode: restart
@@ -288,10 +294,41 @@ automation:
         state: All White
       sequence:
       - parallel:
+        - if:
+            condition: state
+            entity_id: input_boolean.always_on_constant
+            state: 'on'
+          then:
+          - service: light.turn_on
+            entity_id:
+            - light.master_room_lamp_1
+            - light.master_room_lamp_2
+          - if:
+              condition: state
+              entity_id:
+              - light.master_room_lamp_1
+              - light.master_room_lamp_2
+              state: color_temp
+              attribute: color_mode
+            then:
+              service: script.do_nothing
+            else:
+            - service: light.turn_on
+              entity_id:
+              - light.master_room_lamp_1
+              - light.master_room_lamp_2
+              data:
+                kelvin: '3000'
+            - service: light.turn_off
+              entity_id:
+              - light.master_room_lamp_1
+              - light.master_room_lamp_2
+            - service: light.turn_on
+              entity_id:
+              - light.master_room_lamp_1
+              - light.master_room_lamp_2
         - service: homeassistant.turn_on
           entity_id:
-          - light.master_room_lamp_1
-          - light.master_room_lamp_2
           - light.master_room_ceiling_light
           - light.master_room_drawer_led
           - light.master_room_tv_led
@@ -331,10 +368,41 @@ automation:
         - service: homeassistant.turn_off
           entity_id:
           - light.master_room_ceiling_light
+        - if:
+            condition: state
+            entity_id: input_boolean.always_on_constant
+            state: 'on'
+          then:
+          - service: light.turn_on
+            entity_id:
+            - light.master_room_lamp_1
+            - light.master_room_lamp_2
+          - if:
+              condition: state
+              entity_id:
+              - light.master_room_lamp_1
+              - light.master_room_lamp_2
+              state: color_temp
+              attribute: color_mode
+            then:
+              service: script.do_nothing
+            else:
+            - service: light.turn_on
+              entity_id:
+              - light.master_room_lamp_1
+              - light.master_room_lamp_2
+              data:
+                kelvin: '3000'
+            - service: light.turn_off
+              entity_id:
+              - light.master_room_lamp_1
+              - light.master_room_lamp_2
+            - service: light.turn_on
+              entity_id:
+              - light.master_room_lamp_1
+              - light.master_room_lamp_2
         - service: homeassistant.turn_on
           entity_id:
-          - light.master_room_lamp_1
-          - light.master_room_lamp_2
           - light.master_room_drawer_led
           - light.master_room_tv_led
           - light.master_room_bed_led
@@ -369,6 +437,13 @@ automation:
         entity_id: input_select.master_room_scene
         state: Hue
       sequence:
+      - service: homeassistant.turn_on
+        entity_id:
+        - light.master_room_lamp_1
+        - light.master_room_lamp_2
+        - light.master_room_drawer_led
+        - light.master_room_tv_led
+        - light.master_room_bed_led
       - service: light.turn_on
         entity_id:
         - light.master_room_lamp_1
@@ -442,10 +517,39 @@ automation:
               entity_id: input_boolean.lamp_control_in_hot_sunshine_master_room
               state: 'on'
             then:
-              service: homeassistant.turn_on
-              entity_id:
-              - light.master_room_lamp_1
-              - light.master_room_lamp_2
+              if:
+                condition: state
+                entity_id: input_boolean.always_on_constant
+                state: 'on'
+              then:
+              - service: light.turn_on
+                entity_id:
+                - light.master_room_lamp_1
+                - light.master_room_lamp_2
+              - if:
+                  condition: state
+                  entity_id:
+                  - light.master_room_lamp_1
+                  - light.master_room_lamp_2
+                  state: color_temp
+                  attribute: color_mode
+                then:
+                  service: script.do_nothing
+                else:
+                - service: light.turn_on
+                  entity_id:
+                  - light.master_room_lamp_1
+                  - light.master_room_lamp_2
+                  data:
+                    kelvin: '3000'
+                - service: light.turn_off
+                  entity_id:
+                  - light.master_room_lamp_1
+                  - light.master_room_lamp_2
+                - service: light.turn_on
+                  entity_id:
+                  - light.master_room_lamp_1
+                  - light.master_room_lamp_2
           - if:
               condition: state
               entity_id: input_boolean.led_control_in_hot_sunshine_master_room
@@ -485,10 +589,39 @@ automation:
               entity_id: input_boolean.lamp_control_when_bright_outdoor_master_room
               state: 'on'
             then:
-              service: homeassistant.turn_on
-              entity_id:
-              - light.master_room_lamp_1
-              - light.master_room_lamp_2
+              if:
+                condition: state
+                entity_id: input_boolean.always_on_constant
+                state: 'on'
+              then:
+              - service: light.turn_on
+                entity_id:
+                - light.master_room_lamp_1
+                - light.master_room_lamp_2
+              - if:
+                  condition: state
+                  entity_id:
+                  - light.master_room_lamp_1
+                  - light.master_room_lamp_2
+                  state: color_temp
+                  attribute: color_mode
+                then:
+                  service: script.do_nothing
+                else:
+                - service: light.turn_on
+                  entity_id:
+                  - light.master_room_lamp_1
+                  - light.master_room_lamp_2
+                  data:
+                    kelvin: '3000'
+                - service: light.turn_off
+                  entity_id:
+                  - light.master_room_lamp_1
+                  - light.master_room_lamp_2
+                - service: light.turn_on
+                  entity_id:
+                  - light.master_room_lamp_1
+                  - light.master_room_lamp_2
           - if:
               condition: state
               entity_id: input_boolean.led_control_when_bright_outdoor_master_room
@@ -528,10 +661,39 @@ automation:
               entity_id: input_boolean.lamp_control_when_dark_outdoor_master_room
               state: 'on'
             then:
-              service: homeassistant.turn_on
-              entity_id:
-              - light.master_room_lamp_1
-              - light.master_room_lamp_2
+              if:
+                condition: state
+                entity_id: input_boolean.always_on_constant
+                state: 'on'
+              then:
+              - service: light.turn_on
+                entity_id:
+                - light.master_room_lamp_1
+                - light.master_room_lamp_2
+              - if:
+                  condition: state
+                  entity_id:
+                  - light.master_room_lamp_1
+                  - light.master_room_lamp_2
+                  state: color_temp
+                  attribute: color_mode
+                then:
+                  service: script.do_nothing
+                else:
+                - service: light.turn_on
+                  entity_id:
+                  - light.master_room_lamp_1
+                  - light.master_room_lamp_2
+                  data:
+                    kelvin: '3000'
+                - service: light.turn_off
+                  entity_id:
+                  - light.master_room_lamp_1
+                  - light.master_room_lamp_2
+                - service: light.turn_on
+                  entity_id:
+                  - light.master_room_lamp_1
+                  - light.master_room_lamp_2
           - if:
               condition: state
               entity_id: input_boolean.led_control_when_dark_outdoor_master_room

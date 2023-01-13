@@ -840,8 +840,9 @@ class RoomBase:
               { "condition": "state",
                 "entity_id": self.room_heating_override,
                 "state": "off"
-              }
-            ]  + self.turn('heating', 'off') 
+              },
+              self.turn('heating', 'off')
+            ]
       }      
     ]
 
@@ -1222,23 +1223,24 @@ class RoomBase:
 
     # TODO make sure that it only turns a directory or a list.
     # use a different way to handle this case                    
+    elif entity_list == self.thermostat:
+      hvac_mode = "heat" if state == 'on' else "off"
+      
+      action_service = { "service": "climate.set_hvac_mode",
+                         "data": {"hvac_mode": hvac_mode},
+                         "entity_id": self.thermostat
+                       }
+                       
+    # Turn on lamps but reset to white if set to rgb/hs mode                       
+    elif entity_list == self.lamps and state == 'on':
+      action_service = self.setLightsToWhite(self.lamps)
+    
     elif entity_list == 'heating':
-      if state == 'on':
-        action_service = [{ "service": "climate.set_hvac_mode",
-                            "data":   {"hvac_mode": "heat"},
-                            "target": {"entity_id": self.thermostat}
-                          },
-                          { "service": "switch.turn_on",
-                            "target": {"entity_id": self.thermostat_schedule}
-                          }]
-      else:
-        action_service = [{ "service": "climate.set_hvac_mode",
-                            "data":   {"hvac_mode": "off"},
-                            "target": {"entity_id": self.thermostat}
-                          },
-                          { "service": "switch.turn_off",
-                            "target": {"entity_id": self.thermostat_schedule}
-                          }]
+      action_service = self.convertToSingleService(
+                       [self.turn(self.thermostat,          state),
+                        self.turn(self.thermostat_schedule, state)]  )
+
+#   elif entity_list == self.thermostat_schedule:
     else:
       action_service = {"service":"homeassistant.turn_on"  if state == 'on'     else \
                                   "homeassistant.turn_off" if state == 'off'    else \
@@ -1250,11 +1252,38 @@ class RoomBase:
     else:
       return {"service": "script.do_nothing"}
 
+
+  def setLightsToWhite(self, entity_list):
+
+    # Turn on lamps first 
+    # and check if light colour is white
+    # reset colour lamps to white and apply adaptive lighting
+    service_list = [
+               {"service": "light.turn_on", "entity_id": self.lamps},
+               {"if": self.continueIf(entity_list, 'color_temp', attribute='color_mode'), 
+                 "then": {"service": "script.do_nothing"},
+                 "else":[ 
+                     {"service": "light.turn_on",  "entity_id": self.lamps, "data": {"kelvin": "3000"}},
+                     {"service": "light.turn_off", "entity_id": self.lamps},
+                     {"service": "light.turn_on",  "entity_id": self.lamps}
+                 ]
+               }
+           ]
+
+    return self.convertToSingleService(service_list)
+
+  def convertToSingleService(self, service_list):
+    # "sequence" cannot be used in automation generally
+    #return {"sequence": service_list}
+    
+    return {"if": self.alwaysOnIf(True), "then": service_list}
+
   def callSceneService(self, scene_name):  
       parallel_enable = True  
       scene_service = []  
       if   scene_name == 'All White':
-          scene_service += [self.turn(self.lamps + self.ceiling_lights + self.leds, "on"),
+          scene_service += [self.turn(self.lamps, "on"),
+                            self.turn(self.ceiling_lights + self.leds, "on"),
                             self.turn(self.tvs, tv_brightness=3)]
       elif scene_name == 'Ceiling Light White':
           scene_service += [self.turn(self.leds + self.lamps, "off"),
@@ -1267,7 +1296,8 @@ class RoomBase:
       #                      self.turn(self.curtains, 'on')]   
       elif scene_name == 'Lamp LED White':
           scene_service += [self.turn(self.ceiling_lights, "off"),
-                            self.turn(self.lamps + self.leds, "on"),
+                            self.turn(self.lamps, "on"),
+                            self.turn(self.leds, "on"),
                             self.turn(self.tvs, tv_brightness=3)]
       elif scene_name == 'LED White':
           scene_service += [self.turn(self.ceiling_lights + self.lamps, "off"),
@@ -1275,9 +1305,13 @@ class RoomBase:
                             self.turn(self.tvs, tv_brightness=2)]
       elif scene_name == 'Hue': 
           parallel_enable = False
-          scene_service += [self.turn(self.lamps + self.leds, "on", light_brightness=100),
-                            {"service" : "pyscript.set_rgb_light_list",
-                             "data": {"light_list": self.lamps + self.ceiling_lights+ self.leds}},
+          scene_service += [# turn on lights to let adaptive lighting run
+                            self.turn(self.lamps + self.leds, "on"),
+                            # overwrite adaptive lighting brightiness and set it to max
+                            self.turn(self.lamps + self.leds, "on", light_brightness=100),
+                            # apply colours
+                            { "service" : "pyscript.set_rgb_light_list",
+                              "data": {"light_list": self.lamps + self.ceiling_lights+ self.leds}},
                             self.turn(self.tvs, tv_brightness=3)]
       elif scene_name == 'Night Mode': 
           scene_service += [{ "service": "homeassistant.turn_on",
@@ -1292,10 +1326,10 @@ class RoomBase:
                           'Lights on when dark outdoor']:
         
         scene_service += [{"parallel":[
-          {"if": self.entity_is_on(self.ceiling_light_control_when[scene_name]),  "then": self.turn(self.ceiling_lights, "on")},
-          {"if": self.entity_is_on(self.lamp_control_when[scene_name]),           "then": self.turn(self.lamps, "on")},
-          {"if": self.entity_is_on(self.led_control_when[scene_name]),            "then": self.turn(self.leds, "on")},
-          {"if": self.entity_is_on(self.curtain_control_when[scene_name]),        "then": self.turn(self.curtains, 'on')}
+          {"if": self.continueIf(self.ceiling_light_control_when[scene_name], "on"), "then": self.turn(self.ceiling_lights, "on")},
+          {"if": self.continueIf(self.lamp_control_when[scene_name]         , "on"), "then": self.turn(self.lamps,          "on")},
+          {"if": self.continueIf(self.led_control_when[scene_name]          , "on"), "then": self.turn(self.leds,           "on")},
+          {"if": self.continueIf(self.curtain_control_when[scene_name]      , "on"), "then": self.turn(self.curtains,       "on")}
           ]}]
 
       else:
@@ -1369,6 +1403,28 @@ class RoomBase:
       }
     return cond_seq
 
+
+  def triggerIf(self, entity_id, toState=None, fromState=None, attribute=None, lastFor=None):
+    trigger = { "platform": "state",
+                "entity_id": entity_id,
+              }
+    trigger |= {"to":        toState  } if toState    != None else {}
+    trigger |= {"from":      fromState} if fromState  != None else {}
+    trigger |= {"attribute": attribute} if attribute  != None else {}
+    trigger |= {"for":       lastFor}   if lastFor    != None else {}
+    return trigger    
+
+
+  def continueIf(self, entity_id, state, attribute=None, lastFor=None):
+    cond =  { "condition": "state",
+                "entity_id": entity_id,
+                "state": state
+            }
+    cond |= {"attribute": attribute} if attribute  != None else {}
+    cond |= {"for":       lastFor}   if lastFor    != None else {}
+    return cond
+
+
   def condition_list_is(self, condition_name):
     if condition_name == 'Outdoor is bright':
       return [{
@@ -1414,7 +1470,6 @@ class RoomBase:
               }]
     else:
       raise TypeError("Condition " + condition_name + "is not supported.")
-
 
 
 
@@ -2376,8 +2431,8 @@ if args.create_system_config:
   remove_auto_gen_automation_entities()
   write_core_entity_entries_json()
 
-# Render dashboard
-dashboaard = OverallDashboard()
+# Instantiate and render dashboard into yaml
+dashboard = OverallDashboard()
 
 
 # All Zigbee devices mac-name mapping

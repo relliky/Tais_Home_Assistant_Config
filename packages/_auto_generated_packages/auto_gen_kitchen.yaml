@@ -90,13 +90,16 @@ automation:
         entity_id: climate.kitchen
         state: heat
     then:
-    - service: climate.set_hvac_mode
-      data:
-        hvac_mode: heat
-      target:
+      if:
+        condition: state
+        entity_id: input_boolean.always_on_constant
+        state: 'on'
+      then:
+      - service: climate.set_hvac_mode
+        data:
+          hvac_mode: heat
         entity_id: climate.kitchen
-    - service: switch.turn_on
-      target:
+      - service: homeassistant.turn_on
         entity_id: switch.schedule_kitchen_temperature
 - alias: ZH-KC Heating Schedule Off If People Left the Room-Kitchen
   id: automation.zh_kc_heating_schedule_off_if_people_left_the_room_kitchen
@@ -113,13 +116,16 @@ automation:
   - condition: state
     entity_id: input_boolean.kitchen_heating_override
     state: 'off'
-  - service: climate.set_hvac_mode
-    data:
-      hvac_mode: 'off'
-    target:
+  - if:
+      condition: state
+      entity_id: input_boolean.always_on_constant
+      state: 'on'
+    then:
+    - service: climate.set_hvac_mode
+      data:
+        hvac_mode: 'off'
       entity_id: climate.kitchen
-  - service: switch.turn_off
-    target:
+    - service: homeassistant.turn_off
       entity_id: switch.schedule_kitchen_temperature
 - alias: ZH-KC Heating Manual Override-Kitchen
   mode: restart
@@ -175,6 +181,29 @@ automation:
         state: All White
       sequence:
       - parallel:
+        - if:
+            condition: state
+            entity_id: input_boolean.always_on_constant
+            state: 'on'
+          then:
+          - service: light.turn_on
+            entity_id: []
+          - if:
+              condition: state
+              entity_id: []
+              state: color_temp
+              attribute: color_mode
+            then:
+              service: script.do_nothing
+            else:
+            - service: light.turn_on
+              entity_id: []
+              data:
+                kelvin: '3000'
+            - service: light.turn_off
+              entity_id: []
+            - service: light.turn_on
+              entity_id: []
         - service: homeassistant.turn_on
           entity_id:
           - light.kitchen_ceiling_light
@@ -213,6 +242,29 @@ automation:
           entity_id:
           - light.kitchen_ceiling_light
           - light.kitchen_dining_light
+        - if:
+            condition: state
+            entity_id: input_boolean.always_on_constant
+            state: 'on'
+          then:
+          - service: light.turn_on
+            entity_id: []
+          - if:
+              condition: state
+              entity_id: []
+              state: color_temp
+              attribute: color_mode
+            then:
+              service: script.do_nothing
+            else:
+            - service: light.turn_on
+              entity_id: []
+              data:
+                kelvin: '3000'
+            - service: light.turn_off
+              entity_id: []
+            - service: light.turn_on
+              entity_id: []
         - service: homeassistant.turn_on
           entity_id:
           - switch.kitchen_floor_led
@@ -244,6 +296,9 @@ automation:
         entity_id: input_select.kitchen_scene
         state: Hue
       sequence:
+      - service: homeassistant.turn_on
+        entity_id:
+        - switch.kitchen_floor_led
       - service: light.turn_on
         entity_id:
         - switch.kitchen_floor_led
@@ -308,8 +363,29 @@ automation:
               entity_id: input_boolean.lamp_control_in_hot_sunshine_kitchen
               state: 'on'
             then:
-              service: homeassistant.turn_on
-              entity_id: []
+              if:
+                condition: state
+                entity_id: input_boolean.always_on_constant
+                state: 'on'
+              then:
+              - service: light.turn_on
+                entity_id: []
+              - if:
+                  condition: state
+                  entity_id: []
+                  state: color_temp
+                  attribute: color_mode
+                then:
+                  service: script.do_nothing
+                else:
+                - service: light.turn_on
+                  entity_id: []
+                  data:
+                    kelvin: '3000'
+                - service: light.turn_off
+                  entity_id: []
+                - service: light.turn_on
+                  entity_id: []
           - if:
               condition: state
               entity_id: input_boolean.led_control_in_hot_sunshine_kitchen
@@ -347,8 +423,29 @@ automation:
               entity_id: input_boolean.lamp_control_when_bright_outdoor_kitchen
               state: 'on'
             then:
-              service: homeassistant.turn_on
-              entity_id: []
+              if:
+                condition: state
+                entity_id: input_boolean.always_on_constant
+                state: 'on'
+              then:
+              - service: light.turn_on
+                entity_id: []
+              - if:
+                  condition: state
+                  entity_id: []
+                  state: color_temp
+                  attribute: color_mode
+                then:
+                  service: script.do_nothing
+                else:
+                - service: light.turn_on
+                  entity_id: []
+                  data:
+                    kelvin: '3000'
+                - service: light.turn_off
+                  entity_id: []
+                - service: light.turn_on
+                  entity_id: []
           - if:
               condition: state
               entity_id: input_boolean.led_control_when_bright_outdoor_kitchen
@@ -386,8 +483,29 @@ automation:
               entity_id: input_boolean.lamp_control_when_dark_outdoor_kitchen
               state: 'on'
             then:
-              service: homeassistant.turn_on
-              entity_id: []
+              if:
+                condition: state
+                entity_id: input_boolean.always_on_constant
+                state: 'on'
+              then:
+              - service: light.turn_on
+                entity_id: []
+              - if:
+                  condition: state
+                  entity_id: []
+                  state: color_temp
+                  attribute: color_mode
+                then:
+                  service: script.do_nothing
+                else:
+                - service: light.turn_on
+                  entity_id: []
+                  data:
+                    kelvin: '3000'
+                - service: light.turn_off
+                  entity_id: []
+                - service: light.turn_on
+                  entity_id: []
           - if:
               condition: state
               entity_id: input_boolean.led_control_when_dark_outdoor_kitchen

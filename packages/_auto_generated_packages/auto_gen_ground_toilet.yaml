@@ -65,9 +65,8 @@ automation:
       entity_id: automation.zl_0t_ceiling_lights_on_or_open_curtains_if_entering_to_room_ground_toilet
     - service: cover.close_cover
       entity_id: []
-    - service: homeassistant.turn_off
-      entity_id:
-      - media_player.ground_toilet_tv
+    - service: cover.close_cover
+      entity_id: []
     - service: script.call_room_scene
       data:
         room_scene_select: input_select.ground_toilet_scene
@@ -89,13 +88,16 @@ automation:
         entity_id: climate.ground_toilet
         state: heat
     then:
-    - service: climate.set_hvac_mode
-      data:
-        hvac_mode: heat
-      target:
+      if:
+        condition: state
+        entity_id: input_boolean.always_on_constant
+        state: 'on'
+      then:
+      - service: climate.set_hvac_mode
+        data:
+          hvac_mode: heat
         entity_id: climate.ground_toilet
-    - service: switch.turn_on
-      target:
+      - service: homeassistant.turn_on
         entity_id: switch.schedule_ground_toilet_temperature
 - alias: ZH-0T Heating Schedule Off If People Left the Room-Ground Toilet
   id: automation.zh_0t_heating_schedule_off_if_people_left_the_room_ground_toilet
@@ -112,13 +114,16 @@ automation:
   - condition: state
     entity_id: input_boolean.ground_toilet_heating_override
     state: 'off'
-  - service: climate.set_hvac_mode
-    data:
-      hvac_mode: 'off'
-    target:
+  - if:
+      condition: state
+      entity_id: input_boolean.always_on_constant
+      state: 'on'
+    then:
+    - service: climate.set_hvac_mode
+      data:
+        hvac_mode: 'off'
       entity_id: climate.ground_toilet
-  - service: switch.turn_off
-    target:
+    - service: homeassistant.turn_off
       entity_id: switch.schedule_ground_toilet_temperature
 - alias: ZH-0T Heating Manual Override-Ground Toilet
   mode: restart
@@ -174,13 +179,14 @@ automation:
         state: All White
       sequence:
       - parallel:
+        - service: cover.open_cover
+          entity_id: []
         - service: homeassistant.turn_on
           entity_id:
           - light.ground_toilet_ceiling_light
         - service: samsungtv_smart.select_picture_mode
           data:
-            entity_id:
-            - media_player.ground_toilet_tv
+            entity_id: []
             picture_mode: Standard
     - conditions:
       - condition: state
@@ -195,8 +201,7 @@ automation:
           - light.ground_toilet_ceiling_light
         - service: samsungtv_smart.select_picture_mode
           data:
-            entity_id:
-            - media_player.ground_toilet_tv
+            entity_id: []
             picture_mode: Standard
     - conditions:
       - condition: state
@@ -209,10 +214,11 @@ automation:
           - light.ground_toilet_ceiling_light
         - service: cover.open_cover
           entity_id: []
+        - service: cover.open_cover
+          entity_id: []
         - service: samsungtv_smart.select_picture_mode
           data:
-            entity_id:
-            - media_player.ground_toilet_tv
+            entity_id: []
             picture_mode: Standard
     - conditions:
       - condition: state
@@ -227,14 +233,15 @@ automation:
           entity_id: []
         - service: samsungtv_smart.select_picture_mode
           data:
-            entity_id:
-            - media_player.ground_toilet_tv
+            entity_id: []
             picture_mode: Natural
     - conditions:
       - condition: state
         entity_id: input_select.ground_toilet_scene
         state: Hue
       sequence:
+      - service: cover.open_cover
+        entity_id: []
       - service: light.turn_on
         entity_id: []
         data:
@@ -245,8 +252,7 @@ automation:
           - light.ground_toilet_ceiling_light
       - service: samsungtv_smart.select_picture_mode
         data:
-          entity_id:
-          - media_player.ground_toilet_tv
+          entity_id: []
           picture_mode: Standard
     - conditions:
       - condition: state
@@ -539,7 +545,6 @@ group:
     name: Ground Toilet Lights And Tvs
     entities:
     - light.ground_toilet_ceiling_light
-    - media_player.ground_toilet_tv
   ground_toilet_auto_gen_automations:
     name: Ground Toilet Auto-gen Automations
     entities:

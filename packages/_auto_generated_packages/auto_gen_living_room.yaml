@@ -89,13 +89,16 @@ automation:
         entity_id: climate.living_room
         state: heat
     then:
-    - service: climate.set_hvac_mode
-      data:
-        hvac_mode: heat
-      target:
+      if:
+        condition: state
+        entity_id: input_boolean.always_on_constant
+        state: 'on'
+      then:
+      - service: climate.set_hvac_mode
+        data:
+          hvac_mode: heat
         entity_id: climate.living_room
-    - service: switch.turn_on
-      target:
+      - service: homeassistant.turn_on
         entity_id: switch.schedule_living_room_temperature
 - alias: ZH-LR Heating Schedule Off If People Left the Room-Living Room
   id: automation.zh_lr_heating_schedule_off_if_people_left_the_room_living_room
@@ -112,13 +115,16 @@ automation:
   - condition: state
     entity_id: input_boolean.living_room_heating_override
     state: 'off'
-  - service: climate.set_hvac_mode
-    data:
-      hvac_mode: 'off'
-    target:
+  - if:
+      condition: state
+      entity_id: input_boolean.always_on_constant
+      state: 'on'
+    then:
+    - service: climate.set_hvac_mode
+      data:
+        hvac_mode: 'off'
       entity_id: climate.living_room
-  - service: switch.turn_off
-    target:
+    - service: homeassistant.turn_off
       entity_id: switch.schedule_living_room_temperature
 - alias: ZH-LR Heating Manual Override-Living Room
   mode: restart
@@ -224,13 +230,56 @@ automation:
         state: All White
       sequence:
       - parallel:
+        - if:
+            condition: state
+            entity_id: input_boolean.always_on_constant
+            state: 'on'
+          then:
+          - service: light.turn_on
+            entity_id:
+            - light.living_room_floor_light_1
+            - light.living_room_3_head_lamp_1
+            - light.living_room_3_head_lamp_2
+            - light.living_room_3_head_lamp_3
+            - switch.living_room_floor_light_3
+          - if:
+              condition: state
+              entity_id:
+              - light.living_room_floor_light_1
+              - light.living_room_3_head_lamp_1
+              - light.living_room_3_head_lamp_2
+              - light.living_room_3_head_lamp_3
+              - switch.living_room_floor_light_3
+              state: color_temp
+              attribute: color_mode
+            then:
+              service: script.do_nothing
+            else:
+            - service: light.turn_on
+              entity_id:
+              - light.living_room_floor_light_1
+              - light.living_room_3_head_lamp_1
+              - light.living_room_3_head_lamp_2
+              - light.living_room_3_head_lamp_3
+              - switch.living_room_floor_light_3
+              data:
+                kelvin: '3000'
+            - service: light.turn_off
+              entity_id:
+              - light.living_room_floor_light_1
+              - light.living_room_3_head_lamp_1
+              - light.living_room_3_head_lamp_2
+              - light.living_room_3_head_lamp_3
+              - switch.living_room_floor_light_3
+            - service: light.turn_on
+              entity_id:
+              - light.living_room_floor_light_1
+              - light.living_room_3_head_lamp_1
+              - light.living_room_3_head_lamp_2
+              - light.living_room_3_head_lamp_3
+              - switch.living_room_floor_light_3
         - service: homeassistant.turn_on
           entity_id:
-          - light.living_room_floor_light_1
-          - light.living_room_3_head_lamp_1
-          - light.living_room_3_head_lamp_2
-          - light.living_room_3_head_lamp_3
-          - switch.living_room_floor_light_3
           - light.living_room_ceiling_light
           - light.living_room_tv_led
           - light.living_room_sofa_led
@@ -271,13 +320,56 @@ automation:
         - service: homeassistant.turn_off
           entity_id:
           - light.living_room_ceiling_light
+        - if:
+            condition: state
+            entity_id: input_boolean.always_on_constant
+            state: 'on'
+          then:
+          - service: light.turn_on
+            entity_id:
+            - light.living_room_floor_light_1
+            - light.living_room_3_head_lamp_1
+            - light.living_room_3_head_lamp_2
+            - light.living_room_3_head_lamp_3
+            - switch.living_room_floor_light_3
+          - if:
+              condition: state
+              entity_id:
+              - light.living_room_floor_light_1
+              - light.living_room_3_head_lamp_1
+              - light.living_room_3_head_lamp_2
+              - light.living_room_3_head_lamp_3
+              - switch.living_room_floor_light_3
+              state: color_temp
+              attribute: color_mode
+            then:
+              service: script.do_nothing
+            else:
+            - service: light.turn_on
+              entity_id:
+              - light.living_room_floor_light_1
+              - light.living_room_3_head_lamp_1
+              - light.living_room_3_head_lamp_2
+              - light.living_room_3_head_lamp_3
+              - switch.living_room_floor_light_3
+              data:
+                kelvin: '3000'
+            - service: light.turn_off
+              entity_id:
+              - light.living_room_floor_light_1
+              - light.living_room_3_head_lamp_1
+              - light.living_room_3_head_lamp_2
+              - light.living_room_3_head_lamp_3
+              - switch.living_room_floor_light_3
+            - service: light.turn_on
+              entity_id:
+              - light.living_room_floor_light_1
+              - light.living_room_3_head_lamp_1
+              - light.living_room_3_head_lamp_2
+              - light.living_room_3_head_lamp_3
+              - switch.living_room_floor_light_3
         - service: homeassistant.turn_on
           entity_id:
-          - light.living_room_floor_light_1
-          - light.living_room_3_head_lamp_1
-          - light.living_room_3_head_lamp_2
-          - light.living_room_3_head_lamp_3
-          - switch.living_room_floor_light_3
           - light.living_room_tv_led
           - light.living_room_sofa_led
         - service: samsungtv_smart.select_picture_mode
@@ -313,6 +405,15 @@ automation:
         entity_id: input_select.living_room_scene
         state: Hue
       sequence:
+      - service: homeassistant.turn_on
+        entity_id:
+        - light.living_room_floor_light_1
+        - light.living_room_3_head_lamp_1
+        - light.living_room_3_head_lamp_2
+        - light.living_room_3_head_lamp_3
+        - switch.living_room_floor_light_3
+        - light.living_room_tv_led
+        - light.living_room_sofa_led
       - service: light.turn_on
         entity_id:
         - light.living_room_floor_light_1
@@ -392,13 +493,54 @@ automation:
               entity_id: input_boolean.lamp_control_in_hot_sunshine_living_room
               state: 'on'
             then:
-              service: homeassistant.turn_on
-              entity_id:
-              - light.living_room_floor_light_1
-              - light.living_room_3_head_lamp_1
-              - light.living_room_3_head_lamp_2
-              - light.living_room_3_head_lamp_3
-              - switch.living_room_floor_light_3
+              if:
+                condition: state
+                entity_id: input_boolean.always_on_constant
+                state: 'on'
+              then:
+              - service: light.turn_on
+                entity_id:
+                - light.living_room_floor_light_1
+                - light.living_room_3_head_lamp_1
+                - light.living_room_3_head_lamp_2
+                - light.living_room_3_head_lamp_3
+                - switch.living_room_floor_light_3
+              - if:
+                  condition: state
+                  entity_id:
+                  - light.living_room_floor_light_1
+                  - light.living_room_3_head_lamp_1
+                  - light.living_room_3_head_lamp_2
+                  - light.living_room_3_head_lamp_3
+                  - switch.living_room_floor_light_3
+                  state: color_temp
+                  attribute: color_mode
+                then:
+                  service: script.do_nothing
+                else:
+                - service: light.turn_on
+                  entity_id:
+                  - light.living_room_floor_light_1
+                  - light.living_room_3_head_lamp_1
+                  - light.living_room_3_head_lamp_2
+                  - light.living_room_3_head_lamp_3
+                  - switch.living_room_floor_light_3
+                  data:
+                    kelvin: '3000'
+                - service: light.turn_off
+                  entity_id:
+                  - light.living_room_floor_light_1
+                  - light.living_room_3_head_lamp_1
+                  - light.living_room_3_head_lamp_2
+                  - light.living_room_3_head_lamp_3
+                  - switch.living_room_floor_light_3
+                - service: light.turn_on
+                  entity_id:
+                  - light.living_room_floor_light_1
+                  - light.living_room_3_head_lamp_1
+                  - light.living_room_3_head_lamp_2
+                  - light.living_room_3_head_lamp_3
+                  - switch.living_room_floor_light_3
           - if:
               condition: state
               entity_id: input_boolean.led_control_in_hot_sunshine_living_room
@@ -435,13 +577,54 @@ automation:
               entity_id: input_boolean.lamp_control_when_bright_outdoor_living_room
               state: 'on'
             then:
-              service: homeassistant.turn_on
-              entity_id:
-              - light.living_room_floor_light_1
-              - light.living_room_3_head_lamp_1
-              - light.living_room_3_head_lamp_2
-              - light.living_room_3_head_lamp_3
-              - switch.living_room_floor_light_3
+              if:
+                condition: state
+                entity_id: input_boolean.always_on_constant
+                state: 'on'
+              then:
+              - service: light.turn_on
+                entity_id:
+                - light.living_room_floor_light_1
+                - light.living_room_3_head_lamp_1
+                - light.living_room_3_head_lamp_2
+                - light.living_room_3_head_lamp_3
+                - switch.living_room_floor_light_3
+              - if:
+                  condition: state
+                  entity_id:
+                  - light.living_room_floor_light_1
+                  - light.living_room_3_head_lamp_1
+                  - light.living_room_3_head_lamp_2
+                  - light.living_room_3_head_lamp_3
+                  - switch.living_room_floor_light_3
+                  state: color_temp
+                  attribute: color_mode
+                then:
+                  service: script.do_nothing
+                else:
+                - service: light.turn_on
+                  entity_id:
+                  - light.living_room_floor_light_1
+                  - light.living_room_3_head_lamp_1
+                  - light.living_room_3_head_lamp_2
+                  - light.living_room_3_head_lamp_3
+                  - switch.living_room_floor_light_3
+                  data:
+                    kelvin: '3000'
+                - service: light.turn_off
+                  entity_id:
+                  - light.living_room_floor_light_1
+                  - light.living_room_3_head_lamp_1
+                  - light.living_room_3_head_lamp_2
+                  - light.living_room_3_head_lamp_3
+                  - switch.living_room_floor_light_3
+                - service: light.turn_on
+                  entity_id:
+                  - light.living_room_floor_light_1
+                  - light.living_room_3_head_lamp_1
+                  - light.living_room_3_head_lamp_2
+                  - light.living_room_3_head_lamp_3
+                  - switch.living_room_floor_light_3
           - if:
               condition: state
               entity_id: input_boolean.led_control_when_bright_outdoor_living_room
@@ -478,13 +661,54 @@ automation:
               entity_id: input_boolean.lamp_control_when_dark_outdoor_living_room
               state: 'on'
             then:
-              service: homeassistant.turn_on
-              entity_id:
-              - light.living_room_floor_light_1
-              - light.living_room_3_head_lamp_1
-              - light.living_room_3_head_lamp_2
-              - light.living_room_3_head_lamp_3
-              - switch.living_room_floor_light_3
+              if:
+                condition: state
+                entity_id: input_boolean.always_on_constant
+                state: 'on'
+              then:
+              - service: light.turn_on
+                entity_id:
+                - light.living_room_floor_light_1
+                - light.living_room_3_head_lamp_1
+                - light.living_room_3_head_lamp_2
+                - light.living_room_3_head_lamp_3
+                - switch.living_room_floor_light_3
+              - if:
+                  condition: state
+                  entity_id:
+                  - light.living_room_floor_light_1
+                  - light.living_room_3_head_lamp_1
+                  - light.living_room_3_head_lamp_2
+                  - light.living_room_3_head_lamp_3
+                  - switch.living_room_floor_light_3
+                  state: color_temp
+                  attribute: color_mode
+                then:
+                  service: script.do_nothing
+                else:
+                - service: light.turn_on
+                  entity_id:
+                  - light.living_room_floor_light_1
+                  - light.living_room_3_head_lamp_1
+                  - light.living_room_3_head_lamp_2
+                  - light.living_room_3_head_lamp_3
+                  - switch.living_room_floor_light_3
+                  data:
+                    kelvin: '3000'
+                - service: light.turn_off
+                  entity_id:
+                  - light.living_room_floor_light_1
+                  - light.living_room_3_head_lamp_1
+                  - light.living_room_3_head_lamp_2
+                  - light.living_room_3_head_lamp_3
+                  - switch.living_room_floor_light_3
+                - service: light.turn_on
+                  entity_id:
+                  - light.living_room_floor_light_1
+                  - light.living_room_3_head_lamp_1
+                  - light.living_room_3_head_lamp_2
+                  - light.living_room_3_head_lamp_3
+                  - switch.living_room_floor_light_3
           - if:
               condition: state
               entity_id: input_boolean.led_control_when_dark_outdoor_living_room

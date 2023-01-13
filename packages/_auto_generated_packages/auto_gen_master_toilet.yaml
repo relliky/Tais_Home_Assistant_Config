@@ -65,9 +65,8 @@ automation:
       entity_id: automation.zl_mt_ceiling_lights_on_or_open_curtains_if_entering_to_room_master_toilet
     - service: cover.close_cover
       entity_id: []
-    - service: homeassistant.turn_off
-      entity_id:
-      - media_player.master_toilet_tv
+    - service: cover.close_cover
+      entity_id: []
     - service: script.call_room_scene
       data:
         room_scene_select: input_select.master_toilet_scene
@@ -89,13 +88,16 @@ automation:
         entity_id: climate.master_toilet
         state: heat
     then:
-    - service: climate.set_hvac_mode
-      data:
-        hvac_mode: heat
-      target:
+      if:
+        condition: state
+        entity_id: input_boolean.always_on_constant
+        state: 'on'
+      then:
+      - service: climate.set_hvac_mode
+        data:
+          hvac_mode: heat
         entity_id: climate.master_toilet
-    - service: switch.turn_on
-      target:
+      - service: homeassistant.turn_on
         entity_id: switch.schedule_master_toilet_temperature
 - alias: ZH-MT Heating Schedule Off If People Left the Room-Master Toilet
   id: automation.zh_mt_heating_schedule_off_if_people_left_the_room_master_toilet
@@ -112,13 +114,16 @@ automation:
   - condition: state
     entity_id: input_boolean.master_toilet_heating_override
     state: 'off'
-  - service: climate.set_hvac_mode
-    data:
-      hvac_mode: 'off'
-    target:
+  - if:
+      condition: state
+      entity_id: input_boolean.always_on_constant
+      state: 'on'
+    then:
+    - service: climate.set_hvac_mode
+      data:
+        hvac_mode: 'off'
       entity_id: climate.master_toilet
-  - service: switch.turn_off
-    target:
+    - service: homeassistant.turn_off
       entity_id: switch.schedule_master_toilet_temperature
 - alias: ZH-MT Heating Manual Override-Master Toilet
   mode: restart
@@ -174,14 +179,15 @@ automation:
         state: All White
       sequence:
       - parallel:
+        - service: cover.open_cover
+          entity_id: []
         - service: homeassistant.turn_on
           entity_id:
           - light.master_toilet_ceiling_light
           - switch.master_toilet_floor_led
         - service: samsungtv_smart.select_picture_mode
           data:
-            entity_id:
-            - media_player.master_toilet_tv
+            entity_id: []
             picture_mode: Standard
     - conditions:
       - condition: state
@@ -197,8 +203,7 @@ automation:
           - light.master_toilet_ceiling_light
         - service: samsungtv_smart.select_picture_mode
           data:
-            entity_id:
-            - media_player.master_toilet_tv
+            entity_id: []
             picture_mode: Standard
     - conditions:
       - condition: state
@@ -209,13 +214,14 @@ automation:
         - service: homeassistant.turn_off
           entity_id:
           - light.master_toilet_ceiling_light
+        - service: cover.open_cover
+          entity_id: []
         - service: homeassistant.turn_on
           entity_id:
           - switch.master_toilet_floor_led
         - service: samsungtv_smart.select_picture_mode
           data:
-            entity_id:
-            - media_player.master_toilet_tv
+            entity_id: []
             picture_mode: Standard
     - conditions:
       - condition: state
@@ -231,14 +237,16 @@ automation:
           - switch.master_toilet_floor_led
         - service: samsungtv_smart.select_picture_mode
           data:
-            entity_id:
-            - media_player.master_toilet_tv
+            entity_id: []
             picture_mode: Natural
     - conditions:
       - condition: state
         entity_id: input_select.master_toilet_scene
         state: Hue
       sequence:
+      - service: homeassistant.turn_on
+        entity_id:
+        - switch.master_toilet_floor_led
       - service: light.turn_on
         entity_id:
         - switch.master_toilet_floor_led
@@ -251,8 +259,7 @@ automation:
           - switch.master_toilet_floor_led
       - service: samsungtv_smart.select_picture_mode
         data:
-          entity_id:
-          - media_player.master_toilet_tv
+          entity_id: []
           picture_mode: Standard
     - conditions:
       - condition: state
@@ -563,7 +570,6 @@ group:
     entities:
     - switch.master_toilet_floor_led
     - light.master_toilet_ceiling_light
-    - media_player.master_toilet_tv
   master_toilet_auto_gen_automations:
     name: Master Toilet Auto-gen Automations
     entities:

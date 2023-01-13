@@ -65,9 +65,8 @@ automation:
       entity_id: automation.zl_gr_ceiling_lights_on_or_open_curtains_if_entering_to_room_guest_room
     - service: cover.close_cover
       entity_id: []
-    - service: homeassistant.turn_off
-      entity_id:
-      - media_player.guest_room_tv
+    - service: cover.close_cover
+      entity_id: []
     - service: script.call_room_scene
       data:
         room_scene_select: input_select.guest_room_scene
@@ -89,13 +88,16 @@ automation:
         entity_id: climate.guest_room
         state: heat
     then:
-    - service: climate.set_hvac_mode
-      data:
-        hvac_mode: heat
-      target:
+      if:
+        condition: state
+        entity_id: input_boolean.always_on_constant
+        state: 'on'
+      then:
+      - service: climate.set_hvac_mode
+        data:
+          hvac_mode: heat
         entity_id: climate.guest_room
-    - service: switch.turn_on
-      target:
+      - service: homeassistant.turn_on
         entity_id: switch.schedule_guest_room_temperature
 - alias: ZH-GR Heating Schedule Off If People Left the Room-Guest Room
   id: automation.zh_gr_heating_schedule_off_if_people_left_the_room_guest_room
@@ -112,13 +114,16 @@ automation:
   - condition: state
     entity_id: input_boolean.guest_room_heating_override
     state: 'off'
-  - service: climate.set_hvac_mode
-    data:
-      hvac_mode: 'off'
-    target:
+  - if:
+      condition: state
+      entity_id: input_boolean.always_on_constant
+      state: 'on'
+    then:
+    - service: climate.set_hvac_mode
+      data:
+        hvac_mode: 'off'
       entity_id: climate.guest_room
-  - service: switch.turn_off
-    target:
+    - service: homeassistant.turn_off
       entity_id: switch.schedule_guest_room_temperature
 - alias: ZH-GR Heating Manual Override-Guest Room
   mode: restart
@@ -167,14 +172,15 @@ automation:
         state: All White
       sequence:
       - parallel:
+        - service: cover.open_cover
+          entity_id: []
         - service: homeassistant.turn_on
           entity_id:
           - light.guest_room_ceiling_light
           - light.guest_room_bed_led
         - service: samsungtv_smart.select_picture_mode
           data:
-            entity_id:
-            - media_player.guest_room_tv
+            entity_id: []
             picture_mode: Standard
     - conditions:
       - condition: state
@@ -190,8 +196,7 @@ automation:
           - light.guest_room_ceiling_light
         - service: samsungtv_smart.select_picture_mode
           data:
-            entity_id:
-            - media_player.guest_room_tv
+            entity_id: []
             picture_mode: Standard
     - conditions:
       - condition: state
@@ -202,13 +207,14 @@ automation:
         - service: homeassistant.turn_off
           entity_id:
           - light.guest_room_ceiling_light
+        - service: cover.open_cover
+          entity_id: []
         - service: homeassistant.turn_on
           entity_id:
           - light.guest_room_bed_led
         - service: samsungtv_smart.select_picture_mode
           data:
-            entity_id:
-            - media_player.guest_room_tv
+            entity_id: []
             picture_mode: Standard
     - conditions:
       - condition: state
@@ -224,14 +230,16 @@ automation:
           - light.guest_room_bed_led
         - service: samsungtv_smart.select_picture_mode
           data:
-            entity_id:
-            - media_player.guest_room_tv
+            entity_id: []
             picture_mode: Natural
     - conditions:
       - condition: state
         entity_id: input_select.guest_room_scene
         state: Hue
       sequence:
+      - service: homeassistant.turn_on
+        entity_id:
+        - light.guest_room_bed_led
       - service: light.turn_on
         entity_id:
         - light.guest_room_bed_led
@@ -244,8 +252,7 @@ automation:
           - light.guest_room_bed_led
       - service: samsungtv_smart.select_picture_mode
         data:
-          entity_id:
-          - media_player.guest_room_tv
+          entity_id: []
           picture_mode: Standard
     - conditions:
       - condition: state
@@ -540,7 +547,6 @@ group:
     entities:
     - light.guest_room_bed_led
     - light.guest_room_ceiling_light
-    - media_player.guest_room_tv
   guest_room_auto_gen_automations:
     name: Guest Room Auto-gen Automations
     entities:

@@ -65,9 +65,8 @@ automation:
       entity_id: automation.zl_et_ceiling_lights_on_or_open_curtains_if_entering_to_room_en_suite_toilet
     - service: cover.close_cover
       entity_id: []
-    - service: homeassistant.turn_off
-      entity_id:
-      - media_player.en_suite_toilet_tv
+    - service: cover.close_cover
+      entity_id: []
     - service: script.call_room_scene
       data:
         room_scene_select: input_select.en_suite_toilet_scene
@@ -89,13 +88,16 @@ automation:
         entity_id: climate.en_suite_toilet
         state: heat
     then:
-    - service: climate.set_hvac_mode
-      data:
-        hvac_mode: heat
-      target:
+      if:
+        condition: state
+        entity_id: input_boolean.always_on_constant
+        state: 'on'
+      then:
+      - service: climate.set_hvac_mode
+        data:
+          hvac_mode: heat
         entity_id: climate.en_suite_toilet
-    - service: switch.turn_on
-      target:
+      - service: homeassistant.turn_on
         entity_id: switch.schedule_en_suite_toilet_temperature
 - alias: ZH-ET Heating Schedule Off If People Left the Room-En-suite Toilet
   id: automation.zh_et_heating_schedule_off_if_people_left_the_room_en_suite_toilet
@@ -112,13 +114,16 @@ automation:
   - condition: state
     entity_id: input_boolean.en_suite_toilet_heating_override
     state: 'off'
-  - service: climate.set_hvac_mode
-    data:
-      hvac_mode: 'off'
-    target:
+  - if:
+      condition: state
+      entity_id: input_boolean.always_on_constant
+      state: 'on'
+    then:
+    - service: climate.set_hvac_mode
+      data:
+        hvac_mode: 'off'
       entity_id: climate.en_suite_toilet
-  - service: switch.turn_off
-    target:
+    - service: homeassistant.turn_off
       entity_id: switch.schedule_en_suite_toilet_temperature
 - alias: ZH-ET Heating Manual Override-En-suite Toilet
   mode: restart
@@ -167,13 +172,14 @@ automation:
         state: All White
       sequence:
       - parallel:
+        - service: cover.open_cover
+          entity_id: []
         - service: homeassistant.turn_on
           entity_id:
           - light.en_suite_toilet_ceiling_light
         - service: samsungtv_smart.select_picture_mode
           data:
-            entity_id:
-            - media_player.en_suite_toilet_tv
+            entity_id: []
             picture_mode: Standard
     - conditions:
       - condition: state
@@ -188,8 +194,7 @@ automation:
           - light.en_suite_toilet_ceiling_light
         - service: samsungtv_smart.select_picture_mode
           data:
-            entity_id:
-            - media_player.en_suite_toilet_tv
+            entity_id: []
             picture_mode: Standard
     - conditions:
       - condition: state
@@ -202,10 +207,11 @@ automation:
           - light.en_suite_toilet_ceiling_light
         - service: cover.open_cover
           entity_id: []
+        - service: cover.open_cover
+          entity_id: []
         - service: samsungtv_smart.select_picture_mode
           data:
-            entity_id:
-            - media_player.en_suite_toilet_tv
+            entity_id: []
             picture_mode: Standard
     - conditions:
       - condition: state
@@ -220,14 +226,15 @@ automation:
           entity_id: []
         - service: samsungtv_smart.select_picture_mode
           data:
-            entity_id:
-            - media_player.en_suite_toilet_tv
+            entity_id: []
             picture_mode: Natural
     - conditions:
       - condition: state
         entity_id: input_select.en_suite_toilet_scene
         state: Hue
       sequence:
+      - service: cover.open_cover
+        entity_id: []
       - service: light.turn_on
         entity_id: []
         data:
@@ -238,8 +245,7 @@ automation:
           - light.en_suite_toilet_ceiling_light
       - service: samsungtv_smart.select_picture_mode
         data:
-          entity_id:
-          - media_player.en_suite_toilet_tv
+          entity_id: []
           picture_mode: Standard
     - conditions:
       - condition: state
@@ -528,7 +534,6 @@ group:
     name: En Suite Toilet Lights And Tvs
     entities:
     - light.en_suite_toilet_ceiling_light
-    - media_player.en_suite_toilet_tv
   en_suite_toilet_auto_gen_automations:
     name: En-suite Toilet Auto-gen Automations
     entities:

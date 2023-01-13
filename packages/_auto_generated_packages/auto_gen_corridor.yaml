@@ -16,13 +16,16 @@ automation:
         entity_id: climate.corridor
         state: heat
     then:
-    - service: climate.set_hvac_mode
-      data:
-        hvac_mode: heat
-      target:
+      if:
+        condition: state
+        entity_id: input_boolean.always_on_constant
+        state: 'on'
+      then:
+      - service: climate.set_hvac_mode
+        data:
+          hvac_mode: heat
         entity_id: climate.corridor
-    - service: switch.turn_on
-      target:
+      - service: homeassistant.turn_on
         entity_id: switch.schedule_corridor_temperature
 - alias: ZH-CR Heating Schedule Off If People Left the Room-Corridor
   id: automation.zh_cr_heating_schedule_off_if_people_left_the_room_corridor
@@ -39,13 +42,16 @@ automation:
   - condition: state
     entity_id: input_boolean.corridor_heating_override
     state: 'off'
-  - service: climate.set_hvac_mode
-    data:
-      hvac_mode: 'off'
-    target:
+  - if:
+      condition: state
+      entity_id: input_boolean.always_on_constant
+      state: 'on'
+    then:
+    - service: climate.set_hvac_mode
+      data:
+        hvac_mode: 'off'
       entity_id: climate.corridor
-  - service: switch.turn_off
-    target:
+    - service: homeassistant.turn_off
       entity_id: switch.schedule_corridor_temperature
 - alias: ZH-CR Heating Manual Override-Corridor
   mode: restart
@@ -185,7 +191,6 @@ group:
     name: Corridor Lights And Tvs
     entities:
     - light.corridor_ceiling_light
-    - media_player.corridor_tv
   corridor_auto_gen_automations:
     name: Corridor Auto-gen Automations
     entities:
