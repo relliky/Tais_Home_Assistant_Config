@@ -3,7 +3,7 @@
 # Integration Instantiated in yaml
 #
 ###########################################
-
+#
 # Added MagicHome LEDs
 # This is a third-party custom component on flux_led
 # instead of the official one from HA
@@ -31,84 +31,84 @@
 #    cold_tolerance: 0.1
 #    hot_tolerance: 0.1
 #    initial_hvac_mode: "heat"
-
-# Room Motion
-group:
-  guest_room_entrance_motion:
-    name: Guest Room Entrance Motion
-    entities:
-      - binary_sensor.guest_room_door_motion_sensor_motion
-
-  guest_room_appliances:
-    name: Guest Room Appliances
-    entities:
-      - climate.guest_room
-      - light.guest_room_ceiling_light
-
-# Custom Variables
-input_boolean:
-  # Spare Room Usage
-  guest_room_guests_use_this_room:
-    name: "Guest Room Guests Use This Room"
-
-  # Custom Thermostat Switch
-  guest_room_valve_switch:
-    name: "Guest Room Valve Switch"
-
-  # First Time Presence in a Room
-  guest_room_short_presence: # done
-    name: "Guest Room Short Presence"
-    initial: "off"
-
+#
+## Room Motion
+#group:
+#  guest_room_entrance_motion:
+#    name: Guest Room Entrance Motion
+#    entities:
+#      - binary_sensor.guest_room_door_motion_sensor_motion
+#
+#  guest_room_appliances:
+#    name: Guest Room Appliances
+#    entities:
+#      - climate.guest_room
+#      - light.guest_room_ceiling_light
+#
+## Custom Variables
+#input_boolean:
+#  # Spare Room Usage
+#  guest_room_guests_use_this_room:
+#    name: "Guest Room Guests Use This Room"
+#
+#  # Custom Thermostat Switch
+#  guest_room_valve_switch:
+#    name: "Guest Room Valve Switch"
+#
+#  # First Time Presence in a Room
+#  guest_room_short_presence: # done
+#    name: "Guest Room Short Presence"
+#    initial: "off"
+#
 ###############################################
 #
 # Scripts
 #
 ###############################################
-script:
-  guest_room_all_lights_turn_on:
-    alias: Guest Room All Lights Turn On
-    mode: parallel
-    max: 100
-    sequence:
-      - service: light.turn_on
-        entity_id:
-          - light.guest_room_ceiling_light
-
-  guest_room_all_lights_turn_off:
-    alias: Guest Room All Lights Turn Off
-    mode: parallel
-    max: 100
-    sequence:
-      #- service: switch.turn_off
-      #  entity_id:
-      #    - switch.guest_room_screen_led
-      - service: light.turn_off
-        entity_id:
-          #    - light.guest_room_lamps
-          - light.guest_room_ceiling_light
-
-  guest_room_set_heating_temp_with_state_maintaince:
-    alias: Guest Room Set Heating Temperature With State Maintaince
-    mode: restart
-    sequence:
-      # Clear flags
-      - service: input_boolean.turn_off
-        entity_id: input_boolean.guest_room_short_presence
-      # Turn on Heating
-      - data:
-          hvac_mode: heat
-        entity_id: climate.guest_room
-        service: climate.set_hvac_mode
-      - data:
-          temperature: 22
-        entity_id: climate.guest_room
-        service: climate.set_temperature
-      - data:
-          stop_actions: false
-        entity_id: automation.guest_room_heating_on_if_people_present
-        service: automation.turn_off
-
+#script:
+#  guest_room_all_lights_turn_on:
+#    alias: Guest Room All Lights Turn On
+#    mode: parallel
+#    max: 100
+#    sequence:
+#      - service: light.turn_on
+#        entity_id:
+#          - light.guest_room_ceiling_light
+#
+#  guest_room_all_lights_turn_off:
+#    alias: Guest Room All Lights Turn Off
+#    mode: parallel
+#    max: 100
+#    sequence:
+#      #- service: switch.turn_off
+#      #  entity_id:
+#      #    - switch.guest_room_screen_led
+#      - service: light.turn_off
+#        entity_id:
+#          #    - light.guest_room_lamps
+#          - light.guest_room_ceiling_light
+#
+#  guest_room_set_heating_temp_with_state_maintaince:
+#    alias: Guest Room Set Heating Temperature With State Maintaince
+#    mode: restart
+#    sequence:
+#      # Clear flags
+#      - service: input_boolean.turn_off
+#        entity_id: input_boolean.guest_room_short_presence
+#      # Turn on Heating
+#      - data:
+#          hvac_mode: heat
+#        entity_id: climate.guest_room
+#        service: climate.set_hvac_mode
+#      - data:
+#          temperature: 22
+#        entity_id: climate.guest_room
+#        service: climate.set_temperature
+#      - data:
+#          stop_actions: false
+#        entity_id: automation.guest_room_heating_on_if_people_present
+#        service: automation.turn_off
+#
 ###############################################
 #
 # Automations:

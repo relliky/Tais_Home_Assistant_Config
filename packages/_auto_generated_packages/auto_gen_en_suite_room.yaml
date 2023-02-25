@@ -24,25 +24,226 @@ automation:
       entity_id: input_boolean.always_on_constant
       state: 'on'
     then:
-      service: script.call_room_scene
-      data:
-        room_scene_select: input_select.en_suite_room_scene
-        scene: Lights on in hot sunshine
+      alias: ''
+      if:
+        condition: state
+        entity_id: input_boolean.always_on_constant
+        state: 'on'
+      then:
+      - parallel:
+        - parallel:
+          - if:
+              condition: state
+              entity_id: input_boolean.ceiling_light_control_in_hot_sunshine_en_suite_room
+              state: 'on'
+            then:
+              service: homeassistant.turn_on
+              entity_id:
+              - light.en_suite_room_ceiling_light
+          - if:
+              condition: state
+              entity_id: input_boolean.lamp_control_in_hot_sunshine_en_suite_room
+              state: 'on'
+            then:
+              alias: Turn on lamps first and check if light colour is white. Reset colour lamps to white and apply adaptive lighting.
+              if:
+                condition: state
+                entity_id: input_boolean.always_on_constant
+                state: 'on'
+              then:
+              - service: light.turn_on
+                entity_id:
+                - light.en_suite_room_lamp_1
+                - light.en_suite_room_lamp_2
+              - if:
+                  condition: state
+                  entity_id:
+                  - light.en_suite_room_lamp_1
+                  - light.en_suite_room_lamp_2
+                  state: color_temp
+                  attribute: color_mode
+                then:
+                  service: script.do_nothing
+                else:
+                - service: light.turn_on
+                  entity_id:
+                  - light.en_suite_room_lamp_1
+                  - light.en_suite_room_lamp_2
+                  data:
+                    kelvin: '3000'
+                - service: light.turn_off
+                  entity_id:
+                  - light.en_suite_room_lamp_1
+                  - light.en_suite_room_lamp_2
+                - service: light.turn_on
+                  entity_id:
+                  - light.en_suite_room_lamp_1
+                  - light.en_suite_room_lamp_2
+          - if:
+              condition: state
+              entity_id: input_boolean.led_control_in_hot_sunshine_en_suite_room
+              state: 'on'
+            then:
+              service: homeassistant.turn_on
+              entity_id:
+              - light.en_suite_room_bed_led
+          - if:
+              condition: state
+              entity_id: input_boolean.curtain_control_in_hot_sunshine_en_suite_room
+              state: 'on'
+            then:
+              service: cover.open_cover
+              entity_id:
+              - cover.en_suite_room_curtain
     else:
       if:
       - condition: state
         entity_id: sun.sun
         state: above_horizon
       then:
-        service: script.call_room_scene
-        data:
-          room_scene_select: input_select.en_suite_room_scene
-          scene: Lights on when bright outdoor
+        alias: ''
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+        - parallel:
+          - parallel:
+            - if:
+                condition: state
+                entity_id: input_boolean.ceiling_light_control_when_bright_outdoor_en_suite_room
+                state: 'on'
+              then:
+                service: homeassistant.turn_on
+                entity_id:
+                - light.en_suite_room_ceiling_light
+            - if:
+                condition: state
+                entity_id: input_boolean.lamp_control_when_bright_outdoor_en_suite_room
+                state: 'on'
+              then:
+                alias: Turn on lamps first and check if light colour is white. Reset colour lamps to white and apply adaptive lighting.
+                if:
+                  condition: state
+                  entity_id: input_boolean.always_on_constant
+                  state: 'on'
+                then:
+                - service: light.turn_on
+                  entity_id:
+                  - light.en_suite_room_lamp_1
+                  - light.en_suite_room_lamp_2
+                - if:
+                    condition: state
+                    entity_id:
+                    - light.en_suite_room_lamp_1
+                    - light.en_suite_room_lamp_2
+                    state: color_temp
+                    attribute: color_mode
+                  then:
+                    service: script.do_nothing
+                  else:
+                  - service: light.turn_on
+                    entity_id:
+                    - light.en_suite_room_lamp_1
+                    - light.en_suite_room_lamp_2
+                    data:
+                      kelvin: '3000'
+                  - service: light.turn_off
+                    entity_id:
+                    - light.en_suite_room_lamp_1
+                    - light.en_suite_room_lamp_2
+                  - service: light.turn_on
+                    entity_id:
+                    - light.en_suite_room_lamp_1
+                    - light.en_suite_room_lamp_2
+            - if:
+                condition: state
+                entity_id: input_boolean.led_control_when_bright_outdoor_en_suite_room
+                state: 'on'
+              then:
+                service: homeassistant.turn_on
+                entity_id:
+                - light.en_suite_room_bed_led
+            - if:
+                condition: state
+                entity_id: input_boolean.curtain_control_when_bright_outdoor_en_suite_room
+                state: 'on'
+              then:
+                service: cover.open_cover
+                entity_id:
+                - cover.en_suite_room_curtain
       else:
-        service: script.call_room_scene
-        data:
-          room_scene_select: input_select.en_suite_room_scene
-          scene: Lights on when dark outdoor
+        alias: ''
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+        - parallel:
+          - parallel:
+            - if:
+                condition: state
+                entity_id: input_boolean.ceiling_light_control_when_dark_outdoor_en_suite_room
+                state: 'on'
+              then:
+                service: homeassistant.turn_on
+                entity_id:
+                - light.en_suite_room_ceiling_light
+            - if:
+                condition: state
+                entity_id: input_boolean.lamp_control_when_dark_outdoor_en_suite_room
+                state: 'on'
+              then:
+                alias: Turn on lamps first and check if light colour is white. Reset colour lamps to white and apply adaptive lighting.
+                if:
+                  condition: state
+                  entity_id: input_boolean.always_on_constant
+                  state: 'on'
+                then:
+                - service: light.turn_on
+                  entity_id:
+                  - light.en_suite_room_lamp_1
+                  - light.en_suite_room_lamp_2
+                - if:
+                    condition: state
+                    entity_id:
+                    - light.en_suite_room_lamp_1
+                    - light.en_suite_room_lamp_2
+                    state: color_temp
+                    attribute: color_mode
+                  then:
+                    service: script.do_nothing
+                  else:
+                  - service: light.turn_on
+                    entity_id:
+                    - light.en_suite_room_lamp_1
+                    - light.en_suite_room_lamp_2
+                    data:
+                      kelvin: '3000'
+                  - service: light.turn_off
+                    entity_id:
+                    - light.en_suite_room_lamp_1
+                    - light.en_suite_room_lamp_2
+                  - service: light.turn_on
+                    entity_id:
+                    - light.en_suite_room_lamp_1
+                    - light.en_suite_room_lamp_2
+            - if:
+                condition: state
+                entity_id: input_boolean.led_control_when_dark_outdoor_en_suite_room
+                state: 'on'
+              then:
+                service: homeassistant.turn_on
+                entity_id:
+                - light.en_suite_room_bed_led
+            - if:
+                condition: state
+                entity_id: input_boolean.curtain_control_when_dark_outdoor_en_suite_room
+                state: 'on'
+              then:
+                service: cover.open_cover
+                entity_id:
+                - cover.en_suite_room_curtain
 - alias: ZL-ER Lights Off If No Person-En-suite Room
   id: automation.zl_er_lights_off_if_no_person_en_suite_room
   trigger:
@@ -69,10 +270,19 @@ automation:
     - service: homeassistant.turn_off
       entity_id:
       - media_player.portable_tv
-    - service: script.call_room_scene
-      data:
-        room_scene_select: input_select.en_suite_room_scene
-        scene: All Off
+    - alias: ''
+      if:
+        condition: state
+        entity_id: input_boolean.always_on_constant
+        state: 'on'
+      then:
+      - parallel:
+        - service: homeassistant.turn_off
+          entity_id:
+          - light.en_suite_room_lamp_1
+          - light.en_suite_room_lamp_2
+          - light.en_suite_room_ceiling_light
+          - light.en_suite_room_bed_led
 - alias: ZL-ER LED On for 3 Min if Walking In the Dark-En-suite Room
   mode: restart
   trigger:
@@ -96,7 +306,13 @@ automation:
     - light.en_suite_room_bed_led
     data:
       brightness_pct: 40
-  - delay: 00:03:00
+  - alias: Wait for floor sensors to go off for 1 min to turn off LED. Stop waiting if it has wait for 1 hour.
+    wait_for_trigger:
+      platform: state
+      entity_id: binary_sensor.en_suite_room_floor_motion_sensor_motion
+      to: 'off'
+      for: 00:01:00
+    timeout: 01:00:00
   - entity_id:
     - light.en_suite_room_ceiling_light
     - light.en_suite_room_lamp_1
@@ -124,6 +340,7 @@ automation:
         entity_id: climate.en_suite_room
         state: heat
     then:
+      alias: ''
       if:
         condition: state
         entity_id: input_boolean.always_on_constant
@@ -150,7 +367,8 @@ automation:
   - condition: state
     entity_id: input_boolean.en_suite_room_heating_override
     state: 'off'
-  - if:
+  - alias: ''
+    if:
       condition: state
       entity_id: input_boolean.always_on_constant
       state: 'on'
@@ -224,42 +442,207 @@ automation:
         entity_id: input_select.en_suite_room_scene
         state: All Off
       sequence:
-        service: script.call_room_scene
-        data:
-          room_scene_select: input_select.en_suite_room_scene
-          scene: All White
+        alias: ''
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+        - parallel:
+          - alias: Turn on lamps first and check if light colour is white. Reset colour lamps to white and apply adaptive lighting.
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+            - service: light.turn_on
+              entity_id:
+              - light.en_suite_room_lamp_1
+              - light.en_suite_room_lamp_2
+            - if:
+                condition: state
+                entity_id:
+                - light.en_suite_room_lamp_1
+                - light.en_suite_room_lamp_2
+                state: color_temp
+                attribute: color_mode
+              then:
+                service: script.do_nothing
+              else:
+              - service: light.turn_on
+                entity_id:
+                - light.en_suite_room_lamp_1
+                - light.en_suite_room_lamp_2
+                data:
+                  kelvin: '3000'
+              - service: light.turn_off
+                entity_id:
+                - light.en_suite_room_lamp_1
+                - light.en_suite_room_lamp_2
+              - service: light.turn_on
+                entity_id:
+                - light.en_suite_room_lamp_1
+                - light.en_suite_room_lamp_2
+          - service: homeassistant.turn_on
+            entity_id:
+            - light.en_suite_room_ceiling_light
+            - light.en_suite_room_bed_led
+          - service: samsungtv_smart.select_picture_mode
+            data:
+              entity_id:
+              - media_player.portable_tv
+              picture_mode: Standard
     - conditions:
         condition: state
         entity_id: input_select.en_suite_room_scene
         state: All White
       sequence:
-        service: script.call_room_scene
-        data:
-          room_scene_select: input_select.en_suite_room_scene
-          scene: Lamp LED White
+        alias: ''
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+        - parallel:
+          - service: homeassistant.turn_off
+            entity_id:
+            - light.en_suite_room_ceiling_light
+          - alias: Turn on lamps first and check if light colour is white. Reset colour lamps to white and apply adaptive lighting.
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+            - service: light.turn_on
+              entity_id:
+              - light.en_suite_room_lamp_1
+              - light.en_suite_room_lamp_2
+            - if:
+                condition: state
+                entity_id:
+                - light.en_suite_room_lamp_1
+                - light.en_suite_room_lamp_2
+                state: color_temp
+                attribute: color_mode
+              then:
+                service: script.do_nothing
+              else:
+              - service: light.turn_on
+                entity_id:
+                - light.en_suite_room_lamp_1
+                - light.en_suite_room_lamp_2
+                data:
+                  kelvin: '3000'
+              - service: light.turn_off
+                entity_id:
+                - light.en_suite_room_lamp_1
+                - light.en_suite_room_lamp_2
+              - service: light.turn_on
+                entity_id:
+                - light.en_suite_room_lamp_1
+                - light.en_suite_room_lamp_2
+          - service: homeassistant.turn_on
+            entity_id:
+            - light.en_suite_room_bed_led
+          - service: samsungtv_smart.select_picture_mode
+            data:
+              entity_id:
+              - media_player.portable_tv
+              picture_mode: Standard
     - conditions:
         condition: state
         entity_id: input_select.en_suite_room_scene
         state: Lamp LED White
       sequence:
-        service: script.call_room_scene
-        data:
-          room_scene_select: input_select.en_suite_room_scene
-          scene: LED White
+        alias: ''
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+        - parallel:
+          - service: homeassistant.turn_off
+            entity_id:
+            - light.en_suite_room_ceiling_light
+            - light.en_suite_room_lamp_1
+            - light.en_suite_room_lamp_2
+          - service: homeassistant.turn_on
+            entity_id:
+            - light.en_suite_room_bed_led
+          - service: samsungtv_smart.select_picture_mode
+            data:
+              entity_id:
+              - media_player.portable_tv
+              picture_mode: Natural
     - conditions:
         condition: state
         entity_id: input_select.en_suite_room_scene
         state: LED White
       sequence:
-        service: script.call_room_scene
-        data:
-          room_scene_select: input_select.en_suite_room_scene
-          scene: All Off
+        alias: ''
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+        - parallel:
+          - service: homeassistant.turn_off
+            entity_id:
+            - light.en_suite_room_lamp_1
+            - light.en_suite_room_lamp_2
+            - light.en_suite_room_ceiling_light
+            - light.en_suite_room_bed_led
     default:
-      service: script.call_room_scene
-      data:
-        room_scene_select: input_select.en_suite_room_scene
-        scene: All White
+      alias: ''
+      if:
+        condition: state
+        entity_id: input_boolean.always_on_constant
+        state: 'on'
+      then:
+      - parallel:
+        - alias: Turn on lamps first and check if light colour is white. Reset colour lamps to white and apply adaptive lighting.
+          if:
+            condition: state
+            entity_id: input_boolean.always_on_constant
+            state: 'on'
+          then:
+          - service: light.turn_on
+            entity_id:
+            - light.en_suite_room_lamp_1
+            - light.en_suite_room_lamp_2
+          - if:
+              condition: state
+              entity_id:
+              - light.en_suite_room_lamp_1
+              - light.en_suite_room_lamp_2
+              state: color_temp
+              attribute: color_mode
+            then:
+              service: script.do_nothing
+            else:
+            - service: light.turn_on
+              entity_id:
+              - light.en_suite_room_lamp_1
+              - light.en_suite_room_lamp_2
+              data:
+                kelvin: '3000'
+            - service: light.turn_off
+              entity_id:
+              - light.en_suite_room_lamp_1
+              - light.en_suite_room_lamp_2
+            - service: light.turn_on
+              entity_id:
+              - light.en_suite_room_lamp_1
+              - light.en_suite_room_lamp_2
+        - service: homeassistant.turn_on
+          entity_id:
+          - light.en_suite_room_ceiling_light
+          - light.en_suite_room_bed_led
+        - service: samsungtv_smart.select_picture_mode
+          data:
+            entity_id:
+            - media_player.portable_tv
+            picture_mode: Standard
   id: automation.zlb_er_remote_button_single_applies_different_scenes_state_machine_en_suite_room
 - alias: ZL-ER Applies Different Scenes Based on Scene Selections (State Execution)-En-suite Room
   trigger:
@@ -273,113 +656,193 @@ automation:
         entity_id: input_select.en_suite_room_scene
         state: All White
       sequence:
-      - parallel:
-        - if:
-            condition: state
-            entity_id: input_boolean.always_on_constant
-            state: 'on'
-          then:
-          - service: light.turn_on
-            entity_id:
-            - light.en_suite_room_lamp_1
-            - light.en_suite_room_lamp_2
-          - if:
+        alias: ''
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+        - parallel:
+          - alias: Turn on lamps first and check if light colour is white. Reset colour lamps to white and apply adaptive lighting.
+            if:
               condition: state
-              entity_id:
-              - light.en_suite_room_lamp_1
-              - light.en_suite_room_lamp_2
-              state: color_temp
-              attribute: color_mode
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
             then:
-              service: script.do_nothing
-            else:
             - service: light.turn_on
               entity_id:
               - light.en_suite_room_lamp_1
               - light.en_suite_room_lamp_2
-              data:
-                kelvin: '3000'
-            - service: light.turn_off
-              entity_id:
-              - light.en_suite_room_lamp_1
-              - light.en_suite_room_lamp_2
-            - service: light.turn_on
-              entity_id:
-              - light.en_suite_room_lamp_1
-              - light.en_suite_room_lamp_2
-        - service: homeassistant.turn_on
-          entity_id:
-          - light.en_suite_room_ceiling_light
-          - light.en_suite_room_bed_led
-        - service: samsungtv_smart.select_picture_mode
-          data:
+            - if:
+                condition: state
+                entity_id:
+                - light.en_suite_room_lamp_1
+                - light.en_suite_room_lamp_2
+                state: color_temp
+                attribute: color_mode
+              then:
+                service: script.do_nothing
+              else:
+              - service: light.turn_on
+                entity_id:
+                - light.en_suite_room_lamp_1
+                - light.en_suite_room_lamp_2
+                data:
+                  kelvin: '3000'
+              - service: light.turn_off
+                entity_id:
+                - light.en_suite_room_lamp_1
+                - light.en_suite_room_lamp_2
+              - service: light.turn_on
+                entity_id:
+                - light.en_suite_room_lamp_1
+                - light.en_suite_room_lamp_2
+          - service: homeassistant.turn_on
             entity_id:
-            - media_player.portable_tv
-            picture_mode: Standard
+            - light.en_suite_room_ceiling_light
+            - light.en_suite_room_bed_led
+          - service: samsungtv_smart.select_picture_mode
+            data:
+              entity_id:
+              - media_player.portable_tv
+              picture_mode: Standard
     - conditions:
       - condition: state
         entity_id: input_select.en_suite_room_scene
         state: Ceiling Light White
       sequence:
-      - parallel:
-        - service: homeassistant.turn_off
-          entity_id:
-          - light.en_suite_room_bed_led
-          - light.en_suite_room_lamp_1
-          - light.en_suite_room_lamp_2
-        - service: homeassistant.turn_on
-          entity_id:
-          - light.en_suite_room_ceiling_light
-        - service: samsungtv_smart.select_picture_mode
-          data:
+        alias: ''
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+        - parallel:
+          - service: homeassistant.turn_off
             entity_id:
-            - media_player.portable_tv
-            picture_mode: Standard
+            - light.en_suite_room_bed_led
+            - light.en_suite_room_lamp_1
+            - light.en_suite_room_lamp_2
+          - service: homeassistant.turn_on
+            entity_id:
+            - light.en_suite_room_ceiling_light
+          - service: samsungtv_smart.select_picture_mode
+            data:
+              entity_id:
+              - media_player.portable_tv
+              picture_mode: Standard
     - conditions:
       - condition: state
         entity_id: input_select.en_suite_room_scene
         state: Lamp LED White
       sequence:
-      - parallel:
-        - service: homeassistant.turn_off
-          entity_id:
-          - light.en_suite_room_ceiling_light
-        - if:
-            condition: state
-            entity_id: input_boolean.always_on_constant
-            state: 'on'
-          then:
-          - service: light.turn_on
+        alias: ''
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+        - parallel:
+          - service: homeassistant.turn_off
             entity_id:
+            - light.en_suite_room_ceiling_light
+          - alias: Turn on lamps first and check if light colour is white. Reset colour lamps to white and apply adaptive lighting.
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+            - service: light.turn_on
+              entity_id:
+              - light.en_suite_room_lamp_1
+              - light.en_suite_room_lamp_2
+            - if:
+                condition: state
+                entity_id:
+                - light.en_suite_room_lamp_1
+                - light.en_suite_room_lamp_2
+                state: color_temp
+                attribute: color_mode
+              then:
+                service: script.do_nothing
+              else:
+              - service: light.turn_on
+                entity_id:
+                - light.en_suite_room_lamp_1
+                - light.en_suite_room_lamp_2
+                data:
+                  kelvin: '3000'
+              - service: light.turn_off
+                entity_id:
+                - light.en_suite_room_lamp_1
+                - light.en_suite_room_lamp_2
+              - service: light.turn_on
+                entity_id:
+                - light.en_suite_room_lamp_1
+                - light.en_suite_room_lamp_2
+          - service: homeassistant.turn_on
+            entity_id:
+            - light.en_suite_room_bed_led
+          - service: samsungtv_smart.select_picture_mode
+            data:
+              entity_id:
+              - media_player.portable_tv
+              picture_mode: Standard
+    - conditions:
+      - condition: state
+        entity_id: input_select.en_suite_room_scene
+        state: LED White
+      sequence:
+        alias: ''
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+        - parallel:
+          - service: homeassistant.turn_off
+            entity_id:
+            - light.en_suite_room_ceiling_light
             - light.en_suite_room_lamp_1
             - light.en_suite_room_lamp_2
-          - if:
-              condition: state
+          - service: homeassistant.turn_on
+            entity_id:
+            - light.en_suite_room_bed_led
+          - service: samsungtv_smart.select_picture_mode
+            data:
               entity_id:
-              - light.en_suite_room_lamp_1
-              - light.en_suite_room_lamp_2
-              state: color_temp
-              attribute: color_mode
-            then:
-              service: script.do_nothing
-            else:
-            - service: light.turn_on
-              entity_id:
-              - light.en_suite_room_lamp_1
-              - light.en_suite_room_lamp_2
-              data:
-                kelvin: '3000'
-            - service: light.turn_off
-              entity_id:
-              - light.en_suite_room_lamp_1
-              - light.en_suite_room_lamp_2
-            - service: light.turn_on
-              entity_id:
-              - light.en_suite_room_lamp_1
-              - light.en_suite_room_lamp_2
+              - media_player.portable_tv
+              picture_mode: Natural
+    - conditions:
+      - condition: state
+        entity_id: input_select.en_suite_room_scene
+        state: Hue
+      sequence:
+        alias: ''
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
         - service: homeassistant.turn_on
           entity_id:
+          - light.en_suite_room_lamp_1
+          - light.en_suite_room_lamp_2
           - light.en_suite_room_bed_led
+        - service: light.turn_on
+          entity_id:
+          - light.en_suite_room_lamp_1
+          - light.en_suite_room_lamp_2
+          - light.en_suite_room_bed_led
+          data:
+            brightness_pct: 100
+        - service: pyscript.set_rgb_light_list
+          data:
+            light_list:
+            - light.en_suite_room_lamp_1
+            - light.en_suite_room_lamp_2
+            - light.en_suite_room_ceiling_light
+            - light.en_suite_room_bed_led
         - service: samsungtv_smart.select_picture_mode
           data:
             entity_id:
@@ -388,286 +851,277 @@ automation:
     - conditions:
       - condition: state
         entity_id: input_select.en_suite_room_scene
-        state: LED White
-      sequence:
-      - parallel:
-        - service: homeassistant.turn_off
-          entity_id:
-          - light.en_suite_room_ceiling_light
-          - light.en_suite_room_lamp_1
-          - light.en_suite_room_lamp_2
-        - service: homeassistant.turn_on
-          entity_id:
-          - light.en_suite_room_bed_led
-        - service: samsungtv_smart.select_picture_mode
-          data:
-            entity_id:
-            - media_player.portable_tv
-            picture_mode: Natural
-    - conditions:
-      - condition: state
-        entity_id: input_select.en_suite_room_scene
-        state: Hue
-      sequence:
-      - service: homeassistant.turn_on
-        entity_id:
-        - light.en_suite_room_lamp_1
-        - light.en_suite_room_lamp_2
-        - light.en_suite_room_bed_led
-      - service: light.turn_on
-        entity_id:
-        - light.en_suite_room_lamp_1
-        - light.en_suite_room_lamp_2
-        - light.en_suite_room_bed_led
-        data:
-          brightness_pct: 100
-      - service: pyscript.set_rgb_light_list
-        data:
-          light_list:
-          - light.en_suite_room_lamp_1
-          - light.en_suite_room_lamp_2
-          - light.en_suite_room_ceiling_light
-          - light.en_suite_room_bed_led
-      - service: samsungtv_smart.select_picture_mode
-        data:
-          entity_id:
-          - media_player.portable_tv
-          picture_mode: Standard
-    - conditions:
-      - condition: state
-        entity_id: input_select.en_suite_room_scene
         state: Night Mode
       sequence:
-      - parallel:
-        - service: homeassistant.turn_on
-          entity_id: scene.en_suite_room_night_mode
+        alias: ''
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+        - parallel:
+          - service: homeassistant.turn_on
+            entity_id: scene.en_suite_room_night_mode
     - conditions:
       - condition: state
         entity_id: input_select.en_suite_room_scene
         state: Dark Night Mode
       sequence:
-      - parallel:
-        - service: homeassistant.turn_on
-          entity_id: scene.en_suite_room_dark_night_mode
+        alias: ''
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+        - parallel:
+          - service: homeassistant.turn_on
+            entity_id: scene.en_suite_room_dark_night_mode
     - conditions:
       - condition: state
         entity_id: input_select.en_suite_room_scene
         state: All Off
       sequence:
-      - parallel:
-        - service: homeassistant.turn_off
-          entity_id:
-          - light.en_suite_room_lamp_1
-          - light.en_suite_room_lamp_2
-          - light.en_suite_room_ceiling_light
-          - light.en_suite_room_bed_led
+        alias: ''
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+        - parallel:
+          - service: homeassistant.turn_off
+            entity_id:
+            - light.en_suite_room_lamp_1
+            - light.en_suite_room_lamp_2
+            - light.en_suite_room_ceiling_light
+            - light.en_suite_room_bed_led
     - conditions:
       - condition: state
         entity_id: input_select.en_suite_room_scene
         state: Lights on in hot sunshine
       sequence:
-      - parallel:
+        alias: ''
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
         - parallel:
-          - if:
-              condition: state
-              entity_id: input_boolean.ceiling_light_control_in_hot_sunshine_en_suite_room
-              state: 'on'
-            then:
-              service: homeassistant.turn_on
-              entity_id:
-              - light.en_suite_room_ceiling_light
-          - if:
-              condition: state
-              entity_id: input_boolean.lamp_control_in_hot_sunshine_en_suite_room
-              state: 'on'
-            then:
-              if:
+          - parallel:
+            - if:
                 condition: state
-                entity_id: input_boolean.always_on_constant
+                entity_id: input_boolean.ceiling_light_control_in_hot_sunshine_en_suite_room
                 state: 'on'
               then:
-              - service: light.turn_on
+                service: homeassistant.turn_on
                 entity_id:
-                - light.en_suite_room_lamp_1
-                - light.en_suite_room_lamp_2
-              - if:
+                - light.en_suite_room_ceiling_light
+            - if:
+                condition: state
+                entity_id: input_boolean.lamp_control_in_hot_sunshine_en_suite_room
+                state: 'on'
+              then:
+                alias: Turn on lamps first and check if light colour is white. Reset colour lamps to white and apply adaptive lighting.
+                if:
                   condition: state
-                  entity_id:
-                  - light.en_suite_room_lamp_1
-                  - light.en_suite_room_lamp_2
-                  state: color_temp
-                  attribute: color_mode
+                  entity_id: input_boolean.always_on_constant
+                  state: 'on'
                 then:
-                  service: script.do_nothing
-                else:
                 - service: light.turn_on
                   entity_id:
                   - light.en_suite_room_lamp_1
                   - light.en_suite_room_lamp_2
-                  data:
-                    kelvin: '3000'
-                - service: light.turn_off
-                  entity_id:
-                  - light.en_suite_room_lamp_1
-                  - light.en_suite_room_lamp_2
-                - service: light.turn_on
-                  entity_id:
-                  - light.en_suite_room_lamp_1
-                  - light.en_suite_room_lamp_2
-          - if:
-              condition: state
-              entity_id: input_boolean.led_control_in_hot_sunshine_en_suite_room
-              state: 'on'
-            then:
-              service: homeassistant.turn_on
-              entity_id:
-              - light.en_suite_room_bed_led
-          - if:
-              condition: state
-              entity_id: input_boolean.curtain_control_in_hot_sunshine_en_suite_room
-              state: 'on'
-            then:
-              service: cover.open_cover
-              entity_id:
-              - cover.en_suite_room_curtain
+                - if:
+                    condition: state
+                    entity_id:
+                    - light.en_suite_room_lamp_1
+                    - light.en_suite_room_lamp_2
+                    state: color_temp
+                    attribute: color_mode
+                  then:
+                    service: script.do_nothing
+                  else:
+                  - service: light.turn_on
+                    entity_id:
+                    - light.en_suite_room_lamp_1
+                    - light.en_suite_room_lamp_2
+                    data:
+                      kelvin: '3000'
+                  - service: light.turn_off
+                    entity_id:
+                    - light.en_suite_room_lamp_1
+                    - light.en_suite_room_lamp_2
+                  - service: light.turn_on
+                    entity_id:
+                    - light.en_suite_room_lamp_1
+                    - light.en_suite_room_lamp_2
+            - if:
+                condition: state
+                entity_id: input_boolean.led_control_in_hot_sunshine_en_suite_room
+                state: 'on'
+              then:
+                service: homeassistant.turn_on
+                entity_id:
+                - light.en_suite_room_bed_led
+            - if:
+                condition: state
+                entity_id: input_boolean.curtain_control_in_hot_sunshine_en_suite_room
+                state: 'on'
+              then:
+                service: cover.open_cover
+                entity_id:
+                - cover.en_suite_room_curtain
     - conditions:
       - condition: state
         entity_id: input_select.en_suite_room_scene
         state: Lights on when bright outdoor
       sequence:
-      - parallel:
+        alias: ''
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
         - parallel:
-          - if:
-              condition: state
-              entity_id: input_boolean.ceiling_light_control_when_bright_outdoor_en_suite_room
-              state: 'on'
-            then:
-              service: homeassistant.turn_on
-              entity_id:
-              - light.en_suite_room_ceiling_light
-          - if:
-              condition: state
-              entity_id: input_boolean.lamp_control_when_bright_outdoor_en_suite_room
-              state: 'on'
-            then:
-              if:
+          - parallel:
+            - if:
                 condition: state
-                entity_id: input_boolean.always_on_constant
+                entity_id: input_boolean.ceiling_light_control_when_bright_outdoor_en_suite_room
                 state: 'on'
               then:
-              - service: light.turn_on
+                service: homeassistant.turn_on
                 entity_id:
-                - light.en_suite_room_lamp_1
-                - light.en_suite_room_lamp_2
-              - if:
+                - light.en_suite_room_ceiling_light
+            - if:
+                condition: state
+                entity_id: input_boolean.lamp_control_when_bright_outdoor_en_suite_room
+                state: 'on'
+              then:
+                alias: Turn on lamps first and check if light colour is white. Reset colour lamps to white and apply adaptive lighting.
+                if:
                   condition: state
-                  entity_id:
-                  - light.en_suite_room_lamp_1
-                  - light.en_suite_room_lamp_2
-                  state: color_temp
-                  attribute: color_mode
+                  entity_id: input_boolean.always_on_constant
+                  state: 'on'
                 then:
-                  service: script.do_nothing
-                else:
                 - service: light.turn_on
                   entity_id:
                   - light.en_suite_room_lamp_1
                   - light.en_suite_room_lamp_2
-                  data:
-                    kelvin: '3000'
-                - service: light.turn_off
-                  entity_id:
-                  - light.en_suite_room_lamp_1
-                  - light.en_suite_room_lamp_2
-                - service: light.turn_on
-                  entity_id:
-                  - light.en_suite_room_lamp_1
-                  - light.en_suite_room_lamp_2
-          - if:
-              condition: state
-              entity_id: input_boolean.led_control_when_bright_outdoor_en_suite_room
-              state: 'on'
-            then:
-              service: homeassistant.turn_on
-              entity_id:
-              - light.en_suite_room_bed_led
-          - if:
-              condition: state
-              entity_id: input_boolean.curtain_control_when_bright_outdoor_en_suite_room
-              state: 'on'
-            then:
-              service: cover.open_cover
-              entity_id:
-              - cover.en_suite_room_curtain
+                - if:
+                    condition: state
+                    entity_id:
+                    - light.en_suite_room_lamp_1
+                    - light.en_suite_room_lamp_2
+                    state: color_temp
+                    attribute: color_mode
+                  then:
+                    service: script.do_nothing
+                  else:
+                  - service: light.turn_on
+                    entity_id:
+                    - light.en_suite_room_lamp_1
+                    - light.en_suite_room_lamp_2
+                    data:
+                      kelvin: '3000'
+                  - service: light.turn_off
+                    entity_id:
+                    - light.en_suite_room_lamp_1
+                    - light.en_suite_room_lamp_2
+                  - service: light.turn_on
+                    entity_id:
+                    - light.en_suite_room_lamp_1
+                    - light.en_suite_room_lamp_2
+            - if:
+                condition: state
+                entity_id: input_boolean.led_control_when_bright_outdoor_en_suite_room
+                state: 'on'
+              then:
+                service: homeassistant.turn_on
+                entity_id:
+                - light.en_suite_room_bed_led
+            - if:
+                condition: state
+                entity_id: input_boolean.curtain_control_when_bright_outdoor_en_suite_room
+                state: 'on'
+              then:
+                service: cover.open_cover
+                entity_id:
+                - cover.en_suite_room_curtain
     - conditions:
       - condition: state
         entity_id: input_select.en_suite_room_scene
         state: Lights on when dark outdoor
       sequence:
-      - parallel:
+        alias: ''
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
         - parallel:
-          - if:
-              condition: state
-              entity_id: input_boolean.ceiling_light_control_when_dark_outdoor_en_suite_room
-              state: 'on'
-            then:
-              service: homeassistant.turn_on
-              entity_id:
-              - light.en_suite_room_ceiling_light
-          - if:
-              condition: state
-              entity_id: input_boolean.lamp_control_when_dark_outdoor_en_suite_room
-              state: 'on'
-            then:
-              if:
+          - parallel:
+            - if:
                 condition: state
-                entity_id: input_boolean.always_on_constant
+                entity_id: input_boolean.ceiling_light_control_when_dark_outdoor_en_suite_room
                 state: 'on'
               then:
-              - service: light.turn_on
+                service: homeassistant.turn_on
                 entity_id:
-                - light.en_suite_room_lamp_1
-                - light.en_suite_room_lamp_2
-              - if:
+                - light.en_suite_room_ceiling_light
+            - if:
+                condition: state
+                entity_id: input_boolean.lamp_control_when_dark_outdoor_en_suite_room
+                state: 'on'
+              then:
+                alias: Turn on lamps first and check if light colour is white. Reset colour lamps to white and apply adaptive lighting.
+                if:
                   condition: state
-                  entity_id:
-                  - light.en_suite_room_lamp_1
-                  - light.en_suite_room_lamp_2
-                  state: color_temp
-                  attribute: color_mode
+                  entity_id: input_boolean.always_on_constant
+                  state: 'on'
                 then:
-                  service: script.do_nothing
-                else:
                 - service: light.turn_on
                   entity_id:
                   - light.en_suite_room_lamp_1
                   - light.en_suite_room_lamp_2
-                  data:
-                    kelvin: '3000'
-                - service: light.turn_off
-                  entity_id:
-                  - light.en_suite_room_lamp_1
-                  - light.en_suite_room_lamp_2
-                - service: light.turn_on
-                  entity_id:
-                  - light.en_suite_room_lamp_1
-                  - light.en_suite_room_lamp_2
-          - if:
-              condition: state
-              entity_id: input_boolean.led_control_when_dark_outdoor_en_suite_room
-              state: 'on'
-            then:
-              service: homeassistant.turn_on
-              entity_id:
-              - light.en_suite_room_bed_led
-          - if:
-              condition: state
-              entity_id: input_boolean.curtain_control_when_dark_outdoor_en_suite_room
-              state: 'on'
-            then:
-              service: cover.open_cover
-              entity_id:
-              - cover.en_suite_room_curtain
+                - if:
+                    condition: state
+                    entity_id:
+                    - light.en_suite_room_lamp_1
+                    - light.en_suite_room_lamp_2
+                    state: color_temp
+                    attribute: color_mode
+                  then:
+                    service: script.do_nothing
+                  else:
+                  - service: light.turn_on
+                    entity_id:
+                    - light.en_suite_room_lamp_1
+                    - light.en_suite_room_lamp_2
+                    data:
+                      kelvin: '3000'
+                  - service: light.turn_off
+                    entity_id:
+                    - light.en_suite_room_lamp_1
+                    - light.en_suite_room_lamp_2
+                  - service: light.turn_on
+                    entity_id:
+                    - light.en_suite_room_lamp_1
+                    - light.en_suite_room_lamp_2
+            - if:
+                condition: state
+                entity_id: input_boolean.led_control_when_dark_outdoor_en_suite_room
+                state: 'on'
+              then:
+                service: homeassistant.turn_on
+                entity_id:
+                - light.en_suite_room_bed_led
+            - if:
+                condition: state
+                entity_id: input_boolean.curtain_control_when_dark_outdoor_en_suite_room
+                state: 'on'
+              then:
+                service: cover.open_cover
+                entity_id:
+                - cover.en_suite_room_curtain
   id: automation.zl_er_applies_different_scenes_based_on_scene_selections_state_execution_en_suite_room
 - alias: ZLB-ER Remote Button - Double - Toggle Lamps-En-suite Room
   trigger:
@@ -833,9 +1287,33 @@ input_boolean:
     name: Led Control When Dark Outdoor En Suite Room
   curtain_control_when_dark_outdoor_en_suite_room:
     name: Curtain Control When Dark Outdoor En Suite Room
-switch: []
-template: []
-binary_sensor: []
+switch:
+- platform: group
+  name: 'En-suite Room Wall Switch '
+  entities: switch.0x00158d00047d69e6_switch
+template:
+- sensor:
+  - name: En-suite Room Wall Button
+    state: '{{states.sensor["0x00158d00047d69e6_action"].state}}'
+- sensor:
+  - name: En-suite Room Entrance Motion Sensor Light
+    unit_of_measurement: lx
+    state: '{{states.sensor["0x00158d00057b37be_illuminance"].state}}'
+- sensor:
+  - name: En-suite Room Entrance Motion Sensor Battery
+    unit_of_measurement: '%'
+    state: '{{states.sensor["0x00158d00057b37be_battery"].state}}'
+- sensor:
+  - name: En-suite Room Occupancy Sensor Light
+    unit_of_measurement: lx
+    state: '{{states.sensor["dced830908fb_illuminance"].state}}'
+binary_sensor:
+- platform: group
+  name: En-suite Room Entrance Motion Sensor Motion
+  entities: binary_sensor.0x00158d00057b37be_motion
+- platform: group
+  name: En-suite Room Occupancy Sensor Occupancy
+  entities: binary_sensor.dced830908fb_occupancy
 light: []
 group:
   en_suite_room_occupancy_group:
@@ -846,12 +1324,14 @@ group:
     - binary_sensor.en_suite_room_bed_motion_sensor_motion
     - binary_sensor.en_suite_room_entrance_motion_sensor_motion
     - binary_sensor.en_suite_room_floor_motion_sensor_motion
+    - binary_sensor.en_suite_room_occupancy_sensor_occupancy
   en_suite_room_motion:
     name: En-suite Room Motion
     entities:
     - binary_sensor.en_suite_room_bed_motion_sensor_motion
     - binary_sensor.en_suite_room_entrance_motion_sensor_motion
     - binary_sensor.en_suite_room_floor_motion_sensor_motion
+    - binary_sensor.en_suite_room_occupancy_sensor_occupancy
   en_suite_room_lights_and_tvs:
     name: En Suite Room Lights And Tvs
     entities:

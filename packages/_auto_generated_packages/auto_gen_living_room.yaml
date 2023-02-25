@@ -24,25 +24,271 @@ automation:
       entity_id: input_boolean.always_off_constant
       state: 'on'
     then:
-      service: script.call_room_scene
-      data:
-        room_scene_select: input_select.living_room_scene
-        scene: Lights on in hot sunshine
+      alias: ''
+      if:
+        condition: state
+        entity_id: input_boolean.always_on_constant
+        state: 'on'
+      then:
+      - parallel:
+        - parallel:
+          - if:
+              condition: state
+              entity_id: input_boolean.ceiling_light_control_in_hot_sunshine_living_room
+              state: 'on'
+            then:
+              service: homeassistant.turn_on
+              entity_id:
+              - light.living_room_ceiling_light
+          - if:
+              condition: state
+              entity_id: input_boolean.lamp_control_in_hot_sunshine_living_room
+              state: 'on'
+            then:
+              alias: Turn on lamps first and check if light colour is white. Reset colour lamps to white and apply adaptive lighting.
+              if:
+                condition: state
+                entity_id: input_boolean.always_on_constant
+                state: 'on'
+              then:
+              - service: light.turn_on
+                entity_id:
+                - light.living_room_floor_light_1
+                - light.living_room_3_head_lamp_1
+                - light.living_room_3_head_lamp_2
+                - light.living_room_3_head_lamp_3
+                - switch.living_room_floor_light_3
+              - if:
+                  condition: state
+                  entity_id:
+                  - light.living_room_floor_light_1
+                  - light.living_room_3_head_lamp_1
+                  - light.living_room_3_head_lamp_2
+                  - light.living_room_3_head_lamp_3
+                  - switch.living_room_floor_light_3
+                  state: color_temp
+                  attribute: color_mode
+                then:
+                  service: script.do_nothing
+                else:
+                - service: light.turn_on
+                  entity_id:
+                  - light.living_room_floor_light_1
+                  - light.living_room_3_head_lamp_1
+                  - light.living_room_3_head_lamp_2
+                  - light.living_room_3_head_lamp_3
+                  - switch.living_room_floor_light_3
+                  data:
+                    kelvin: '3000'
+                - service: light.turn_off
+                  entity_id:
+                  - light.living_room_floor_light_1
+                  - light.living_room_3_head_lamp_1
+                  - light.living_room_3_head_lamp_2
+                  - light.living_room_3_head_lamp_3
+                  - switch.living_room_floor_light_3
+                - service: light.turn_on
+                  entity_id:
+                  - light.living_room_floor_light_1
+                  - light.living_room_3_head_lamp_1
+                  - light.living_room_3_head_lamp_2
+                  - light.living_room_3_head_lamp_3
+                  - switch.living_room_floor_light_3
+          - if:
+              condition: state
+              entity_id: input_boolean.led_control_in_hot_sunshine_living_room
+              state: 'on'
+            then:
+              service: homeassistant.turn_on
+              entity_id:
+              - light.living_room_tv_led
+              - light.living_room_sofa_led
+          - if:
+              condition: state
+              entity_id: input_boolean.curtain_control_in_hot_sunshine_living_room
+              state: 'on'
+            then:
+              service: cover.open_cover
+              entity_id: []
     else:
       if:
       - condition: state
         entity_id: sun.sun
         state: above_horizon
       then:
-        service: script.call_room_scene
-        data:
-          room_scene_select: input_select.living_room_scene
-          scene: Lights on when bright outdoor
+        alias: ''
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+        - parallel:
+          - parallel:
+            - if:
+                condition: state
+                entity_id: input_boolean.ceiling_light_control_when_bright_outdoor_living_room
+                state: 'on'
+              then:
+                service: homeassistant.turn_on
+                entity_id:
+                - light.living_room_ceiling_light
+            - if:
+                condition: state
+                entity_id: input_boolean.lamp_control_when_bright_outdoor_living_room
+                state: 'on'
+              then:
+                alias: Turn on lamps first and check if light colour is white. Reset colour lamps to white and apply adaptive lighting.
+                if:
+                  condition: state
+                  entity_id: input_boolean.always_on_constant
+                  state: 'on'
+                then:
+                - service: light.turn_on
+                  entity_id:
+                  - light.living_room_floor_light_1
+                  - light.living_room_3_head_lamp_1
+                  - light.living_room_3_head_lamp_2
+                  - light.living_room_3_head_lamp_3
+                  - switch.living_room_floor_light_3
+                - if:
+                    condition: state
+                    entity_id:
+                    - light.living_room_floor_light_1
+                    - light.living_room_3_head_lamp_1
+                    - light.living_room_3_head_lamp_2
+                    - light.living_room_3_head_lamp_3
+                    - switch.living_room_floor_light_3
+                    state: color_temp
+                    attribute: color_mode
+                  then:
+                    service: script.do_nothing
+                  else:
+                  - service: light.turn_on
+                    entity_id:
+                    - light.living_room_floor_light_1
+                    - light.living_room_3_head_lamp_1
+                    - light.living_room_3_head_lamp_2
+                    - light.living_room_3_head_lamp_3
+                    - switch.living_room_floor_light_3
+                    data:
+                      kelvin: '3000'
+                  - service: light.turn_off
+                    entity_id:
+                    - light.living_room_floor_light_1
+                    - light.living_room_3_head_lamp_1
+                    - light.living_room_3_head_lamp_2
+                    - light.living_room_3_head_lamp_3
+                    - switch.living_room_floor_light_3
+                  - service: light.turn_on
+                    entity_id:
+                    - light.living_room_floor_light_1
+                    - light.living_room_3_head_lamp_1
+                    - light.living_room_3_head_lamp_2
+                    - light.living_room_3_head_lamp_3
+                    - switch.living_room_floor_light_3
+            - if:
+                condition: state
+                entity_id: input_boolean.led_control_when_bright_outdoor_living_room
+                state: 'on'
+              then:
+                service: homeassistant.turn_on
+                entity_id:
+                - light.living_room_tv_led
+                - light.living_room_sofa_led
+            - if:
+                condition: state
+                entity_id: input_boolean.curtain_control_when_bright_outdoor_living_room
+                state: 'on'
+              then:
+                service: cover.open_cover
+                entity_id: []
       else:
-        service: script.call_room_scene
-        data:
-          room_scene_select: input_select.living_room_scene
-          scene: Lights on when dark outdoor
+        alias: ''
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+        - parallel:
+          - parallel:
+            - if:
+                condition: state
+                entity_id: input_boolean.ceiling_light_control_when_dark_outdoor_living_room
+                state: 'on'
+              then:
+                service: homeassistant.turn_on
+                entity_id:
+                - light.living_room_ceiling_light
+            - if:
+                condition: state
+                entity_id: input_boolean.lamp_control_when_dark_outdoor_living_room
+                state: 'on'
+              then:
+                alias: Turn on lamps first and check if light colour is white. Reset colour lamps to white and apply adaptive lighting.
+                if:
+                  condition: state
+                  entity_id: input_boolean.always_on_constant
+                  state: 'on'
+                then:
+                - service: light.turn_on
+                  entity_id:
+                  - light.living_room_floor_light_1
+                  - light.living_room_3_head_lamp_1
+                  - light.living_room_3_head_lamp_2
+                  - light.living_room_3_head_lamp_3
+                  - switch.living_room_floor_light_3
+                - if:
+                    condition: state
+                    entity_id:
+                    - light.living_room_floor_light_1
+                    - light.living_room_3_head_lamp_1
+                    - light.living_room_3_head_lamp_2
+                    - light.living_room_3_head_lamp_3
+                    - switch.living_room_floor_light_3
+                    state: color_temp
+                    attribute: color_mode
+                  then:
+                    service: script.do_nothing
+                  else:
+                  - service: light.turn_on
+                    entity_id:
+                    - light.living_room_floor_light_1
+                    - light.living_room_3_head_lamp_1
+                    - light.living_room_3_head_lamp_2
+                    - light.living_room_3_head_lamp_3
+                    - switch.living_room_floor_light_3
+                    data:
+                      kelvin: '3000'
+                  - service: light.turn_off
+                    entity_id:
+                    - light.living_room_floor_light_1
+                    - light.living_room_3_head_lamp_1
+                    - light.living_room_3_head_lamp_2
+                    - light.living_room_3_head_lamp_3
+                    - switch.living_room_floor_light_3
+                  - service: light.turn_on
+                    entity_id:
+                    - light.living_room_floor_light_1
+                    - light.living_room_3_head_lamp_1
+                    - light.living_room_3_head_lamp_2
+                    - light.living_room_3_head_lamp_3
+                    - switch.living_room_floor_light_3
+            - if:
+                condition: state
+                entity_id: input_boolean.led_control_when_dark_outdoor_living_room
+                state: 'on'
+              then:
+                service: homeassistant.turn_on
+                entity_id:
+                - light.living_room_tv_led
+                - light.living_room_sofa_led
+            - if:
+                condition: state
+                entity_id: input_boolean.curtain_control_when_dark_outdoor_living_room
+                state: 'on'
+              then:
+                service: cover.open_cover
+                entity_id: []
 - alias: ZL-LR Lights Off If No Person-Living Room
   id: automation.zl_lr_lights_off_if_no_person_living_room
   trigger:
@@ -68,10 +314,23 @@ automation:
     - service: homeassistant.turn_off
       entity_id:
       - media_player.living_room_tv
-    - service: script.call_room_scene
-      data:
-        room_scene_select: input_select.living_room_scene
-        scene: All Off
+    - alias: ''
+      if:
+        condition: state
+        entity_id: input_boolean.always_on_constant
+        state: 'on'
+      then:
+      - parallel:
+        - service: homeassistant.turn_off
+          entity_id:
+          - light.living_room_floor_light_1
+          - light.living_room_3_head_lamp_1
+          - light.living_room_3_head_lamp_2
+          - light.living_room_3_head_lamp_3
+          - switch.living_room_floor_light_3
+          - light.living_room_ceiling_light
+          - light.living_room_tv_led
+          - light.living_room_sofa_led
 - alias: ZH-LR Heating Schedule On If Staying In the Room-Living Room
   id: automation.zh_lr_heating_schedule_on_if_staying_in_the_room_living_room
   trigger:
@@ -89,6 +348,7 @@ automation:
         entity_id: climate.living_room
         state: heat
     then:
+      alias: ''
       if:
         condition: state
         entity_id: input_boolean.always_on_constant
@@ -115,7 +375,8 @@ automation:
   - condition: state
     entity_id: input_boolean.living_room_heating_override
     state: 'off'
-  - if:
+  - alias: ''
+    if:
       condition: state
       entity_id: input_boolean.always_on_constant
       state: 'on'
@@ -189,33 +450,234 @@ automation:
         entity_id: input_select.living_room_scene
         state: All Off
       sequence:
-        service: script.call_room_scene
-        data:
-          room_scene_select: input_select.living_room_scene
-          scene: All White
+        alias: ''
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+        - parallel:
+          - alias: Turn on lamps first and check if light colour is white. Reset colour lamps to white and apply adaptive lighting.
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+            - service: light.turn_on
+              entity_id:
+              - light.living_room_floor_light_1
+              - light.living_room_3_head_lamp_1
+              - light.living_room_3_head_lamp_2
+              - light.living_room_3_head_lamp_3
+              - switch.living_room_floor_light_3
+            - if:
+                condition: state
+                entity_id:
+                - light.living_room_floor_light_1
+                - light.living_room_3_head_lamp_1
+                - light.living_room_3_head_lamp_2
+                - light.living_room_3_head_lamp_3
+                - switch.living_room_floor_light_3
+                state: color_temp
+                attribute: color_mode
+              then:
+                service: script.do_nothing
+              else:
+              - service: light.turn_on
+                entity_id:
+                - light.living_room_floor_light_1
+                - light.living_room_3_head_lamp_1
+                - light.living_room_3_head_lamp_2
+                - light.living_room_3_head_lamp_3
+                - switch.living_room_floor_light_3
+                data:
+                  kelvin: '3000'
+              - service: light.turn_off
+                entity_id:
+                - light.living_room_floor_light_1
+                - light.living_room_3_head_lamp_1
+                - light.living_room_3_head_lamp_2
+                - light.living_room_3_head_lamp_3
+                - switch.living_room_floor_light_3
+              - service: light.turn_on
+                entity_id:
+                - light.living_room_floor_light_1
+                - light.living_room_3_head_lamp_1
+                - light.living_room_3_head_lamp_2
+                - light.living_room_3_head_lamp_3
+                - switch.living_room_floor_light_3
+          - service: homeassistant.turn_on
+            entity_id:
+            - light.living_room_ceiling_light
+            - light.living_room_tv_led
+            - light.living_room_sofa_led
+          - service: samsungtv_smart.select_picture_mode
+            data:
+              entity_id:
+              - media_player.living_room_tv
+              picture_mode: Standard
     - conditions:
         condition: state
         entity_id: input_select.living_room_scene
         state: All White
       sequence:
-        service: script.call_room_scene
-        data:
-          room_scene_select: input_select.living_room_scene
-          scene: Lamp LED White
+        alias: ''
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+        - parallel:
+          - service: homeassistant.turn_off
+            entity_id:
+            - light.living_room_ceiling_light
+          - alias: Turn on lamps first and check if light colour is white. Reset colour lamps to white and apply adaptive lighting.
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+            - service: light.turn_on
+              entity_id:
+              - light.living_room_floor_light_1
+              - light.living_room_3_head_lamp_1
+              - light.living_room_3_head_lamp_2
+              - light.living_room_3_head_lamp_3
+              - switch.living_room_floor_light_3
+            - if:
+                condition: state
+                entity_id:
+                - light.living_room_floor_light_1
+                - light.living_room_3_head_lamp_1
+                - light.living_room_3_head_lamp_2
+                - light.living_room_3_head_lamp_3
+                - switch.living_room_floor_light_3
+                state: color_temp
+                attribute: color_mode
+              then:
+                service: script.do_nothing
+              else:
+              - service: light.turn_on
+                entity_id:
+                - light.living_room_floor_light_1
+                - light.living_room_3_head_lamp_1
+                - light.living_room_3_head_lamp_2
+                - light.living_room_3_head_lamp_3
+                - switch.living_room_floor_light_3
+                data:
+                  kelvin: '3000'
+              - service: light.turn_off
+                entity_id:
+                - light.living_room_floor_light_1
+                - light.living_room_3_head_lamp_1
+                - light.living_room_3_head_lamp_2
+                - light.living_room_3_head_lamp_3
+                - switch.living_room_floor_light_3
+              - service: light.turn_on
+                entity_id:
+                - light.living_room_floor_light_1
+                - light.living_room_3_head_lamp_1
+                - light.living_room_3_head_lamp_2
+                - light.living_room_3_head_lamp_3
+                - switch.living_room_floor_light_3
+          - service: homeassistant.turn_on
+            entity_id:
+            - light.living_room_tv_led
+            - light.living_room_sofa_led
+          - service: samsungtv_smart.select_picture_mode
+            data:
+              entity_id:
+              - media_player.living_room_tv
+              picture_mode: Standard
     - conditions:
         condition: state
         entity_id: input_select.living_room_scene
         state: Lamp LED White
       sequence:
-        service: script.call_room_scene
-        data:
-          room_scene_select: input_select.living_room_scene
-          scene: All Off
+        alias: ''
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+        - parallel:
+          - service: homeassistant.turn_off
+            entity_id:
+            - light.living_room_floor_light_1
+            - light.living_room_3_head_lamp_1
+            - light.living_room_3_head_lamp_2
+            - light.living_room_3_head_lamp_3
+            - switch.living_room_floor_light_3
+            - light.living_room_ceiling_light
+            - light.living_room_tv_led
+            - light.living_room_sofa_led
     default:
-      service: script.call_room_scene
-      data:
-        room_scene_select: input_select.living_room_scene
-        scene: All White
+      alias: ''
+      if:
+        condition: state
+        entity_id: input_boolean.always_on_constant
+        state: 'on'
+      then:
+      - parallel:
+        - alias: Turn on lamps first and check if light colour is white. Reset colour lamps to white and apply adaptive lighting.
+          if:
+            condition: state
+            entity_id: input_boolean.always_on_constant
+            state: 'on'
+          then:
+          - service: light.turn_on
+            entity_id:
+            - light.living_room_floor_light_1
+            - light.living_room_3_head_lamp_1
+            - light.living_room_3_head_lamp_2
+            - light.living_room_3_head_lamp_3
+            - switch.living_room_floor_light_3
+          - if:
+              condition: state
+              entity_id:
+              - light.living_room_floor_light_1
+              - light.living_room_3_head_lamp_1
+              - light.living_room_3_head_lamp_2
+              - light.living_room_3_head_lamp_3
+              - switch.living_room_floor_light_3
+              state: color_temp
+              attribute: color_mode
+            then:
+              service: script.do_nothing
+            else:
+            - service: light.turn_on
+              entity_id:
+              - light.living_room_floor_light_1
+              - light.living_room_3_head_lamp_1
+              - light.living_room_3_head_lamp_2
+              - light.living_room_3_head_lamp_3
+              - switch.living_room_floor_light_3
+              data:
+                kelvin: '3000'
+            - service: light.turn_off
+              entity_id:
+              - light.living_room_floor_light_1
+              - light.living_room_3_head_lamp_1
+              - light.living_room_3_head_lamp_2
+              - light.living_room_3_head_lamp_3
+              - switch.living_room_floor_light_3
+            - service: light.turn_on
+              entity_id:
+              - light.living_room_floor_light_1
+              - light.living_room_3_head_lamp_1
+              - light.living_room_3_head_lamp_2
+              - light.living_room_3_head_lamp_3
+              - switch.living_room_floor_light_3
+        - service: homeassistant.turn_on
+          entity_id:
+          - light.living_room_ceiling_light
+          - light.living_room_tv_led
+          - light.living_room_sofa_led
+        - service: samsungtv_smart.select_picture_mode
+          data:
+            entity_id:
+            - media_player.living_room_tv
+            picture_mode: Standard
   id: automation.zlb_lr_remote_button_single_applies_different_scenes_state_machine_living_room
 - alias: ZL-LR Applies Different Scenes Based on Scene Selections (State Execution)-Living Room
   trigger:
@@ -229,32 +691,19 @@ automation:
         entity_id: input_select.living_room_scene
         state: All White
       sequence:
-      - parallel:
-        - if:
-            condition: state
-            entity_id: input_boolean.always_on_constant
-            state: 'on'
-          then:
-          - service: light.turn_on
-            entity_id:
-            - light.living_room_floor_light_1
-            - light.living_room_3_head_lamp_1
-            - light.living_room_3_head_lamp_2
-            - light.living_room_3_head_lamp_3
-            - switch.living_room_floor_light_3
-          - if:
+        alias: ''
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+        - parallel:
+          - alias: Turn on lamps first and check if light colour is white. Reset colour lamps to white and apply adaptive lighting.
+            if:
               condition: state
-              entity_id:
-              - light.living_room_floor_light_1
-              - light.living_room_3_head_lamp_1
-              - light.living_room_3_head_lamp_2
-              - light.living_room_3_head_lamp_3
-              - switch.living_room_floor_light_3
-              state: color_temp
-              attribute: color_mode
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
             then:
-              service: script.do_nothing
-            else:
             - service: light.turn_on
               entity_id:
               - light.living_room_floor_light_1
@@ -262,50 +711,225 @@ automation:
               - light.living_room_3_head_lamp_2
               - light.living_room_3_head_lamp_3
               - switch.living_room_floor_light_3
-              data:
-                kelvin: '3000'
-            - service: light.turn_off
-              entity_id:
-              - light.living_room_floor_light_1
-              - light.living_room_3_head_lamp_1
-              - light.living_room_3_head_lamp_2
-              - light.living_room_3_head_lamp_3
-              - switch.living_room_floor_light_3
-            - service: light.turn_on
-              entity_id:
-              - light.living_room_floor_light_1
-              - light.living_room_3_head_lamp_1
-              - light.living_room_3_head_lamp_2
-              - light.living_room_3_head_lamp_3
-              - switch.living_room_floor_light_3
-        - service: homeassistant.turn_on
-          entity_id:
-          - light.living_room_ceiling_light
-          - light.living_room_tv_led
-          - light.living_room_sofa_led
-        - service: samsungtv_smart.select_picture_mode
-          data:
+            - if:
+                condition: state
+                entity_id:
+                - light.living_room_floor_light_1
+                - light.living_room_3_head_lamp_1
+                - light.living_room_3_head_lamp_2
+                - light.living_room_3_head_lamp_3
+                - switch.living_room_floor_light_3
+                state: color_temp
+                attribute: color_mode
+              then:
+                service: script.do_nothing
+              else:
+              - service: light.turn_on
+                entity_id:
+                - light.living_room_floor_light_1
+                - light.living_room_3_head_lamp_1
+                - light.living_room_3_head_lamp_2
+                - light.living_room_3_head_lamp_3
+                - switch.living_room_floor_light_3
+                data:
+                  kelvin: '3000'
+              - service: light.turn_off
+                entity_id:
+                - light.living_room_floor_light_1
+                - light.living_room_3_head_lamp_1
+                - light.living_room_3_head_lamp_2
+                - light.living_room_3_head_lamp_3
+                - switch.living_room_floor_light_3
+              - service: light.turn_on
+                entity_id:
+                - light.living_room_floor_light_1
+                - light.living_room_3_head_lamp_1
+                - light.living_room_3_head_lamp_2
+                - light.living_room_3_head_lamp_3
+                - switch.living_room_floor_light_3
+          - service: homeassistant.turn_on
             entity_id:
-            - media_player.living_room_tv
-            picture_mode: Standard
+            - light.living_room_ceiling_light
+            - light.living_room_tv_led
+            - light.living_room_sofa_led
+          - service: samsungtv_smart.select_picture_mode
+            data:
+              entity_id:
+              - media_player.living_room_tv
+              picture_mode: Standard
     - conditions:
       - condition: state
         entity_id: input_select.living_room_scene
         state: Ceiling Light White
       sequence:
-      - parallel:
-        - service: homeassistant.turn_off
+        alias: ''
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+        - parallel:
+          - service: homeassistant.turn_off
+            entity_id:
+            - light.living_room_tv_led
+            - light.living_room_sofa_led
+            - light.living_room_floor_light_1
+            - light.living_room_3_head_lamp_1
+            - light.living_room_3_head_lamp_2
+            - light.living_room_3_head_lamp_3
+            - switch.living_room_floor_light_3
+          - service: homeassistant.turn_on
+            entity_id:
+            - light.living_room_ceiling_light
+          - service: samsungtv_smart.select_picture_mode
+            data:
+              entity_id:
+              - media_player.living_room_tv
+              picture_mode: Standard
+    - conditions:
+      - condition: state
+        entity_id: input_select.living_room_scene
+        state: Lamp LED White
+      sequence:
+        alias: ''
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+        - parallel:
+          - service: homeassistant.turn_off
+            entity_id:
+            - light.living_room_ceiling_light
+          - alias: Turn on lamps first and check if light colour is white. Reset colour lamps to white and apply adaptive lighting.
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+            - service: light.turn_on
+              entity_id:
+              - light.living_room_floor_light_1
+              - light.living_room_3_head_lamp_1
+              - light.living_room_3_head_lamp_2
+              - light.living_room_3_head_lamp_3
+              - switch.living_room_floor_light_3
+            - if:
+                condition: state
+                entity_id:
+                - light.living_room_floor_light_1
+                - light.living_room_3_head_lamp_1
+                - light.living_room_3_head_lamp_2
+                - light.living_room_3_head_lamp_3
+                - switch.living_room_floor_light_3
+                state: color_temp
+                attribute: color_mode
+              then:
+                service: script.do_nothing
+              else:
+              - service: light.turn_on
+                entity_id:
+                - light.living_room_floor_light_1
+                - light.living_room_3_head_lamp_1
+                - light.living_room_3_head_lamp_2
+                - light.living_room_3_head_lamp_3
+                - switch.living_room_floor_light_3
+                data:
+                  kelvin: '3000'
+              - service: light.turn_off
+                entity_id:
+                - light.living_room_floor_light_1
+                - light.living_room_3_head_lamp_1
+                - light.living_room_3_head_lamp_2
+                - light.living_room_3_head_lamp_3
+                - switch.living_room_floor_light_3
+              - service: light.turn_on
+                entity_id:
+                - light.living_room_floor_light_1
+                - light.living_room_3_head_lamp_1
+                - light.living_room_3_head_lamp_2
+                - light.living_room_3_head_lamp_3
+                - switch.living_room_floor_light_3
+          - service: homeassistant.turn_on
+            entity_id:
+            - light.living_room_tv_led
+            - light.living_room_sofa_led
+          - service: samsungtv_smart.select_picture_mode
+            data:
+              entity_id:
+              - media_player.living_room_tv
+              picture_mode: Standard
+    - conditions:
+      - condition: state
+        entity_id: input_select.living_room_scene
+        state: LED White
+      sequence:
+        alias: ''
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+        - parallel:
+          - service: homeassistant.turn_off
+            entity_id:
+            - light.living_room_ceiling_light
+            - light.living_room_floor_light_1
+            - light.living_room_3_head_lamp_1
+            - light.living_room_3_head_lamp_2
+            - light.living_room_3_head_lamp_3
+            - switch.living_room_floor_light_3
+          - service: homeassistant.turn_on
+            entity_id:
+            - light.living_room_tv_led
+            - light.living_room_sofa_led
+          - service: samsungtv_smart.select_picture_mode
+            data:
+              entity_id:
+              - media_player.living_room_tv
+              picture_mode: Natural
+    - conditions:
+      - condition: state
+        entity_id: input_select.living_room_scene
+        state: Hue
+      sequence:
+        alias: ''
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+        - service: homeassistant.turn_on
           entity_id:
-          - light.living_room_tv_led
-          - light.living_room_sofa_led
           - light.living_room_floor_light_1
           - light.living_room_3_head_lamp_1
           - light.living_room_3_head_lamp_2
           - light.living_room_3_head_lamp_3
           - switch.living_room_floor_light_3
-        - service: homeassistant.turn_on
+          - light.living_room_tv_led
+          - light.living_room_sofa_led
+        - service: light.turn_on
           entity_id:
-          - light.living_room_ceiling_light
+          - light.living_room_floor_light_1
+          - light.living_room_3_head_lamp_1
+          - light.living_room_3_head_lamp_2
+          - light.living_room_3_head_lamp_3
+          - switch.living_room_floor_light_3
+          - light.living_room_tv_led
+          - light.living_room_sofa_led
+          data:
+            brightness_pct: 100
+        - service: pyscript.set_rgb_light_list
+          data:
+            light_list:
+            - light.living_room_floor_light_1
+            - light.living_room_3_head_lamp_1
+            - light.living_room_3_head_lamp_2
+            - light.living_room_3_head_lamp_3
+            - switch.living_room_floor_light_3
+            - light.living_room_ceiling_light
+            - light.living_room_tv_led
+            - light.living_room_sofa_led
         - service: samsungtv_smart.select_picture_mode
           data:
             entity_id:
@@ -314,210 +938,85 @@ automation:
     - conditions:
       - condition: state
         entity_id: input_select.living_room_scene
-        state: Lamp LED White
+        state: Night Mode
       sequence:
-      - parallel:
-        - service: homeassistant.turn_off
-          entity_id:
-          - light.living_room_ceiling_light
-        - if:
-            condition: state
-            entity_id: input_boolean.always_on_constant
-            state: 'on'
-          then:
-          - service: light.turn_on
+        alias: ''
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+        - parallel:
+          - service: homeassistant.turn_on
+            entity_id: scene.living_room_night_mode
+    - conditions:
+      - condition: state
+        entity_id: input_select.living_room_scene
+        state: Dark Night Mode
+      sequence:
+        alias: ''
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+        - parallel:
+          - service: homeassistant.turn_on
+            entity_id: scene.living_room_dark_night_mode
+    - conditions:
+      - condition: state
+        entity_id: input_select.living_room_scene
+        state: All Off
+      sequence:
+        alias: ''
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+        - parallel:
+          - service: homeassistant.turn_off
             entity_id:
             - light.living_room_floor_light_1
             - light.living_room_3_head_lamp_1
             - light.living_room_3_head_lamp_2
             - light.living_room_3_head_lamp_3
             - switch.living_room_floor_light_3
-          - if:
-              condition: state
-              entity_id:
-              - light.living_room_floor_light_1
-              - light.living_room_3_head_lamp_1
-              - light.living_room_3_head_lamp_2
-              - light.living_room_3_head_lamp_3
-              - switch.living_room_floor_light_3
-              state: color_temp
-              attribute: color_mode
-            then:
-              service: script.do_nothing
-            else:
-            - service: light.turn_on
-              entity_id:
-              - light.living_room_floor_light_1
-              - light.living_room_3_head_lamp_1
-              - light.living_room_3_head_lamp_2
-              - light.living_room_3_head_lamp_3
-              - switch.living_room_floor_light_3
-              data:
-                kelvin: '3000'
-            - service: light.turn_off
-              entity_id:
-              - light.living_room_floor_light_1
-              - light.living_room_3_head_lamp_1
-              - light.living_room_3_head_lamp_2
-              - light.living_room_3_head_lamp_3
-              - switch.living_room_floor_light_3
-            - service: light.turn_on
-              entity_id:
-              - light.living_room_floor_light_1
-              - light.living_room_3_head_lamp_1
-              - light.living_room_3_head_lamp_2
-              - light.living_room_3_head_lamp_3
-              - switch.living_room_floor_light_3
-        - service: homeassistant.turn_on
-          entity_id:
-          - light.living_room_tv_led
-          - light.living_room_sofa_led
-        - service: samsungtv_smart.select_picture_mode
-          data:
-            entity_id:
-            - media_player.living_room_tv
-            picture_mode: Standard
-    - conditions:
-      - condition: state
-        entity_id: input_select.living_room_scene
-        state: LED White
-      sequence:
-      - parallel:
-        - service: homeassistant.turn_off
-          entity_id:
-          - light.living_room_ceiling_light
-          - light.living_room_floor_light_1
-          - light.living_room_3_head_lamp_1
-          - light.living_room_3_head_lamp_2
-          - light.living_room_3_head_lamp_3
-          - switch.living_room_floor_light_3
-        - service: homeassistant.turn_on
-          entity_id:
-          - light.living_room_tv_led
-          - light.living_room_sofa_led
-        - service: samsungtv_smart.select_picture_mode
-          data:
-            entity_id:
-            - media_player.living_room_tv
-            picture_mode: Natural
-    - conditions:
-      - condition: state
-        entity_id: input_select.living_room_scene
-        state: Hue
-      sequence:
-      - service: homeassistant.turn_on
-        entity_id:
-        - light.living_room_floor_light_1
-        - light.living_room_3_head_lamp_1
-        - light.living_room_3_head_lamp_2
-        - light.living_room_3_head_lamp_3
-        - switch.living_room_floor_light_3
-        - light.living_room_tv_led
-        - light.living_room_sofa_led
-      - service: light.turn_on
-        entity_id:
-        - light.living_room_floor_light_1
-        - light.living_room_3_head_lamp_1
-        - light.living_room_3_head_lamp_2
-        - light.living_room_3_head_lamp_3
-        - switch.living_room_floor_light_3
-        - light.living_room_tv_led
-        - light.living_room_sofa_led
-        data:
-          brightness_pct: 100
-      - service: pyscript.set_rgb_light_list
-        data:
-          light_list:
-          - light.living_room_floor_light_1
-          - light.living_room_3_head_lamp_1
-          - light.living_room_3_head_lamp_2
-          - light.living_room_3_head_lamp_3
-          - switch.living_room_floor_light_3
-          - light.living_room_ceiling_light
-          - light.living_room_tv_led
-          - light.living_room_sofa_led
-      - service: samsungtv_smart.select_picture_mode
-        data:
-          entity_id:
-          - media_player.living_room_tv
-          picture_mode: Standard
-    - conditions:
-      - condition: state
-        entity_id: input_select.living_room_scene
-        state: Night Mode
-      sequence:
-      - parallel:
-        - service: homeassistant.turn_on
-          entity_id: scene.living_room_night_mode
-    - conditions:
-      - condition: state
-        entity_id: input_select.living_room_scene
-        state: Dark Night Mode
-      sequence:
-      - parallel:
-        - service: homeassistant.turn_on
-          entity_id: scene.living_room_dark_night_mode
-    - conditions:
-      - condition: state
-        entity_id: input_select.living_room_scene
-        state: All Off
-      sequence:
-      - parallel:
-        - service: homeassistant.turn_off
-          entity_id:
-          - light.living_room_floor_light_1
-          - light.living_room_3_head_lamp_1
-          - light.living_room_3_head_lamp_2
-          - light.living_room_3_head_lamp_3
-          - switch.living_room_floor_light_3
-          - light.living_room_ceiling_light
-          - light.living_room_tv_led
-          - light.living_room_sofa_led
+            - light.living_room_ceiling_light
+            - light.living_room_tv_led
+            - light.living_room_sofa_led
     - conditions:
       - condition: state
         entity_id: input_select.living_room_scene
         state: Lights on in hot sunshine
       sequence:
-      - parallel:
+        alias: ''
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
         - parallel:
-          - if:
-              condition: state
-              entity_id: input_boolean.ceiling_light_control_in_hot_sunshine_living_room
-              state: 'on'
-            then:
-              service: homeassistant.turn_on
-              entity_id:
-              - light.living_room_ceiling_light
-          - if:
-              condition: state
-              entity_id: input_boolean.lamp_control_in_hot_sunshine_living_room
-              state: 'on'
-            then:
-              if:
+          - parallel:
+            - if:
                 condition: state
-                entity_id: input_boolean.always_on_constant
+                entity_id: input_boolean.ceiling_light_control_in_hot_sunshine_living_room
                 state: 'on'
               then:
-              - service: light.turn_on
+                service: homeassistant.turn_on
                 entity_id:
-                - light.living_room_floor_light_1
-                - light.living_room_3_head_lamp_1
-                - light.living_room_3_head_lamp_2
-                - light.living_room_3_head_lamp_3
-                - switch.living_room_floor_light_3
-              - if:
+                - light.living_room_ceiling_light
+            - if:
+                condition: state
+                entity_id: input_boolean.lamp_control_in_hot_sunshine_living_room
+                state: 'on'
+              then:
+                alias: Turn on lamps first and check if light colour is white. Reset colour lamps to white and apply adaptive lighting.
+                if:
                   condition: state
-                  entity_id:
-                  - light.living_room_floor_light_1
-                  - light.living_room_3_head_lamp_1
-                  - light.living_room_3_head_lamp_2
-                  - light.living_room_3_head_lamp_3
-                  - switch.living_room_floor_light_3
-                  state: color_temp
-                  attribute: color_mode
+                  entity_id: input_boolean.always_on_constant
+                  state: 'on'
                 then:
-                  service: script.do_nothing
-                else:
                 - service: light.turn_on
                   entity_id:
                   - light.living_room_floor_light_1
@@ -525,83 +1024,90 @@ automation:
                   - light.living_room_3_head_lamp_2
                   - light.living_room_3_head_lamp_3
                   - switch.living_room_floor_light_3
-                  data:
-                    kelvin: '3000'
-                - service: light.turn_off
-                  entity_id:
-                  - light.living_room_floor_light_1
-                  - light.living_room_3_head_lamp_1
-                  - light.living_room_3_head_lamp_2
-                  - light.living_room_3_head_lamp_3
-                  - switch.living_room_floor_light_3
-                - service: light.turn_on
-                  entity_id:
-                  - light.living_room_floor_light_1
-                  - light.living_room_3_head_lamp_1
-                  - light.living_room_3_head_lamp_2
-                  - light.living_room_3_head_lamp_3
-                  - switch.living_room_floor_light_3
-          - if:
-              condition: state
-              entity_id: input_boolean.led_control_in_hot_sunshine_living_room
-              state: 'on'
-            then:
-              service: homeassistant.turn_on
-              entity_id:
-              - light.living_room_tv_led
-              - light.living_room_sofa_led
-          - if:
-              condition: state
-              entity_id: input_boolean.curtain_control_in_hot_sunshine_living_room
-              state: 'on'
-            then:
-              service: cover.open_cover
-              entity_id: []
+                - if:
+                    condition: state
+                    entity_id:
+                    - light.living_room_floor_light_1
+                    - light.living_room_3_head_lamp_1
+                    - light.living_room_3_head_lamp_2
+                    - light.living_room_3_head_lamp_3
+                    - switch.living_room_floor_light_3
+                    state: color_temp
+                    attribute: color_mode
+                  then:
+                    service: script.do_nothing
+                  else:
+                  - service: light.turn_on
+                    entity_id:
+                    - light.living_room_floor_light_1
+                    - light.living_room_3_head_lamp_1
+                    - light.living_room_3_head_lamp_2
+                    - light.living_room_3_head_lamp_3
+                    - switch.living_room_floor_light_3
+                    data:
+                      kelvin: '3000'
+                  - service: light.turn_off
+                    entity_id:
+                    - light.living_room_floor_light_1
+                    - light.living_room_3_head_lamp_1
+                    - light.living_room_3_head_lamp_2
+                    - light.living_room_3_head_lamp_3
+                    - switch.living_room_floor_light_3
+                  - service: light.turn_on
+                    entity_id:
+                    - light.living_room_floor_light_1
+                    - light.living_room_3_head_lamp_1
+                    - light.living_room_3_head_lamp_2
+                    - light.living_room_3_head_lamp_3
+                    - switch.living_room_floor_light_3
+            - if:
+                condition: state
+                entity_id: input_boolean.led_control_in_hot_sunshine_living_room
+                state: 'on'
+              then:
+                service: homeassistant.turn_on
+                entity_id:
+                - light.living_room_tv_led
+                - light.living_room_sofa_led
+            - if:
+                condition: state
+                entity_id: input_boolean.curtain_control_in_hot_sunshine_living_room
+                state: 'on'
+              then:
+                service: cover.open_cover
+                entity_id: []
     - conditions:
       - condition: state
         entity_id: input_select.living_room_scene
         state: Lights on when bright outdoor
       sequence:
-      - parallel:
+        alias: ''
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
         - parallel:
-          - if:
-              condition: state
-              entity_id: input_boolean.ceiling_light_control_when_bright_outdoor_living_room
-              state: 'on'
-            then:
-              service: homeassistant.turn_on
-              entity_id:
-              - light.living_room_ceiling_light
-          - if:
-              condition: state
-              entity_id: input_boolean.lamp_control_when_bright_outdoor_living_room
-              state: 'on'
-            then:
-              if:
+          - parallel:
+            - if:
                 condition: state
-                entity_id: input_boolean.always_on_constant
+                entity_id: input_boolean.ceiling_light_control_when_bright_outdoor_living_room
                 state: 'on'
               then:
-              - service: light.turn_on
+                service: homeassistant.turn_on
                 entity_id:
-                - light.living_room_floor_light_1
-                - light.living_room_3_head_lamp_1
-                - light.living_room_3_head_lamp_2
-                - light.living_room_3_head_lamp_3
-                - switch.living_room_floor_light_3
-              - if:
+                - light.living_room_ceiling_light
+            - if:
+                condition: state
+                entity_id: input_boolean.lamp_control_when_bright_outdoor_living_room
+                state: 'on'
+              then:
+                alias: Turn on lamps first and check if light colour is white. Reset colour lamps to white and apply adaptive lighting.
+                if:
                   condition: state
-                  entity_id:
-                  - light.living_room_floor_light_1
-                  - light.living_room_3_head_lamp_1
-                  - light.living_room_3_head_lamp_2
-                  - light.living_room_3_head_lamp_3
-                  - switch.living_room_floor_light_3
-                  state: color_temp
-                  attribute: color_mode
+                  entity_id: input_boolean.always_on_constant
+                  state: 'on'
                 then:
-                  service: script.do_nothing
-                else:
                 - service: light.turn_on
                   entity_id:
                   - light.living_room_floor_light_1
@@ -609,83 +1115,90 @@ automation:
                   - light.living_room_3_head_lamp_2
                   - light.living_room_3_head_lamp_3
                   - switch.living_room_floor_light_3
-                  data:
-                    kelvin: '3000'
-                - service: light.turn_off
-                  entity_id:
-                  - light.living_room_floor_light_1
-                  - light.living_room_3_head_lamp_1
-                  - light.living_room_3_head_lamp_2
-                  - light.living_room_3_head_lamp_3
-                  - switch.living_room_floor_light_3
-                - service: light.turn_on
-                  entity_id:
-                  - light.living_room_floor_light_1
-                  - light.living_room_3_head_lamp_1
-                  - light.living_room_3_head_lamp_2
-                  - light.living_room_3_head_lamp_3
-                  - switch.living_room_floor_light_3
-          - if:
-              condition: state
-              entity_id: input_boolean.led_control_when_bright_outdoor_living_room
-              state: 'on'
-            then:
-              service: homeassistant.turn_on
-              entity_id:
-              - light.living_room_tv_led
-              - light.living_room_sofa_led
-          - if:
-              condition: state
-              entity_id: input_boolean.curtain_control_when_bright_outdoor_living_room
-              state: 'on'
-            then:
-              service: cover.open_cover
-              entity_id: []
+                - if:
+                    condition: state
+                    entity_id:
+                    - light.living_room_floor_light_1
+                    - light.living_room_3_head_lamp_1
+                    - light.living_room_3_head_lamp_2
+                    - light.living_room_3_head_lamp_3
+                    - switch.living_room_floor_light_3
+                    state: color_temp
+                    attribute: color_mode
+                  then:
+                    service: script.do_nothing
+                  else:
+                  - service: light.turn_on
+                    entity_id:
+                    - light.living_room_floor_light_1
+                    - light.living_room_3_head_lamp_1
+                    - light.living_room_3_head_lamp_2
+                    - light.living_room_3_head_lamp_3
+                    - switch.living_room_floor_light_3
+                    data:
+                      kelvin: '3000'
+                  - service: light.turn_off
+                    entity_id:
+                    - light.living_room_floor_light_1
+                    - light.living_room_3_head_lamp_1
+                    - light.living_room_3_head_lamp_2
+                    - light.living_room_3_head_lamp_3
+                    - switch.living_room_floor_light_3
+                  - service: light.turn_on
+                    entity_id:
+                    - light.living_room_floor_light_1
+                    - light.living_room_3_head_lamp_1
+                    - light.living_room_3_head_lamp_2
+                    - light.living_room_3_head_lamp_3
+                    - switch.living_room_floor_light_3
+            - if:
+                condition: state
+                entity_id: input_boolean.led_control_when_bright_outdoor_living_room
+                state: 'on'
+              then:
+                service: homeassistant.turn_on
+                entity_id:
+                - light.living_room_tv_led
+                - light.living_room_sofa_led
+            - if:
+                condition: state
+                entity_id: input_boolean.curtain_control_when_bright_outdoor_living_room
+                state: 'on'
+              then:
+                service: cover.open_cover
+                entity_id: []
     - conditions:
       - condition: state
         entity_id: input_select.living_room_scene
         state: Lights on when dark outdoor
       sequence:
-      - parallel:
+        alias: ''
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
         - parallel:
-          - if:
-              condition: state
-              entity_id: input_boolean.ceiling_light_control_when_dark_outdoor_living_room
-              state: 'on'
-            then:
-              service: homeassistant.turn_on
-              entity_id:
-              - light.living_room_ceiling_light
-          - if:
-              condition: state
-              entity_id: input_boolean.lamp_control_when_dark_outdoor_living_room
-              state: 'on'
-            then:
-              if:
+          - parallel:
+            - if:
                 condition: state
-                entity_id: input_boolean.always_on_constant
+                entity_id: input_boolean.ceiling_light_control_when_dark_outdoor_living_room
                 state: 'on'
               then:
-              - service: light.turn_on
+                service: homeassistant.turn_on
                 entity_id:
-                - light.living_room_floor_light_1
-                - light.living_room_3_head_lamp_1
-                - light.living_room_3_head_lamp_2
-                - light.living_room_3_head_lamp_3
-                - switch.living_room_floor_light_3
-              - if:
+                - light.living_room_ceiling_light
+            - if:
+                condition: state
+                entity_id: input_boolean.lamp_control_when_dark_outdoor_living_room
+                state: 'on'
+              then:
+                alias: Turn on lamps first and check if light colour is white. Reset colour lamps to white and apply adaptive lighting.
+                if:
                   condition: state
-                  entity_id:
-                  - light.living_room_floor_light_1
-                  - light.living_room_3_head_lamp_1
-                  - light.living_room_3_head_lamp_2
-                  - light.living_room_3_head_lamp_3
-                  - switch.living_room_floor_light_3
-                  state: color_temp
-                  attribute: color_mode
+                  entity_id: input_boolean.always_on_constant
+                  state: 'on'
                 then:
-                  service: script.do_nothing
-                else:
                 - service: light.turn_on
                   entity_id:
                   - light.living_room_floor_light_1
@@ -693,38 +1206,58 @@ automation:
                   - light.living_room_3_head_lamp_2
                   - light.living_room_3_head_lamp_3
                   - switch.living_room_floor_light_3
-                  data:
-                    kelvin: '3000'
-                - service: light.turn_off
-                  entity_id:
-                  - light.living_room_floor_light_1
-                  - light.living_room_3_head_lamp_1
-                  - light.living_room_3_head_lamp_2
-                  - light.living_room_3_head_lamp_3
-                  - switch.living_room_floor_light_3
-                - service: light.turn_on
-                  entity_id:
-                  - light.living_room_floor_light_1
-                  - light.living_room_3_head_lamp_1
-                  - light.living_room_3_head_lamp_2
-                  - light.living_room_3_head_lamp_3
-                  - switch.living_room_floor_light_3
-          - if:
-              condition: state
-              entity_id: input_boolean.led_control_when_dark_outdoor_living_room
-              state: 'on'
-            then:
-              service: homeassistant.turn_on
-              entity_id:
-              - light.living_room_tv_led
-              - light.living_room_sofa_led
-          - if:
-              condition: state
-              entity_id: input_boolean.curtain_control_when_dark_outdoor_living_room
-              state: 'on'
-            then:
-              service: cover.open_cover
-              entity_id: []
+                - if:
+                    condition: state
+                    entity_id:
+                    - light.living_room_floor_light_1
+                    - light.living_room_3_head_lamp_1
+                    - light.living_room_3_head_lamp_2
+                    - light.living_room_3_head_lamp_3
+                    - switch.living_room_floor_light_3
+                    state: color_temp
+                    attribute: color_mode
+                  then:
+                    service: script.do_nothing
+                  else:
+                  - service: light.turn_on
+                    entity_id:
+                    - light.living_room_floor_light_1
+                    - light.living_room_3_head_lamp_1
+                    - light.living_room_3_head_lamp_2
+                    - light.living_room_3_head_lamp_3
+                    - switch.living_room_floor_light_3
+                    data:
+                      kelvin: '3000'
+                  - service: light.turn_off
+                    entity_id:
+                    - light.living_room_floor_light_1
+                    - light.living_room_3_head_lamp_1
+                    - light.living_room_3_head_lamp_2
+                    - light.living_room_3_head_lamp_3
+                    - switch.living_room_floor_light_3
+                  - service: light.turn_on
+                    entity_id:
+                    - light.living_room_floor_light_1
+                    - light.living_room_3_head_lamp_1
+                    - light.living_room_3_head_lamp_2
+                    - light.living_room_3_head_lamp_3
+                    - switch.living_room_floor_light_3
+            - if:
+                condition: state
+                entity_id: input_boolean.led_control_when_dark_outdoor_living_room
+                state: 'on'
+              then:
+                service: homeassistant.turn_on
+                entity_id:
+                - light.living_room_tv_led
+                - light.living_room_sofa_led
+            - if:
+                condition: state
+                entity_id: input_boolean.curtain_control_when_dark_outdoor_living_room
+                state: 'on'
+              then:
+                service: cover.open_cover
+                entity_id: []
   id: automation.zl_lr_applies_different_scenes_based_on_scene_selections_state_execution_living_room
 - alias: ZLB-LR Remote Button - Double - Toggle Lamps-Living Room
   trigger:

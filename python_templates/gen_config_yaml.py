@@ -763,8 +763,19 @@ class RoomBase:
         "action": [
           self.setNewScene("Dark Night Mode") if self.room_entity == 'master_room' else self.turn(self.leds, 'on', light_brightness=40),
           #self.turn(self.leds, 'on', light_brightness=40),
-          {"delay": "00:03:00"},
+          
           {
+            "alias": "Wait for floor sensors to go off for 1 min to turn off LED. Stop waiting if it has wait for 1 hour.",
+            "wait_for_trigger": 
+              { "platform": "state",
+                "entity_id": self.non_bed_motion_sensors,
+                "to":  "off",
+                "for": "00:01:00"
+              },
+            "timeout": "01:00:00"
+          },
+          { 
+            "alias": " Testing if other lights are manually turned on after the LED was on",  
             "entity_id": self.ceiling_lights + self.lamps if self.room_entity != 'guest_room' else \
                          self.ceiling_lights,
             "condition": "state",
@@ -1254,10 +1265,11 @@ class RoomBase:
 
 
   def setLightsToWhite(self, entity_list):
+    
+    alias =   'Turn on lamps first ' + \
+              'and check if light colour is white. ' + \
+              'Reset colour lamps to white and apply adaptive lighting.'
 
-    # Turn on lamps first 
-    # and check if light colour is white
-    # reset colour lamps to white and apply adaptive lighting
     service_list = [
                {"service": "light.turn_on", "entity_id": self.lamps},
                {"if": self.continueIf(entity_list, 'color_temp', attribute='color_mode'), 
@@ -1270,13 +1282,13 @@ class RoomBase:
                }
            ]
 
-    return self.convertToSingleService(service_list)
+    return self.convertToSingleService(service_list, alias)
 
-  def convertToSingleService(self, service_list):
+  def convertToSingleService(self, service_list, alias=''):
     # "sequence" cannot be used in automation generally
     #return {"sequence": service_list}
     
-    return {"if": self.alwaysOnIf(True), "then": service_list}
+    return {"alias": alias, "if": self.alwaysOnIf(True), "then": service_list}
 
   def callSceneService(self, scene_name):  
       parallel_enable = True  
@@ -1337,19 +1349,23 @@ class RoomBase:
 
       if parallel_enable == True:
         scene_service = [{"parallel":scene_service}] 
-      return scene_service
+        
+      # Convert to a single service/entry instead of a list  
+      return self.convertToSingleService(scene_service, alias=scene_name)  
 
   def setNewScene(self, new_scene):
-
-    seq = {
-      "service": "script.call_room_scene",
-      "data":{
-        "room_scene_select": self.room_scene_ctl,
-        "scene": new_scene
-      }
-    }
-    return seq
-        
+    #seq = {
+    #  "service": "script.call_room_scene",
+    #  "data":{
+    #    "room_scene_select": self.room_scene_ctl,
+    #    "scene": new_scene
+    #  }
+    #}
+    
+    # Instead of calling the input_select control, directly calling services of the scene
+    return self.callSceneService(new_scene)
+    
+    
   def ifOldSceneSetNewScene(self, old_scene, new_scene):
     cond_seq = {
         "conditions": 
@@ -1908,13 +1924,19 @@ class EnSuiteRoom(RoomBase):
     self.cfg_auto_curtain_ctl   = True
     self.cfg_tv                 = True
 
+  def get_entity_declarations(self):
+    super().get_entity_declarations()
+    self.add_mac_device('0x00158d00047d69e6', 'En-suite Room',             'Aqara D1 Wall Switch (With Neutral, Single Rocker)')
+    self.add_mac_device('0x00158d00057b37be', 'En-suite Room Entrance',    'Aqara Motion and Illuminance Sensor')
+    self.add_mac_device("dced830908fb",       "En-suite Room",             "Ziqing Occupancy Sensor")
 
   def get_motion_sensor_entities(self):
     super().get_motion_sensor_entities()
     self.all_motion_sensors = [
       "binary_sensor.en_suite_room_bed_motion_sensor_motion",
       "binary_sensor.en_suite_room_entrance_motion_sensor_motion",
-      "binary_sensor.en_suite_room_floor_motion_sensor_motion"
+      "binary_sensor.en_suite_room_floor_motion_sensor_motion",
+      "binary_sensor.en_suite_room_occupancy_sensor_occupancy"
     ]
     
     self.non_bed_motion_sensors = 'binary_sensor.en_suite_room_floor_motion_sensor_motion'
@@ -2495,7 +2517,8 @@ dashboard = OverallDashboard()
 #('0x001788010c45f13e', 'E27',  'HUE W Z2M 1')
 #('0x001788010c45f2d5', 'E27',  'HUE W Z2M 2')
 
-
+#('0x00158d00047d69e6', 'En-suite Room',             'Wall Switch')
+#('0x00158d00057b37be', 'En-suite Room Entrance',    'Aqara Motion and Illuminance Sensor')
 
 
 

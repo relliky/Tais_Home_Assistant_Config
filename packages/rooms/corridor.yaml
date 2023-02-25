@@ -107,122 +107,117 @@ script:
 #
 ###############################################
 automation:
-  ###############################################
-  # Heating Automation based on motion sensors
-  ###############################################
-#  - alias: H-GC Ground Corrdior Heating Set to 20 If People Present
-#    id: "1599611792932"
-#    description: "automation.ground_corrdior_heating_on_if_people_present"
+  - alias: H-Workaround Zone Heating On When Heating Required
+    id: zone_heating_on
+    trigger:
+      - platform: state
+        entity_id: 
+        - binary_sensor.downstairs_heating_required
+        - binary_sensor.upstairs_heating_required
+      - minutes: /5
+        platform: time_pattern        
+    condition:    
+    - condition: or
+      conditions:
+      - condition: state
+        entity_id: binary_sensor.downstairs_heating_required      
+        state: "on"
+      - condition: state
+        entity_id: binary_sensor.upstairs_heating_required      
+        state: "on"
+    action:
+      - service: switch.turn_on
+        entity_id: switch.downstairs_heating
+
+  - alias: H-Workaround Zone Heating Off When No Heating Required
+    id: zone_heating_off
+    trigger:
+      - platform: state
+        entity_id: 
+        - binary_sensor.downstairs_heating_required
+        - binary_sensor.upstairs_heating_required
+      - minutes: /5
+        platform: time_pattern        
+    condition:    
+    - condition: and
+      conditions:
+      - condition: state
+        entity_id: binary_sensor.downstairs_heating_required      
+        state: "off"
+      - condition: state
+        entity_id: binary_sensor.upstairs_heating_required      
+        state: "off"        
+    action:
+      - service: switch.turn_off
+        entity_id: switch.downstairs_heating
+
+
+#  - alias: H-DS Downstairs Zone Heating On When Heating Required
+#    id: "1599612133872"
 #    trigger:
-#      - entity_id: binary_sensor.ground_corridor_motion_sensor_motion
-#        platform: state
-#        from: "off"
+#      - platform: state
+#        entity_id: binary_sensor.downstairs_heating_required
 #        to: "on"
-#    condition: []
-#    action:
-#      - data:
-#          hvac_mode: heat
-#        entity_id: climate.ground_corridor
-#        service: climate.set_hvac_mode
-#      - data:
-#          temperature: 20
-#        entity_id: climate.ground_corridor
-#        service: climate.set_temperature
-#
-#  - alias: H-GC Ground Corridor Heating Off If No Person For 20 Min
-#    id: "1599611696918"
-#    description: "automation.ground_corridor_heating_off_if_no_person"
-#    trigger:
-#      - entity_id: binary_sensor.ground_corridor_motion_sensor_motion
-#        platform: state
-#        from: "on"
-#        to: "off"
-#        for: 00:20:00
 #      - minutes: /5
-#        platform: time_pattern
-#    condition:
-#      - condition: and
-#        conditions:
-#          - condition: state
-#            entity_id: binary_sensor.ground_corridor_motion_sensor_motion
-#            for: 00:20:00
-#            state: "off"
-#          - condition: state
-#            entity_id: binary_sensor.first_corridor_motion_sensor_motion
-#            for: 00:20:00
-#            state: "off"
+#        platform: time_pattern        
+#    condition:    
+#      - condition: state
+#        entity_id: binary_sensor.downstairs_heating_required      
+#        state: "on"
 #    action:
-#      - service: climate.set_hvac_mode
-#        entity_id: climate.ground_corridor
-#        data:
-#          hvac_mode: "off"
-
-  - alias: H-DS Downstairs Zone Heating On When Heating Required
-    id: "1599612133872"
-    trigger:
-      - platform: state
-        entity_id: binary_sensor.downstairs_heating_required
-        to: "on"
-      - minutes: /5
-        platform: time_pattern        
-    condition:    
-      - condition: state
-        entity_id: binary_sensor.downstairs_heating_required      
-        state: "on"
-    action:
-      - service: switch.turn_on
-        entity_id: switch.downstairs_heating
-
-  - alias: H-DS Downstairs Zone Heating Off When No Heating Required
-    id: "1599653387645"
-    trigger:
-      - platform: state
-        entity_id: binary_sensor.downstairs_heating_required
-        to: "off"
-      - minutes: /5
-        platform: time_pattern        
-    condition:    
-      - condition: state
-        entity_id: binary_sensor.downstairs_heating_required      
-        state: "off"
-    action:
-      - service: switch.turn_off
-        entity_id: switch.downstairs_heating
-
-  - alias: H-US Upstairs Zone Heating On When Heating Required
-    id: "1600016150575"
-    trigger:
-      - platform: state
-        entity_id: binary_sensor.upstairs_heating_required
-        to: "on"
-    # It's possible that the turn-on command is sent to Xiaomi gateway but 
-    # the physical switch never takes the action. Make sure the command 
-    # is sent repetively.
-      - minutes: /5
-        platform: time_pattern    
-    condition:    
-      - condition: state
-        entity_id: binary_sensor.upstairs_heating_required      
-        state: "on"
-    action:
-      - service: switch.turn_on
-        entity_id: switch.upstairs_heating
-
-  - alias: H-US Upstairs Zone Heating Off When No Heating Required
-    id: "1600017150562"
-    trigger:
-      - platform: state
-        entity_id: binary_sensor.upstairs_heating_required
-        to: "off"
-      - minutes: /5
-        platform: time_pattern        
-    condition:    
-      - condition: state
-        entity_id: binary_sensor.upstairs_heating_required      
-        state: "off"
-    action:
-      - service: switch.turn_off
-        entity_id: switch.upstairs_heating
+#      - service: switch.turn_on
+#        entity_id: switch.downstairs_heating
+#
+#  - alias: H-DS Downstairs Zone Heating Off When No Heating Required
+#    id: "1599653387645"
+#    trigger:
+#      - platform: state
+#        entity_id: binary_sensor.downstairs_heating_required
+#        to: "off"
+#      - minutes: /5
+#        platform: time_pattern        
+#    condition:    
+#      - condition: state
+#        entity_id: binary_sensor.downstairs_heating_required      
+#        state: "off"
+#    action:
+#      - service: switch.turn_off
+#        entity_id: switch.downstairs_heating
+#
+#  - alias: H-US Upstairs Zone Heating On When Heating Required
+#    id: "1600016150575"
+#    trigger:
+#      - platform: state
+#        entity_id: binary_sensor.upstairs_heating_required
+#        to: "on"
+#    # It's possible that the turn-on command is sent to Xiaomi gateway but 
+#    # the physical switch never takes the action. Make sure the command 
+#    # is sent repetively.
+#      - minutes: /5
+#        platform: time_pattern    
+#    condition:    
+#      - condition: state
+#        entity_id: binary_sensor.upstairs_heating_required      
+#        state: "on"
+#    action:
+#      - service: switch.turn_on
+#        entity_id: switch.upstairs_heating
+#
+#  - alias: H-US Upstairs Zone Heating Off When No Heating Required
+#    id: "1600017150562"
+#    trigger:
+#      - platform: state
+#        entity_id: binary_sensor.upstairs_heating_required
+#        to: "off"
+#      - minutes: /5
+#        platform: time_pattern        
+#    condition:    
+#      - condition: state
+#        entity_id: binary_sensor.upstairs_heating_required      
+#        state: "off"
+#    action:
+#      - service: switch.turn_off
+#        entity_id: switch.upstairs_heating
 
   ###############################################
   # Water Heating Automation based on motion sensors

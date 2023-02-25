@@ -24,25 +24,127 @@ automation:
       entity_id: input_boolean.always_off_constant
       state: 'on'
     then:
-      service: script.call_room_scene
-      data:
-        room_scene_select: input_select.guest_toilet_scene
-        scene: Lights on in hot sunshine
+      alias: ''
+      if:
+        condition: state
+        entity_id: input_boolean.always_on_constant
+        state: 'on'
+      then:
+      - parallel:
+        - parallel:
+          - if:
+              condition: state
+              entity_id: input_boolean.ceiling_light_control_in_hot_sunshine_guest_toilet
+              state: 'on'
+            then:
+              service: homeassistant.turn_on
+              entity_id:
+              - light.guest_toilet_ceiling_light
+          - if:
+              condition: state
+              entity_id: input_boolean.lamp_control_in_hot_sunshine_guest_toilet
+              state: 'on'
+            then:
+              service: cover.open_cover
+              entity_id: []
+          - if:
+              condition: state
+              entity_id: input_boolean.led_control_in_hot_sunshine_guest_toilet
+              state: 'on'
+            then:
+              service: homeassistant.turn_on
+              entity_id:
+              - switch.guest_toilet_floor_led
+          - if:
+              condition: state
+              entity_id: input_boolean.curtain_control_in_hot_sunshine_guest_toilet
+              state: 'on'
+            then:
+              service: cover.open_cover
+              entity_id: []
     else:
       if:
       - condition: state
         entity_id: sun.sun
         state: above_horizon
       then:
-        service: script.call_room_scene
-        data:
-          room_scene_select: input_select.guest_toilet_scene
-          scene: Lights on when bright outdoor
+        alias: ''
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+        - parallel:
+          - parallel:
+            - if:
+                condition: state
+                entity_id: input_boolean.ceiling_light_control_when_bright_outdoor_guest_toilet
+                state: 'on'
+              then:
+                service: homeassistant.turn_on
+                entity_id:
+                - light.guest_toilet_ceiling_light
+            - if:
+                condition: state
+                entity_id: input_boolean.lamp_control_when_bright_outdoor_guest_toilet
+                state: 'on'
+              then:
+                service: cover.open_cover
+                entity_id: []
+            - if:
+                condition: state
+                entity_id: input_boolean.led_control_when_bright_outdoor_guest_toilet
+                state: 'on'
+              then:
+                service: homeassistant.turn_on
+                entity_id:
+                - switch.guest_toilet_floor_led
+            - if:
+                condition: state
+                entity_id: input_boolean.curtain_control_when_bright_outdoor_guest_toilet
+                state: 'on'
+              then:
+                service: cover.open_cover
+                entity_id: []
       else:
-        service: script.call_room_scene
-        data:
-          room_scene_select: input_select.guest_toilet_scene
-          scene: Lights on when dark outdoor
+        alias: ''
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+        - parallel:
+          - parallel:
+            - if:
+                condition: state
+                entity_id: input_boolean.ceiling_light_control_when_dark_outdoor_guest_toilet
+                state: 'on'
+              then:
+                service: homeassistant.turn_on
+                entity_id:
+                - light.guest_toilet_ceiling_light
+            - if:
+                condition: state
+                entity_id: input_boolean.lamp_control_when_dark_outdoor_guest_toilet
+                state: 'on'
+              then:
+                service: cover.open_cover
+                entity_id: []
+            - if:
+                condition: state
+                entity_id: input_boolean.led_control_when_dark_outdoor_guest_toilet
+                state: 'on'
+              then:
+                service: homeassistant.turn_on
+                entity_id:
+                - switch.guest_toilet_floor_led
+            - if:
+                condition: state
+                entity_id: input_boolean.curtain_control_when_dark_outdoor_guest_toilet
+                state: 'on'
+              then:
+                service: cover.open_cover
+                entity_id: []
 - alias: ZL-GT Lights Off If No Person-Guest Toilet
   id: automation.zl_gt_lights_off_if_no_person_guest_toilet
   trigger:
@@ -67,10 +169,17 @@ automation:
       entity_id: []
     - service: cover.close_cover
       entity_id: []
-    - service: script.call_room_scene
-      data:
-        room_scene_select: input_select.guest_toilet_scene
-        scene: All Off
+    - alias: ''
+      if:
+        condition: state
+        entity_id: input_boolean.always_on_constant
+        state: 'on'
+      then:
+      - parallel:
+        - service: homeassistant.turn_off
+          entity_id:
+          - light.guest_toilet_ceiling_light
+          - switch.guest_toilet_floor_led
 - alias: ZH-GT Heating Schedule On If Staying In the Room-Guest Toilet
   id: automation.zh_gt_heating_schedule_on_if_staying_in_the_room_guest_toilet
   trigger:
@@ -88,6 +197,7 @@ automation:
         entity_id: climate.guest_toilet
         state: heat
     then:
+      alias: ''
       if:
         condition: state
         entity_id: input_boolean.always_on_constant
@@ -114,7 +224,8 @@ automation:
   - condition: state
     entity_id: input_boolean.guest_toilet_heating_override
     state: 'off'
-  - if:
+  - alias: ''
+    if:
       condition: state
       entity_id: input_boolean.always_on_constant
       state: 'on'
@@ -178,47 +289,115 @@ automation:
         entity_id: input_select.guest_toilet_scene
         state: All White
       sequence:
-      - parallel:
-        - service: cover.open_cover
-          entity_id: []
-        - service: homeassistant.turn_on
-          entity_id:
-          - light.guest_toilet_ceiling_light
-          - switch.guest_toilet_floor_led
-        - service: samsungtv_smart.select_picture_mode
-          data:
+        alias: ''
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+        - parallel:
+          - service: cover.open_cover
             entity_id: []
-            picture_mode: Standard
+          - service: homeassistant.turn_on
+            entity_id:
+            - light.guest_toilet_ceiling_light
+            - switch.guest_toilet_floor_led
+          - service: samsungtv_smart.select_picture_mode
+            data:
+              entity_id: []
+              picture_mode: Standard
     - conditions:
       - condition: state
         entity_id: input_select.guest_toilet_scene
         state: Ceiling Light White
       sequence:
-      - parallel:
-        - service: homeassistant.turn_off
-          entity_id:
-          - switch.guest_toilet_floor_led
-        - service: homeassistant.turn_on
-          entity_id:
-          - light.guest_toilet_ceiling_light
-        - service: samsungtv_smart.select_picture_mode
-          data:
-            entity_id: []
-            picture_mode: Standard
+        alias: ''
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+        - parallel:
+          - service: homeassistant.turn_off
+            entity_id:
+            - switch.guest_toilet_floor_led
+          - service: homeassistant.turn_on
+            entity_id:
+            - light.guest_toilet_ceiling_light
+          - service: samsungtv_smart.select_picture_mode
+            data:
+              entity_id: []
+              picture_mode: Standard
     - conditions:
       - condition: state
         entity_id: input_select.guest_toilet_scene
         state: Lamp LED White
       sequence:
-      - parallel:
-        - service: homeassistant.turn_off
-          entity_id:
-          - light.guest_toilet_ceiling_light
-        - service: cover.open_cover
-          entity_id: []
+        alias: ''
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+        - parallel:
+          - service: homeassistant.turn_off
+            entity_id:
+            - light.guest_toilet_ceiling_light
+          - service: cover.open_cover
+            entity_id: []
+          - service: homeassistant.turn_on
+            entity_id:
+            - switch.guest_toilet_floor_led
+          - service: samsungtv_smart.select_picture_mode
+            data:
+              entity_id: []
+              picture_mode: Standard
+    - conditions:
+      - condition: state
+        entity_id: input_select.guest_toilet_scene
+        state: LED White
+      sequence:
+        alias: ''
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+        - parallel:
+          - service: homeassistant.turn_off
+            entity_id:
+            - light.guest_toilet_ceiling_light
+          - service: homeassistant.turn_on
+            entity_id:
+            - switch.guest_toilet_floor_led
+          - service: samsungtv_smart.select_picture_mode
+            data:
+              entity_id: []
+              picture_mode: Natural
+    - conditions:
+      - condition: state
+        entity_id: input_select.guest_toilet_scene
+        state: Hue
+      sequence:
+        alias: ''
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
         - service: homeassistant.turn_on
           entity_id:
           - switch.guest_toilet_floor_led
+        - service: light.turn_on
+          entity_id:
+          - switch.guest_toilet_floor_led
+          data:
+            brightness_pct: 100
+        - service: pyscript.set_rgb_light_list
+          data:
+            light_list:
+            - light.guest_toilet_ceiling_light
+            - switch.guest_toilet_floor_led
         - service: samsungtv_smart.select_picture_mode
           data:
             entity_id: []
@@ -226,178 +405,176 @@ automation:
     - conditions:
       - condition: state
         entity_id: input_select.guest_toilet_scene
-        state: LED White
-      sequence:
-      - parallel:
-        - service: homeassistant.turn_off
-          entity_id:
-          - light.guest_toilet_ceiling_light
-        - service: homeassistant.turn_on
-          entity_id:
-          - switch.guest_toilet_floor_led
-        - service: samsungtv_smart.select_picture_mode
-          data:
-            entity_id: []
-            picture_mode: Natural
-    - conditions:
-      - condition: state
-        entity_id: input_select.guest_toilet_scene
-        state: Hue
-      sequence:
-      - service: homeassistant.turn_on
-        entity_id:
-        - switch.guest_toilet_floor_led
-      - service: light.turn_on
-        entity_id:
-        - switch.guest_toilet_floor_led
-        data:
-          brightness_pct: 100
-      - service: pyscript.set_rgb_light_list
-        data:
-          light_list:
-          - light.guest_toilet_ceiling_light
-          - switch.guest_toilet_floor_led
-      - service: samsungtv_smart.select_picture_mode
-        data:
-          entity_id: []
-          picture_mode: Standard
-    - conditions:
-      - condition: state
-        entity_id: input_select.guest_toilet_scene
         state: Night Mode
       sequence:
-      - parallel:
-        - service: homeassistant.turn_on
-          entity_id: scene.guest_toilet_night_mode
+        alias: ''
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+        - parallel:
+          - service: homeassistant.turn_on
+            entity_id: scene.guest_toilet_night_mode
     - conditions:
       - condition: state
         entity_id: input_select.guest_toilet_scene
         state: Dark Night Mode
       sequence:
-      - parallel:
-        - service: homeassistant.turn_on
-          entity_id: scene.guest_toilet_dark_night_mode
+        alias: ''
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+        - parallel:
+          - service: homeassistant.turn_on
+            entity_id: scene.guest_toilet_dark_night_mode
     - conditions:
       - condition: state
         entity_id: input_select.guest_toilet_scene
         state: All Off
       sequence:
-      - parallel:
-        - service: homeassistant.turn_off
-          entity_id:
-          - light.guest_toilet_ceiling_light
-          - switch.guest_toilet_floor_led
+        alias: ''
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+        - parallel:
+          - service: homeassistant.turn_off
+            entity_id:
+            - light.guest_toilet_ceiling_light
+            - switch.guest_toilet_floor_led
     - conditions:
       - condition: state
         entity_id: input_select.guest_toilet_scene
         state: Lights on in hot sunshine
       sequence:
-      - parallel:
+        alias: ''
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
         - parallel:
-          - if:
-              condition: state
-              entity_id: input_boolean.ceiling_light_control_in_hot_sunshine_guest_toilet
-              state: 'on'
-            then:
-              service: homeassistant.turn_on
-              entity_id:
-              - light.guest_toilet_ceiling_light
-          - if:
-              condition: state
-              entity_id: input_boolean.lamp_control_in_hot_sunshine_guest_toilet
-              state: 'on'
-            then:
-              service: cover.open_cover
-              entity_id: []
-          - if:
-              condition: state
-              entity_id: input_boolean.led_control_in_hot_sunshine_guest_toilet
-              state: 'on'
-            then:
-              service: homeassistant.turn_on
-              entity_id:
-              - switch.guest_toilet_floor_led
-          - if:
-              condition: state
-              entity_id: input_boolean.curtain_control_in_hot_sunshine_guest_toilet
-              state: 'on'
-            then:
-              service: cover.open_cover
-              entity_id: []
+          - parallel:
+            - if:
+                condition: state
+                entity_id: input_boolean.ceiling_light_control_in_hot_sunshine_guest_toilet
+                state: 'on'
+              then:
+                service: homeassistant.turn_on
+                entity_id:
+                - light.guest_toilet_ceiling_light
+            - if:
+                condition: state
+                entity_id: input_boolean.lamp_control_in_hot_sunshine_guest_toilet
+                state: 'on'
+              then:
+                service: cover.open_cover
+                entity_id: []
+            - if:
+                condition: state
+                entity_id: input_boolean.led_control_in_hot_sunshine_guest_toilet
+                state: 'on'
+              then:
+                service: homeassistant.turn_on
+                entity_id:
+                - switch.guest_toilet_floor_led
+            - if:
+                condition: state
+                entity_id: input_boolean.curtain_control_in_hot_sunshine_guest_toilet
+                state: 'on'
+              then:
+                service: cover.open_cover
+                entity_id: []
     - conditions:
       - condition: state
         entity_id: input_select.guest_toilet_scene
         state: Lights on when bright outdoor
       sequence:
-      - parallel:
+        alias: ''
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
         - parallel:
-          - if:
-              condition: state
-              entity_id: input_boolean.ceiling_light_control_when_bright_outdoor_guest_toilet
-              state: 'on'
-            then:
-              service: homeassistant.turn_on
-              entity_id:
-              - light.guest_toilet_ceiling_light
-          - if:
-              condition: state
-              entity_id: input_boolean.lamp_control_when_bright_outdoor_guest_toilet
-              state: 'on'
-            then:
-              service: cover.open_cover
-              entity_id: []
-          - if:
-              condition: state
-              entity_id: input_boolean.led_control_when_bright_outdoor_guest_toilet
-              state: 'on'
-            then:
-              service: homeassistant.turn_on
-              entity_id:
-              - switch.guest_toilet_floor_led
-          - if:
-              condition: state
-              entity_id: input_boolean.curtain_control_when_bright_outdoor_guest_toilet
-              state: 'on'
-            then:
-              service: cover.open_cover
-              entity_id: []
+          - parallel:
+            - if:
+                condition: state
+                entity_id: input_boolean.ceiling_light_control_when_bright_outdoor_guest_toilet
+                state: 'on'
+              then:
+                service: homeassistant.turn_on
+                entity_id:
+                - light.guest_toilet_ceiling_light
+            - if:
+                condition: state
+                entity_id: input_boolean.lamp_control_when_bright_outdoor_guest_toilet
+                state: 'on'
+              then:
+                service: cover.open_cover
+                entity_id: []
+            - if:
+                condition: state
+                entity_id: input_boolean.led_control_when_bright_outdoor_guest_toilet
+                state: 'on'
+              then:
+                service: homeassistant.turn_on
+                entity_id:
+                - switch.guest_toilet_floor_led
+            - if:
+                condition: state
+                entity_id: input_boolean.curtain_control_when_bright_outdoor_guest_toilet
+                state: 'on'
+              then:
+                service: cover.open_cover
+                entity_id: []
     - conditions:
       - condition: state
         entity_id: input_select.guest_toilet_scene
         state: Lights on when dark outdoor
       sequence:
-      - parallel:
+        alias: ''
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
         - parallel:
-          - if:
-              condition: state
-              entity_id: input_boolean.ceiling_light_control_when_dark_outdoor_guest_toilet
-              state: 'on'
-            then:
-              service: homeassistant.turn_on
-              entity_id:
-              - light.guest_toilet_ceiling_light
-          - if:
-              condition: state
-              entity_id: input_boolean.lamp_control_when_dark_outdoor_guest_toilet
-              state: 'on'
-            then:
-              service: cover.open_cover
-              entity_id: []
-          - if:
-              condition: state
-              entity_id: input_boolean.led_control_when_dark_outdoor_guest_toilet
-              state: 'on'
-            then:
-              service: homeassistant.turn_on
-              entity_id:
-              - switch.guest_toilet_floor_led
-          - if:
-              condition: state
-              entity_id: input_boolean.curtain_control_when_dark_outdoor_guest_toilet
-              state: 'on'
-            then:
-              service: cover.open_cover
-              entity_id: []
+          - parallel:
+            - if:
+                condition: state
+                entity_id: input_boolean.ceiling_light_control_when_dark_outdoor_guest_toilet
+                state: 'on'
+              then:
+                service: homeassistant.turn_on
+                entity_id:
+                - light.guest_toilet_ceiling_light
+            - if:
+                condition: state
+                entity_id: input_boolean.lamp_control_when_dark_outdoor_guest_toilet
+                state: 'on'
+              then:
+                service: cover.open_cover
+                entity_id: []
+            - if:
+                condition: state
+                entity_id: input_boolean.led_control_when_dark_outdoor_guest_toilet
+                state: 'on'
+              then:
+                service: homeassistant.turn_on
+                entity_id:
+                - switch.guest_toilet_floor_led
+            - if:
+                condition: state
+                entity_id: input_boolean.curtain_control_when_dark_outdoor_guest_toilet
+                state: 'on'
+              then:
+                service: cover.open_cover
+                entity_id: []
   id: automation.zl_gt_applies_different_scenes_based_on_scene_selections_state_execution_guest_toilet
 - alias: ZLB-GT Wall Switch-Single Left Press - Toggle Ceiling Light-Guest Toilet
   trigger:

@@ -24,25 +24,199 @@ automation:
       entity_id: input_boolean.always_on_constant
       state: 'on'
     then:
-      service: script.call_room_scene
-      data:
-        room_scene_select: input_select.kitchen_scene
-        scene: Lights on in hot sunshine
+      alias: ''
+      if:
+        condition: state
+        entity_id: input_boolean.always_on_constant
+        state: 'on'
+      then:
+      - parallel:
+        - parallel:
+          - if:
+              condition: state
+              entity_id: input_boolean.ceiling_light_control_in_hot_sunshine_kitchen
+              state: 'on'
+            then:
+              service: homeassistant.turn_on
+              entity_id:
+              - light.kitchen_ceiling_light
+              - light.kitchen_dining_light
+          - if:
+              condition: state
+              entity_id: input_boolean.lamp_control_in_hot_sunshine_kitchen
+              state: 'on'
+            then:
+              alias: Turn on lamps first and check if light colour is white. Reset colour lamps to white and apply adaptive lighting.
+              if:
+                condition: state
+                entity_id: input_boolean.always_on_constant
+                state: 'on'
+              then:
+              - service: light.turn_on
+                entity_id: []
+              - if:
+                  condition: state
+                  entity_id: []
+                  state: color_temp
+                  attribute: color_mode
+                then:
+                  service: script.do_nothing
+                else:
+                - service: light.turn_on
+                  entity_id: []
+                  data:
+                    kelvin: '3000'
+                - service: light.turn_off
+                  entity_id: []
+                - service: light.turn_on
+                  entity_id: []
+          - if:
+              condition: state
+              entity_id: input_boolean.led_control_in_hot_sunshine_kitchen
+              state: 'on'
+            then:
+              service: homeassistant.turn_on
+              entity_id:
+              - switch.kitchen_floor_led
+          - if:
+              condition: state
+              entity_id: input_boolean.curtain_control_in_hot_sunshine_kitchen
+              state: 'on'
+            then:
+              service: cover.open_cover
+              entity_id:
+              - cover.kitchen_curtain
     else:
       if:
       - condition: state
         entity_id: sun.sun
         state: above_horizon
       then:
-        service: script.call_room_scene
-        data:
-          room_scene_select: input_select.kitchen_scene
-          scene: Lights on when bright outdoor
+        alias: ''
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+        - parallel:
+          - parallel:
+            - if:
+                condition: state
+                entity_id: input_boolean.ceiling_light_control_when_bright_outdoor_kitchen
+                state: 'on'
+              then:
+                service: homeassistant.turn_on
+                entity_id:
+                - light.kitchen_ceiling_light
+                - light.kitchen_dining_light
+            - if:
+                condition: state
+                entity_id: input_boolean.lamp_control_when_bright_outdoor_kitchen
+                state: 'on'
+              then:
+                alias: Turn on lamps first and check if light colour is white. Reset colour lamps to white and apply adaptive lighting.
+                if:
+                  condition: state
+                  entity_id: input_boolean.always_on_constant
+                  state: 'on'
+                then:
+                - service: light.turn_on
+                  entity_id: []
+                - if:
+                    condition: state
+                    entity_id: []
+                    state: color_temp
+                    attribute: color_mode
+                  then:
+                    service: script.do_nothing
+                  else:
+                  - service: light.turn_on
+                    entity_id: []
+                    data:
+                      kelvin: '3000'
+                  - service: light.turn_off
+                    entity_id: []
+                  - service: light.turn_on
+                    entity_id: []
+            - if:
+                condition: state
+                entity_id: input_boolean.led_control_when_bright_outdoor_kitchen
+                state: 'on'
+              then:
+                service: homeassistant.turn_on
+                entity_id:
+                - switch.kitchen_floor_led
+            - if:
+                condition: state
+                entity_id: input_boolean.curtain_control_when_bright_outdoor_kitchen
+                state: 'on'
+              then:
+                service: cover.open_cover
+                entity_id:
+                - cover.kitchen_curtain
       else:
-        service: script.call_room_scene
-        data:
-          room_scene_select: input_select.kitchen_scene
-          scene: Lights on when dark outdoor
+        alias: ''
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+        - parallel:
+          - parallel:
+            - if:
+                condition: state
+                entity_id: input_boolean.ceiling_light_control_when_dark_outdoor_kitchen
+                state: 'on'
+              then:
+                service: homeassistant.turn_on
+                entity_id:
+                - light.kitchen_ceiling_light
+                - light.kitchen_dining_light
+            - if:
+                condition: state
+                entity_id: input_boolean.lamp_control_when_dark_outdoor_kitchen
+                state: 'on'
+              then:
+                alias: Turn on lamps first and check if light colour is white. Reset colour lamps to white and apply adaptive lighting.
+                if:
+                  condition: state
+                  entity_id: input_boolean.always_on_constant
+                  state: 'on'
+                then:
+                - service: light.turn_on
+                  entity_id: []
+                - if:
+                    condition: state
+                    entity_id: []
+                    state: color_temp
+                    attribute: color_mode
+                  then:
+                    service: script.do_nothing
+                  else:
+                  - service: light.turn_on
+                    entity_id: []
+                    data:
+                      kelvin: '3000'
+                  - service: light.turn_off
+                    entity_id: []
+                  - service: light.turn_on
+                    entity_id: []
+            - if:
+                condition: state
+                entity_id: input_boolean.led_control_when_dark_outdoor_kitchen
+                state: 'on'
+              then:
+                service: homeassistant.turn_on
+                entity_id:
+                - switch.kitchen_floor_led
+            - if:
+                condition: state
+                entity_id: input_boolean.curtain_control_when_dark_outdoor_kitchen
+                state: 'on'
+              then:
+                service: cover.open_cover
+                entity_id:
+                - cover.kitchen_curtain
 - alias: ZL-KC Lights Off If No Person-Kitchen
   id: automation.zl_kc_lights_off_if_no_person_kitchen
   trigger:
@@ -69,10 +243,18 @@ automation:
     - service: homeassistant.turn_off
       entity_id:
       - media_player.kitchen_tv
-    - service: script.call_room_scene
-      data:
-        room_scene_select: input_select.kitchen_scene
-        scene: All Off
+    - alias: ''
+      if:
+        condition: state
+        entity_id: input_boolean.always_on_constant
+        state: 'on'
+      then:
+      - parallel:
+        - service: homeassistant.turn_off
+          entity_id:
+          - light.kitchen_ceiling_light
+          - light.kitchen_dining_light
+          - switch.kitchen_floor_led
 - alias: ZH-KC Heating Schedule On If Staying In the Room-Kitchen
   id: automation.zh_kc_heating_schedule_on_if_staying_in_the_room_kitchen
   trigger:
@@ -90,6 +272,7 @@ automation:
         entity_id: climate.kitchen
         state: heat
     then:
+      alias: ''
       if:
         condition: state
         entity_id: input_boolean.always_on_constant
@@ -116,7 +299,8 @@ automation:
   - condition: state
     entity_id: input_boolean.kitchen_heating_override
     state: 'off'
-  - if:
+  - alias: ''
+    if:
       condition: state
       entity_id: input_boolean.always_on_constant
       state: 'on'
@@ -180,94 +364,168 @@ automation:
         entity_id: input_select.kitchen_scene
         state: All White
       sequence:
-      - parallel:
-        - if:
-            condition: state
-            entity_id: input_boolean.always_on_constant
-            state: 'on'
-          then:
-          - service: light.turn_on
-            entity_id: []
-          - if:
+        alias: ''
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+        - parallel:
+          - alias: Turn on lamps first and check if light colour is white. Reset colour lamps to white and apply adaptive lighting.
+            if:
               condition: state
-              entity_id: []
-              state: color_temp
-              attribute: color_mode
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
             then:
-              service: script.do_nothing
-            else:
             - service: light.turn_on
               entity_id: []
-              data:
-                kelvin: '3000'
-            - service: light.turn_off
-              entity_id: []
-            - service: light.turn_on
-              entity_id: []
-        - service: homeassistant.turn_on
-          entity_id:
-          - light.kitchen_ceiling_light
-          - light.kitchen_dining_light
-          - switch.kitchen_floor_led
-        - service: samsungtv_smart.select_picture_mode
-          data:
+            - if:
+                condition: state
+                entity_id: []
+                state: color_temp
+                attribute: color_mode
+              then:
+                service: script.do_nothing
+              else:
+              - service: light.turn_on
+                entity_id: []
+                data:
+                  kelvin: '3000'
+              - service: light.turn_off
+                entity_id: []
+              - service: light.turn_on
+                entity_id: []
+          - service: homeassistant.turn_on
             entity_id:
-            - media_player.kitchen_tv
-            picture_mode: Standard
+            - light.kitchen_ceiling_light
+            - light.kitchen_dining_light
+            - switch.kitchen_floor_led
+          - service: samsungtv_smart.select_picture_mode
+            data:
+              entity_id:
+              - media_player.kitchen_tv
+              picture_mode: Standard
     - conditions:
       - condition: state
         entity_id: input_select.kitchen_scene
         state: Ceiling Light White
       sequence:
-      - parallel:
-        - service: homeassistant.turn_off
-          entity_id:
-          - switch.kitchen_floor_led
-        - service: homeassistant.turn_on
-          entity_id:
-          - light.kitchen_ceiling_light
-          - light.kitchen_dining_light
-        - service: samsungtv_smart.select_picture_mode
-          data:
+        alias: ''
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+        - parallel:
+          - service: homeassistant.turn_off
             entity_id:
-            - media_player.kitchen_tv
-            picture_mode: Standard
+            - switch.kitchen_floor_led
+          - service: homeassistant.turn_on
+            entity_id:
+            - light.kitchen_ceiling_light
+            - light.kitchen_dining_light
+          - service: samsungtv_smart.select_picture_mode
+            data:
+              entity_id:
+              - media_player.kitchen_tv
+              picture_mode: Standard
     - conditions:
       - condition: state
         entity_id: input_select.kitchen_scene
         state: Lamp LED White
       sequence:
-      - parallel:
-        - service: homeassistant.turn_off
-          entity_id:
-          - light.kitchen_ceiling_light
-          - light.kitchen_dining_light
-        - if:
-            condition: state
-            entity_id: input_boolean.always_on_constant
-            state: 'on'
-          then:
-          - service: light.turn_on
-            entity_id: []
-          - if:
+        alias: ''
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+        - parallel:
+          - service: homeassistant.turn_off
+            entity_id:
+            - light.kitchen_ceiling_light
+            - light.kitchen_dining_light
+          - alias: Turn on lamps first and check if light colour is white. Reset colour lamps to white and apply adaptive lighting.
+            if:
               condition: state
-              entity_id: []
-              state: color_temp
-              attribute: color_mode
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
             then:
-              service: script.do_nothing
-            else:
             - service: light.turn_on
               entity_id: []
-              data:
-                kelvin: '3000'
-            - service: light.turn_off
-              entity_id: []
-            - service: light.turn_on
-              entity_id: []
+            - if:
+                condition: state
+                entity_id: []
+                state: color_temp
+                attribute: color_mode
+              then:
+                service: script.do_nothing
+              else:
+              - service: light.turn_on
+                entity_id: []
+                data:
+                  kelvin: '3000'
+              - service: light.turn_off
+                entity_id: []
+              - service: light.turn_on
+                entity_id: []
+          - service: homeassistant.turn_on
+            entity_id:
+            - switch.kitchen_floor_led
+          - service: samsungtv_smart.select_picture_mode
+            data:
+              entity_id:
+              - media_player.kitchen_tv
+              picture_mode: Standard
+    - conditions:
+      - condition: state
+        entity_id: input_select.kitchen_scene
+        state: LED White
+      sequence:
+        alias: ''
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+        - parallel:
+          - service: homeassistant.turn_off
+            entity_id:
+            - light.kitchen_ceiling_light
+            - light.kitchen_dining_light
+          - service: homeassistant.turn_on
+            entity_id:
+            - switch.kitchen_floor_led
+          - service: samsungtv_smart.select_picture_mode
+            data:
+              entity_id:
+              - media_player.kitchen_tv
+              picture_mode: Natural
+    - conditions:
+      - condition: state
+        entity_id: input_select.kitchen_scene
+        state: Hue
+      sequence:
+        alias: ''
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
         - service: homeassistant.turn_on
           entity_id:
           - switch.kitchen_floor_led
+        - service: light.turn_on
+          entity_id:
+          - switch.kitchen_floor_led
+          data:
+            brightness_pct: 100
+        - service: pyscript.set_rgb_light_list
+          data:
+            light_list:
+            - light.kitchen_ceiling_light
+            - light.kitchen_dining_light
+            - switch.kitchen_floor_led
         - service: samsungtv_smart.select_picture_mode
           data:
             entity_id:
@@ -276,252 +534,249 @@ automation:
     - conditions:
       - condition: state
         entity_id: input_select.kitchen_scene
-        state: LED White
-      sequence:
-      - parallel:
-        - service: homeassistant.turn_off
-          entity_id:
-          - light.kitchen_ceiling_light
-          - light.kitchen_dining_light
-        - service: homeassistant.turn_on
-          entity_id:
-          - switch.kitchen_floor_led
-        - service: samsungtv_smart.select_picture_mode
-          data:
-            entity_id:
-            - media_player.kitchen_tv
-            picture_mode: Natural
-    - conditions:
-      - condition: state
-        entity_id: input_select.kitchen_scene
-        state: Hue
-      sequence:
-      - service: homeassistant.turn_on
-        entity_id:
-        - switch.kitchen_floor_led
-      - service: light.turn_on
-        entity_id:
-        - switch.kitchen_floor_led
-        data:
-          brightness_pct: 100
-      - service: pyscript.set_rgb_light_list
-        data:
-          light_list:
-          - light.kitchen_ceiling_light
-          - light.kitchen_dining_light
-          - switch.kitchen_floor_led
-      - service: samsungtv_smart.select_picture_mode
-        data:
-          entity_id:
-          - media_player.kitchen_tv
-          picture_mode: Standard
-    - conditions:
-      - condition: state
-        entity_id: input_select.kitchen_scene
         state: Night Mode
       sequence:
-      - parallel:
-        - service: homeassistant.turn_on
-          entity_id: scene.kitchen_night_mode
+        alias: ''
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+        - parallel:
+          - service: homeassistant.turn_on
+            entity_id: scene.kitchen_night_mode
     - conditions:
       - condition: state
         entity_id: input_select.kitchen_scene
         state: Dark Night Mode
       sequence:
-      - parallel:
-        - service: homeassistant.turn_on
-          entity_id: scene.kitchen_dark_night_mode
+        alias: ''
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+        - parallel:
+          - service: homeassistant.turn_on
+            entity_id: scene.kitchen_dark_night_mode
     - conditions:
       - condition: state
         entity_id: input_select.kitchen_scene
         state: All Off
       sequence:
-      - parallel:
-        - service: homeassistant.turn_off
-          entity_id:
-          - light.kitchen_ceiling_light
-          - light.kitchen_dining_light
-          - switch.kitchen_floor_led
+        alias: ''
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+        - parallel:
+          - service: homeassistant.turn_off
+            entity_id:
+            - light.kitchen_ceiling_light
+            - light.kitchen_dining_light
+            - switch.kitchen_floor_led
     - conditions:
       - condition: state
         entity_id: input_select.kitchen_scene
         state: Lights on in hot sunshine
       sequence:
-      - parallel:
+        alias: ''
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
         - parallel:
-          - if:
-              condition: state
-              entity_id: input_boolean.ceiling_light_control_in_hot_sunshine_kitchen
-              state: 'on'
-            then:
-              service: homeassistant.turn_on
-              entity_id:
-              - light.kitchen_ceiling_light
-              - light.kitchen_dining_light
-          - if:
-              condition: state
-              entity_id: input_boolean.lamp_control_in_hot_sunshine_kitchen
-              state: 'on'
-            then:
-              if:
+          - parallel:
+            - if:
                 condition: state
-                entity_id: input_boolean.always_on_constant
+                entity_id: input_boolean.ceiling_light_control_in_hot_sunshine_kitchen
                 state: 'on'
               then:
-              - service: light.turn_on
-                entity_id: []
-              - if:
+                service: homeassistant.turn_on
+                entity_id:
+                - light.kitchen_ceiling_light
+                - light.kitchen_dining_light
+            - if:
+                condition: state
+                entity_id: input_boolean.lamp_control_in_hot_sunshine_kitchen
+                state: 'on'
+              then:
+                alias: Turn on lamps first and check if light colour is white. Reset colour lamps to white and apply adaptive lighting.
+                if:
                   condition: state
-                  entity_id: []
-                  state: color_temp
-                  attribute: color_mode
+                  entity_id: input_boolean.always_on_constant
+                  state: 'on'
                 then:
-                  service: script.do_nothing
-                else:
                 - service: light.turn_on
                   entity_id: []
-                  data:
-                    kelvin: '3000'
-                - service: light.turn_off
-                  entity_id: []
-                - service: light.turn_on
-                  entity_id: []
-          - if:
-              condition: state
-              entity_id: input_boolean.led_control_in_hot_sunshine_kitchen
-              state: 'on'
-            then:
-              service: homeassistant.turn_on
-              entity_id:
-              - switch.kitchen_floor_led
-          - if:
-              condition: state
-              entity_id: input_boolean.curtain_control_in_hot_sunshine_kitchen
-              state: 'on'
-            then:
-              service: cover.open_cover
-              entity_id:
-              - cover.kitchen_curtain
+                - if:
+                    condition: state
+                    entity_id: []
+                    state: color_temp
+                    attribute: color_mode
+                  then:
+                    service: script.do_nothing
+                  else:
+                  - service: light.turn_on
+                    entity_id: []
+                    data:
+                      kelvin: '3000'
+                  - service: light.turn_off
+                    entity_id: []
+                  - service: light.turn_on
+                    entity_id: []
+            - if:
+                condition: state
+                entity_id: input_boolean.led_control_in_hot_sunshine_kitchen
+                state: 'on'
+              then:
+                service: homeassistant.turn_on
+                entity_id:
+                - switch.kitchen_floor_led
+            - if:
+                condition: state
+                entity_id: input_boolean.curtain_control_in_hot_sunshine_kitchen
+                state: 'on'
+              then:
+                service: cover.open_cover
+                entity_id:
+                - cover.kitchen_curtain
     - conditions:
       - condition: state
         entity_id: input_select.kitchen_scene
         state: Lights on when bright outdoor
       sequence:
-      - parallel:
+        alias: ''
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
         - parallel:
-          - if:
-              condition: state
-              entity_id: input_boolean.ceiling_light_control_when_bright_outdoor_kitchen
-              state: 'on'
-            then:
-              service: homeassistant.turn_on
-              entity_id:
-              - light.kitchen_ceiling_light
-              - light.kitchen_dining_light
-          - if:
-              condition: state
-              entity_id: input_boolean.lamp_control_when_bright_outdoor_kitchen
-              state: 'on'
-            then:
-              if:
+          - parallel:
+            - if:
                 condition: state
-                entity_id: input_boolean.always_on_constant
+                entity_id: input_boolean.ceiling_light_control_when_bright_outdoor_kitchen
                 state: 'on'
               then:
-              - service: light.turn_on
-                entity_id: []
-              - if:
+                service: homeassistant.turn_on
+                entity_id:
+                - light.kitchen_ceiling_light
+                - light.kitchen_dining_light
+            - if:
+                condition: state
+                entity_id: input_boolean.lamp_control_when_bright_outdoor_kitchen
+                state: 'on'
+              then:
+                alias: Turn on lamps first and check if light colour is white. Reset colour lamps to white and apply adaptive lighting.
+                if:
                   condition: state
-                  entity_id: []
-                  state: color_temp
-                  attribute: color_mode
+                  entity_id: input_boolean.always_on_constant
+                  state: 'on'
                 then:
-                  service: script.do_nothing
-                else:
                 - service: light.turn_on
                   entity_id: []
-                  data:
-                    kelvin: '3000'
-                - service: light.turn_off
-                  entity_id: []
-                - service: light.turn_on
-                  entity_id: []
-          - if:
-              condition: state
-              entity_id: input_boolean.led_control_when_bright_outdoor_kitchen
-              state: 'on'
-            then:
-              service: homeassistant.turn_on
-              entity_id:
-              - switch.kitchen_floor_led
-          - if:
-              condition: state
-              entity_id: input_boolean.curtain_control_when_bright_outdoor_kitchen
-              state: 'on'
-            then:
-              service: cover.open_cover
-              entity_id:
-              - cover.kitchen_curtain
+                - if:
+                    condition: state
+                    entity_id: []
+                    state: color_temp
+                    attribute: color_mode
+                  then:
+                    service: script.do_nothing
+                  else:
+                  - service: light.turn_on
+                    entity_id: []
+                    data:
+                      kelvin: '3000'
+                  - service: light.turn_off
+                    entity_id: []
+                  - service: light.turn_on
+                    entity_id: []
+            - if:
+                condition: state
+                entity_id: input_boolean.led_control_when_bright_outdoor_kitchen
+                state: 'on'
+              then:
+                service: homeassistant.turn_on
+                entity_id:
+                - switch.kitchen_floor_led
+            - if:
+                condition: state
+                entity_id: input_boolean.curtain_control_when_bright_outdoor_kitchen
+                state: 'on'
+              then:
+                service: cover.open_cover
+                entity_id:
+                - cover.kitchen_curtain
     - conditions:
       - condition: state
         entity_id: input_select.kitchen_scene
         state: Lights on when dark outdoor
       sequence:
-      - parallel:
+        alias: ''
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
         - parallel:
-          - if:
-              condition: state
-              entity_id: input_boolean.ceiling_light_control_when_dark_outdoor_kitchen
-              state: 'on'
-            then:
-              service: homeassistant.turn_on
-              entity_id:
-              - light.kitchen_ceiling_light
-              - light.kitchen_dining_light
-          - if:
-              condition: state
-              entity_id: input_boolean.lamp_control_when_dark_outdoor_kitchen
-              state: 'on'
-            then:
-              if:
+          - parallel:
+            - if:
                 condition: state
-                entity_id: input_boolean.always_on_constant
+                entity_id: input_boolean.ceiling_light_control_when_dark_outdoor_kitchen
                 state: 'on'
               then:
-              - service: light.turn_on
-                entity_id: []
-              - if:
+                service: homeassistant.turn_on
+                entity_id:
+                - light.kitchen_ceiling_light
+                - light.kitchen_dining_light
+            - if:
+                condition: state
+                entity_id: input_boolean.lamp_control_when_dark_outdoor_kitchen
+                state: 'on'
+              then:
+                alias: Turn on lamps first and check if light colour is white. Reset colour lamps to white and apply adaptive lighting.
+                if:
                   condition: state
-                  entity_id: []
-                  state: color_temp
-                  attribute: color_mode
+                  entity_id: input_boolean.always_on_constant
+                  state: 'on'
                 then:
-                  service: script.do_nothing
-                else:
                 - service: light.turn_on
                   entity_id: []
-                  data:
-                    kelvin: '3000'
-                - service: light.turn_off
-                  entity_id: []
-                - service: light.turn_on
-                  entity_id: []
-          - if:
-              condition: state
-              entity_id: input_boolean.led_control_when_dark_outdoor_kitchen
-              state: 'on'
-            then:
-              service: homeassistant.turn_on
-              entity_id:
-              - switch.kitchen_floor_led
-          - if:
-              condition: state
-              entity_id: input_boolean.curtain_control_when_dark_outdoor_kitchen
-              state: 'on'
-            then:
-              service: cover.open_cover
-              entity_id:
-              - cover.kitchen_curtain
+                - if:
+                    condition: state
+                    entity_id: []
+                    state: color_temp
+                    attribute: color_mode
+                  then:
+                    service: script.do_nothing
+                  else:
+                  - service: light.turn_on
+                    entity_id: []
+                    data:
+                      kelvin: '3000'
+                  - service: light.turn_off
+                    entity_id: []
+                  - service: light.turn_on
+                    entity_id: []
+            - if:
+                condition: state
+                entity_id: input_boolean.led_control_when_dark_outdoor_kitchen
+                state: 'on'
+              then:
+                service: homeassistant.turn_on
+                entity_id:
+                - switch.kitchen_floor_led
+            - if:
+                condition: state
+                entity_id: input_boolean.curtain_control_when_dark_outdoor_kitchen
+                state: 'on'
+              then:
+                service: cover.open_cover
+                entity_id:
+                - cover.kitchen_curtain
   id: automation.zl_kc_applies_different_scenes_based_on_scene_selections_state_execution_kitchen
 - alias: ZLB-KC Wall Switch-Single Left Press - Toggle Ceiling Light-Kitchen
   trigger:
