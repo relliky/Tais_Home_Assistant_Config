@@ -437,7 +437,7 @@ class RoomBase:
         self.getPostfix(self.room_scene_ctl) : {
           "name" :  self.getName(self.room_scene_ctl),
           "options": \
-          [ "Idle"           ]
+          ['Idle']
         + (["Hue"            ] if self.cfg_scene_colour_lamp else [])  
         + (["Night Mode",
             "Dark Night Mode"] if self.cfg_custom_scene else[])
@@ -448,11 +448,11 @@ class RoomBase:
             "Ceiling Light White",
             "All Off"
           ]
-        + ["Lights on in hot sunshine",
-           "Lights on when bright outdoor",
-           "Lights on when dark outdoor"
-          ],
-          "configured": self.cfg_scene 
+        #+ ["Lights on in hot sunshine",
+        #   "Lights on when bright outdoor",
+        #   "Lights on when dark outdoor"
+        #  ],
+        #  "configured": self.cfg_scene ##
         }
       }
       
@@ -684,12 +684,13 @@ class RoomBase:
               # turn on lights and open curtain based on control setting
               
           {
-            "if": self.condition_list_is('Hot sunshine'), "then": self.setNewScene('Lights on in hot sunshine'),
+            "if": self.condition_list_is('Hot sunshine'), "then": self.callSceneService('Lights on in hot sunshine'),
             "else": {
-              "if": self.condition_list_is('Outdoor is bright'), "then": self.setNewScene('Lights on when bright outdoor'),
-              "else": self.setNewScene('Lights on when dark outdoor')
+              "if": self.condition_list_is('Outdoor is bright'), "then": self.callSceneService('Lights on when bright outdoor'),
+              "else": self.callSceneService('Lights on when dark outdoor')
             }
-          }
+          },
+          {self.setNewSceneState("Idle")}
         ]          
     }]              
 
@@ -729,7 +730,7 @@ class RoomBase:
             # Turn off lights/curtains/tv
             self.turn(self.curtains, 'off'),
             self.turn(self.tvs, 'off'),
-            self.setNewScene("All Off")          
+            self.callSceneService("All Off")          
           ]
         }    
       }
@@ -761,7 +762,7 @@ class RoomBase:
           }
         ],
         "action": [
-          self.setNewScene("Dark Night Mode") if self.room_entity == 'master_room' else self.turn(self.leds, 'on', light_brightness=40),
+          self.callSceneService("Dark Night Mode") if self.room_entity == 'master_room' else self.turn(self.leds, 'on', light_brightness=40),
           #self.turn(self.leds, 'on', light_brightness=40),
           
           {
@@ -987,25 +988,27 @@ class RoomBase:
             "to": ["single", "1"]
           }
         ],
-        "mode":"queued",
+        "mode":"queued", # this has to be queued to make sure no button press is ignored
+        
         # Skip the starting Reset scene as this is used to trigger transition when calling a scene
-        "condition": [
-          {
-            "condition": "not",
-            "conditions": [
-              {
-                "condition": "state",
-                "entity_id": self.room_scene_ctl,
-                "state": "Reset"
-              }
-            ]
-          }
-        ],
+        #"condition": [
+        #  {
+        #    "condition": "not",
+        #    "conditions": [
+        #      {
+        #        "condition": "state",
+        #        "entity_id": self.room_scene_ctl,
+        #        "state": "Reset"
+        #      }
+        #    ]
+        #  }
+        #],
+        
         "action": [
           {
             "choose": self.get_scene_state_machine(),
             # In the case no condition is matching, turn off everything
-            "default": self.setNewScene("All White")
+            "default": self.setNewSceneState("All White")
           }
         ]
     }]
@@ -1019,7 +1022,7 @@ class RoomBase:
             "entity_id": self.room_scene_ctl,
           }
         ],
-        "mode":"queued",
+        "mode":"restart", # using restart to improve responsiveness of a scene execution
         "action": [
           {
             "choose": [
@@ -1242,7 +1245,7 @@ class RoomBase:
                          "entity_id": self.thermostat
                        }
                        
-    # Turn on lamps but reset to white if set to rgb/hs mode                       
+    # Turn on lamps and also reset to white if set to rgb/hs mode                       
     elif entity_list == self.lamps and state == 'on':
       action_service = self.setLightsToWhite(self.lamps)
     
@@ -1266,21 +1269,28 @@ class RoomBase:
 
   def setLightsToWhite(self, entity_list):
     
-    alias =   'Turn on lamps first ' + \
-              'and check if light colour is white. ' + \
+    alias =   'Turn on lamps first and check if light colour is white. ' + \
               'Reset colour lamps to white and apply adaptive lighting.'
 
+    lights_only_entity_list = []
+    # Remove non-light entities, such as switch
+    for entity in entity_list:
+      lights_only_entity_list += [entity] if entity.startswith('light') else []
+
     service_list = [
-               {"service": "light.turn_on", "entity_id": self.lamps},
-               {"if": self.continueIf(entity_list, 'color_temp', attribute='color_mode'), 
-                 "then": {"service": "script.do_nothing"},
-                 "else":[ 
-                     {"service": "light.turn_on",  "entity_id": self.lamps, "data": {"kelvin": "3000"}},
-                     {"service": "light.turn_off", "entity_id": self.lamps},
-                     {"service": "light.turn_on",  "entity_id": self.lamps}
-                 ]
-               }
-           ]
+       {"service": "homeassistant.turn_on", "entity_id": self.lamps}, # turn on switches in the first instance
+       {"delay" : "00:00:02"},
+       {"if": self.continueIf(lights_only_entity_list, 'color_temp', attribute='color_mode'), 
+         "then": {"service": "script.do_nothing"},
+         "else":[ 
+             {"service": "light.turn_on",  "entity_id": lights_only_entity_list, "data": {"kelvin": "3000"}},
+             {"delay"  : "00:00:02"},
+             {"service": "light.turn_off", "entity_id": lights_only_entity_list},
+             {"delay"  : "00:00:02"},
+             {"service": "light.turn_on",  "entity_id": lights_only_entity_list}
+         ]
+       }
+    ]
 
     return self.convertToSingleService(service_list, alias)
 
@@ -1354,26 +1364,28 @@ class RoomBase:
       return self.convertToSingleService(scene_service, alias=scene_name)  
 
   def setNewScene(self, new_scene):
-    #seq = {
-    #  "service": "script.call_room_scene",
-    #  "data":{
-    #    "room_scene_select": self.room_scene_ctl,
-    #    "scene": new_scene
-    #  }
-    #}
-    
     # Instead of calling the input_select control, directly calling services of the scene
     return self.callSceneService(new_scene)
     
     
-  def ifOldSceneSetNewScene(self, old_scene, new_scene):
+  def setNewSceneState(self, new_scene):
+    seq = {
+      "service": "script.call_room_scene",
+      "data":{
+        "room_scene_select": self.room_scene_ctl,
+        "scene": new_scene
+      }
+    }
+    return seq
+    
+  def ifOldSceneSetNewSceneState(self, old_scene, new_scene):
     cond_seq = {
         "conditions": 
           { "condition": "state",
             "entity_id": self.room_scene_ctl,
             "state": old_scene
           },
-        "sequence": self.setNewScene(new_scene)
+        "sequence": self.setNewSceneState(new_scene)
       }
     return cond_seq
   
@@ -1388,7 +1400,7 @@ class RoomBase:
     if self.cur_scene == 'unintialized_cur_scene':
       exit ("ERROR: self.cur_scene is unintialized. This is in " + self.room_name + ". nxt_scene=" + nxt_scene + ", cur_scene=" + str(cur_scene) + ".")
     else:
-      cond_seq = self.ifOldSceneSetNewScene(self.cur_scene, nxt_scene)
+      cond_seq = self.ifOldSceneSetNewSceneState(self.cur_scene, nxt_scene)
       self.cur_scene = nxt_scene
 
     return cond_seq
@@ -1999,9 +2011,14 @@ class GuestRoom(RoomBase):
     self.cfg_occupancy          = True       
     self.cfg_group_auto         = True
     self.cfg_temp_control       = True
+    self.cfg_temp_calibration   = True
     self.cfg_scene              = True            
     self.cfg_motion_light       = True
     self.cfg_remote_light       = True
+
+  def get_entity_declarations(self):
+    super().get_entity_declarations()
+    self.add_mac_device("582d343483e9", "Guest Room", "Qingping Temperature Sensor")
 
   def get_motion_sensor_entities(self):
     super().get_motion_sensor_entities()

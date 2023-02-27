@@ -24,7 +24,7 @@ automation:
       entity_id: input_boolean.always_off_constant
       state: 'on'
     then:
-      alias: ''
+      alias: Lights on in hot sunshine
       if:
         condition: state
         entity_id: input_boolean.always_on_constant
@@ -68,7 +68,7 @@ automation:
         entity_id: sun.sun
         state: above_horizon
       then:
-        alias: ''
+        alias: Lights on when bright outdoor
         if:
           condition: state
           entity_id: input_boolean.always_on_constant
@@ -107,7 +107,7 @@ automation:
                 service: cover.open_cover
                 entity_id: []
       else:
-        alias: ''
+        alias: Lights on when dark outdoor
         if:
           condition: state
           entity_id: input_boolean.always_on_constant
@@ -169,7 +169,7 @@ automation:
       entity_id: []
     - service: cover.close_cover
       entity_id: []
-    - alias: ''
+    - alias: All Off
       if:
         condition: state
         entity_id: input_boolean.always_on_constant
@@ -270,11 +270,18 @@ automation:
   - service: homeassistant.turn_off
     entity_id: input_boolean.guest_room_heating_override
   id: automation.zh_gr_heating_manual_override_timeout_in_few_hours_guest_room
+- alias: ZH-GR Valve Calibrate Temperature Using External Sensor-Guest Room
+  use_blueprint:
+    path: calibrate_valve_temperature.yaml
+    input:
+      tado_valve_entity: climate.guest_room
+      external_temperature_sensor_entity: sensor.guest_room_temperature_sensor
+  id: automation.zh_gr_valve_calibrate_temperature_using_external_sensor_guest_room
 - alias: ZL-GR Applies Different Scenes Based on Scene Selections (State Execution)-Guest Room
   trigger:
   - platform: state
     entity_id: input_select.guest_room_scene
-  mode: queued
+  mode: restart
   action:
   - choose:
     - conditions:
@@ -282,7 +289,7 @@ automation:
         entity_id: input_select.guest_room_scene
         state: All White
       sequence:
-        alias: ''
+        alias: All White
         if:
           condition: state
           entity_id: input_boolean.always_on_constant
@@ -304,7 +311,7 @@ automation:
         entity_id: input_select.guest_room_scene
         state: Ceiling Light White
       sequence:
-        alias: ''
+        alias: Ceiling Light White
         if:
           condition: state
           entity_id: input_boolean.always_on_constant
@@ -326,7 +333,7 @@ automation:
         entity_id: input_select.guest_room_scene
         state: Lamp LED White
       sequence:
-        alias: ''
+        alias: Lamp LED White
         if:
           condition: state
           entity_id: input_boolean.always_on_constant
@@ -350,7 +357,7 @@ automation:
         entity_id: input_select.guest_room_scene
         state: LED White
       sequence:
-        alias: ''
+        alias: LED White
         if:
           condition: state
           entity_id: input_boolean.always_on_constant
@@ -372,7 +379,7 @@ automation:
         entity_id: input_select.guest_room_scene
         state: Hue
       sequence:
-        alias: ''
+        alias: Hue
         if:
           condition: state
           entity_id: input_boolean.always_on_constant
@@ -400,7 +407,7 @@ automation:
         entity_id: input_select.guest_room_scene
         state: Night Mode
       sequence:
-        alias: ''
+        alias: Night Mode
         if:
           condition: state
           entity_id: input_boolean.always_on_constant
@@ -414,7 +421,7 @@ automation:
         entity_id: input_select.guest_room_scene
         state: Dark Night Mode
       sequence:
-        alias: ''
+        alias: Dark Night Mode
         if:
           condition: state
           entity_id: input_boolean.always_on_constant
@@ -428,7 +435,7 @@ automation:
         entity_id: input_select.guest_room_scene
         state: All Off
       sequence:
-        alias: ''
+        alias: All Off
         if:
           condition: state
           entity_id: input_boolean.always_on_constant
@@ -444,7 +451,7 @@ automation:
         entity_id: input_select.guest_room_scene
         state: Lights on in hot sunshine
       sequence:
-        alias: ''
+        alias: Lights on in hot sunshine
         if:
           condition: state
           entity_id: input_boolean.always_on_constant
@@ -487,7 +494,7 @@ automation:
         entity_id: input_select.guest_room_scene
         state: Lights on when bright outdoor
       sequence:
-        alias: ''
+        alias: Lights on when bright outdoor
         if:
           condition: state
           entity_id: input_boolean.always_on_constant
@@ -530,7 +537,7 @@ automation:
         entity_id: input_select.guest_room_scene
         state: Lights on when dark outdoor
       sequence:
-        alias: ''
+        alias: Lights on when dark outdoor
         if:
           condition: state
           entity_id: input_boolean.always_on_constant
@@ -634,7 +641,6 @@ input_select:
   guest_room_scene:
     name: Guest Room Scene
     options:
-    - Idle
     - LED White
     - All White
     - Ceiling Light White
@@ -703,7 +709,11 @@ input_boolean:
     name: Curtain Control When Dark Outdoor Guest Room
     initial: 'off'
 switch: []
-template: []
+template:
+- sensor:
+  - name: Guest Room Temperature Sensor
+    unit_of_measurement: "\xB0C"
+    state: '{{states.sensor["582d343483e9_temperature"].state | float | round(1)}}'
 binary_sensor: []
 light: []
 group:
@@ -737,6 +747,7 @@ group:
     - automation.zh_gr_heating_schedule_off_if_people_left_the_room_guest_room
     - automation.zh_gr_heating_manual_override_guest_room
     - automation.zh_gr_heating_manual_override_timeout_in_few_hours_guest_room
+    - automation.zh_gr_valve_calibrate_temperature_using_external_sensor_guest_room
     - automation.zl_gr_applies_different_scenes_based_on_scene_selections_state_execution_guest_room
     - automation.zlb_gr_wall_switch_single_press_toggle_ceiling_light_guest_room
     - automation.zlb_gr_wall_switch_double_press_leave_room_and_turn_off_everything_guest_room
