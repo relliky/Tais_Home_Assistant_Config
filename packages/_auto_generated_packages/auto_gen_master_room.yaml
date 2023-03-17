@@ -11,6 +11,10 @@ automation:
     entity_id: automation.zl_mr_ceiling_lights_on_or_open_curtains_if_entering_to_room_master_room
     data:
       stop_actions: false
+  - service: script.call_room_scene
+    data:
+      room_scene_select: input_select.master_room_scene
+      scene: Idle
   - if:
     - condition: numeric_state
       entity_id: sensor.met_office_cambridge_city_airport_temperature_3_hourly
@@ -472,12 +476,6 @@ automation:
     - single
     - '1'
   mode: queued
-  condition:
-  - condition: not
-    conditions:
-    - condition: state
-      entity_id: input_select.master_room_scene
-      state: Reset
   action:
   - choose:
     - conditions:
@@ -1158,6 +1156,7 @@ input_select:
   master_room_scene:
     name: Master Room Scene
     options:
+    - Idle
     - Hue
     - Night Mode
     - Dark Night Mode
@@ -1166,9 +1165,6 @@ input_select:
     - All White
     - Ceiling Light White
     - All Off
-    - Lights on in hot sunshine
-    - Lights on when bright outdoor
-    - Lights on when dark outdoor
   master_room_occupancy:
     name: Master Room Occupancy
     options:
@@ -1231,10 +1227,31 @@ switch:
 - platform: group
   name: Master Room Wall Switch 3
   entities: switch.0x04cf8cdf3c7ad638_channel_3
+cover: []
 template:
 - sensor:
   - name: Master Room Wall Button
     state: '{{states.sensor["0x04cf8cdf3c7ad638_action"].state}}'
+- sensor:
+  - name: Master Room Temperature Sensor new_1
+    unit_of_measurement: "\xB0C"
+    state: '{{states.sensor["582d343b6a27_temperature"].state | float | round(1)}}'
+- sensor:
+  - name: Master Room Temperature Sensor new_2
+    unit_of_measurement: "\xB0C"
+    state: '{{states.sensor["a4c138ecdbba_temperature"].state | float | round(1)}}'
+- sensor:
+  - name: Master Room Occupancy Sensor Light
+    unit_of_measurement: lx
+    state: '{{states.sensor["dced830908fb_illuminance"].state}}'
+- sensor:
+  - name: Master Room Bed Motion Sensor Light
+    unit_of_measurement: lx
+    state: '{{states.sensor["54ef44e58958_illuminance"].state}}'
+- sensor:
+  - name: Master Room Bed Motion Sensor Battery
+    unit_of_measurement: '%'
+    state: '{{states.sensor["54ef44e58958_battery"].state}}'
 - sensor:
   - name: Master Room TV Motion Sensor Light
     unit_of_measurement: lx
@@ -1244,41 +1261,47 @@ template:
     unit_of_measurement: '%'
     state: '{{states.sensor["0x00158d0005228ba8_battery"].state}}'
 - sensor:
-  - name: Master Room Occupancy Sensor Light
-    unit_of_measurement: lx
-    state: '{{states.sensor["dced830908fb_illuminance"].state}}'
+  - name: Master Room Temperature Sensor
+    unit_of_measurement: "\xB0C"
+    state: '{% if   states(''sensor.master_room_temperature_sensor_new_1'') != ''unavailable'' and states(''sensor.master_room_temperature_sensor_new_2'') == ''unavailable'' %}{{states(''sensor.master_room_temperature_sensor_new_1'')}}{% elif states(''sensor.master_room_temperature_sensor_new_1'') == ''unavailable'' and states(''sensor.master_room_temperature_sensor_new_2'') != ''unavailable'' %}{{states(''sensor.master_room_temperature_sensor_new_2'')}}{% else %}{% set sensor_1 = states(''sensor.master_room_temperature_sensor_new_1'') | float | round(1) %}{% set sensor_2 = states(''sensor.master_room_temperature_sensor_new_2'') | float | round(1) %}{% if sensor_1 < 1.0 or sensor_2 < 1.0 or (sensor_1 + sensor_2) < 1.0 %}22.0{% else %}{{ ((sensor_1 + sensor_2) / 2) | round(1) }}{% endif %}{% endif %}'
 binary_sensor:
-- platform: group
-  name: Master Room TV Motion Sensor Motion
-  entities: binary_sensor.0x00158d0005228ba8_motion
 - platform: group
   name: Master Room Occupancy Sensor Occupancy
   entities: binary_sensor.dced830908fb_occupancy
-light: []
+- platform: group
+  name: Master Room Bed Motion Sensor Motion
+  entities: binary_sensor.54ef44e58958_motion
+- platform: group
+  name: Master Room TV Motion Sensor Motion
+  entities: binary_sensor.0x00158d0005228ba8_motion
+light:
+- platform: group
+  name: Master Room Ceiling Light Bulb 1
+  entities: light.50ec50df3056_light
 group:
   master_room_occupancy_group:
     name: Master Room Occuapancy Group
     entities:
     - input_select.master_room_occupancy
     - group.master_room_motion
-    - binary_sensor.master_room_bed_motion_sensor_motion
     - binary_sensor.master_room_entrance_motion_sensor_motion
     - binary_sensor.master_room_stair_motion_sensor_motion
     - binary_sensor.master_room_dressing_table_motion_sensor_motion
     - binary_sensor.master_room_tv_motion_sensor_motion
     - binary_sensor.master_room_drawer_motion_sensor_motion
     - binary_sensor.master_toilet_dressing_room_motion_sensor_motion
+    - binary_sensor.master_room_bed_motion_sensor_motion
     - binary_sensor.master_room_occupancy_sensor_occupancy
   master_room_motion:
     name: Master Room Motion
     entities:
-    - binary_sensor.master_room_bed_motion_sensor_motion
     - binary_sensor.master_room_entrance_motion_sensor_motion
     - binary_sensor.master_room_stair_motion_sensor_motion
     - binary_sensor.master_room_dressing_table_motion_sensor_motion
     - binary_sensor.master_room_tv_motion_sensor_motion
     - binary_sensor.master_room_drawer_motion_sensor_motion
     - binary_sensor.master_toilet_dressing_room_motion_sensor_motion
+    - binary_sensor.master_room_bed_motion_sensor_motion
     - binary_sensor.master_room_occupancy_sensor_occupancy
   master_room_lights_and_tvs:
     name: Master Room Lights And Tvs

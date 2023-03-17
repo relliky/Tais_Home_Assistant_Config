@@ -57,7 +57,7 @@ def room_occupancy_state_machine(occupancy_entity_str,
     nxt_state                  = ''
     stay_inside_for            = get_sec_of_cur_state(occupancy_entity_str) if cur_state == 'Stayed Inside' else 0
     now_is_sleep_time          = now_is_before(9,30,0) or now_is_after(21,0,0)
-    
+    normal_timeout             = 2 if room_type == 'landing' else 5 # bedrooms timeout at 5 minutes 
     
     # Outside -> xxx
     if cur_state == 'Outside':
@@ -84,8 +84,8 @@ def room_occupancy_state_machine(occupancy_entity_str,
             nxt_state = "Stayed Inside"
             
         # c3. Just Entered -> Outside:
-        #     (currently off for 5min) & largely off in [0,2x]
-        elif motion_off_for >= 5*60 and \
+        #     (currently off for <normal_timeout> minutes) & largely off in [0,2x]
+        elif motion_off_for >= normal_timeout*60 and \
              motion_off_ratio_for_2x_min >= 0.5:
                nxt_state = "Outside"
         
@@ -106,8 +106,8 @@ def room_occupancy_state_machine(occupancy_entity_str,
             nxt_state = "In Sleep"
                     
         # c5. Stayed Inside -> Outside:
-        #     (currently off for 5min) & largely off in [0,2x]
-        elif motion_off_for >=  5*60 and \
+        #     (currently off for  <normal_timeout> minutes) & largely off in [0,2x]
+        elif motion_off_for >=  normal_timeout*60 and \
              motion_off_ratio_for_2x_min >= 0.7:
             nxt_state = "Outside"
         

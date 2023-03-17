@@ -11,6 +11,10 @@ automation:
     entity_id: automation.zl_0t_ceiling_lights_on_or_open_curtains_if_entering_to_room_ground_toilet
     data:
       stop_actions: false
+  - service: script.call_room_scene
+    data:
+      room_scene_select: input_select.ground_toilet_scene
+      scene: Idle
   - if:
     - condition: numeric_state
       entity_id: sensor.met_office_cambridge_city_airport_temperature_3_hourly
@@ -626,12 +630,10 @@ input_select:
   ground_toilet_scene:
     name: Ground Toilet Scene
     options:
+    - Idle
     - All White
     - Ceiling Light White
     - All Off
-    - Lights on in hot sunshine
-    - Lights on when bright outdoor
-    - Lights on when dark outdoor
   ground_toilet_occupancy:
     name: Ground Toilet Occupancy
     options:
@@ -694,14 +696,30 @@ input_boolean:
   curtain_control_when_dark_outdoor_ground_toilet:
     name: Curtain Control When Dark Outdoor Ground Toilet
     initial: 'off'
-switch: []
+switch:
+- platform: group
+  name: Ground Toilet Wall Switch 1
+  entities: switch.0x00158d0005435643_channel_1
+- platform: group
+  name: Ground Toilet Wall Switch 2
+  entities: switch.0x00158d0005435643_channel_2
+cover: []
 template:
 - sensor:
   - name: Ground Toilet Temperature Sensor
     unit_of_measurement: "\xB0C"
     state: '{{states.sensor["a4c1387c09bd_temperature"].state | float | round(1)}}'
+- sensor:
+  - name: Ground Toilet Wall Button
+    state: '{{states.sensor["0x00158d0005435643_action"].state}}'
 binary_sensor: []
-light: []
+light:
+- platform: group
+  name: Ground Toilet Ceiling Light Spotlight 1
+  entities: light.0x90fd9ffffe8e24b6
+- platform: group
+  name: Ground Toilet Ceiling Light Spotlight 2
+  entities: light.0x000b57fffee8e6b4
 group:
   ground_toilet_occupancy_group:
     name: Ground Toilet Occuapancy Group

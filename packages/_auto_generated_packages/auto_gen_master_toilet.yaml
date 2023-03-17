@@ -11,6 +11,10 @@ automation:
     entity_id: automation.zl_mt_ceiling_lights_on_or_open_curtains_if_entering_to_room_master_toilet
     data:
       stop_actions: false
+  - service: script.call_room_scene
+    data:
+      room_scene_select: input_select.master_toilet_scene
+      scene: Idle
   - if:
     - condition: numeric_state
       entity_id: sensor.met_office_cambridge_city_airport_temperature_3_hourly
@@ -641,13 +645,11 @@ input_select:
   master_toilet_scene:
     name: Master Toilet Scene
     options:
+    - Idle
     - LED White
     - All White
     - Ceiling Light White
     - All Off
-    - Lights on in hot sunshine
-    - Lights on when bright outdoor
-    - Lights on when dark outdoor
   master_toilet_occupancy:
     name: Master Toilet Occupancy
     options:
@@ -711,23 +713,60 @@ input_boolean:
 switch:
 - platform: group
   name: 'Master Toilet Wall Switch '
-  entities: switch.0x00158d00047d69be_switch
+  entities: switch.0x158d00047d69be_switch
 - platform: group
   name: 'Master Toilet Dressing Room Wall Switch '
   entities: switch.0x00158d00042d4092_switch
+cover: []
 template:
 - sensor:
   - name: Master Toilet Wall Button
-    state: '{{states.sensor["0x00158d00047d69be_action"].state}}'
-- sensor:
-  - name: Master Toilet Dressing Room Wall Button
-    state: '{{states.sensor["0x00158d00042d4092_action"].state}}'
+    state: '{{states.sensor["0x158d00047d69be_action"].state}}'
 - sensor:
   - name: Master Toilet Temperature Sensor
     unit_of_measurement: "\xB0C"
     state: '{{states.sensor["a4c1381d6ddb_temperature"].state | float | round(1)}}'
-binary_sensor: []
-light: []
+- sensor:
+  - name: Master Toilet Dressing Room Wall Button
+    state: '{{states.sensor["0x00158d00042d4092_action"].state}}'
+- sensor:
+  - name: Master Toilet Basin Motion Sensor Light
+    unit_of_measurement: lx
+    state: '{{states.sensor["0x00158d00057b2b4c_illuminance_lux"].state}}'
+- sensor:
+  - name: Master Toilet Basin Motion Sensor Battery
+    unit_of_measurement: '%'
+    state: '{{states.sensor["0x00158d00057b2b4c_battery"].state}}'
+- sensor:
+  - name: Master Toilet Dressing Room Motion Sensor Light
+    unit_of_measurement: lx
+    state: '{{states.sensor["0x00158d000460247b_illuminance_lux"].state}}'
+- sensor:
+  - name: Master Toilet Dressing Room Motion Sensor Battery
+    unit_of_measurement: '%'
+    state: '{{states.sensor["0x00158d000460247b_battery"].state}}'
+- sensor:
+  - name: Master Toilet Shower Motion Sensor Light
+    unit_of_measurement: lx
+    state: '{{states.sensor["0x00158d00054750ca_illuminance_lux"].state}}'
+- sensor:
+  - name: Master Toilet Shower Motion Sensor Battery
+    unit_of_measurement: '%'
+    state: '{{states.sensor["0x00158d00054750ca_battery"].state}}'
+binary_sensor:
+- platform: group
+  name: Master Toilet Basin Motion Sensor Motion
+  entities: binary_sensor.0x00158d00057b2b4c_occupancy
+- platform: group
+  name: Master Toilet Dressing Room Motion Sensor Motion
+  entities: binary_sensor.0x00158d000460247b_occupancy
+- platform: group
+  name: Master Toilet Shower Motion Sensor Motion
+  entities: binary_sensor.0x00158d00054750ca_occupancy
+light:
+- platform: group
+  name: Master Toilet Dressing Room Light
+  entities: light.28d1272057d5_light
 group:
   master_toilet_occupancy_group:
     name: Master Toilet Occuapancy Group

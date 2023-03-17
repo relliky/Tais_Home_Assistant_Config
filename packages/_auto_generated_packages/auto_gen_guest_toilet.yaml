@@ -11,6 +11,10 @@ automation:
     entity_id: automation.zl_gt_ceiling_lights_on_or_open_curtains_if_entering_to_room_guest_toilet
     data:
       stop_actions: false
+  - service: script.call_room_scene
+    data:
+      room_scene_select: input_select.guest_toilet_scene
+      scene: Idle
   - if:
     - condition: numeric_state
       entity_id: sensor.met_office_cambridge_city_airport_temperature_3_hourly
@@ -588,18 +592,6 @@ automation:
     entity_id:
     - light.guest_toilet_ceiling_light
   id: automation.zlb_gt_wall_switch_single_left_press_toggle_ceiling_light_guest_toilet
-- alias: ZLB-GT Wall Switch-Single Right Press - Toggle Floor LEDs-Guest Toilet
-  trigger:
-  - platform: state
-    entity_id:
-    - sensor.guest_toilet_wall_button
-    to:
-    - single_right
-  action:
-  - service: homeassistant.toggle
-    entity_id:
-    - switch.guest_toilet_floor_led
-  id: automation.zlb_gt_wall_switch_single_right_press_toggle_floor_leds_guest_toilet
 - alias: ZLB-GT Wall Switch - Double Press - Leave Room and Turn Off Everything-Guest Toilet
   trigger:
   - platform: state
@@ -646,13 +638,11 @@ input_select:
   guest_toilet_scene:
     name: Guest Toilet Scene
     options:
+    - Idle
     - LED White
     - All White
     - Ceiling Light White
     - All Off
-    - Lights on in hot sunshine
-    - Lights on when bright outdoor
-    - Lights on when dark outdoor
   guest_toilet_occupancy:
     name: Guest Toilet Occupancy
     options:
@@ -714,6 +704,7 @@ input_boolean:
     name: Curtain Control When Dark Outdoor Guest Toilet
     initial: 'off'
 switch: []
+cover: []
 template:
 - sensor:
   - name: Guest Toilet Temperature Sensor
@@ -753,6 +744,5 @@ group:
     - automation.zh_gt_valve_calibrate_temperature_using_external_sensor_guest_toilet
     - automation.zl_gt_applies_different_scenes_based_on_scene_selections_state_execution_guest_toilet
     - automation.zlb_gt_wall_switch_single_left_press_toggle_ceiling_light_guest_toilet
-    - automation.zlb_gt_wall_switch_single_right_press_toggle_floor_leds_guest_toilet
     - automation.zlb_gt_wall_switch_double_press_leave_room_and_turn_off_everything_guest_toilet
     - automation.zoc_gt_occupancy_update_guest_toilet

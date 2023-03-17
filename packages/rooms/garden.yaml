@@ -13,8 +13,7 @@ timer:
 # Automations
 ####################
 automation:
-  # Lights
-  - alias: L-LR Garden and Corridor Lights On If People Present Around Door
+  - alias: L-LR Indoor Lights On If People Present Around Garden Door
     description: ""
     trigger:
       - entity_id:
@@ -32,62 +31,40 @@ automation:
             condition: numeric_state
             below: "30"
     action:
-      - service: switch.turn_on
-        entity_id: switch.garden_wall_light
       - service: script.living_room_floor_lights_turn_on
       - service: script.corridor_lights_turn_on
 
-  - alias: L-LR Garden and Floor Lights On If People Present Around Bike Shed
-    description: ""
-    trigger:
-      - entity_id:
-          - binary_sensor.garden_bike_shed_motion_sensor_motion
-        platform: state
-        from: "off"
-        to: "on"
-    condition:
-      - condition: and
-        conditions:
-          - entity_id: binary_sensor.garden_bike_shed_motion_sensor_motion
-            condition: state
-            state: "on"
-          - condition: state
-            entity_id: input_select.indoor_brightness
-            state: dark
-    action:
-      - service: switch.turn_on
-        entity_id: switch.garden_wall_light
 
-  - alias: L-LR Garden Lights Off If No People Present For 5 Min
-    description: automation.l_lr_garden_lights_off_if_no_people_present_for_5_min
-    trigger:
-      - entity_id:
-          - binary_sensor.garden_sliding_door_motion_sensor_motion
-          - binary_sensor.garden_bike_shed_motion_sensor_motion
-        platform: state
-        from: "on"
-        to: "off"
-        for: 00:05:00
-      - minutes: /5
-        platform: time_pattern
-    condition:
-      - entity_id:
-          - binary_sensor.garden_sliding_door_motion_sensor_motion
-          - binary_sensor.garden_bike_shed_motion_sensor_motion
-        condition: state
-        state: "off"
-        for: 00:05:00
-    action:
-      - if:
-          alias: "Garden occupancy timer set manually"
-          condition: state
-          entity_id: timer.garden_occupancy_timer
-          state: "active"
-        then:
-          - service: script.do_nothing
-        else:
-          - service: switch.turn_off
-            entity_id: switch.garden_wall_light
+#  - alias: L-LR Garden Lights Off If No People Present For 5 Min
+#    description: automation.l_lr_garden_lights_off_if_no_people_present_for_5_min
+#    trigger:
+#      - entity_id:
+#          - binary_sensor.garden_sliding_door_motion_sensor_motion
+#          - binary_sensor.garden_bike_shed_motion_sensor_motion
+#        platform: state
+#        from: "on"
+#        to: "off"
+#        for: 00:05:00
+#      - minutes: /5
+#        platform: time_pattern
+#    condition:
+#      - entity_id:
+#          - binary_sensor.garden_sliding_door_motion_sensor_motion
+#          - binary_sensor.garden_bike_shed_motion_sensor_motion
+#        condition: state
+#        state: "off"
+#        for: 00:05:00
+#    action:
+#      - if:
+#          alias: "Garden occupancy timer set manually"
+#          condition: state
+#          entity_id: timer.garden_occupancy_timer
+#          state: "active"
+#        then:
+#          - service: script.do_nothing
+#        else:
+#          - service: switch.turn_off
+#            entity_id: switch.garden_wall_light
 
   # Linked Switches
   - alias: B-LR Garden Wall Lights ON Controls Floor Spotlights

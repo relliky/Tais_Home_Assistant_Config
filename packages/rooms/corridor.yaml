@@ -14,7 +14,7 @@ group:
   corridor_appliances:
     name: Corridor Appliances
     entities:
-    - light.corridor_light
+    - light.corridor_ceiling_light
     - climate.corridor
 
 input_boolean:
@@ -76,27 +76,6 @@ template:
           }}
 
 
-###############################################
-#
-# Scripts
-#
-###############################################
-script:
-  corridor_lights_turn_on:
-    alias: Corridor Lights Turn On
-    max: 100
-    mode: parallel
-    sequence:
-      - service: light.turn_on
-        entity_id: light.corridor_light
-
-  corridor_lights_turn_off:
-    alias: Corridor Lights Turn Off
-    max: 100
-    mode: parallel
-    sequence:
-      - service: light.turn_off
-        entity_id: light.corridor_light
 
 ###############################################
 #
@@ -278,28 +257,10 @@ automation:
         platform: state
         from: "off"
         to: "on"
-    condition:
-      - condition: or
-        conditions:
-          - condition: and
-            conditions:
-              - entity_id: binary_sensor.ground_corridor_motion_sensor_motion
-                condition: state
-                state: "on"
-            #- entity_id: sensor.ground_corridor_motion_sensor_light
-            #  condition: numeric_state
-            #  below: '50'
-          - condition: and
-            conditions:
-              - entity_id: binary_sensor.first_corridor_motion_sensor_motion
-                condition: state
-                state: "on"
-            #- entity_id: sensor.first_corridor_motion_sensor_light
-            #  condition: numeric_state
-            #  below: '50'
     action:
-      - service: script.corridor_lights_turn_on
-
+      - service: light.turn_on
+        entity_id: light.corridor_ceiling_light
+        
   - alias: L-GC Ground Corridor Lights Off If No Person For 2 Min
     description: ""
     trigger:
@@ -325,8 +286,8 @@ automation:
         for: 00:02:00
         state: "off"
     action:
-      - service: script.corridor_lights_turn_off
-
+      - service: light.turn_off
+        entity_id: light.corridor_ceiling_light
 
 
   ###############################################
@@ -335,7 +296,8 @@ automation:
 
   - alias: B-GC Ground Corridor Wall Switch - Doulbe Press - Turn Off Ground Floor Lights
     trigger:
-      - entity_id: sensor.ground_corrdior_switch_wall_button
+      - entity_id: 
+          - sensor.ground_corrdior_switch_wall_button
         platform: state
         to:
           - double_left

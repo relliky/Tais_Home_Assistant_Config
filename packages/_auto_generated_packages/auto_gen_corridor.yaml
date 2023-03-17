@@ -89,6 +89,49 @@ automation:
   - service: homeassistant.turn_off
     entity_id: input_boolean.corridor_heating_override
   id: automation.zh_cr_heating_manual_override_timeout_in_few_hours_corridor
+- alias: ZLB-CR Wall Switch-Single Press - Toggle Ceiling Light-Corridor
+  trigger:
+  - platform: state
+    entity_id:
+    - sensor.ground_corridor_wall_button
+    - sensor.first_corridor_wall_button
+    to:
+    - '1'
+    - single
+    - single_left
+    - single_right
+    - single_center
+    - button_1_single
+    - button_2_single
+    - button_3_single
+  action:
+  - service: homeassistant.toggle
+    entity_id:
+    - light.corridor_ceiling_light
+  id: automation.zlb_cr_wall_switch_single_press_toggle_ceiling_light_corridor
+- alias: ZLB-CR Wall Switch - Double Press - Leave Room and Turn Off Everything-Corridor
+  trigger:
+  - platform: state
+    entity_id:
+    - sensor.ground_corridor_wall_button
+    - sensor.first_corridor_wall_button
+    to:
+    - '2'
+    - double
+    - double_left
+    - double_right
+    - double_center
+  action:
+  - service: automation.trigger
+    entity_id:
+    - automation.zl_cr_lights_off_if_no_person_corridor
+    - automation.zh_cr_heating_schedule_off_if_people_left_the_room_corridor
+  - service: input_select.select_option
+    target:
+      entity_id: input_select.corridor_occupancy
+    data:
+      option: Outside
+  id: automation.zlb_cr_wall_switch_double_press_leave_room_and_turn_off_everything_corridor
 - alias: ZOc-CR Occupancy Update-Corridor
   trigger:
   - entity_id: group.corridor_motion
@@ -107,7 +150,7 @@ automation:
       motion_str: group.corridor_motion
       motion_on_ratio_for_x_min_str: sensor.corridor_motion_on_ratio_for_last_4_minutes
       motion_on_ratio_for_2x_min_str: sensor.corridor_motion_on_ratio_for_last_8_minutes
-      room_type: common_area
+      room_type: landing
   id: automation.zoc_cr_occupancy_update_corridor
 input_select:
   corridor_occupancy:
@@ -173,9 +216,27 @@ input_boolean:
     name: Curtain Control When Dark Outdoor Corridor
     initial: 'off'
 switch: []
-template: []
-binary_sensor: []
-light: []
+cover: []
+template:
+- sensor:
+  - name: Ground Corridor Motion Sensor Light
+    unit_of_measurement: lx
+    state: '{{states.sensor["0x00158d00045019fd_illuminance_lux"].state}}'
+- sensor:
+  - name: Ground Corridor Motion Sensor Battery
+    unit_of_measurement: '%'
+    state: '{{states.sensor["0x00158d00045019fd_battery"].state}}'
+binary_sensor:
+- platform: group
+  name: Ground Corridor Motion Sensor Motion
+  entities: binary_sensor.0x00158d00045019fd_occupancy
+light:
+- platform: group
+  name: First Corridor BLE Light
+  entities: light.50ec50ded70f_light
+- platform: group
+  name: Ground Corridor BLE Light
+  entities: light.50ec50df9323_light
 group:
   corridor_occupancy_group:
     name: Corridor Occuapancy Group
@@ -202,4 +263,6 @@ group:
     - automation.zh_cr_heating_schedule_off_if_people_left_the_room_corridor
     - automation.zh_cr_heating_manual_override_corridor
     - automation.zh_cr_heating_manual_override_timeout_in_few_hours_corridor
+    - automation.zlb_cr_wall_switch_single_press_toggle_ceiling_light_corridor
+    - automation.zlb_cr_wall_switch_double_press_leave_room_and_turn_off_everything_corridor
     - automation.zoc_cr_occupancy_update_corridor

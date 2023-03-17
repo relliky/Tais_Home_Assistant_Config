@@ -11,6 +11,10 @@ automation:
     entity_id: automation.zl_gr_ceiling_lights_on_or_open_curtains_if_entering_to_room_guest_room
     data:
       stop_actions: false
+  - service: script.call_room_scene
+    data:
+      room_scene_select: input_select.guest_room_scene
+      scene: Idle
   - if:
     - condition: numeric_state
       entity_id: sensor.met_office_cambridge_city_airport_temperature_3_hourly
@@ -45,16 +49,45 @@ automation:
               entity_id: input_boolean.lamp_control_in_hot_sunshine_guest_room
               state: 'on'
             then:
-              service: cover.open_cover
-              entity_id: []
+              alias: Turn on lamps first and check if light colour is white. Reset colour lamps to white and apply adaptive lighting.
+              if:
+                condition: state
+                entity_id: input_boolean.always_on_constant
+                state: 'on'
+              then:
+              - service: homeassistant.turn_on
+                entity_id:
+                - light.guest_room_lamp
+              - delay: 00:00:02
+              - if:
+                  condition: state
+                  entity_id:
+                  - light.guest_room_lamp
+                  state: color_temp
+                  attribute: color_mode
+                then:
+                  service: script.do_nothing
+                else:
+                - service: light.turn_on
+                  entity_id:
+                  - light.guest_room_lamp
+                  data:
+                    kelvin: '3000'
+                - delay: 00:00:02
+                - service: light.turn_off
+                  entity_id:
+                  - light.guest_room_lamp
+                - delay: 00:00:02
+                - service: light.turn_on
+                  entity_id:
+                  - light.guest_room_lamp
           - if:
               condition: state
               entity_id: input_boolean.led_control_in_hot_sunshine_guest_room
               state: 'on'
             then:
-              service: homeassistant.turn_on
-              entity_id:
-              - light.guest_room_bed_led
+              service: cover.open_cover
+              entity_id: []
           - if:
               condition: state
               entity_id: input_boolean.curtain_control_in_hot_sunshine_guest_room
@@ -89,16 +122,45 @@ automation:
                 entity_id: input_boolean.lamp_control_when_bright_outdoor_guest_room
                 state: 'on'
               then:
-                service: cover.open_cover
-                entity_id: []
+                alias: Turn on lamps first and check if light colour is white. Reset colour lamps to white and apply adaptive lighting.
+                if:
+                  condition: state
+                  entity_id: input_boolean.always_on_constant
+                  state: 'on'
+                then:
+                - service: homeassistant.turn_on
+                  entity_id:
+                  - light.guest_room_lamp
+                - delay: 00:00:02
+                - if:
+                    condition: state
+                    entity_id:
+                    - light.guest_room_lamp
+                    state: color_temp
+                    attribute: color_mode
+                  then:
+                    service: script.do_nothing
+                  else:
+                  - service: light.turn_on
+                    entity_id:
+                    - light.guest_room_lamp
+                    data:
+                      kelvin: '3000'
+                  - delay: 00:00:02
+                  - service: light.turn_off
+                    entity_id:
+                    - light.guest_room_lamp
+                  - delay: 00:00:02
+                  - service: light.turn_on
+                    entity_id:
+                    - light.guest_room_lamp
             - if:
                 condition: state
                 entity_id: input_boolean.led_control_when_bright_outdoor_guest_room
                 state: 'on'
               then:
-                service: homeassistant.turn_on
-                entity_id:
-                - light.guest_room_bed_led
+                service: cover.open_cover
+                entity_id: []
             - if:
                 condition: state
                 entity_id: input_boolean.curtain_control_when_bright_outdoor_guest_room
@@ -128,16 +190,45 @@ automation:
                 entity_id: input_boolean.lamp_control_when_dark_outdoor_guest_room
                 state: 'on'
               then:
-                service: cover.open_cover
-                entity_id: []
+                alias: Turn on lamps first and check if light colour is white. Reset colour lamps to white and apply adaptive lighting.
+                if:
+                  condition: state
+                  entity_id: input_boolean.always_on_constant
+                  state: 'on'
+                then:
+                - service: homeassistant.turn_on
+                  entity_id:
+                  - light.guest_room_lamp
+                - delay: 00:00:02
+                - if:
+                    condition: state
+                    entity_id:
+                    - light.guest_room_lamp
+                    state: color_temp
+                    attribute: color_mode
+                  then:
+                    service: script.do_nothing
+                  else:
+                  - service: light.turn_on
+                    entity_id:
+                    - light.guest_room_lamp
+                    data:
+                      kelvin: '3000'
+                  - delay: 00:00:02
+                  - service: light.turn_off
+                    entity_id:
+                    - light.guest_room_lamp
+                  - delay: 00:00:02
+                  - service: light.turn_on
+                    entity_id:
+                    - light.guest_room_lamp
             - if:
                 condition: state
                 entity_id: input_boolean.led_control_when_dark_outdoor_guest_room
                 state: 'on'
               then:
-                service: homeassistant.turn_on
-                entity_id:
-                - light.guest_room_bed_led
+                service: cover.open_cover
+                entity_id: []
             - if:
                 condition: state
                 entity_id: input_boolean.curtain_control_when_dark_outdoor_guest_room
@@ -178,8 +269,8 @@ automation:
       - parallel:
         - service: homeassistant.turn_off
           entity_id:
+          - light.guest_room_lamp
           - light.guest_room_ceiling_light
-          - light.guest_room_bed_led
 - alias: ZH-GR Heating Schedule On If Staying In the Room-Guest Room
   id: automation.zh_gr_heating_schedule_on_if_staying_in_the_room_guest_room
   trigger:
@@ -296,12 +387,41 @@ automation:
           state: 'on'
         then:
         - parallel:
-          - service: cover.open_cover
-            entity_id: []
+          - alias: Turn on lamps first and check if light colour is white. Reset colour lamps to white and apply adaptive lighting.
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+            - service: homeassistant.turn_on
+              entity_id:
+              - light.guest_room_lamp
+            - delay: 00:00:02
+            - if:
+                condition: state
+                entity_id:
+                - light.guest_room_lamp
+                state: color_temp
+                attribute: color_mode
+              then:
+                service: script.do_nothing
+              else:
+              - service: light.turn_on
+                entity_id:
+                - light.guest_room_lamp
+                data:
+                  kelvin: '3000'
+              - delay: 00:00:02
+              - service: light.turn_off
+                entity_id:
+                - light.guest_room_lamp
+              - delay: 00:00:02
+              - service: light.turn_on
+                entity_id:
+                - light.guest_room_lamp
           - service: homeassistant.turn_on
             entity_id:
             - light.guest_room_ceiling_light
-            - light.guest_room_bed_led
           - service: samsungtv_smart.select_picture_mode
             data:
               entity_id: []
@@ -320,7 +440,7 @@ automation:
         - parallel:
           - service: homeassistant.turn_off
             entity_id:
-            - light.guest_room_bed_led
+            - light.guest_room_lamp
           - service: homeassistant.turn_on
             entity_id:
             - light.guest_room_ceiling_light
@@ -343,11 +463,40 @@ automation:
           - service: homeassistant.turn_off
             entity_id:
             - light.guest_room_ceiling_light
+          - alias: Turn on lamps first and check if light colour is white. Reset colour lamps to white and apply adaptive lighting.
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+            - service: homeassistant.turn_on
+              entity_id:
+              - light.guest_room_lamp
+            - delay: 00:00:02
+            - if:
+                condition: state
+                entity_id:
+                - light.guest_room_lamp
+                state: color_temp
+                attribute: color_mode
+              then:
+                service: script.do_nothing
+              else:
+              - service: light.turn_on
+                entity_id:
+                - light.guest_room_lamp
+                data:
+                  kelvin: '3000'
+              - delay: 00:00:02
+              - service: light.turn_off
+                entity_id:
+                - light.guest_room_lamp
+              - delay: 00:00:02
+              - service: light.turn_on
+                entity_id:
+                - light.guest_room_lamp
           - service: cover.open_cover
             entity_id: []
-          - service: homeassistant.turn_on
-            entity_id:
-            - light.guest_room_bed_led
           - service: samsungtv_smart.select_picture_mode
             data:
               entity_id: []
@@ -367,9 +516,9 @@ automation:
           - service: homeassistant.turn_off
             entity_id:
             - light.guest_room_ceiling_light
-          - service: homeassistant.turn_on
-            entity_id:
-            - light.guest_room_bed_led
+            - light.guest_room_lamp
+          - service: cover.open_cover
+            entity_id: []
           - service: samsungtv_smart.select_picture_mode
             data:
               entity_id: []
@@ -385,19 +534,48 @@ automation:
           entity_id: input_boolean.always_on_constant
           state: 'on'
         then:
-        - service: homeassistant.turn_on
-          entity_id:
-          - light.guest_room_bed_led
+        - alias: Turn on lamps first and check if light colour is white. Reset colour lamps to white and apply adaptive lighting.
+          if:
+            condition: state
+            entity_id: input_boolean.always_on_constant
+            state: 'on'
+          then:
+          - service: homeassistant.turn_on
+            entity_id:
+            - light.guest_room_lamp
+          - delay: 00:00:02
+          - if:
+              condition: state
+              entity_id:
+              - light.guest_room_lamp
+              state: color_temp
+              attribute: color_mode
+            then:
+              service: script.do_nothing
+            else:
+            - service: light.turn_on
+              entity_id:
+              - light.guest_room_lamp
+              data:
+                kelvin: '3000'
+            - delay: 00:00:02
+            - service: light.turn_off
+              entity_id:
+              - light.guest_room_lamp
+            - delay: 00:00:02
+            - service: light.turn_on
+              entity_id:
+              - light.guest_room_lamp
         - service: light.turn_on
           entity_id:
-          - light.guest_room_bed_led
+          - light.guest_room_lamp
           data:
             brightness_pct: 100
         - service: pyscript.set_rgb_light_list
           data:
             light_list:
+            - light.guest_room_lamp
             - light.guest_room_ceiling_light
-            - light.guest_room_bed_led
         - service: samsungtv_smart.select_picture_mode
           data:
             entity_id: []
@@ -444,8 +622,8 @@ automation:
         - parallel:
           - service: homeassistant.turn_off
             entity_id:
+            - light.guest_room_lamp
             - light.guest_room_ceiling_light
-            - light.guest_room_bed_led
     - conditions:
       - condition: state
         entity_id: input_select.guest_room_scene
@@ -472,16 +650,45 @@ automation:
                 entity_id: input_boolean.lamp_control_in_hot_sunshine_guest_room
                 state: 'on'
               then:
-                service: cover.open_cover
-                entity_id: []
+                alias: Turn on lamps first and check if light colour is white. Reset colour lamps to white and apply adaptive lighting.
+                if:
+                  condition: state
+                  entity_id: input_boolean.always_on_constant
+                  state: 'on'
+                then:
+                - service: homeassistant.turn_on
+                  entity_id:
+                  - light.guest_room_lamp
+                - delay: 00:00:02
+                - if:
+                    condition: state
+                    entity_id:
+                    - light.guest_room_lamp
+                    state: color_temp
+                    attribute: color_mode
+                  then:
+                    service: script.do_nothing
+                  else:
+                  - service: light.turn_on
+                    entity_id:
+                    - light.guest_room_lamp
+                    data:
+                      kelvin: '3000'
+                  - delay: 00:00:02
+                  - service: light.turn_off
+                    entity_id:
+                    - light.guest_room_lamp
+                  - delay: 00:00:02
+                  - service: light.turn_on
+                    entity_id:
+                    - light.guest_room_lamp
             - if:
                 condition: state
                 entity_id: input_boolean.led_control_in_hot_sunshine_guest_room
                 state: 'on'
               then:
-                service: homeassistant.turn_on
-                entity_id:
-                - light.guest_room_bed_led
+                service: cover.open_cover
+                entity_id: []
             - if:
                 condition: state
                 entity_id: input_boolean.curtain_control_in_hot_sunshine_guest_room
@@ -515,16 +722,45 @@ automation:
                 entity_id: input_boolean.lamp_control_when_bright_outdoor_guest_room
                 state: 'on'
               then:
-                service: cover.open_cover
-                entity_id: []
+                alias: Turn on lamps first and check if light colour is white. Reset colour lamps to white and apply adaptive lighting.
+                if:
+                  condition: state
+                  entity_id: input_boolean.always_on_constant
+                  state: 'on'
+                then:
+                - service: homeassistant.turn_on
+                  entity_id:
+                  - light.guest_room_lamp
+                - delay: 00:00:02
+                - if:
+                    condition: state
+                    entity_id:
+                    - light.guest_room_lamp
+                    state: color_temp
+                    attribute: color_mode
+                  then:
+                    service: script.do_nothing
+                  else:
+                  - service: light.turn_on
+                    entity_id:
+                    - light.guest_room_lamp
+                    data:
+                      kelvin: '3000'
+                  - delay: 00:00:02
+                  - service: light.turn_off
+                    entity_id:
+                    - light.guest_room_lamp
+                  - delay: 00:00:02
+                  - service: light.turn_on
+                    entity_id:
+                    - light.guest_room_lamp
             - if:
                 condition: state
                 entity_id: input_boolean.led_control_when_bright_outdoor_guest_room
                 state: 'on'
               then:
-                service: homeassistant.turn_on
-                entity_id:
-                - light.guest_room_bed_led
+                service: cover.open_cover
+                entity_id: []
             - if:
                 condition: state
                 entity_id: input_boolean.curtain_control_when_bright_outdoor_guest_room
@@ -558,16 +794,45 @@ automation:
                 entity_id: input_boolean.lamp_control_when_dark_outdoor_guest_room
                 state: 'on'
               then:
-                service: cover.open_cover
-                entity_id: []
+                alias: Turn on lamps first and check if light colour is white. Reset colour lamps to white and apply adaptive lighting.
+                if:
+                  condition: state
+                  entity_id: input_boolean.always_on_constant
+                  state: 'on'
+                then:
+                - service: homeassistant.turn_on
+                  entity_id:
+                  - light.guest_room_lamp
+                - delay: 00:00:02
+                - if:
+                    condition: state
+                    entity_id:
+                    - light.guest_room_lamp
+                    state: color_temp
+                    attribute: color_mode
+                  then:
+                    service: script.do_nothing
+                  else:
+                  - service: light.turn_on
+                    entity_id:
+                    - light.guest_room_lamp
+                    data:
+                      kelvin: '3000'
+                  - delay: 00:00:02
+                  - service: light.turn_off
+                    entity_id:
+                    - light.guest_room_lamp
+                  - delay: 00:00:02
+                  - service: light.turn_on
+                    entity_id:
+                    - light.guest_room_lamp
             - if:
                 condition: state
                 entity_id: input_boolean.led_control_when_dark_outdoor_guest_room
                 state: 'on'
               then:
-                service: homeassistant.turn_on
-                entity_id:
-                - light.guest_room_bed_led
+                service: cover.open_cover
+                entity_id: []
             - if:
                 condition: state
                 entity_id: input_boolean.curtain_control_when_dark_outdoor_guest_room
@@ -641,13 +906,11 @@ input_select:
   guest_room_scene:
     name: Guest Room Scene
     options:
-    - LED White
+    - Idle
+    - Lamp LED White
     - All White
     - Ceiling Light White
     - All Off
-    - Lights on in hot sunshine
-    - Lights on when bright outdoor
-    - Lights on when dark outdoor
   guest_room_occupancy:
     name: Guest Room Occupancy
     options:
@@ -692,9 +955,9 @@ input_boolean:
     name: Ceiling Light Control When Bright Outdoor Guest Room
   lamp_control_when_bright_outdoor_guest_room:
     name: Lamp Control When Bright Outdoor Guest Room
-    initial: 'off'
   led_control_when_bright_outdoor_guest_room:
     name: Led Control When Bright Outdoor Guest Room
+    initial: 'off'
   curtain_control_when_bright_outdoor_guest_room:
     name: Curtain Control When Bright Outdoor Guest Room
     initial: 'off'
@@ -702,20 +965,27 @@ input_boolean:
     name: Ceiling Light Control When Dark Outdoor Guest Room
   lamp_control_when_dark_outdoor_guest_room:
     name: Lamp Control When Dark Outdoor Guest Room
-    initial: 'off'
   led_control_when_dark_outdoor_guest_room:
     name: Led Control When Dark Outdoor Guest Room
+    initial: 'off'
   curtain_control_when_dark_outdoor_guest_room:
     name: Curtain Control When Dark Outdoor Guest Room
     initial: 'off'
 switch: []
+cover: []
 template:
 - sensor:
   - name: Guest Room Temperature Sensor
     unit_of_measurement: "\xB0C"
     state: '{{states.sensor["582d343483e9_temperature"].state | float | round(1)}}'
 binary_sensor: []
-light: []
+light:
+- platform: group
+  name: Guest Room Lamp
+  entities: light.50ec50dd67be
+- platform: group
+  name: Guest Room Ceiling Light
+  entities: light.28d12735ea1e
 group:
   guest_room_occupancy_group:
     name: Guest Room Occuapancy Group
@@ -732,15 +1002,15 @@ group:
   guest_room_lights_and_tvs:
     name: Guest Room Lights And Tvs
     entities:
-    - light.guest_room_bed_led
+    - light.guest_room_lamp
     - light.guest_room_ceiling_light
   guest_room_auto_gen_automations:
     name: Guest Room Auto-gen Automations
     entities:
     - input_boolean.ceiling_light_control_when_bright_outdoor_guest_room
-    - input_boolean.led_control_when_bright_outdoor_guest_room
+    - input_boolean.lamp_control_when_bright_outdoor_guest_room
     - input_boolean.ceiling_light_control_when_dark_outdoor_guest_room
-    - input_boolean.led_control_when_dark_outdoor_guest_room
+    - input_boolean.lamp_control_when_dark_outdoor_guest_room
     - automation.zl_gr_ceiling_lights_on_or_open_curtains_if_entering_to_room_guest_room
     - automation.zl_gr_lights_off_if_no_person_guest_room
     - automation.zh_gr_heating_schedule_on_if_staying_in_the_room_guest_room

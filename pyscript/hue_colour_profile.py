@@ -30,6 +30,7 @@ def filter_rbg_light_list(light_list=None):
             for color_mode in state.getattr(light)['supported_color_modes']:
               rgb_supported += 1 if color_mode == 'hs'  else 0
               rgb_supported += 1 if color_mode == 'rgb' else 0
+              rgb_supported += 1 if color_mode == 'xy'  else 0
             filter_light_list += [light] if rgb_supported > 0 else []
     #log.info(filter_light_list)
     return filter_light_list

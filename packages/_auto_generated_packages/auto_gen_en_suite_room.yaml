@@ -11,6 +11,10 @@ automation:
     entity_id: automation.zl_er_ceiling_lights_on_or_open_curtains_if_entering_to_room_en_suite_room
     data:
       stop_actions: false
+  - service: script.call_room_scene
+    data:
+      room_scene_select: input_select.en_suite_room_scene
+      scene: Idle
   - if:
     - condition: numeric_state
       entity_id: sensor.met_office_cambridge_city_airport_temperature_3_hourly
@@ -439,12 +443,6 @@ automation:
     - single
     - '1'
   mode: queued
-  condition:
-  - condition: not
-    conditions:
-    - condition: state
-      entity_id: input_select.en_suite_room_scene
-      state: Reset
   action:
   - choose:
     - conditions:
@@ -1086,14 +1084,12 @@ input_select:
   en_suite_room_scene:
     name: En Suite Room Scene
     options:
+    - Idle
     - Lamp LED White
     - LED White
     - All White
     - Ceiling Light White
     - All Off
-    - Lights on in hot sunshine
-    - Lights on when bright outdoor
-    - Lights on when dark outdoor
   en_suite_room_occupancy:
     name: En Suite Room Occupancy
     options:
@@ -1150,10 +1146,22 @@ switch:
 - platform: group
   name: 'En-suite Room Wall Switch '
   entities: switch.0x00158d00047d69e6_switch
+cover:
+- platform: group
+  name: En-suite Room Curtain
+  entities: cover.curtain_d29a
 template:
 - sensor:
   - name: En-suite Room Wall Button
     state: '{{states.sensor["0x00158d00047d69e6_action"].state}}'
+- sensor:
+  - name: En-suite Room Occupancy Sensor Light
+    unit_of_measurement: lx
+    state: '{{states.sensor["dced8308f496_illuminance"].state}}'
+- sensor:
+  - name: En-suite Room Temperature Sensor
+    unit_of_measurement: "\xB0C"
+    state: '{{states.sensor["a4c138b0eb53_temperature"].state | float | round(1)}}'
 - sensor:
   - name: En-suite Room Entrance Motion Sensor Light
     unit_of_measurement: lx
@@ -1163,16 +1171,34 @@ template:
     unit_of_measurement: '%'
     state: '{{states.sensor["0x00158d00057b37be_battery"].state}}'
 - sensor:
-  - name: En-suite Room Occupancy Sensor Light
+  - name: En-suite Room Floor Motion Sensor Light
     unit_of_measurement: lx
-    state: '{{states.sensor["dced830908fb_illuminance"].state}}'
+    state: '{{states.sensor["0x00158d000423319f_illuminance"].state}}'
+- sensor:
+  - name: En-suite Room Floor Motion Sensor Battery
+    unit_of_measurement: '%'
+    state: '{{states.sensor["0x00158d000423319f_battery"].state}}'
+- sensor:
+  - name: En-suite Room Bed Motion Sensor Light
+    unit_of_measurement: lx
+    state: '{{states.sensor["54ef44e559c6_illuminance"].state}}'
+- sensor:
+  - name: En-suite Room Bed Motion Sensor Battery
+    unit_of_measurement: '%'
+    state: '{{states.sensor["54ef44e559c6_battery"].state}}'
 binary_sensor:
+- platform: group
+  name: En-suite Room Occupancy Sensor Occupancy
+  entities: binary_sensor.dced8308f496_occupancy
 - platform: group
   name: En-suite Room Entrance Motion Sensor Motion
   entities: binary_sensor.0x00158d00057b37be_motion
 - platform: group
-  name: En-suite Room Occupancy Sensor Occupancy
-  entities: binary_sensor.dced830908fb_occupancy
+  name: En-suite Room Floor Motion Sensor Motion
+  entities: binary_sensor.0x00158d000423319f_motion
+- platform: group
+  name: En-suite Room Bed Motion Sensor Motion
+  entities: binary_sensor.54ef44e559c6_motion
 light: []
 group:
   en_suite_room_occupancy_group:

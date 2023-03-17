@@ -11,6 +11,10 @@ automation:
     entity_id: automation.zl_lr_ceiling_lights_on_or_open_curtains_if_entering_to_room_living_room
     data:
       stop_actions: false
+  - service: script.call_room_scene
+    data:
+      room_scene_select: input_select.living_room_scene
+      scene: Idle
   - if:
     - condition: numeric_state
       entity_id: sensor.met_office_cambridge_city_airport_temperature_3_hourly
@@ -434,12 +438,6 @@ automation:
     - single
     - '1'
   mode: queued
-  condition:
-  - condition: not
-    conditions:
-    - condition: state
-      entity_id: input_select.living_room_scene
-      state: Reset
   action:
   - choose:
     - conditions:
@@ -464,6 +462,15 @@ automation:
         condition: state
         entity_id: input_select.living_room_scene
         state: Lamp LED White
+      sequence:
+        service: script.call_room_scene
+        data:
+          room_scene_select: input_select.living_room_scene
+          scene: Hue
+    - conditions:
+        condition: state
+        entity_id: input_select.living_room_scene
+        state: Hue
       sequence:
         service: script.call_room_scene
         data:
@@ -1157,14 +1164,13 @@ input_select:
   living_room_scene:
     name: Living Room Scene
     options:
+    - Idle
+    - Hue
     - Lamp LED White
     - LED White
     - All White
     - Ceiling Light White
     - All Off
-    - Lights on in hot sunshine
-    - Lights on when bright outdoor
-    - Lights on when dark outdoor
   living_room_occupancy:
     name: Living Room Occupancy
     options:
@@ -1223,9 +1229,39 @@ input_boolean:
   curtain_control_when_dark_outdoor_living_room:
     name: Curtain Control When Dark Outdoor Living Room
     initial: 'off'
-switch: []
-template: []
-binary_sensor: []
+switch:
+- platform: group
+  name: 'Living Room Wall Switch '
+  entities: switch.0x00158d00045e2300_switch
+cover: []
+template:
+- sensor:
+  - name: Living Room Temperature Sensor
+    unit_of_measurement: "\xB0C"
+    state: '{% if   states(''sensor.living_room_temperature_sensor_1'') != ''unavailable'' and states(''sensor.living_room_temperature_sensor_2'') == ''unavailable'' %}{{states(''sensor.living_room_temperature_sensor_1'')}}{% elif states(''sensor.living_room_temperature_sensor_1'') == ''unavailable'' and states(''sensor.living_room_temperature_sensor_2'') != ''unavailable'' %}{{states(''sensor.living_room_temperature_sensor_2'')}}{% else %}{% set sensor_1 = states(''sensor.living_room_temperature_sensor_1'') | float | round(1) %}{% set sensor_2 = states(''sensor.living_room_temperature_sensor_2'') | float | round(1) %}{% if sensor_1 < 1.0 or sensor_2 < 1.0 or (sensor_1 + sensor_2) < 1.0 %}22.0{% else %}{{ ((sensor_1 + sensor_2) / 2) | round(1) }}{% endif %}{% endif %}'
+- sensor:
+  - name: Living Room Temperature Sensor 1
+    unit_of_measurement: "\xB0C"
+    state: '{{states.sensor["temperature_humidity_sensor_2ab7_temperature"].state | float | round(1)}}'
+- sensor:
+  - name: Living Room Temperature Sensor 2
+    unit_of_measurement: "\xB0C"
+    state: '{{states.sensor["a4c13864aca3_temperature"].state | float | round(1)}}'
+- sensor:
+  - name: Living Room Wall Button
+    state: '{{states.sensor["0x00158d00045e2300_action"].state}}'
+- sensor:
+  - name: Tais Desk Motion Sensor Light
+    unit_of_measurement: lx
+    state: '{{states.sensor["54ef44e31acd_illuminance"].state}}'
+- sensor:
+  - name: Tais Desk Motion Sensor Battery
+    unit_of_measurement: '%'
+    state: '{{states.sensor["54ef44e31acd_battery"].state}}'
+binary_sensor:
+- platform: group
+  name: Tais Desk Motion Sensor Motion
+  entities: binary_sensor.54ef44e31acd_motion
 light: []
 group:
   living_room_occupancy_group:

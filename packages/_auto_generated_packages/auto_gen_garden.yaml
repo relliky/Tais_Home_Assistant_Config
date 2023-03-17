@@ -1,4 +1,473 @@
 automation:
+- alias: ZL-GD Ceiling Lights On Or Open Curtains If Entering to Room-Garden
+  id: automation.zl_gd_ceiling_lights_on_or_open_curtains_if_entering_to_room_garden
+  trigger:
+    entity_id:
+    - group.garden_motion
+    platform: state
+    to: 'on'
+  action:
+  - service: automation.turn_off
+    entity_id: automation.zl_gd_ceiling_lights_on_or_open_curtains_if_entering_to_room_garden
+    data:
+      stop_actions: false
+  - service: script.call_room_scene
+    data:
+      room_scene_select: input_select.garden_scene
+      scene: Idle
+  - if:
+    - condition: numeric_state
+      entity_id: sensor.met_office_cambridge_city_airport_temperature_3_hourly
+      above: '20'
+    - condition: time
+      after: '10:00:00'
+      before: '13:00:00'
+    - condition: template
+      value_template: '{{ now().month > 4 and now().month < 9 }}'
+    - condition: state
+      entity_id: input_boolean.always_off_constant
+      state: 'on'
+    then:
+      alias: Lights on in hot sunshine
+      if:
+        condition: state
+        entity_id: input_boolean.always_on_constant
+        state: 'on'
+      then:
+      - parallel:
+        - parallel:
+          - if:
+              condition: state
+              entity_id: input_boolean.ceiling_light_control_in_hot_sunshine_garden
+              state: 'on'
+            then:
+              service: homeassistant.turn_on
+              entity_id:
+              - switch.garden_ceiling_light
+          - if:
+              condition: state
+              entity_id: input_boolean.lamp_control_in_hot_sunshine_garden
+              state: 'on'
+            then:
+              service: cover.open_cover
+              entity_id: []
+          - if:
+              condition: state
+              entity_id: input_boolean.led_control_in_hot_sunshine_garden
+              state: 'on'
+            then:
+              service: cover.open_cover
+              entity_id: []
+          - if:
+              condition: state
+              entity_id: input_boolean.curtain_control_in_hot_sunshine_garden
+              state: 'on'
+            then:
+              service: cover.open_cover
+              entity_id: []
+    else:
+      if:
+      - condition: state
+        entity_id: sun.sun
+        state: above_horizon
+      then:
+        alias: Lights on when bright outdoor
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+        - parallel:
+          - parallel:
+            - if:
+                condition: state
+                entity_id: input_boolean.ceiling_light_control_when_bright_outdoor_garden
+                state: 'on'
+              then:
+                service: homeassistant.turn_on
+                entity_id:
+                - switch.garden_ceiling_light
+            - if:
+                condition: state
+                entity_id: input_boolean.lamp_control_when_bright_outdoor_garden
+                state: 'on'
+              then:
+                service: cover.open_cover
+                entity_id: []
+            - if:
+                condition: state
+                entity_id: input_boolean.led_control_when_bright_outdoor_garden
+                state: 'on'
+              then:
+                service: cover.open_cover
+                entity_id: []
+            - if:
+                condition: state
+                entity_id: input_boolean.curtain_control_when_bright_outdoor_garden
+                state: 'on'
+              then:
+                service: cover.open_cover
+                entity_id: []
+      else:
+        alias: Lights on when dark outdoor
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+        - parallel:
+          - parallel:
+            - if:
+                condition: state
+                entity_id: input_boolean.ceiling_light_control_when_dark_outdoor_garden
+                state: 'on'
+              then:
+                service: homeassistant.turn_on
+                entity_id:
+                - switch.garden_ceiling_light
+            - if:
+                condition: state
+                entity_id: input_boolean.lamp_control_when_dark_outdoor_garden
+                state: 'on'
+              then:
+                service: cover.open_cover
+                entity_id: []
+            - if:
+                condition: state
+                entity_id: input_boolean.led_control_when_dark_outdoor_garden
+                state: 'on'
+              then:
+                service: cover.open_cover
+                entity_id: []
+            - if:
+                condition: state
+                entity_id: input_boolean.curtain_control_when_dark_outdoor_garden
+                state: 'on'
+              then:
+                service: cover.open_cover
+                entity_id: []
+- alias: ZL-GD Lights Off If No Person-Garden
+  id: automation.zl_gd_lights_off_if_no_person_garden
+  trigger:
+  - platform: state
+    entity_id: input_select.garden_occupancy
+    to: Outside
+  - minutes: /5
+    platform: time_pattern
+  condition:
+  - condition: state
+    entity_id: input_select.garden_occupancy
+    state: Outside
+  - condition: state
+    entity_id: group.garden_motion
+    state: 'off'
+    for: 00:01:00
+  action:
+    parallel:
+    - service: homeassistant.turn_on
+      entity_id: automation.zl_gd_ceiling_lights_on_or_open_curtains_if_entering_to_room_garden
+    - service: cover.close_cover
+      entity_id: []
+    - service: cover.close_cover
+      entity_id: []
+    - alias: All Off
+      if:
+        condition: state
+        entity_id: input_boolean.always_on_constant
+        state: 'on'
+      then:
+      - parallel:
+        - service: homeassistant.turn_off
+          entity_id:
+          - switch.garden_ceiling_light
+- alias: ZL-GD Applies Different Scenes Based on Scene Selections (State Execution)-Garden
+  trigger:
+  - platform: state
+    entity_id: input_select.garden_scene
+  mode: restart
+  action:
+  - choose:
+    - conditions:
+      - condition: state
+        entity_id: input_select.garden_scene
+        state: All White
+      sequence:
+        alias: All White
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+        - parallel:
+          - service: cover.open_cover
+            entity_id: []
+          - service: homeassistant.turn_on
+            entity_id:
+            - switch.garden_ceiling_light
+          - service: samsungtv_smart.select_picture_mode
+            data:
+              entity_id: []
+              picture_mode: Standard
+    - conditions:
+      - condition: state
+        entity_id: input_select.garden_scene
+        state: Ceiling Light White
+      sequence:
+        alias: Ceiling Light White
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+        - parallel:
+          - service: cover.close_cover
+            entity_id: []
+          - service: homeassistant.turn_on
+            entity_id:
+            - switch.garden_ceiling_light
+          - service: samsungtv_smart.select_picture_mode
+            data:
+              entity_id: []
+              picture_mode: Standard
+    - conditions:
+      - condition: state
+        entity_id: input_select.garden_scene
+        state: Lamp LED White
+      sequence:
+        alias: Lamp LED White
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+        - parallel:
+          - service: homeassistant.turn_off
+            entity_id:
+            - switch.garden_ceiling_light
+          - service: cover.open_cover
+            entity_id: []
+          - service: cover.open_cover
+            entity_id: []
+          - service: samsungtv_smart.select_picture_mode
+            data:
+              entity_id: []
+              picture_mode: Standard
+    - conditions:
+      - condition: state
+        entity_id: input_select.garden_scene
+        state: LED White
+      sequence:
+        alias: LED White
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+        - parallel:
+          - service: homeassistant.turn_off
+            entity_id:
+            - switch.garden_ceiling_light
+          - service: cover.open_cover
+            entity_id: []
+          - service: samsungtv_smart.select_picture_mode
+            data:
+              entity_id: []
+              picture_mode: Natural
+    - conditions:
+      - condition: state
+        entity_id: input_select.garden_scene
+        state: Hue
+      sequence:
+        alias: Hue
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+        - service: cover.open_cover
+          entity_id: []
+        - service: light.turn_on
+          entity_id: []
+          data:
+            brightness_pct: 100
+        - service: pyscript.set_rgb_light_list
+          data:
+            light_list:
+            - switch.garden_ceiling_light
+        - service: samsungtv_smart.select_picture_mode
+          data:
+            entity_id: []
+            picture_mode: Standard
+    - conditions:
+      - condition: state
+        entity_id: input_select.garden_scene
+        state: Night Mode
+      sequence:
+        alias: Night Mode
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+        - parallel:
+          - service: homeassistant.turn_on
+            entity_id: scene.garden_night_mode
+    - conditions:
+      - condition: state
+        entity_id: input_select.garden_scene
+        state: Dark Night Mode
+      sequence:
+        alias: Dark Night Mode
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+        - parallel:
+          - service: homeassistant.turn_on
+            entity_id: scene.garden_dark_night_mode
+    - conditions:
+      - condition: state
+        entity_id: input_select.garden_scene
+        state: All Off
+      sequence:
+        alias: All Off
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+        - parallel:
+          - service: homeassistant.turn_off
+            entity_id:
+            - switch.garden_ceiling_light
+    - conditions:
+      - condition: state
+        entity_id: input_select.garden_scene
+        state: Lights on in hot sunshine
+      sequence:
+        alias: Lights on in hot sunshine
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+        - parallel:
+          - parallel:
+            - if:
+                condition: state
+                entity_id: input_boolean.ceiling_light_control_in_hot_sunshine_garden
+                state: 'on'
+              then:
+                service: homeassistant.turn_on
+                entity_id:
+                - switch.garden_ceiling_light
+            - if:
+                condition: state
+                entity_id: input_boolean.lamp_control_in_hot_sunshine_garden
+                state: 'on'
+              then:
+                service: cover.open_cover
+                entity_id: []
+            - if:
+                condition: state
+                entity_id: input_boolean.led_control_in_hot_sunshine_garden
+                state: 'on'
+              then:
+                service: cover.open_cover
+                entity_id: []
+            - if:
+                condition: state
+                entity_id: input_boolean.curtain_control_in_hot_sunshine_garden
+                state: 'on'
+              then:
+                service: cover.open_cover
+                entity_id: []
+    - conditions:
+      - condition: state
+        entity_id: input_select.garden_scene
+        state: Lights on when bright outdoor
+      sequence:
+        alias: Lights on when bright outdoor
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+        - parallel:
+          - parallel:
+            - if:
+                condition: state
+                entity_id: input_boolean.ceiling_light_control_when_bright_outdoor_garden
+                state: 'on'
+              then:
+                service: homeassistant.turn_on
+                entity_id:
+                - switch.garden_ceiling_light
+            - if:
+                condition: state
+                entity_id: input_boolean.lamp_control_when_bright_outdoor_garden
+                state: 'on'
+              then:
+                service: cover.open_cover
+                entity_id: []
+            - if:
+                condition: state
+                entity_id: input_boolean.led_control_when_bright_outdoor_garden
+                state: 'on'
+              then:
+                service: cover.open_cover
+                entity_id: []
+            - if:
+                condition: state
+                entity_id: input_boolean.curtain_control_when_bright_outdoor_garden
+                state: 'on'
+              then:
+                service: cover.open_cover
+                entity_id: []
+    - conditions:
+      - condition: state
+        entity_id: input_select.garden_scene
+        state: Lights on when dark outdoor
+      sequence:
+        alias: Lights on when dark outdoor
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+        - parallel:
+          - parallel:
+            - if:
+                condition: state
+                entity_id: input_boolean.ceiling_light_control_when_dark_outdoor_garden
+                state: 'on'
+              then:
+                service: homeassistant.turn_on
+                entity_id:
+                - switch.garden_ceiling_light
+            - if:
+                condition: state
+                entity_id: input_boolean.lamp_control_when_dark_outdoor_garden
+                state: 'on'
+              then:
+                service: cover.open_cover
+                entity_id: []
+            - if:
+                condition: state
+                entity_id: input_boolean.led_control_when_dark_outdoor_garden
+                state: 'on'
+              then:
+                service: cover.open_cover
+                entity_id: []
+            - if:
+                condition: state
+                entity_id: input_boolean.curtain_control_when_dark_outdoor_garden
+                state: 'on'
+              then:
+                service: cover.open_cover
+                entity_id: []
+  id: automation.zl_gd_applies_different_scenes_based_on_scene_selections_state_execution_garden
 - alias: ZOc-GD Occupancy Update-Garden
   trigger:
   - entity_id: group.garden_motion
@@ -17,9 +486,16 @@ automation:
       motion_str: group.garden_motion
       motion_on_ratio_for_x_min_str: sensor.garden_motion_on_ratio_for_last_4_minutes
       motion_on_ratio_for_2x_min_str: sensor.garden_motion_on_ratio_for_last_8_minutes
-      room_type: common_area
+      room_type: landing
   id: automation.zoc_gd_occupancy_update_garden
 input_select:
+  garden_scene:
+    name: Garden Scene
+    options:
+    - Idle
+    - All White
+    - Ceiling Light White
+    - All Off
   garden_occupancy:
     name: Garden Occupancy
     options:
@@ -80,12 +556,20 @@ input_boolean:
     name: Curtain Control When Dark Outdoor Garden
     initial: 'off'
 switch: []
+cover: []
 template:
 - sensor:
-  - name: Study Temperature Sensor
-    unit_of_measurement: "\xB0C"
-    state: '{{states.sensor["a4c138e25da9_temperature"].state | float | round(1)}}'
-binary_sensor: []
+  - name: Garden Bike Shed Motion Sensor Light
+    unit_of_measurement: lx
+    state: '{{states.sensor["54ef44e34c16_illuminance"].state}}'
+- sensor:
+  - name: Garden Bike Shed Motion Sensor Battery
+    unit_of_measurement: '%'
+    state: '{{states.sensor["54ef44e34c16_battery"].state}}'
+binary_sensor:
+- platform: group
+  name: Garden Bike Shed Motion Sensor Motion
+  entities: binary_sensor.54ef44e34c16_motion
 light: []
 group:
   garden_occupancy_group:
@@ -109,4 +593,7 @@ group:
     entities:
     - input_boolean.ceiling_light_control_when_bright_outdoor_garden
     - input_boolean.ceiling_light_control_when_dark_outdoor_garden
+    - automation.zl_gd_ceiling_lights_on_or_open_curtains_if_entering_to_room_garden
+    - automation.zl_gd_lights_off_if_no_person_garden
+    - automation.zl_gd_applies_different_scenes_based_on_scene_selections_state_execution_garden
     - automation.zoc_gd_occupancy_update_garden

@@ -11,6 +11,10 @@ automation:
     entity_id: automation.zl_kc_ceiling_lights_on_or_open_curtains_if_entering_to_room_kitchen
     data:
       stop_actions: false
+  - service: script.call_room_scene
+    data:
+      room_scene_select: input_select.kitchen_scene
+      scene: Idle
   - if:
     - condition: numeric_state
       entity_id: sensor.met_office_cambridge_city_airport_temperature_3_hourly
@@ -809,12 +813,27 @@ automation:
     - sensor.kitchen_wall_button
     to:
     - single_left
+    - button_1_single
   action:
   - service: homeassistant.toggle
     entity_id:
     - light.kitchen_ceiling_light
     - light.kitchen_dining_light
   id: automation.zlb_kc_wall_switch_single_left_press_toggle_ceiling_light_kitchen
+- alias: ZLB-KC Wall Switch-Single Middle Press - Toggle Ceiling Light-Kitchen
+  trigger:
+  - platform: state
+    entity_id:
+    - sensor.kitchen_wall_button
+    to:
+    - single_middle
+    - button_2_single
+  action:
+  - service: homeassistant.toggle
+    entity_id:
+    - light.kitchen_ceiling_light
+    - light.kitchen_dining_light
+  id: automation.zlb_kc_wall_switch_single_middle_press_toggle_ceiling_light_kitchen
 - alias: ZLB-KC Wall Switch-Single Right Press - Toggle Floor LED-Kitchen
   trigger:
   - platform: state
@@ -822,6 +841,7 @@ automation:
     - sensor.kitchen_wall_button
     to:
     - single_right
+    - button_3_single
   action:
   - service: homeassistant.toggle
     entity_id:
@@ -873,13 +893,11 @@ input_select:
   kitchen_scene:
     name: Kitchen Scene
     options:
+    - Idle
     - LED White
     - All White
     - Ceiling Light White
     - All Off
-    - Lights on in hot sunshine
-    - Lights on when bright outdoor
-    - Lights on when dark outdoor
   kitchen_occupancy:
     name: Kitchen Occupancy
     options:
@@ -936,7 +954,15 @@ input_boolean:
   curtain_control_when_dark_outdoor_kitchen:
     name: Curtain Control When Dark Outdoor Kitchen
 switch: []
-template: []
+cover:
+- platform: group
+  name: Kitchen Curtain
+  entities: cover.curtain_1e9e
+template:
+- sensor:
+  - name: Kitchen Temperature Sensor
+    unit_of_measurement: "\xB0C"
+    state: '{{states.sensor["a4c1380e91a7_temperature"].state | float | round(1)}}'
 binary_sensor: []
 light: []
 group:
@@ -980,6 +1006,7 @@ group:
     - automation.zh_kc_valve_calibrate_temperature_using_external_sensor_kitchen
     - automation.zl_kc_applies_different_scenes_based_on_scene_selections_state_execution_kitchen
     - automation.zlb_kc_wall_switch_single_left_press_toggle_ceiling_light_kitchen
+    - automation.zlb_kc_wall_switch_single_middle_press_toggle_ceiling_light_kitchen
     - automation.zlb_kc_wall_switch_single_right_press_toggle_floor_led_kitchen
     - automation.zlb_kc_wall_switch_double_press_leave_room_and_turn_off_everything_kitchen
     - automation.zoc_kc_occupancy_update_kitchen
