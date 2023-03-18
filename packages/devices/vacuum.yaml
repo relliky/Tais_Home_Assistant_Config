@@ -1,0 +1,73 @@
+automation:
+  - alias: T-KC Kitchen Vacuum Starts At 4am
+    description: ""
+    trigger:
+      - at: 04:00:00
+        platform: time
+    condition:
+    action:
+      - service: vacuum.start
+        entity_id: vacuum.xiaomi_vacuum_cleaner
+
+  - alias: V-KC Remember to Refill Kitchen Vacuum Water when Going to Kitchen
+    mode: single
+    trigger:
+      - platform: state
+        entity_id:
+          - group.kitchen_motion
+    condition:
+      - condition: state
+        entity_id: sensor.x1_last_error
+        state: "301"
+    action:
+      - service: media_player.play_media
+        target:
+          entity_id: media_player.kitchen_echo
+        data:
+          media_content_type: routine
+          media_content_id: X1ReminderFillWater
+      - delay: "04:00:00"
+
+  - alias: V-KC Ask X1 To Return To Dock If Stuck
+    description: ""
+    trigger:
+      - platform: time_pattern
+        minutes: "10"
+    condition:
+      - condition: or
+        conditions:
+          - condition: state
+            entity_id: vacuum.x1
+            state: idle
+            for: "00:05:00"
+          - condition: state
+            entity_id: vacuum.x1
+            state: unknown
+            for: "00:05:00"
+          - condition: state
+            entity_id: vacuum.x1
+            state: paused
+            for: "00:05:00"
+          - condition: state
+            entity_id: vacuum.x1
+            state: unavailable
+            for: "00:05:00"
+    action:
+      - service: vacuum.return_to_base
+        data: {}
+        target:
+          entity_id: vacuum.x1
+    mode: single
+
+script kitchen_noti:
+  kitchen_window_left_open_critical_notification:
+    alias: Kitchen Window Left Open Critical Notification
+    sequence:
+      - service: notify.mobile_app_tais_iphone_13_pro_max
+        data:
+          message: Kitchen Window Left Open
+          data:
+            push:
+              name: default
+              critical: 1
+              volume: 1

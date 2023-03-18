@@ -1,0 +1,97 @@
+input_datetime:
+  qianjie_reminder_time:
+    name: 晚上提醒时刻
+    has_time: true
+  
+  qianjie_windows_open_timeout:
+    name: 窗未关超时时长
+    has_time: true
+
+input_boolean:  
+  qianjie_window:
+    name: Qianjie Window
+
+automation:
+- alias: 除掉窗的断线状态
+  id: remove_window_unavailality
+  trigger:
+    - platform: state
+      entity_id:
+        - binary_sensor.qianjie_window
+  action:
+    - choose:
+        - conditions:
+            - condition: state
+              entity_id: binary_sensor.qianjie_window
+              state: "on"
+          sequence:
+            - service: input_boolean.turn_on
+              target:
+                entity_id: input_boolean.qianjie_window
+        - conditions:
+            - condition: state
+              entity_id: binary_sensor.qianjie_window
+              state: "off"
+          sequence:
+            - service: input_boolean.turn_off
+              target:
+                entity_id: input_boolean.qianjie_window
+  mode: single
+
+
+- alias: 离开家里，但窗未关提醒
+  id: left_home_but_windows_open
+  description: ""
+  trigger:
+    - platform: zone
+      entity_id: device_tracker.jingjings_iphone
+      zone: zone.home
+      event: leave
+  condition:
+    - condition: state
+      entity_id: input_boolean.qianjie_window
+      state: "on"
+  action:
+    - service: notify.mobile_app_jingjings_iphone
+      data:
+        title: 窗未关哦~
+        message: 你好像出门了，是故意把厕所窗开着的吗？
+  mode: single
+
+  
+- alias: 要睡觉了，但窗未关提醒
+  description: ""
+  trigger:
+    - platform: time
+      at: input_datetime.qianjie_reminder_time
+  condition:
+    - condition: state
+      entity_id: input_boolean.qianjie_window
+      state: "on"
+  action:
+    - service: notify.mobile_app_jingjings_iphone
+      data:
+        title: 窗未关哦~
+        message: 到点了，窗还开着的哦
+  mode: single
+
+
+- alias: 窗超时未关提醒
+  description: ""
+  trigger:
+    - platform: template
+      value_template: >
+        {{(now().timestamp() -
+        states.input_boolean.qianjie_window.last_changed.timestamp()) >
+        state_attr('input_datetime.qianjie_windows_open_timeout', 'timestamp')}}
+  condition:
+    - condition: state
+      entity_id: input_boolean.qianjie_window
+      state: "on"
+  action:
+    - service: notify.mobile_app_jingjings_iphone
+      data:
+        title: 窗超时未关哦~
+        message: 超时未关
+  mode: single
+
