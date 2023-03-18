@@ -265,11 +265,12 @@ class RoomBase:
     
     name_postfix   = ' ' + postfix if postfix != None else ''
 
-    # 0 padding mac address to 64-bit for Z2M
-    if integration == 'Z2M':
+    # 0 padding mac address to 64-bit for Zigbee device
+    if mac.startswith('0x'):
       mac_in_decimal = int(mac, 16) # convert hexadecimal to decimal
       mac = "0x{:0>16x}".format(mac_in_decimal) # format hexadecimal with 0 padding to 16 characters (64-bit)
-  
+    
+    
     ###################################################################################################
     # Wall Switches
     #
@@ -297,6 +298,8 @@ class RoomBase:
                          "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n" + \
                          "Model " + model + " does not have a key_num. Name = " + name + name_postfix + ', MAC Address:' + mac + ", Integration " + integration + "\n" + \
                          "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n")
+      
+      
       
       # Wall Switches
       for i in range(1,key_num+1):
@@ -348,7 +351,8 @@ class RoomBase:
     # Aqara Wireless Switch, WXKG11LM  ZigbeeID: ["lumi.sensor_switch.aq2"]
     # MiJia Wireless Switch, WXKG01LM  ZigbeeID: ["lumi.sensor_switch"]
     ###################################################################################################
-    elif model == "Aqara Wireless Switch" and integration == 'Xiaomi Gateway 3': 
+    elif((model == "Aqara Wireless Switch") or \
+         (model == "MiJia Wireless Switch")): 
 
       self.template_list += [
         {
@@ -1879,6 +1883,10 @@ class MasterRoom(RoomBase):
     self.add_mac_device('50ec50df3056',       'Master Room Ceiling Light Bulb 1',  'Light',              'Mijia BLE Lights')
 
 
+    #self.add_mac_device('50ec50df0a79',       'Master Room Ceiling Light Bulb 2',  'Light',              'Mijia BLE Lights')
+    #self.add_mac_device("0x04cf8cdf3c73a19b",       self.room_name,                      'Curtain', "Aqara Curtain B1 ZNCLDJ12LM (lumi.curtain.hagl04)')
+
+
 
     self.add_average_temperature_sensor(sensor_1='sensor.master_room_temperature_sensor_new_1', 
                                         sensor_2='sensor.master_room_temperature_sensor_new_2', 
@@ -2272,8 +2280,9 @@ class EnSuiteToilet(RoomBase):
 
   def get_entity_declarations(self):
     super().get_entity_declarations()
-    self.add_mac_device("0x158d00053fdaba", self.room_name,  'Dorr', "Aqara Door & Window Sensor")
-    #('xxxxxxxxxxxxxxxxxx', 'En-suite Toilet',           'Aqara D1 Wall Switch (With Neutral, Single Rocker)')
+    self.add_mac_device("0x158d00053fdaba",   self.room_name,  'Door',          "Aqara Door & Window Sensor")
+    self.add_mac_device('0x158d000572839f',   self.room_name,  'Motion Sensor', 'Aqara Motion and Illuminance Sensor')
+    self.add_mac_device('0x158d000522d90c',   self.room_name,  'Wall Switch',   'Aqara D1 Wall Switch (With Neutral, Single Rocker)')
 
     
   def get_motion_sensor_entities(self):
@@ -2421,11 +2430,15 @@ class Study(RoomBase):
 
   def get_entity_declarations(self):
     super().get_entity_declarations()
+    self.add_mac_device('0x00158d000403d6c0', self.room_name, 'Button',    'MiJia Wireless Switch')
+    
+
     #self.add_mac_device("xxxxxxxxxxxx",       self.room_name,     'Temperature Sensor', "Mijia2 Temperature Sensor")
 
 #('0x00158d00054a6eb9', 'Study',                      'Aqara Motion and Illuminance Sensor')
 #('0x00158d00045245be', 'Study',                      'Aqara D1 Wall Switch (With Neutral, Single Rocker)')
 
+#0x00158d000403d6c0
 
 class Corridor(RoomBase):
   def get_room_config(self):
@@ -2502,6 +2515,7 @@ class GroundToilet(RoomBase):
   def get_entity_declarations(self):
     super().get_entity_declarations()
     self.add_mac_device("a4c1387c09bd",        self.room_name,                                  'Temperature Sensor', "Mijia2 Temperature Sensor")
+    self.add_mac_device('0x00158d0004667569',  self.room_name,                                  'Motion Sensor',      'Aqara Motion and Illuminance Sensor', integration='Z2M')
     self.add_mac_device("0x00158d0005435643",  self.room_name,                                  'Wall Switch',        "Aqara D1 Wall Switch (With Neutral, Double Rocker)")
     self.add_mac_device("0x90fd9ffffe8e24b6",  self.room_name + " Ceiling Light Spotlight 1",   'Light',              "TRADFRI LED Bulb GU10 400 Lumen, Dimmable, White spectrum", integration='Z2M')
     self.add_mac_device("0x000b57fffee8e6b4",  self.room_name + " Ceiling Light Spotlight 2",   'Light',              "TRADFRI LED Bulb GU10 400 Lumen, Dimmable, White spectrum", integration='Z2M')
