@@ -1,1 +1,39 @@
-[]
+- id: '1679267547167'
+  alias: V-KC Vacuum Starts to Clean Kitchen When People Finished Meal
+  description: 'trigger if Stay inside for 1 hour, wait until outside for 5 min, if
+    vacuum is not cleaning, start the kitchen cleaning. disable this automation, and
+    enable the interrupt automation.
+
+    '
+  trigger:
+  - platform: state
+    entity_id:
+    - input_select.kitchen_occupancy
+    to: Stayed Inside
+    for:
+      hours: 1
+      minutes: 0
+      seconds: 0
+  condition: []
+  action:
+  - wait_for_trigger:
+    - platform: state
+      entity_id:
+      - input_select.kitchen_occupancy
+      to: Outside
+      for:
+        hours: 0
+        minutes: 5
+        seconds: 0
+  - condition: not
+    conditions:
+    - condition: state
+      entity_id: vacuum.x1
+      state: cleaning
+  - service: media_player.play_media
+    target:
+      entity_id: media_player.kitchen_echo
+    data:
+      media_content_type: routine
+      media_content_id: X1CleanKitchen
+  mode: single

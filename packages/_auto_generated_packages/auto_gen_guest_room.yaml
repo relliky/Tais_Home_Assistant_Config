@@ -41,60 +41,117 @@ automation:
               entity_id: input_boolean.ceiling_light_control_in_hot_sunshine_guest_room
               state: 'on'
             then:
-              service: homeassistant.turn_on
-              entity_id:
-              - light.guest_room_ceiling_light
-          - if:
-              condition: state
-              entity_id: input_boolean.lamp_control_in_hot_sunshine_guest_room
-              state: 'on'
-            then:
-              alias: Turn on lamps first and check if light colour is white. Reset colour lamps to white and apply adaptive lighting.
+              alias: Turn light.guest_room_ceiling_light state=on
               if:
                 condition: state
                 entity_id: input_boolean.always_on_constant
                 state: 'on'
               then:
-              - service: homeassistant.turn_on
-                entity_id:
-                - light.guest_room_lamp
-              - delay: 00:00:02
-              - if:
+                if:
+                - alias: any ceiling lights is unavailable, using wall switches to control instead
                   condition: state
                   entity_id:
-                  - light.guest_room_lamp
-                  state: color_temp
-                  attribute: color_mode
+                  - light.guest_room_ceiling_light
+                  state: unavailable
+                  match: any
                 then:
-                  service: script.do_nothing
+                  alias: Turn switch.0x00158d00047b69d2_switch state=on
+                  if:
+                    condition: state
+                    entity_id: input_boolean.always_on_constant
+                    state: 'on'
+                  then:
+                    alias: Everytime to turn on a wall switch, make sure to turn off it first to make sure the smart lights will be back on
+                    if:
+                      condition: state
+                      entity_id: input_boolean.always_on_constant
+                      state: 'on'
+                    then:
+                    - service: homeassistant.turn_off
+                      entity_id:
+                      - switch.0x00158d00047b69d2_switch
+                    - service: homeassistant.turn_on
+                      entity_id:
+                      - switch.0x00158d00047b69d2_switch
                 else:
-                - service: light.turn_on
+                  alias: Turn light.guest_room_ceiling_light state=on
+                  if:
+                    condition: state
+                    entity_id: input_boolean.always_on_constant
+                    state: 'on'
+                  then:
+                    service: homeassistant.turn_on
+                    entity_id:
+                    - light.guest_room_ceiling_light
+          - if:
+              condition: state
+              entity_id: input_boolean.lamp_control_in_hot_sunshine_guest_room
+              state: 'on'
+            then:
+              alias: Turn light.guest_room_lamp state=on
+              if:
+                condition: state
+                entity_id: input_boolean.always_on_constant
+                state: 'on'
+              then:
+                alias: Turn on lamps first and check if light colour is white. Reset colour lamps to white and apply adaptive lighting.
+                if:
+                  condition: state
+                  entity_id: input_boolean.always_on_constant
+                  state: 'on'
+                then:
+                - service: homeassistant.turn_on
                   entity_id:
                   - light.guest_room_lamp
-                  data:
-                    kelvin: '3000'
                 - delay: 00:00:02
-                - service: light.turn_off
-                  entity_id:
-                  - light.guest_room_lamp
-                - delay: 00:00:02
-                - service: light.turn_on
-                  entity_id:
-                  - light.guest_room_lamp
+                - if:
+                    condition: state
+                    entity_id:
+                    - light.guest_room_lamp
+                    state: color_temp
+                    attribute: color_mode
+                  then:
+                    service: script.do_nothing
+                  else:
+                  - service: light.turn_on
+                    entity_id:
+                    - light.guest_room_lamp
+                    data:
+                      kelvin: '3000'
+                  - delay: 00:00:02
+                  - service: light.turn_off
+                    entity_id:
+                    - light.guest_room_lamp
+                  - delay: 00:00:02
+                  - service: light.turn_on
+                    entity_id:
+                    - light.guest_room_lamp
           - if:
               condition: state
               entity_id: input_boolean.led_control_in_hot_sunshine_guest_room
               state: 'on'
             then:
-              service: cover.open_cover
-              entity_id: []
+              alias: Turn nothing state=on
+              if:
+                condition: state
+                entity_id: input_boolean.always_on_constant
+                state: 'on'
+              then:
+                service: cover.open_cover
+                entity_id: []
           - if:
               condition: state
               entity_id: input_boolean.curtain_control_in_hot_sunshine_guest_room
               state: 'on'
             then:
-              service: cover.open_cover
-              entity_id: []
+              alias: Turn nothing state=on
+              if:
+                condition: state
+                entity_id: input_boolean.always_on_constant
+                state: 'on'
+              then:
+                service: cover.open_cover
+                entity_id: []
     else:
       if:
       - condition: state
@@ -114,60 +171,117 @@ automation:
                 entity_id: input_boolean.ceiling_light_control_when_bright_outdoor_guest_room
                 state: 'on'
               then:
-                service: homeassistant.turn_on
-                entity_id:
-                - light.guest_room_ceiling_light
-            - if:
-                condition: state
-                entity_id: input_boolean.lamp_control_when_bright_outdoor_guest_room
-                state: 'on'
-              then:
-                alias: Turn on lamps first and check if light colour is white. Reset colour lamps to white and apply adaptive lighting.
+                alias: Turn light.guest_room_ceiling_light state=on
                 if:
                   condition: state
                   entity_id: input_boolean.always_on_constant
                   state: 'on'
                 then:
-                - service: homeassistant.turn_on
-                  entity_id:
-                  - light.guest_room_lamp
-                - delay: 00:00:02
-                - if:
+                  if:
+                  - alias: any ceiling lights is unavailable, using wall switches to control instead
                     condition: state
                     entity_id:
-                    - light.guest_room_lamp
-                    state: color_temp
-                    attribute: color_mode
+                    - light.guest_room_ceiling_light
+                    state: unavailable
+                    match: any
                   then:
-                    service: script.do_nothing
+                    alias: Turn switch.0x00158d00047b69d2_switch state=on
+                    if:
+                      condition: state
+                      entity_id: input_boolean.always_on_constant
+                      state: 'on'
+                    then:
+                      alias: Everytime to turn on a wall switch, make sure to turn off it first to make sure the smart lights will be back on
+                      if:
+                        condition: state
+                        entity_id: input_boolean.always_on_constant
+                        state: 'on'
+                      then:
+                      - service: homeassistant.turn_off
+                        entity_id:
+                        - switch.0x00158d00047b69d2_switch
+                      - service: homeassistant.turn_on
+                        entity_id:
+                        - switch.0x00158d00047b69d2_switch
                   else:
-                  - service: light.turn_on
+                    alias: Turn light.guest_room_ceiling_light state=on
+                    if:
+                      condition: state
+                      entity_id: input_boolean.always_on_constant
+                      state: 'on'
+                    then:
+                      service: homeassistant.turn_on
+                      entity_id:
+                      - light.guest_room_ceiling_light
+            - if:
+                condition: state
+                entity_id: input_boolean.lamp_control_when_bright_outdoor_guest_room
+                state: 'on'
+              then:
+                alias: Turn light.guest_room_lamp state=on
+                if:
+                  condition: state
+                  entity_id: input_boolean.always_on_constant
+                  state: 'on'
+                then:
+                  alias: Turn on lamps first and check if light colour is white. Reset colour lamps to white and apply adaptive lighting.
+                  if:
+                    condition: state
+                    entity_id: input_boolean.always_on_constant
+                    state: 'on'
+                  then:
+                  - service: homeassistant.turn_on
                     entity_id:
                     - light.guest_room_lamp
-                    data:
-                      kelvin: '3000'
                   - delay: 00:00:02
-                  - service: light.turn_off
-                    entity_id:
-                    - light.guest_room_lamp
-                  - delay: 00:00:02
-                  - service: light.turn_on
-                    entity_id:
-                    - light.guest_room_lamp
+                  - if:
+                      condition: state
+                      entity_id:
+                      - light.guest_room_lamp
+                      state: color_temp
+                      attribute: color_mode
+                    then:
+                      service: script.do_nothing
+                    else:
+                    - service: light.turn_on
+                      entity_id:
+                      - light.guest_room_lamp
+                      data:
+                        kelvin: '3000'
+                    - delay: 00:00:02
+                    - service: light.turn_off
+                      entity_id:
+                      - light.guest_room_lamp
+                    - delay: 00:00:02
+                    - service: light.turn_on
+                      entity_id:
+                      - light.guest_room_lamp
             - if:
                 condition: state
                 entity_id: input_boolean.led_control_when_bright_outdoor_guest_room
                 state: 'on'
               then:
-                service: cover.open_cover
-                entity_id: []
+                alias: Turn nothing state=on
+                if:
+                  condition: state
+                  entity_id: input_boolean.always_on_constant
+                  state: 'on'
+                then:
+                  service: cover.open_cover
+                  entity_id: []
             - if:
                 condition: state
                 entity_id: input_boolean.curtain_control_when_bright_outdoor_guest_room
                 state: 'on'
               then:
-                service: cover.open_cover
-                entity_id: []
+                alias: Turn nothing state=on
+                if:
+                  condition: state
+                  entity_id: input_boolean.always_on_constant
+                  state: 'on'
+                then:
+                  service: cover.open_cover
+                  entity_id: []
       else:
         alias: Lights on when dark outdoor
         if:
@@ -182,60 +296,117 @@ automation:
                 entity_id: input_boolean.ceiling_light_control_when_dark_outdoor_guest_room
                 state: 'on'
               then:
-                service: homeassistant.turn_on
-                entity_id:
-                - light.guest_room_ceiling_light
-            - if:
-                condition: state
-                entity_id: input_boolean.lamp_control_when_dark_outdoor_guest_room
-                state: 'on'
-              then:
-                alias: Turn on lamps first and check if light colour is white. Reset colour lamps to white and apply adaptive lighting.
+                alias: Turn light.guest_room_ceiling_light state=on
                 if:
                   condition: state
                   entity_id: input_boolean.always_on_constant
                   state: 'on'
                 then:
-                - service: homeassistant.turn_on
-                  entity_id:
-                  - light.guest_room_lamp
-                - delay: 00:00:02
-                - if:
+                  if:
+                  - alias: any ceiling lights is unavailable, using wall switches to control instead
                     condition: state
                     entity_id:
-                    - light.guest_room_lamp
-                    state: color_temp
-                    attribute: color_mode
+                    - light.guest_room_ceiling_light
+                    state: unavailable
+                    match: any
                   then:
-                    service: script.do_nothing
+                    alias: Turn switch.0x00158d00047b69d2_switch state=on
+                    if:
+                      condition: state
+                      entity_id: input_boolean.always_on_constant
+                      state: 'on'
+                    then:
+                      alias: Everytime to turn on a wall switch, make sure to turn off it first to make sure the smart lights will be back on
+                      if:
+                        condition: state
+                        entity_id: input_boolean.always_on_constant
+                        state: 'on'
+                      then:
+                      - service: homeassistant.turn_off
+                        entity_id:
+                        - switch.0x00158d00047b69d2_switch
+                      - service: homeassistant.turn_on
+                        entity_id:
+                        - switch.0x00158d00047b69d2_switch
                   else:
-                  - service: light.turn_on
+                    alias: Turn light.guest_room_ceiling_light state=on
+                    if:
+                      condition: state
+                      entity_id: input_boolean.always_on_constant
+                      state: 'on'
+                    then:
+                      service: homeassistant.turn_on
+                      entity_id:
+                      - light.guest_room_ceiling_light
+            - if:
+                condition: state
+                entity_id: input_boolean.lamp_control_when_dark_outdoor_guest_room
+                state: 'on'
+              then:
+                alias: Turn light.guest_room_lamp state=on
+                if:
+                  condition: state
+                  entity_id: input_boolean.always_on_constant
+                  state: 'on'
+                then:
+                  alias: Turn on lamps first and check if light colour is white. Reset colour lamps to white and apply adaptive lighting.
+                  if:
+                    condition: state
+                    entity_id: input_boolean.always_on_constant
+                    state: 'on'
+                  then:
+                  - service: homeassistant.turn_on
                     entity_id:
                     - light.guest_room_lamp
-                    data:
-                      kelvin: '3000'
                   - delay: 00:00:02
-                  - service: light.turn_off
-                    entity_id:
-                    - light.guest_room_lamp
-                  - delay: 00:00:02
-                  - service: light.turn_on
-                    entity_id:
-                    - light.guest_room_lamp
+                  - if:
+                      condition: state
+                      entity_id:
+                      - light.guest_room_lamp
+                      state: color_temp
+                      attribute: color_mode
+                    then:
+                      service: script.do_nothing
+                    else:
+                    - service: light.turn_on
+                      entity_id:
+                      - light.guest_room_lamp
+                      data:
+                        kelvin: '3000'
+                    - delay: 00:00:02
+                    - service: light.turn_off
+                      entity_id:
+                      - light.guest_room_lamp
+                    - delay: 00:00:02
+                    - service: light.turn_on
+                      entity_id:
+                      - light.guest_room_lamp
             - if:
                 condition: state
                 entity_id: input_boolean.led_control_when_dark_outdoor_guest_room
                 state: 'on'
               then:
-                service: cover.open_cover
-                entity_id: []
+                alias: Turn nothing state=on
+                if:
+                  condition: state
+                  entity_id: input_boolean.always_on_constant
+                  state: 'on'
+                then:
+                  service: cover.open_cover
+                  entity_id: []
             - if:
                 condition: state
                 entity_id: input_boolean.curtain_control_when_dark_outdoor_guest_room
                 state: 'on'
               then:
-                service: cover.open_cover
-                entity_id: []
+                alias: Turn nothing state=on
+                if:
+                  condition: state
+                  entity_id: input_boolean.always_on_constant
+                  state: 'on'
+                then:
+                  service: cover.open_cover
+                  entity_id: []
 - alias: ZL-GR Lights Off If No Person-Guest Room
   id: automation.zl_gr_lights_off_if_no_person_guest_room
   trigger:
@@ -256,10 +427,22 @@ automation:
     parallel:
     - service: homeassistant.turn_on
       entity_id: automation.zl_gr_ceiling_lights_on_or_open_curtains_if_entering_to_room_guest_room
-    - service: cover.close_cover
-      entity_id: []
-    - service: cover.close_cover
-      entity_id: []
+    - alias: Turn nothing state=off
+      if:
+        condition: state
+        entity_id: input_boolean.always_on_constant
+        state: 'on'
+      then:
+        service: cover.close_cover
+        entity_id: []
+    - alias: Turn nothing state=off
+      if:
+        condition: state
+        entity_id: input_boolean.always_on_constant
+        state: 'on'
+      then:
+        service: cover.close_cover
+        entity_id: []
     - alias: All Off
       if:
         condition: state
@@ -267,10 +450,56 @@ automation:
         state: 'on'
       then:
       - parallel:
-        - service: homeassistant.turn_off
-          entity_id:
-          - light.guest_room_lamp
-          - light.guest_room_ceiling_light
+        - alias: Turn light.guest_room_ceiling_light state=off
+          if:
+            condition: state
+            entity_id: input_boolean.always_on_constant
+            state: 'on'
+          then:
+            if:
+            - alias: any ceiling lights is unavailable, using wall switches to control instead
+              condition: state
+              entity_id:
+              - light.guest_room_ceiling_light
+              state: unavailable
+              match: any
+            then:
+              alias: Turn switch.0x00158d00047b69d2_switch state=off
+              if:
+                condition: state
+                entity_id: input_boolean.always_on_constant
+                state: 'on'
+              then:
+                service: homeassistant.turn_off
+                entity_id:
+                - switch.0x00158d00047b69d2_switch
+            else:
+              alias: Turn light.guest_room_ceiling_light state=off
+              if:
+                condition: state
+                entity_id: input_boolean.always_on_constant
+                state: 'on'
+              then:
+                service: homeassistant.turn_off
+                entity_id:
+                - light.guest_room_ceiling_light
+        - alias: Turn light.guest_room_lamp state=off
+          if:
+            condition: state
+            entity_id: input_boolean.always_on_constant
+            state: 'on'
+          then:
+            service: homeassistant.turn_off
+            entity_id:
+            - light.guest_room_lamp
+        - alias: Turn nothing state=off
+          if:
+            condition: state
+            entity_id: input_boolean.always_on_constant
+            state: 'on'
+          then:
+            service: cover.close_cover
+            entity_id: []
 - alias: ZH-GR Heating Schedule On If Staying In the Room-Guest Room
   id: automation.zh_gr_heating_schedule_on_if_staying_in_the_room_guest_room
   trigger:
@@ -288,18 +517,36 @@ automation:
         entity_id: climate.guest_room
         state: heat
     then:
-      alias: ''
+      alias: Turn heating state=on
       if:
         condition: state
         entity_id: input_boolean.always_on_constant
         state: 'on'
       then:
-      - service: climate.set_hvac_mode
-        data:
-          hvac_mode: heat
-        entity_id: climate.guest_room
-      - service: homeassistant.turn_on
-        entity_id: switch.schedule_guest_room_temperature
+        alias: ''
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+        - alias: Turn climate.guest_room state=on
+          if:
+            condition: state
+            entity_id: input_boolean.always_on_constant
+            state: 'on'
+          then:
+            service: climate.set_hvac_mode
+            data:
+              hvac_mode: heat
+            entity_id: climate.guest_room
+        - alias: Turn switch.schedule_guest_room_temperature state=on
+          if:
+            condition: state
+            entity_id: input_boolean.always_on_constant
+            state: 'on'
+          then:
+            service: homeassistant.turn_on
+            entity_id: switch.schedule_guest_room_temperature
 - alias: ZH-GR Heating Schedule Off If People Left the Room-Guest Room
   id: automation.zh_gr_heating_schedule_off_if_people_left_the_room_guest_room
   trigger:
@@ -315,18 +562,36 @@ automation:
   - condition: state
     entity_id: input_boolean.guest_room_heating_override
     state: 'off'
-  - alias: ''
+  - alias: Turn heating state=off
     if:
       condition: state
       entity_id: input_boolean.always_on_constant
       state: 'on'
     then:
-    - service: climate.set_hvac_mode
-      data:
-        hvac_mode: 'off'
-      entity_id: climate.guest_room
-    - service: homeassistant.turn_off
-      entity_id: switch.schedule_guest_room_temperature
+      alias: ''
+      if:
+        condition: state
+        entity_id: input_boolean.always_on_constant
+        state: 'on'
+      then:
+      - alias: Turn climate.guest_room state=off
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+          service: climate.set_hvac_mode
+          data:
+            hvac_mode: 'off'
+          entity_id: climate.guest_room
+      - alias: Turn switch.schedule_guest_room_temperature state=off
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+          service: homeassistant.turn_off
+          entity_id: switch.schedule_guest_room_temperature
 - alias: ZH-GR Heating Manual Override-Guest Room
   mode: restart
   trigger:
@@ -387,45 +652,104 @@ automation:
           state: 'on'
         then:
         - parallel:
-          - alias: Turn on lamps first and check if light colour is white. Reset colour lamps to white and apply adaptive lighting.
+          - alias: Turn light.guest_room_lamp state=on
             if:
               condition: state
               entity_id: input_boolean.always_on_constant
               state: 'on'
             then:
-            - service: homeassistant.turn_on
-              entity_id:
-              - light.guest_room_lamp
-            - delay: 00:00:02
-            - if:
+              alias: Turn on lamps first and check if light colour is white. Reset colour lamps to white and apply adaptive lighting.
+              if:
+                condition: state
+                entity_id: input_boolean.always_on_constant
+                state: 'on'
+              then:
+              - service: homeassistant.turn_on
+                entity_id:
+                - light.guest_room_lamp
+              - delay: 00:00:02
+              - if:
+                  condition: state
+                  entity_id:
+                  - light.guest_room_lamp
+                  state: color_temp
+                  attribute: color_mode
+                then:
+                  service: script.do_nothing
+                else:
+                - service: light.turn_on
+                  entity_id:
+                  - light.guest_room_lamp
+                  data:
+                    kelvin: '3000'
+                - delay: 00:00:02
+                - service: light.turn_off
+                  entity_id:
+                  - light.guest_room_lamp
+                - delay: 00:00:02
+                - service: light.turn_on
+                  entity_id:
+                  - light.guest_room_lamp
+          - alias: Turn light.guest_room_ceiling_light state=on
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              if:
+              - alias: any ceiling lights is unavailable, using wall switches to control instead
                 condition: state
                 entity_id:
-                - light.guest_room_lamp
-                state: color_temp
-                attribute: color_mode
+                - light.guest_room_ceiling_light
+                state: unavailable
+                match: any
               then:
-                service: script.do_nothing
+                alias: Turn switch.0x00158d00047b69d2_switch state=on
+                if:
+                  condition: state
+                  entity_id: input_boolean.always_on_constant
+                  state: 'on'
+                then:
+                  alias: Everytime to turn on a wall switch, make sure to turn off it first to make sure the smart lights will be back on
+                  if:
+                    condition: state
+                    entity_id: input_boolean.always_on_constant
+                    state: 'on'
+                  then:
+                  - service: homeassistant.turn_off
+                    entity_id:
+                    - switch.0x00158d00047b69d2_switch
+                  - service: homeassistant.turn_on
+                    entity_id:
+                    - switch.0x00158d00047b69d2_switch
               else:
-              - service: light.turn_on
-                entity_id:
-                - light.guest_room_lamp
-                data:
-                  kelvin: '3000'
-              - delay: 00:00:02
-              - service: light.turn_off
-                entity_id:
-                - light.guest_room_lamp
-              - delay: 00:00:02
-              - service: light.turn_on
-                entity_id:
-                - light.guest_room_lamp
-          - service: homeassistant.turn_on
-            entity_id:
-            - light.guest_room_ceiling_light
-          - service: samsungtv_smart.select_picture_mode
-            data:
+                alias: Turn light.guest_room_ceiling_light state=on
+                if:
+                  condition: state
+                  entity_id: input_boolean.always_on_constant
+                  state: 'on'
+                then:
+                  service: homeassistant.turn_on
+                  entity_id:
+                  - light.guest_room_ceiling_light
+          - alias: Turn nothing state=on
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              service: cover.open_cover
               entity_id: []
-              picture_mode: Standard
+          - alias: Turn nothing
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              service: samsungtv_smart.select_picture_mode
+              data:
+                entity_id: []
+                picture_mode: Standard
     - conditions:
       - condition: state
         entity_id: input_select.guest_room_scene
@@ -438,16 +762,67 @@ automation:
           state: 'on'
         then:
         - parallel:
-          - service: homeassistant.turn_off
-            entity_id:
-            - light.guest_room_lamp
-          - service: homeassistant.turn_on
-            entity_id:
-            - light.guest_room_ceiling_light
-          - service: samsungtv_smart.select_picture_mode
-            data:
-              entity_id: []
-              picture_mode: Standard
+          - alias: Turn light.guest_room_lamp state=off
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              service: homeassistant.turn_off
+              entity_id:
+              - light.guest_room_lamp
+          - alias: Turn light.guest_room_ceiling_light state=on
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              if:
+              - alias: any ceiling lights is unavailable, using wall switches to control instead
+                condition: state
+                entity_id:
+                - light.guest_room_ceiling_light
+                state: unavailable
+                match: any
+              then:
+                alias: Turn switch.0x00158d00047b69d2_switch state=on
+                if:
+                  condition: state
+                  entity_id: input_boolean.always_on_constant
+                  state: 'on'
+                then:
+                  alias: Everytime to turn on a wall switch, make sure to turn off it first to make sure the smart lights will be back on
+                  if:
+                    condition: state
+                    entity_id: input_boolean.always_on_constant
+                    state: 'on'
+                  then:
+                  - service: homeassistant.turn_off
+                    entity_id:
+                    - switch.0x00158d00047b69d2_switch
+                  - service: homeassistant.turn_on
+                    entity_id:
+                    - switch.0x00158d00047b69d2_switch
+              else:
+                alias: Turn light.guest_room_ceiling_light state=on
+                if:
+                  condition: state
+                  entity_id: input_boolean.always_on_constant
+                  state: 'on'
+                then:
+                  service: homeassistant.turn_on
+                  entity_id:
+                  - light.guest_room_ceiling_light
+          - alias: Turn nothing
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              service: samsungtv_smart.select_picture_mode
+              data:
+                entity_id: []
+                picture_mode: Standard
     - conditions:
       - condition: state
         entity_id: input_select.guest_room_scene
@@ -460,10 +835,185 @@ automation:
           state: 'on'
         then:
         - parallel:
-          - service: homeassistant.turn_off
-            entity_id:
-            - light.guest_room_ceiling_light
-          - alias: Turn on lamps first and check if light colour is white. Reset colour lamps to white and apply adaptive lighting.
+          - alias: Turn light.guest_room_ceiling_light state=off
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              if:
+              - alias: any ceiling lights is unavailable, using wall switches to control instead
+                condition: state
+                entity_id:
+                - light.guest_room_ceiling_light
+                state: unavailable
+                match: any
+              then:
+                alias: Turn switch.0x00158d00047b69d2_switch state=off
+                if:
+                  condition: state
+                  entity_id: input_boolean.always_on_constant
+                  state: 'on'
+                then:
+                  service: homeassistant.turn_off
+                  entity_id:
+                  - switch.0x00158d00047b69d2_switch
+              else:
+                alias: Turn light.guest_room_ceiling_light state=off
+                if:
+                  condition: state
+                  entity_id: input_boolean.always_on_constant
+                  state: 'on'
+                then:
+                  service: homeassistant.turn_off
+                  entity_id:
+                  - light.guest_room_ceiling_light
+          - alias: Turn light.guest_room_lamp state=on
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              alias: Turn on lamps first and check if light colour is white. Reset colour lamps to white and apply adaptive lighting.
+              if:
+                condition: state
+                entity_id: input_boolean.always_on_constant
+                state: 'on'
+              then:
+              - service: homeassistant.turn_on
+                entity_id:
+                - light.guest_room_lamp
+              - delay: 00:00:02
+              - if:
+                  condition: state
+                  entity_id:
+                  - light.guest_room_lamp
+                  state: color_temp
+                  attribute: color_mode
+                then:
+                  service: script.do_nothing
+                else:
+                - service: light.turn_on
+                  entity_id:
+                  - light.guest_room_lamp
+                  data:
+                    kelvin: '3000'
+                - delay: 00:00:02
+                - service: light.turn_off
+                  entity_id:
+                  - light.guest_room_lamp
+                - delay: 00:00:02
+                - service: light.turn_on
+                  entity_id:
+                  - light.guest_room_lamp
+          - alias: Turn nothing state=on
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              service: cover.open_cover
+              entity_id: []
+          - alias: Turn nothing
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              service: samsungtv_smart.select_picture_mode
+              data:
+                entity_id: []
+                picture_mode: Standard
+    - conditions:
+      - condition: state
+        entity_id: input_select.guest_room_scene
+        state: LED White
+      sequence:
+        alias: LED White
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+        - parallel:
+          - alias: Turn light.guest_room_ceiling_light state=off
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              if:
+              - alias: any ceiling lights is unavailable, using wall switches to control instead
+                condition: state
+                entity_id:
+                - light.guest_room_ceiling_light
+                state: unavailable
+                match: any
+              then:
+                alias: Turn switch.0x00158d00047b69d2_switch state=off
+                if:
+                  condition: state
+                  entity_id: input_boolean.always_on_constant
+                  state: 'on'
+                then:
+                  service: homeassistant.turn_off
+                  entity_id:
+                  - switch.0x00158d00047b69d2_switch
+              else:
+                alias: Turn light.guest_room_ceiling_light state=off
+                if:
+                  condition: state
+                  entity_id: input_boolean.always_on_constant
+                  state: 'on'
+                then:
+                  service: homeassistant.turn_off
+                  entity_id:
+                  - light.guest_room_ceiling_light
+          - alias: Turn light.guest_room_lamp state=off
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              service: homeassistant.turn_off
+              entity_id:
+              - light.guest_room_lamp
+          - alias: Turn nothing state=on
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              service: cover.open_cover
+              entity_id: []
+          - alias: Turn nothing
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              service: samsungtv_smart.select_picture_mode
+              data:
+                entity_id: []
+                picture_mode: Natural
+    - conditions:
+      - condition: state
+        entity_id: input_select.guest_room_scene
+        state: Hue
+      sequence:
+        alias: Hue
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+        - alias: Turn light.guest_room_lamp state=on
+          if:
+            condition: state
+            entity_id: input_boolean.always_on_constant
+            state: 'on'
+          then:
+            alias: Turn on lamps first and check if light colour is white. Reset colour lamps to white and apply adaptive lighting.
             if:
               condition: state
               entity_id: input_boolean.always_on_constant
@@ -495,91 +1045,32 @@ automation:
               - service: light.turn_on
                 entity_id:
                 - light.guest_room_lamp
-          - service: cover.open_cover
-            entity_id: []
-          - service: samsungtv_smart.select_picture_mode
-            data:
-              entity_id: []
-              picture_mode: Standard
-    - conditions:
-      - condition: state
-        entity_id: input_select.guest_room_scene
-        state: LED White
-      sequence:
-        alias: LED White
-        if:
-          condition: state
-          entity_id: input_boolean.always_on_constant
-          state: 'on'
-        then:
-        - parallel:
-          - service: homeassistant.turn_off
-            entity_id:
-            - light.guest_room_ceiling_light
-            - light.guest_room_lamp
-          - service: cover.open_cover
-            entity_id: []
-          - service: samsungtv_smart.select_picture_mode
-            data:
-              entity_id: []
-              picture_mode: Natural
-    - conditions:
-      - condition: state
-        entity_id: input_select.guest_room_scene
-        state: Hue
-      sequence:
-        alias: Hue
-        if:
-          condition: state
-          entity_id: input_boolean.always_on_constant
-          state: 'on'
-        then:
-        - alias: Turn on lamps first and check if light colour is white. Reset colour lamps to white and apply adaptive lighting.
+        - alias: Turn light.guest_room_lamp state=on light_brightness=100
           if:
             condition: state
             entity_id: input_boolean.always_on_constant
             state: 'on'
           then:
-          - service: homeassistant.turn_on
+            service: light.turn_on
             entity_id:
             - light.guest_room_lamp
-          - delay: 00:00:02
-          - if:
-              condition: state
-              entity_id:
-              - light.guest_room_lamp
-              state: color_temp
-              attribute: color_mode
-            then:
-              service: script.do_nothing
-            else:
-            - service: light.turn_on
-              entity_id:
-              - light.guest_room_lamp
-              data:
-                kelvin: '3000'
-            - delay: 00:00:02
-            - service: light.turn_off
-              entity_id:
-              - light.guest_room_lamp
-            - delay: 00:00:02
-            - service: light.turn_on
-              entity_id:
-              - light.guest_room_lamp
-        - service: light.turn_on
-          entity_id:
-          - light.guest_room_lamp
-          data:
-            brightness_pct: 100
+            data:
+              brightness_pct: 100
         - service: pyscript.set_rgb_light_list
           data:
             light_list:
             - light.guest_room_lamp
             - light.guest_room_ceiling_light
-        - service: samsungtv_smart.select_picture_mode
-          data:
-            entity_id: []
-            picture_mode: Standard
+        - alias: Turn nothing
+          if:
+            condition: state
+            entity_id: input_boolean.always_on_constant
+            state: 'on'
+          then:
+            service: samsungtv_smart.select_picture_mode
+            data:
+              entity_id: []
+              picture_mode: Natural
     - conditions:
       - condition: state
         entity_id: input_select.guest_room_scene
@@ -594,6 +1085,16 @@ automation:
         - parallel:
           - service: homeassistant.turn_on
             entity_id: scene.guest_room_night_mode
+          - alias: Turn nothing
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              service: samsungtv_smart.select_picture_mode
+              data:
+                entity_id: []
+                picture_mode: Natural
     - conditions:
       - condition: state
         entity_id: input_select.guest_room_scene
@@ -608,6 +1109,16 @@ automation:
         - parallel:
           - service: homeassistant.turn_on
             entity_id: scene.guest_room_dark_night_mode
+          - alias: Turn nothing
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              service: samsungtv_smart.select_picture_mode
+              data:
+                entity_id: []
+                picture_mode: Movie
     - conditions:
       - condition: state
         entity_id: input_select.guest_room_scene
@@ -620,10 +1131,56 @@ automation:
           state: 'on'
         then:
         - parallel:
-          - service: homeassistant.turn_off
-            entity_id:
-            - light.guest_room_lamp
-            - light.guest_room_ceiling_light
+          - alias: Turn light.guest_room_ceiling_light state=off
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              if:
+              - alias: any ceiling lights is unavailable, using wall switches to control instead
+                condition: state
+                entity_id:
+                - light.guest_room_ceiling_light
+                state: unavailable
+                match: any
+              then:
+                alias: Turn switch.0x00158d00047b69d2_switch state=off
+                if:
+                  condition: state
+                  entity_id: input_boolean.always_on_constant
+                  state: 'on'
+                then:
+                  service: homeassistant.turn_off
+                  entity_id:
+                  - switch.0x00158d00047b69d2_switch
+              else:
+                alias: Turn light.guest_room_ceiling_light state=off
+                if:
+                  condition: state
+                  entity_id: input_boolean.always_on_constant
+                  state: 'on'
+                then:
+                  service: homeassistant.turn_off
+                  entity_id:
+                  - light.guest_room_ceiling_light
+          - alias: Turn light.guest_room_lamp state=off
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              service: homeassistant.turn_off
+              entity_id:
+              - light.guest_room_lamp
+          - alias: Turn nothing state=off
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              service: cover.close_cover
+              entity_id: []
     - conditions:
       - condition: state
         entity_id: input_select.guest_room_scene
@@ -642,60 +1199,117 @@ automation:
                 entity_id: input_boolean.ceiling_light_control_in_hot_sunshine_guest_room
                 state: 'on'
               then:
-                service: homeassistant.turn_on
-                entity_id:
-                - light.guest_room_ceiling_light
-            - if:
-                condition: state
-                entity_id: input_boolean.lamp_control_in_hot_sunshine_guest_room
-                state: 'on'
-              then:
-                alias: Turn on lamps first and check if light colour is white. Reset colour lamps to white and apply adaptive lighting.
+                alias: Turn light.guest_room_ceiling_light state=on
                 if:
                   condition: state
                   entity_id: input_boolean.always_on_constant
                   state: 'on'
                 then:
-                - service: homeassistant.turn_on
-                  entity_id:
-                  - light.guest_room_lamp
-                - delay: 00:00:02
-                - if:
+                  if:
+                  - alias: any ceiling lights is unavailable, using wall switches to control instead
                     condition: state
                     entity_id:
-                    - light.guest_room_lamp
-                    state: color_temp
-                    attribute: color_mode
+                    - light.guest_room_ceiling_light
+                    state: unavailable
+                    match: any
                   then:
-                    service: script.do_nothing
+                    alias: Turn switch.0x00158d00047b69d2_switch state=on
+                    if:
+                      condition: state
+                      entity_id: input_boolean.always_on_constant
+                      state: 'on'
+                    then:
+                      alias: Everytime to turn on a wall switch, make sure to turn off it first to make sure the smart lights will be back on
+                      if:
+                        condition: state
+                        entity_id: input_boolean.always_on_constant
+                        state: 'on'
+                      then:
+                      - service: homeassistant.turn_off
+                        entity_id:
+                        - switch.0x00158d00047b69d2_switch
+                      - service: homeassistant.turn_on
+                        entity_id:
+                        - switch.0x00158d00047b69d2_switch
                   else:
-                  - service: light.turn_on
+                    alias: Turn light.guest_room_ceiling_light state=on
+                    if:
+                      condition: state
+                      entity_id: input_boolean.always_on_constant
+                      state: 'on'
+                    then:
+                      service: homeassistant.turn_on
+                      entity_id:
+                      - light.guest_room_ceiling_light
+            - if:
+                condition: state
+                entity_id: input_boolean.lamp_control_in_hot_sunshine_guest_room
+                state: 'on'
+              then:
+                alias: Turn light.guest_room_lamp state=on
+                if:
+                  condition: state
+                  entity_id: input_boolean.always_on_constant
+                  state: 'on'
+                then:
+                  alias: Turn on lamps first and check if light colour is white. Reset colour lamps to white and apply adaptive lighting.
+                  if:
+                    condition: state
+                    entity_id: input_boolean.always_on_constant
+                    state: 'on'
+                  then:
+                  - service: homeassistant.turn_on
                     entity_id:
                     - light.guest_room_lamp
-                    data:
-                      kelvin: '3000'
                   - delay: 00:00:02
-                  - service: light.turn_off
-                    entity_id:
-                    - light.guest_room_lamp
-                  - delay: 00:00:02
-                  - service: light.turn_on
-                    entity_id:
-                    - light.guest_room_lamp
+                  - if:
+                      condition: state
+                      entity_id:
+                      - light.guest_room_lamp
+                      state: color_temp
+                      attribute: color_mode
+                    then:
+                      service: script.do_nothing
+                    else:
+                    - service: light.turn_on
+                      entity_id:
+                      - light.guest_room_lamp
+                      data:
+                        kelvin: '3000'
+                    - delay: 00:00:02
+                    - service: light.turn_off
+                      entity_id:
+                      - light.guest_room_lamp
+                    - delay: 00:00:02
+                    - service: light.turn_on
+                      entity_id:
+                      - light.guest_room_lamp
             - if:
                 condition: state
                 entity_id: input_boolean.led_control_in_hot_sunshine_guest_room
                 state: 'on'
               then:
-                service: cover.open_cover
-                entity_id: []
+                alias: Turn nothing state=on
+                if:
+                  condition: state
+                  entity_id: input_boolean.always_on_constant
+                  state: 'on'
+                then:
+                  service: cover.open_cover
+                  entity_id: []
             - if:
                 condition: state
                 entity_id: input_boolean.curtain_control_in_hot_sunshine_guest_room
                 state: 'on'
               then:
-                service: cover.open_cover
-                entity_id: []
+                alias: Turn nothing state=on
+                if:
+                  condition: state
+                  entity_id: input_boolean.always_on_constant
+                  state: 'on'
+                then:
+                  service: cover.open_cover
+                  entity_id: []
     - conditions:
       - condition: state
         entity_id: input_select.guest_room_scene
@@ -714,60 +1328,117 @@ automation:
                 entity_id: input_boolean.ceiling_light_control_when_bright_outdoor_guest_room
                 state: 'on'
               then:
-                service: homeassistant.turn_on
-                entity_id:
-                - light.guest_room_ceiling_light
-            - if:
-                condition: state
-                entity_id: input_boolean.lamp_control_when_bright_outdoor_guest_room
-                state: 'on'
-              then:
-                alias: Turn on lamps first and check if light colour is white. Reset colour lamps to white and apply adaptive lighting.
+                alias: Turn light.guest_room_ceiling_light state=on
                 if:
                   condition: state
                   entity_id: input_boolean.always_on_constant
                   state: 'on'
                 then:
-                - service: homeassistant.turn_on
-                  entity_id:
-                  - light.guest_room_lamp
-                - delay: 00:00:02
-                - if:
+                  if:
+                  - alias: any ceiling lights is unavailable, using wall switches to control instead
                     condition: state
                     entity_id:
-                    - light.guest_room_lamp
-                    state: color_temp
-                    attribute: color_mode
+                    - light.guest_room_ceiling_light
+                    state: unavailable
+                    match: any
                   then:
-                    service: script.do_nothing
+                    alias: Turn switch.0x00158d00047b69d2_switch state=on
+                    if:
+                      condition: state
+                      entity_id: input_boolean.always_on_constant
+                      state: 'on'
+                    then:
+                      alias: Everytime to turn on a wall switch, make sure to turn off it first to make sure the smart lights will be back on
+                      if:
+                        condition: state
+                        entity_id: input_boolean.always_on_constant
+                        state: 'on'
+                      then:
+                      - service: homeassistant.turn_off
+                        entity_id:
+                        - switch.0x00158d00047b69d2_switch
+                      - service: homeassistant.turn_on
+                        entity_id:
+                        - switch.0x00158d00047b69d2_switch
                   else:
-                  - service: light.turn_on
+                    alias: Turn light.guest_room_ceiling_light state=on
+                    if:
+                      condition: state
+                      entity_id: input_boolean.always_on_constant
+                      state: 'on'
+                    then:
+                      service: homeassistant.turn_on
+                      entity_id:
+                      - light.guest_room_ceiling_light
+            - if:
+                condition: state
+                entity_id: input_boolean.lamp_control_when_bright_outdoor_guest_room
+                state: 'on'
+              then:
+                alias: Turn light.guest_room_lamp state=on
+                if:
+                  condition: state
+                  entity_id: input_boolean.always_on_constant
+                  state: 'on'
+                then:
+                  alias: Turn on lamps first and check if light colour is white. Reset colour lamps to white and apply adaptive lighting.
+                  if:
+                    condition: state
+                    entity_id: input_boolean.always_on_constant
+                    state: 'on'
+                  then:
+                  - service: homeassistant.turn_on
                     entity_id:
                     - light.guest_room_lamp
-                    data:
-                      kelvin: '3000'
                   - delay: 00:00:02
-                  - service: light.turn_off
-                    entity_id:
-                    - light.guest_room_lamp
-                  - delay: 00:00:02
-                  - service: light.turn_on
-                    entity_id:
-                    - light.guest_room_lamp
+                  - if:
+                      condition: state
+                      entity_id:
+                      - light.guest_room_lamp
+                      state: color_temp
+                      attribute: color_mode
+                    then:
+                      service: script.do_nothing
+                    else:
+                    - service: light.turn_on
+                      entity_id:
+                      - light.guest_room_lamp
+                      data:
+                        kelvin: '3000'
+                    - delay: 00:00:02
+                    - service: light.turn_off
+                      entity_id:
+                      - light.guest_room_lamp
+                    - delay: 00:00:02
+                    - service: light.turn_on
+                      entity_id:
+                      - light.guest_room_lamp
             - if:
                 condition: state
                 entity_id: input_boolean.led_control_when_bright_outdoor_guest_room
                 state: 'on'
               then:
-                service: cover.open_cover
-                entity_id: []
+                alias: Turn nothing state=on
+                if:
+                  condition: state
+                  entity_id: input_boolean.always_on_constant
+                  state: 'on'
+                then:
+                  service: cover.open_cover
+                  entity_id: []
             - if:
                 condition: state
                 entity_id: input_boolean.curtain_control_when_bright_outdoor_guest_room
                 state: 'on'
               then:
-                service: cover.open_cover
-                entity_id: []
+                alias: Turn nothing state=on
+                if:
+                  condition: state
+                  entity_id: input_boolean.always_on_constant
+                  state: 'on'
+                then:
+                  service: cover.open_cover
+                  entity_id: []
     - conditions:
       - condition: state
         entity_id: input_select.guest_room_scene
@@ -786,62 +1457,119 @@ automation:
                 entity_id: input_boolean.ceiling_light_control_when_dark_outdoor_guest_room
                 state: 'on'
               then:
-                service: homeassistant.turn_on
-                entity_id:
-                - light.guest_room_ceiling_light
-            - if:
-                condition: state
-                entity_id: input_boolean.lamp_control_when_dark_outdoor_guest_room
-                state: 'on'
-              then:
-                alias: Turn on lamps first and check if light colour is white. Reset colour lamps to white and apply adaptive lighting.
+                alias: Turn light.guest_room_ceiling_light state=on
                 if:
                   condition: state
                   entity_id: input_boolean.always_on_constant
                   state: 'on'
                 then:
-                - service: homeassistant.turn_on
-                  entity_id:
-                  - light.guest_room_lamp
-                - delay: 00:00:02
-                - if:
+                  if:
+                  - alias: any ceiling lights is unavailable, using wall switches to control instead
                     condition: state
                     entity_id:
-                    - light.guest_room_lamp
-                    state: color_temp
-                    attribute: color_mode
+                    - light.guest_room_ceiling_light
+                    state: unavailable
+                    match: any
                   then:
-                    service: script.do_nothing
+                    alias: Turn switch.0x00158d00047b69d2_switch state=on
+                    if:
+                      condition: state
+                      entity_id: input_boolean.always_on_constant
+                      state: 'on'
+                    then:
+                      alias: Everytime to turn on a wall switch, make sure to turn off it first to make sure the smart lights will be back on
+                      if:
+                        condition: state
+                        entity_id: input_boolean.always_on_constant
+                        state: 'on'
+                      then:
+                      - service: homeassistant.turn_off
+                        entity_id:
+                        - switch.0x00158d00047b69d2_switch
+                      - service: homeassistant.turn_on
+                        entity_id:
+                        - switch.0x00158d00047b69d2_switch
                   else:
-                  - service: light.turn_on
+                    alias: Turn light.guest_room_ceiling_light state=on
+                    if:
+                      condition: state
+                      entity_id: input_boolean.always_on_constant
+                      state: 'on'
+                    then:
+                      service: homeassistant.turn_on
+                      entity_id:
+                      - light.guest_room_ceiling_light
+            - if:
+                condition: state
+                entity_id: input_boolean.lamp_control_when_dark_outdoor_guest_room
+                state: 'on'
+              then:
+                alias: Turn light.guest_room_lamp state=on
+                if:
+                  condition: state
+                  entity_id: input_boolean.always_on_constant
+                  state: 'on'
+                then:
+                  alias: Turn on lamps first and check if light colour is white. Reset colour lamps to white and apply adaptive lighting.
+                  if:
+                    condition: state
+                    entity_id: input_boolean.always_on_constant
+                    state: 'on'
+                  then:
+                  - service: homeassistant.turn_on
                     entity_id:
                     - light.guest_room_lamp
-                    data:
-                      kelvin: '3000'
                   - delay: 00:00:02
-                  - service: light.turn_off
-                    entity_id:
-                    - light.guest_room_lamp
-                  - delay: 00:00:02
-                  - service: light.turn_on
-                    entity_id:
-                    - light.guest_room_lamp
+                  - if:
+                      condition: state
+                      entity_id:
+                      - light.guest_room_lamp
+                      state: color_temp
+                      attribute: color_mode
+                    then:
+                      service: script.do_nothing
+                    else:
+                    - service: light.turn_on
+                      entity_id:
+                      - light.guest_room_lamp
+                      data:
+                        kelvin: '3000'
+                    - delay: 00:00:02
+                    - service: light.turn_off
+                      entity_id:
+                      - light.guest_room_lamp
+                    - delay: 00:00:02
+                    - service: light.turn_on
+                      entity_id:
+                      - light.guest_room_lamp
             - if:
                 condition: state
                 entity_id: input_boolean.led_control_when_dark_outdoor_guest_room
                 state: 'on'
               then:
-                service: cover.open_cover
-                entity_id: []
+                alias: Turn nothing state=on
+                if:
+                  condition: state
+                  entity_id: input_boolean.always_on_constant
+                  state: 'on'
+                then:
+                  service: cover.open_cover
+                  entity_id: []
             - if:
                 condition: state
                 entity_id: input_boolean.curtain_control_when_dark_outdoor_guest_room
                 state: 'on'
               then:
-                service: cover.open_cover
-                entity_id: []
+                alias: Turn nothing state=on
+                if:
+                  condition: state
+                  entity_id: input_boolean.always_on_constant
+                  state: 'on'
+                then:
+                  service: cover.open_cover
+                  entity_id: []
   id: automation.zl_gr_applies_different_scenes_based_on_scene_selections_state_execution_guest_room
-- alias: ZLB-GR Wall Switch-Single Press - Toggle Ceiling Light-Guest Room
+- alias: ZLB-GR Wall Switch - Single Press - Toggle Ceiling Light-Guest Room
   trigger:
   - platform: state
     entity_id:
@@ -856,9 +1584,153 @@ automation:
     - button_2_single
     - button_3_single
   action:
-  - service: homeassistant.toggle
-    entity_id:
-    - light.guest_room_ceiling_light
+  - alias: Turn light.guest_room_ceiling_light state=toggle
+    if:
+      condition: state
+      entity_id: input_boolean.always_on_constant
+      state: 'on'
+    then:
+      if:
+      - alias: any ceiling lights is unavailable, using wall switches to control instead
+        condition: state
+        entity_id:
+        - light.guest_room_ceiling_light
+        state: unavailable
+        match: any
+      then:
+        alias: Turn switch.0x00158d00047b69d2_switch state=toggle
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+          if:
+          - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
+            condition: state
+            entity_id:
+            - switch.0x00158d00047b69d2_switch
+            state: 'on'
+            match: any
+          then:
+            alias: Turn switch.0x00158d00047b69d2_switch state=off
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              service: homeassistant.turn_off
+              entity_id:
+              - switch.0x00158d00047b69d2_switch
+          else:
+            alias: Turn switch.0x00158d00047b69d2_switch state=on
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              alias: Everytime to turn on a wall switch, make sure to turn off it first to make sure the smart lights will be back on
+              if:
+                condition: state
+                entity_id: input_boolean.always_on_constant
+                state: 'on'
+              then:
+              - service: homeassistant.turn_off
+                entity_id:
+                - switch.0x00158d00047b69d2_switch
+              - service: homeassistant.turn_on
+                entity_id:
+                - switch.0x00158d00047b69d2_switch
+      else:
+        alias: Turn light.guest_room_ceiling_light state=toggle
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+          if:
+          - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
+            condition: state
+            entity_id:
+            - light.guest_room_ceiling_light
+            state: 'on'
+            match: any
+          then:
+            alias: Turn light.guest_room_ceiling_light state=off
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              if:
+              - alias: any ceiling lights is unavailable, using wall switches to control instead
+                condition: state
+                entity_id:
+                - light.guest_room_ceiling_light
+                state: unavailable
+                match: any
+              then:
+                alias: Turn switch.0x00158d00047b69d2_switch state=off
+                if:
+                  condition: state
+                  entity_id: input_boolean.always_on_constant
+                  state: 'on'
+                then:
+                  service: homeassistant.turn_off
+                  entity_id:
+                  - switch.0x00158d00047b69d2_switch
+              else:
+                alias: Turn light.guest_room_ceiling_light state=off
+                if:
+                  condition: state
+                  entity_id: input_boolean.always_on_constant
+                  state: 'on'
+                then:
+                  service: homeassistant.turn_off
+                  entity_id:
+                  - light.guest_room_ceiling_light
+          else:
+            alias: Turn light.guest_room_ceiling_light state=on
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              if:
+              - alias: any ceiling lights is unavailable, using wall switches to control instead
+                condition: state
+                entity_id:
+                - light.guest_room_ceiling_light
+                state: unavailable
+                match: any
+              then:
+                alias: Turn switch.0x00158d00047b69d2_switch state=on
+                if:
+                  condition: state
+                  entity_id: input_boolean.always_on_constant
+                  state: 'on'
+                then:
+                  alias: Everytime to turn on a wall switch, make sure to turn off it first to make sure the smart lights will be back on
+                  if:
+                    condition: state
+                    entity_id: input_boolean.always_on_constant
+                    state: 'on'
+                  then:
+                  - service: homeassistant.turn_off
+                    entity_id:
+                    - switch.0x00158d00047b69d2_switch
+                  - service: homeassistant.turn_on
+                    entity_id:
+                    - switch.0x00158d00047b69d2_switch
+              else:
+                alias: Turn light.guest_room_ceiling_light state=on
+                if:
+                  condition: state
+                  entity_id: input_boolean.always_on_constant
+                  state: 'on'
+                then:
+                  service: homeassistant.turn_on
+                  entity_id:
+                  - light.guest_room_ceiling_light
   id: automation.zlb_gr_wall_switch_single_press_toggle_ceiling_light_guest_room
 - alias: ZLB-GR Wall Switch - Double Press - Leave Room and Turn Off Everything-Guest Room
   trigger:
@@ -871,6 +1743,9 @@ automation:
     - double_left
     - double_right
     - double_center
+    - button_1_double
+    - button_2_double
+    - button_3_double
   action:
   - service: automation.trigger
     entity_id:
@@ -971,13 +1846,19 @@ input_boolean:
   curtain_control_when_dark_outdoor_guest_room:
     name: Curtain Control When Dark Outdoor Guest Room
     initial: 'off'
-switch: []
+switch:
+- platform: group
+  name: 'Guest Room Wall Switch '
+  entities: switch.0x00158d00047b69d2_switch
 cover: []
 template:
 - sensor:
   - name: Guest Room Temperature Sensor
     unit_of_measurement: "\xB0C"
     state: '{{states.sensor["582d343483e9_temperature"].state | float | round(1)}}'
+- sensor:
+  - name: Guest Room Wall Button
+    state: '{{states.sensor["0x00158d00047b69d2_action"].state}}'
 binary_sensor: []
 light:
 - platform: group
@@ -1022,3 +1903,4 @@ group:
     - automation.zlb_gr_wall_switch_single_press_toggle_ceiling_light_guest_room
     - automation.zlb_gr_wall_switch_double_press_leave_room_and_turn_off_everything_guest_room
     - automation.zoc_gr_occupancy_update_guest_room
+    - switch.0x00158d00047b69d2_switch

@@ -9,24 +9,29 @@ automation:
       - service: vacuum.start
         entity_id: vacuum.xiaomi_vacuum_cleaner
 
-  - alias: V-KC Remember to Refill Kitchen Vacuum Water when Going to Kitchen
+  - alias: VN-KC Remember to Refill Kitchen Vacuum Water when Going to Kitchen
     mode: single
     trigger:
       - platform: state
         entity_id:
           - group.kitchen_motion
+          - group.living_room_motion
     condition:
       - condition: state
         entity_id: sensor.x1_last_error
         state: "301"
     action:
-      - service: media_player.play_media
-        target:
-          entity_id: media_player.kitchen_echo
+      - service: script.notify_alexa_speakers_and_phones
         data:
-          media_content_type: routine
-          media_content_id: X1ReminderFillWater
+          tts_message: Clean Water in the Vacuum Robot Dock Has Run Out
+          notify_tai: "yes"
+          notify_ke: "yes"
+          #notify_alvaro: "yes"
+          alexa_speaker_list:
+            - media_player.kitchen_echo
+            - media_player.living_room_echo
       - delay: "04:00:00"
+
 
   - alias: V-KC Ask X1 To Return To Dock If Stuck
     description: ""
@@ -59,7 +64,7 @@ automation:
           entity_id: vacuum.x1
     mode: single
 
-script kitchen_noti:
+script:
   kitchen_window_left_open_critical_notification:
     alias: Kitchen Window Left Open Critical Notification
     sequence:
@@ -71,3 +76,7 @@ script kitchen_noti:
               name: default
               critical: 1
               volume: 1
+
+
+
+

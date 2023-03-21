@@ -6,16 +6,15 @@ logger:
   default: error
   logs:
     custom_components.pyscript: info
-    #custom_components.pyscript.file.my_scripts.z_alexa_set_tv_brightness: debug    
-    
-    
+    #custom_components.pyscript.file.my_scripts.z_alexa_set_tv_brightness: debug
+
 # System Sensors
 sensor:
   # This sensor capture DNS public IP
   - platform: dnsip
     name: Public IP
-    
-  # System resource 
+
+  # System resource
   - platform: systemmonitor
     resources:
       - type: disk_use
@@ -23,11 +22,11 @@ sensor:
       - type: memory_use
       - type: memory_free
       - type: swap_use
-      - type: swap_free      
+      - type: swap_free
       - type: load_1m
       - type: load_5m
       - type: load_15m
-      - type: processor_use 
+      - type: processor_use
       - type: processor_temperature
 
   # Time
@@ -35,7 +34,6 @@ sensor:
     display_options:
       - "time"
       - "date"
-
 
 # Custom Variables
 input_boolean:
@@ -61,7 +59,7 @@ input_select:
       - dark
       - dimmed
       - bright
-      
+
 #shell_command:
 #  # PVE CPU Temperature
 #  - platform: command_line
@@ -69,17 +67,16 @@ input_select:
 #    command: "sensors | grep CPUTIN | awk '{print $2}'"
 #    unit_of_measurement: 'C'
 
-
 #  reboot_u6_lite: bash /config/shell_scripts/reboot_u6_lite.sh
 #  reboot_udm:     bash /config/shell_scripts/reboot_udm.sh
-  
+
 #  # CPU Clock Frequency
 #  - platform: command_line
 #    name: "CPU Clock Frequency"
 #    command: 'cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq'
 #    unit_of_measurement: 'MHz'
 #    value_template: '{{ value | multiply(0.001) }}'
-#  
+#
 #  # Uptime
 #  - platform: uptime
 #    name: Boot Time
@@ -91,12 +88,12 @@ input_select:
 #          {% set t = now() %}
 #          {{ relative_time(strptime(states('sensor.boot_time'), '%Y-%m-%dT%H:%M:%S.%f%z')) }}
 
-  # Bad Login Attempts
+# Bad Login Attempts
 #  - platform: command_line
 #    name: badlogin
 #    command: "grep -c 'Login attempt' /home/hass/.homeassistant/home-assistant.log"
-  
-  # QNAP NAS
+
+# QNAP NAS
 #  - platform: qnap
 #    host: 192.168.1.11
 #    username: admin
@@ -116,8 +113,6 @@ template:
         state: >
           {{ (states('sensor.ds920_memory_usage_real')|int * 12 /100) | round(1)  }}
 
-
-
 # Remote Acccess via HTTPS
 http:
   ssl_certificate: /ssl/fullchain.pem
@@ -136,17 +131,14 @@ freedns:
 #  username: !secret no_ip_account
 #  password: !secret no_ip_password
 
-  
 # Database logging config
 recorder:
   #purge_keep_days: 5
   auto_purge: false
-  commit_interval: 3 # updates log every 3s
+  commit_interval: 5 # updates log every 5s
   db_url: mysql://root:mariadb_pass@192.168.1.11/ha_1?charset=utf8mb4
   #db_url: mysql://mariadb_user:mariadb_pass@core-mariadb/homeassistant?charset=utf8mb4
-  
-  
-  
+
 # PVE monitor
 proxmoxve:
   - host: 192.168.1.7
@@ -160,7 +152,7 @@ proxmoxve:
         containers:
           - 101
           - 102
-  
+
 binary_sensor:
   - platform: ping
     host: 192.168.1.20
@@ -180,7 +172,7 @@ input_datetime:
     name: "Log Disable Time"
     has_date: true
     has_time: true
-    
+
 ###############################################
 #
 # Scripts
@@ -197,7 +189,6 @@ script:
     sequence:
       - service: script.do_nothing
 
-
 ###############################################
 #
 # Automations:
@@ -211,8 +202,7 @@ automation:
     id: "1596919926917"
     trigger: []
     action: []
-    
-    
+
   # All living room Router/AP/Hubs (tado/hue/LR gateway 3/Xiaomi AP)
   # will be restart at 4.30am by a timer plug.
   # HA instance and other AP/hubs (AQ/MR gateway/TPlink AP) will be
@@ -227,11 +217,10 @@ automation:
         platform: time
     action:
       # Generate report
-      #- service: watchman.report
+      - service: watchman.report
       # Restart hubs in other rooms
       - delay: "00:01:00"
       - service: homeassistant.restart
-
 
   # - Starts Log Enable and set timeout
   - alias: Enable/Disable Logging By The State of The Log Enable and Set Timeout for 48 Hours
@@ -249,12 +238,12 @@ automation:
           {% else %}
             recorder.disable
           {% endif %}
-      # Reset the Timer          
+      # Reset the Timer
       - service: input_datetime.set_datetime
         entity_id: input_datetime.log_disable_time
         data_template:
           datetime: "{{ (now().timestamp())| timestamp_custom('%Y-%m-%d %H:%M:%S', true) }}"
-      # IF log_enable is ON 
+      # IF log_enable is ON
       - condition: state
         entity_id: input_boolean.log_enable
         state: "on"
@@ -327,8 +316,6 @@ automation:
               - delay: "00:01:00"
               - service: homeassistant.restart
 
-
-
 automation brightness:
   - alias: L- Set up Indoor Brightness Based On Sun
     id: "1679065359421"
@@ -346,5 +333,3 @@ automation brightness:
             {% else %}
               bright
             {% endif %}
-
-
