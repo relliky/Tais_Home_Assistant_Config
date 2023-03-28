@@ -1,4 +1,19 @@
 automation:
+- alias: ZLB-KC Flex Wall Switch On Postion 2- Automatically Turn on the Wall Switch Back When Turned Off -Kitchen
+  trigger:
+  - platform: state
+    entity_id: switch.kitchen_wall_switch_center
+    to: 'off'
+  action:
+  - alias: Turn switch.kitchen_wall_switch_center state=on
+    if:
+      condition: state
+      entity_id: input_boolean.always_on_constant
+      state: 'on'
+    then:
+      service: homeassistant.turn_on
+      entity_id: switch.kitchen_wall_switch_center
+  id: automation.zlb_kc_flex_wall_switch_on_postion_2_automatically_turn_on_the_wall_switch_back_when_turned_off_kitchen
 - alias: ZL-KC Ceiling Lights On Or Open Curtains If Entering to Room-Kitchen
   id: automation.zl_kc_ceiling_lights_on_or_open_curtains_if_entering_to_room_kitchen
   trigger:
@@ -73,6 +88,8 @@ automation:
                       - switch.kitchen_wall_switch_left
                       - switch.kitchen_wall_switch_center
                       - switch.kitchen_wall_switch_right
+                    - delay:
+                        milliseconds: 200
                     - service: homeassistant.turn_on
                       entity_id:
                       - switch.kitchen_wall_switch_left
@@ -206,6 +223,8 @@ automation:
                         - switch.kitchen_wall_switch_left
                         - switch.kitchen_wall_switch_center
                         - switch.kitchen_wall_switch_right
+                      - delay:
+                          milliseconds: 200
                       - service: homeassistant.turn_on
                         entity_id:
                         - switch.kitchen_wall_switch_left
@@ -334,6 +353,8 @@ automation:
                         - switch.kitchen_wall_switch_left
                         - switch.kitchen_wall_switch_center
                         - switch.kitchen_wall_switch_right
+                      - delay:
+                          milliseconds: 200
                       - service: homeassistant.turn_on
                         entity_id:
                         - switch.kitchen_wall_switch_left
@@ -607,7 +628,7 @@ automation:
         then:
           service: homeassistant.turn_off
           entity_id: switch.schedule_kitchen_temperature
-- alias: ZH-KC Heating Manual Override-Kitchen
+- alias: ZH-KC Heating Manual Override - Kitchen
   mode: restart
   trigger:
   - platform: state
@@ -626,7 +647,7 @@ automation:
       entity_id:
       - automation.zh_kc_heating_schedule_off_if_people_left_the_room_kitchen
   id: automation.zh_kc_heating_manual_override_kitchen
-- alias: ZH-KC Heating Manual Override Timeout in Few Hours-Kitchen
+- alias: ZH-KC Heating Manual Override Timeout in Few Hours - Kitchen
   trigger:
   - platform: state
     entity_id: input_boolean.kitchen_heating_override
@@ -641,14 +662,14 @@ automation:
   - service: homeassistant.turn_off
     entity_id: input_boolean.kitchen_heating_override
   id: automation.zh_kc_heating_manual_override_timeout_in_few_hours_kitchen
-- alias: ZH-KC Valve Calibrate Temperature Using External Sensor-Kitchen
+- alias: ZH-KC Valve Calibrate Temperature Using External Sensor - Kitchen
   use_blueprint:
     path: calibrate_valve_temperature.yaml
     input:
       tado_valve_entity: climate.kitchen
       external_temperature_sensor_entity: sensor.kitchen_temperature_sensor
   id: automation.zh_kc_valve_calibrate_temperature_using_external_sensor_kitchen
-- alias: ZL-KC Applies Different Scenes Based on Scene Selections (State Execution)-Kitchen
+- alias: ZL-KC Applies Different Scenes Based on Scene Selections (State Execution) - Kitchen
   trigger:
   - platform: state
     entity_id: input_select.kitchen_scene
@@ -732,6 +753,8 @@ automation:
                     - switch.kitchen_wall_switch_left
                     - switch.kitchen_wall_switch_center
                     - switch.kitchen_wall_switch_right
+                  - delay:
+                      milliseconds: 200
                   - service: homeassistant.turn_on
                     entity_id:
                     - switch.kitchen_wall_switch_left
@@ -821,6 +844,8 @@ automation:
                     - switch.kitchen_wall_switch_left
                     - switch.kitchen_wall_switch_center
                     - switch.kitchen_wall_switch_right
+                  - delay:
+                      milliseconds: 200
                   - service: homeassistant.turn_on
                     entity_id:
                     - switch.kitchen_wall_switch_left
@@ -1241,6 +1266,8 @@ automation:
                         - switch.kitchen_wall_switch_left
                         - switch.kitchen_wall_switch_center
                         - switch.kitchen_wall_switch_right
+                      - delay:
+                          milliseconds: 200
                       - service: homeassistant.turn_on
                         entity_id:
                         - switch.kitchen_wall_switch_left
@@ -1373,6 +1400,8 @@ automation:
                         - switch.kitchen_wall_switch_left
                         - switch.kitchen_wall_switch_center
                         - switch.kitchen_wall_switch_right
+                      - delay:
+                          milliseconds: 200
                       - service: homeassistant.turn_on
                         entity_id:
                         - switch.kitchen_wall_switch_left
@@ -1505,6 +1534,8 @@ automation:
                         - switch.kitchen_wall_switch_left
                         - switch.kitchen_wall_switch_center
                         - switch.kitchen_wall_switch_right
+                      - delay:
+                          milliseconds: 200
                       - service: homeassistant.turn_on
                         entity_id:
                         - switch.kitchen_wall_switch_left
@@ -1588,7 +1619,7 @@ automation:
                   entity_id:
                   - cover.kitchen_curtain
   id: automation.zl_kc_applies_different_scenes_based_on_scene_selections_state_execution_kitchen
-- alias: ZLB-KC Wall Switch - Single Left Press - Toggle Ceiling Light-Kitchen
+- alias: ZLB-KC Wall Switch - Single Left Press - Toggle Ceiling Light - Kitchen
   trigger:
   - platform: state
     entity_id:
@@ -1597,175 +1628,38 @@ automation:
     - single_left
     - button_1_single
   action:
-  - alias: Turn light.kitchen_ceiling_light light.kitchen_dining_light state=toggle
+  - alias: Turn light.kitchen_ceiling_light state=toggle
     if:
       condition: state
       entity_id: input_boolean.always_on_constant
       state: 'on'
     then:
       if:
-      - alias: any ceiling lights is unavailable, using wall switches to control instead
+      - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
         condition: state
-        entity_id:
-        - light.kitchen_ceiling_light
-        - light.kitchen_dining_light
-        state: unavailable
+        entity_id: light.kitchen_ceiling_light
+        state: 'on'
         match: any
       then:
-        alias: Turn switch.kitchen_wall_switch_left switch.kitchen_wall_switch_center switch.kitchen_wall_switch_right state=toggle
+        alias: Turn light.kitchen_ceiling_light state=off
         if:
           condition: state
           entity_id: input_boolean.always_on_constant
           state: 'on'
         then:
-          if:
-          - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
-            condition: state
-            entity_id:
-            - switch.kitchen_wall_switch_left
-            - switch.kitchen_wall_switch_center
-            - switch.kitchen_wall_switch_right
-            state: 'on'
-            match: any
-          then:
-            alias: Turn switch.kitchen_wall_switch_left switch.kitchen_wall_switch_center switch.kitchen_wall_switch_right state=off
-            if:
-              condition: state
-              entity_id: input_boolean.always_on_constant
-              state: 'on'
-            then:
-              service: homeassistant.turn_off
-              entity_id:
-              - switch.kitchen_wall_switch_left
-              - switch.kitchen_wall_switch_center
-              - switch.kitchen_wall_switch_right
-          else:
-            alias: Turn switch.kitchen_wall_switch_left switch.kitchen_wall_switch_center switch.kitchen_wall_switch_right state=on
-            if:
-              condition: state
-              entity_id: input_boolean.always_on_constant
-              state: 'on'
-            then:
-              alias: Everytime to turn on a wall switch, make sure to turn off it first to make sure the smart lights will be back on
-              if:
-                condition: state
-                entity_id: input_boolean.always_on_constant
-                state: 'on'
-              then:
-              - service: homeassistant.turn_off
-                entity_id:
-                - switch.kitchen_wall_switch_left
-                - switch.kitchen_wall_switch_center
-                - switch.kitchen_wall_switch_right
-              - service: homeassistant.turn_on
-                entity_id:
-                - switch.kitchen_wall_switch_left
-                - switch.kitchen_wall_switch_center
-                - switch.kitchen_wall_switch_right
+          service: homeassistant.turn_off
+          entity_id: light.kitchen_ceiling_light
       else:
-        alias: Turn light.kitchen_ceiling_light light.kitchen_dining_light state=toggle
+        alias: Turn light.kitchen_ceiling_light state=on
         if:
           condition: state
           entity_id: input_boolean.always_on_constant
           state: 'on'
         then:
-          if:
-          - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
-            condition: state
-            entity_id:
-            - light.kitchen_ceiling_light
-            - light.kitchen_dining_light
-            state: 'on'
-            match: any
-          then:
-            alias: Turn light.kitchen_ceiling_light light.kitchen_dining_light state=off
-            if:
-              condition: state
-              entity_id: input_boolean.always_on_constant
-              state: 'on'
-            then:
-              if:
-              - alias: any ceiling lights is unavailable, using wall switches to control instead
-                condition: state
-                entity_id:
-                - light.kitchen_ceiling_light
-                - light.kitchen_dining_light
-                state: unavailable
-                match: any
-              then:
-                alias: Turn switch.kitchen_wall_switch_left switch.kitchen_wall_switch_center switch.kitchen_wall_switch_right state=off
-                if:
-                  condition: state
-                  entity_id: input_boolean.always_on_constant
-                  state: 'on'
-                then:
-                  service: homeassistant.turn_off
-                  entity_id:
-                  - switch.kitchen_wall_switch_left
-                  - switch.kitchen_wall_switch_center
-                  - switch.kitchen_wall_switch_right
-              else:
-                alias: Turn light.kitchen_ceiling_light light.kitchen_dining_light state=off
-                if:
-                  condition: state
-                  entity_id: input_boolean.always_on_constant
-                  state: 'on'
-                then:
-                  service: homeassistant.turn_off
-                  entity_id:
-                  - light.kitchen_ceiling_light
-                  - light.kitchen_dining_light
-          else:
-            alias: Turn light.kitchen_ceiling_light light.kitchen_dining_light state=on
-            if:
-              condition: state
-              entity_id: input_boolean.always_on_constant
-              state: 'on'
-            then:
-              if:
-              - alias: any ceiling lights is unavailable, using wall switches to control instead
-                condition: state
-                entity_id:
-                - light.kitchen_ceiling_light
-                - light.kitchen_dining_light
-                state: unavailable
-                match: any
-              then:
-                alias: Turn switch.kitchen_wall_switch_left switch.kitchen_wall_switch_center switch.kitchen_wall_switch_right state=on
-                if:
-                  condition: state
-                  entity_id: input_boolean.always_on_constant
-                  state: 'on'
-                then:
-                  alias: Everytime to turn on a wall switch, make sure to turn off it first to make sure the smart lights will be back on
-                  if:
-                    condition: state
-                    entity_id: input_boolean.always_on_constant
-                    state: 'on'
-                  then:
-                  - service: homeassistant.turn_off
-                    entity_id:
-                    - switch.kitchen_wall_switch_left
-                    - switch.kitchen_wall_switch_center
-                    - switch.kitchen_wall_switch_right
-                  - service: homeassistant.turn_on
-                    entity_id:
-                    - switch.kitchen_wall_switch_left
-                    - switch.kitchen_wall_switch_center
-                    - switch.kitchen_wall_switch_right
-              else:
-                alias: Turn light.kitchen_ceiling_light light.kitchen_dining_light state=on
-                if:
-                  condition: state
-                  entity_id: input_boolean.always_on_constant
-                  state: 'on'
-                then:
-                  service: homeassistant.turn_on
-                  entity_id:
-                  - light.kitchen_ceiling_light
-                  - light.kitchen_dining_light
+          service: homeassistant.turn_on
+          entity_id: light.kitchen_ceiling_light
   id: automation.zlb_kc_wall_switch_single_left_press_toggle_ceiling_light_kitchen
-- alias: ZLB-KC Wall Switch - Single Center Press - Toggle Ceiling Light-Kitchen
+- alias: ZLB-KC Wall Switch - Single Center Press - Toggle Dining Light - Kitchen
   trigger:
   - platform: state
     entity_id:
@@ -1774,175 +1668,38 @@ automation:
     - single_center
     - button_2_single
   action:
-  - alias: Turn light.kitchen_ceiling_light light.kitchen_dining_light state=toggle
+  - alias: Turn light.kitchen_dining_light state=toggle
     if:
       condition: state
       entity_id: input_boolean.always_on_constant
       state: 'on'
     then:
       if:
-      - alias: any ceiling lights is unavailable, using wall switches to control instead
+      - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
         condition: state
-        entity_id:
-        - light.kitchen_ceiling_light
-        - light.kitchen_dining_light
-        state: unavailable
+        entity_id: light.kitchen_dining_light
+        state: 'on'
         match: any
       then:
-        alias: Turn switch.kitchen_wall_switch_left switch.kitchen_wall_switch_center switch.kitchen_wall_switch_right state=toggle
+        alias: Turn light.kitchen_dining_light state=off
         if:
           condition: state
           entity_id: input_boolean.always_on_constant
           state: 'on'
         then:
-          if:
-          - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
-            condition: state
-            entity_id:
-            - switch.kitchen_wall_switch_left
-            - switch.kitchen_wall_switch_center
-            - switch.kitchen_wall_switch_right
-            state: 'on'
-            match: any
-          then:
-            alias: Turn switch.kitchen_wall_switch_left switch.kitchen_wall_switch_center switch.kitchen_wall_switch_right state=off
-            if:
-              condition: state
-              entity_id: input_boolean.always_on_constant
-              state: 'on'
-            then:
-              service: homeassistant.turn_off
-              entity_id:
-              - switch.kitchen_wall_switch_left
-              - switch.kitchen_wall_switch_center
-              - switch.kitchen_wall_switch_right
-          else:
-            alias: Turn switch.kitchen_wall_switch_left switch.kitchen_wall_switch_center switch.kitchen_wall_switch_right state=on
-            if:
-              condition: state
-              entity_id: input_boolean.always_on_constant
-              state: 'on'
-            then:
-              alias: Everytime to turn on a wall switch, make sure to turn off it first to make sure the smart lights will be back on
-              if:
-                condition: state
-                entity_id: input_boolean.always_on_constant
-                state: 'on'
-              then:
-              - service: homeassistant.turn_off
-                entity_id:
-                - switch.kitchen_wall_switch_left
-                - switch.kitchen_wall_switch_center
-                - switch.kitchen_wall_switch_right
-              - service: homeassistant.turn_on
-                entity_id:
-                - switch.kitchen_wall_switch_left
-                - switch.kitchen_wall_switch_center
-                - switch.kitchen_wall_switch_right
+          service: homeassistant.turn_off
+          entity_id: light.kitchen_dining_light
       else:
-        alias: Turn light.kitchen_ceiling_light light.kitchen_dining_light state=toggle
+        alias: Turn light.kitchen_dining_light state=on
         if:
           condition: state
           entity_id: input_boolean.always_on_constant
           state: 'on'
         then:
-          if:
-          - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
-            condition: state
-            entity_id:
-            - light.kitchen_ceiling_light
-            - light.kitchen_dining_light
-            state: 'on'
-            match: any
-          then:
-            alias: Turn light.kitchen_ceiling_light light.kitchen_dining_light state=off
-            if:
-              condition: state
-              entity_id: input_boolean.always_on_constant
-              state: 'on'
-            then:
-              if:
-              - alias: any ceiling lights is unavailable, using wall switches to control instead
-                condition: state
-                entity_id:
-                - light.kitchen_ceiling_light
-                - light.kitchen_dining_light
-                state: unavailable
-                match: any
-              then:
-                alias: Turn switch.kitchen_wall_switch_left switch.kitchen_wall_switch_center switch.kitchen_wall_switch_right state=off
-                if:
-                  condition: state
-                  entity_id: input_boolean.always_on_constant
-                  state: 'on'
-                then:
-                  service: homeassistant.turn_off
-                  entity_id:
-                  - switch.kitchen_wall_switch_left
-                  - switch.kitchen_wall_switch_center
-                  - switch.kitchen_wall_switch_right
-              else:
-                alias: Turn light.kitchen_ceiling_light light.kitchen_dining_light state=off
-                if:
-                  condition: state
-                  entity_id: input_boolean.always_on_constant
-                  state: 'on'
-                then:
-                  service: homeassistant.turn_off
-                  entity_id:
-                  - light.kitchen_ceiling_light
-                  - light.kitchen_dining_light
-          else:
-            alias: Turn light.kitchen_ceiling_light light.kitchen_dining_light state=on
-            if:
-              condition: state
-              entity_id: input_boolean.always_on_constant
-              state: 'on'
-            then:
-              if:
-              - alias: any ceiling lights is unavailable, using wall switches to control instead
-                condition: state
-                entity_id:
-                - light.kitchen_ceiling_light
-                - light.kitchen_dining_light
-                state: unavailable
-                match: any
-              then:
-                alias: Turn switch.kitchen_wall_switch_left switch.kitchen_wall_switch_center switch.kitchen_wall_switch_right state=on
-                if:
-                  condition: state
-                  entity_id: input_boolean.always_on_constant
-                  state: 'on'
-                then:
-                  alias: Everytime to turn on a wall switch, make sure to turn off it first to make sure the smart lights will be back on
-                  if:
-                    condition: state
-                    entity_id: input_boolean.always_on_constant
-                    state: 'on'
-                  then:
-                  - service: homeassistant.turn_off
-                    entity_id:
-                    - switch.kitchen_wall_switch_left
-                    - switch.kitchen_wall_switch_center
-                    - switch.kitchen_wall_switch_right
-                  - service: homeassistant.turn_on
-                    entity_id:
-                    - switch.kitchen_wall_switch_left
-                    - switch.kitchen_wall_switch_center
-                    - switch.kitchen_wall_switch_right
-              else:
-                alias: Turn light.kitchen_ceiling_light light.kitchen_dining_light state=on
-                if:
-                  condition: state
-                  entity_id: input_boolean.always_on_constant
-                  state: 'on'
-                then:
-                  service: homeassistant.turn_on
-                  entity_id:
-                  - light.kitchen_ceiling_light
-                  - light.kitchen_dining_light
-  id: automation.zlb_kc_wall_switch_single_center_press_toggle_ceiling_light_kitchen
-- alias: ZLB-KC Wall Switch - Single Right Press - Toggle Floor LED-Kitchen
+          service: homeassistant.turn_on
+          entity_id: light.kitchen_dining_light
+  id: automation.zlb_kc_wall_switch_single_center_press_toggle_dining_light_kitchen
+- alias: ZLB-KC Wall Switch - Single Right Press - Toggle Floor LED - Kitchen
   trigger:
   - platform: state
     entity_id:
@@ -1985,7 +1742,7 @@ automation:
           entity_id:
           - switch.kitchen_floor_led
   id: automation.zlb_kc_wall_switch_single_right_press_toggle_floor_led_kitchen
-- alias: ZLB-KC Wall Switch - Double Press - Leave Room and Turn Off Everything-Kitchen
+- alias: ZLB-KC Wall Switch - Double Press - Leave Room and Turn Off Everything - Kitchen
   trigger:
   - platform: state
     entity_id:
@@ -2010,7 +1767,7 @@ automation:
     data:
       option: Outside
   id: automation.zlb_kc_wall_switch_double_press_leave_room_and_turn_off_everything_kitchen
-- alias: ZOc-KC Occupancy Update-Kitchen
+- alias: ZOc-KC Occupancy Update - Kitchen
   trigger:
   - entity_id: group.kitchen_motion
     platform: state
@@ -2114,9 +1871,13 @@ template:
     unit_of_measurement: "\xB0C"
     state: '{{states.sensor["a4c1380e91a7_temperature"].state | float | round(1)}}'
 - sensor:
-  - name: Kitchen Wall Button
-    state: '{{states.sensor["0x04cf8cdf3c7ad647_action"].state}}'
-binary_sensor: []
+  - name: Kitchen Occupancy Sensor Light
+    unit_of_measurement: lx
+    state: '{{states.sensor["dced8308f596_illuminance"].state}}'
+binary_sensor:
+- platform: group
+  name: Kitchen Occupancy Sensor Occupancy
+  entities: binary_sensor.dced8308f596_occupancy
 light: []
 group:
   kitchen_occupancy_group:
@@ -2150,6 +1911,7 @@ group:
     - input_boolean.ceiling_light_control_when_dark_outdoor_kitchen
     - input_boolean.led_control_when_dark_outdoor_kitchen
     - input_boolean.curtain_control_when_dark_outdoor_kitchen
+    - automation.zlb_kc_flex_wall_switch_on_postion_2_automatically_turn_on_the_wall_switch_back_when_turned_off_kitchen
     - automation.zl_kc_ceiling_lights_on_or_open_curtains_if_entering_to_room_kitchen
     - automation.zl_kc_lights_off_if_no_person_kitchen
     - automation.zh_kc_heating_schedule_on_if_staying_in_the_room_kitchen
@@ -2159,7 +1921,7 @@ group:
     - automation.zh_kc_valve_calibrate_temperature_using_external_sensor_kitchen
     - automation.zl_kc_applies_different_scenes_based_on_scene_selections_state_execution_kitchen
     - automation.zlb_kc_wall_switch_single_left_press_toggle_ceiling_light_kitchen
-    - automation.zlb_kc_wall_switch_single_center_press_toggle_ceiling_light_kitchen
+    - automation.zlb_kc_wall_switch_single_center_press_toggle_dining_light_kitchen
     - automation.zlb_kc_wall_switch_single_right_press_toggle_floor_led_kitchen
     - automation.zlb_kc_wall_switch_double_press_leave_room_and_turn_off_everything_kitchen
     - automation.zoc_kc_occupancy_update_kitchen

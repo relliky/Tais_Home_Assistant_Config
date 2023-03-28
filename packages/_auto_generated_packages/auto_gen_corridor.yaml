@@ -1,4 +1,34 @@
 automation:
+- alias: ZLB-CR Flex Wall Switch On Postion 1- Automatically Turn on the Wall Switch Back When Turned Off -Corridor
+  trigger:
+  - platform: state
+    entity_id: switch.corridor_wall_switch_left
+    to: 'off'
+  action:
+  - alias: Turn switch.corridor_wall_switch_left state=on
+    if:
+      condition: state
+      entity_id: input_boolean.always_on_constant
+      state: 'on'
+    then:
+      service: homeassistant.turn_on
+      entity_id: switch.corridor_wall_switch_left
+  id: automation.zlb_cr_flex_wall_switch_on_postion_1_automatically_turn_on_the_wall_switch_back_when_turned_off_corridor
+- alias: ZLB-CR Flex Wall Switch On Postion 2- Automatically Turn on the Wall Switch Back When Turned Off -Corridor
+  trigger:
+  - platform: state
+    entity_id: switch.corridor_wall_switch_right
+    to: 'off'
+  action:
+  - alias: Turn switch.corridor_wall_switch_right state=on
+    if:
+      condition: state
+      entity_id: input_boolean.always_on_constant
+      state: 'on'
+    then:
+      service: homeassistant.turn_on
+      entity_id: switch.corridor_wall_switch_right
+  id: automation.zlb_cr_flex_wall_switch_on_postion_2_automatically_turn_on_the_wall_switch_back_when_turned_off_corridor
 - alias: ZH-CR Heating Schedule On If Staying In the Room-Corridor
   id: automation.zh_cr_heating_schedule_on_if_staying_in_the_room_corridor
   trigger:
@@ -91,7 +121,7 @@ automation:
         then:
           service: homeassistant.turn_off
           entity_id: switch.schedule_corridor_temperature
-- alias: ZH-CR Heating Manual Override-Corridor
+- alias: ZH-CR Heating Manual Override - Corridor
   mode: restart
   trigger:
   - platform: state
@@ -110,7 +140,7 @@ automation:
       entity_id:
       - automation.zh_cr_heating_schedule_off_if_people_left_the_room_corridor
   id: automation.zh_cr_heating_manual_override_corridor
-- alias: ZH-CR Heating Manual Override Timeout in Few Hours-Corridor
+- alias: ZH-CR Heating Manual Override Timeout in Few Hours - Corridor
   trigger:
   - platform: state
     entity_id: input_boolean.corridor_heating_override
@@ -125,7 +155,7 @@ automation:
   - service: homeassistant.turn_off
     entity_id: input_boolean.corridor_heating_override
   id: automation.zh_cr_heating_manual_override_timeout_in_few_hours_corridor
-- alias: ZLB-CR Wall Switch - Single Press - Toggle Ceiling Light-Corridor
+- alias: ZLB-CR Wall Switch - Single Press - Toggle Ceiling Light - Corridor
   trigger:
   - platform: state
     entity_id:
@@ -155,14 +185,62 @@ automation:
         state: unavailable
         match: any
       then:
-        alias: Turn nothing state=toggle
+        alias: Turn switch.corridor_wall_switch_left switch.corridor_wall_switch_right switch.corridor_wall_switch_left switch.corridor_wall_switch_right state=toggle
         if:
           condition: state
           entity_id: input_boolean.always_on_constant
           state: 'on'
         then:
-          service: cover.toggle
-          entity_id: []
+          if:
+          - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
+            condition: state
+            entity_id:
+            - switch.corridor_wall_switch_left
+            - switch.corridor_wall_switch_right
+            - switch.corridor_wall_switch_left
+            - switch.corridor_wall_switch_right
+            state: 'on'
+            match: any
+          then:
+            alias: Turn switch.corridor_wall_switch_left switch.corridor_wall_switch_right switch.corridor_wall_switch_left switch.corridor_wall_switch_right state=off
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              service: homeassistant.turn_off
+              entity_id:
+              - switch.corridor_wall_switch_left
+              - switch.corridor_wall_switch_right
+              - switch.corridor_wall_switch_left
+              - switch.corridor_wall_switch_right
+          else:
+            alias: Turn switch.corridor_wall_switch_left switch.corridor_wall_switch_right switch.corridor_wall_switch_left switch.corridor_wall_switch_right state=on
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              alias: Everytime to turn on a wall switch, make sure to turn off it first to make sure the smart lights will be back on
+              if:
+                condition: state
+                entity_id: input_boolean.always_on_constant
+                state: 'on'
+              then:
+              - service: homeassistant.turn_off
+                entity_id:
+                - switch.corridor_wall_switch_left
+                - switch.corridor_wall_switch_right
+                - switch.corridor_wall_switch_left
+                - switch.corridor_wall_switch_right
+              - delay:
+                  milliseconds: 200
+              - service: homeassistant.turn_on
+                entity_id:
+                - switch.corridor_wall_switch_left
+                - switch.corridor_wall_switch_right
+                - switch.corridor_wall_switch_left
+                - switch.corridor_wall_switch_right
       else:
         alias: Turn light.corridor_ceiling_light state=toggle
         if:
@@ -192,14 +270,18 @@ automation:
                 state: unavailable
                 match: any
               then:
-                alias: Turn nothing state=off
+                alias: Turn switch.corridor_wall_switch_left switch.corridor_wall_switch_right switch.corridor_wall_switch_left switch.corridor_wall_switch_right state=off
                 if:
                   condition: state
                   entity_id: input_boolean.always_on_constant
                   state: 'on'
                 then:
-                  service: cover.close_cover
-                  entity_id: []
+                  service: homeassistant.turn_off
+                  entity_id:
+                  - switch.corridor_wall_switch_left
+                  - switch.corridor_wall_switch_right
+                  - switch.corridor_wall_switch_left
+                  - switch.corridor_wall_switch_right
               else:
                 alias: Turn light.corridor_ceiling_light state=off
                 if:
@@ -225,14 +307,32 @@ automation:
                 state: unavailable
                 match: any
               then:
-                alias: Turn nothing state=on
+                alias: Turn switch.corridor_wall_switch_left switch.corridor_wall_switch_right switch.corridor_wall_switch_left switch.corridor_wall_switch_right state=on
                 if:
                   condition: state
                   entity_id: input_boolean.always_on_constant
                   state: 'on'
                 then:
-                  service: cover.open_cover
-                  entity_id: []
+                  alias: Everytime to turn on a wall switch, make sure to turn off it first to make sure the smart lights will be back on
+                  if:
+                    condition: state
+                    entity_id: input_boolean.always_on_constant
+                    state: 'on'
+                  then:
+                  - service: homeassistant.turn_off
+                    entity_id:
+                    - switch.corridor_wall_switch_left
+                    - switch.corridor_wall_switch_right
+                    - switch.corridor_wall_switch_left
+                    - switch.corridor_wall_switch_right
+                  - delay:
+                      milliseconds: 200
+                  - service: homeassistant.turn_on
+                    entity_id:
+                    - switch.corridor_wall_switch_left
+                    - switch.corridor_wall_switch_right
+                    - switch.corridor_wall_switch_left
+                    - switch.corridor_wall_switch_right
               else:
                 alias: Turn light.corridor_ceiling_light state=on
                 if:
@@ -244,7 +344,7 @@ automation:
                   entity_id:
                   - light.corridor_ceiling_light
   id: automation.zlb_cr_wall_switch_single_press_toggle_ceiling_light_corridor
-- alias: ZLB-CR Wall Switch - Double Press - Leave Room and Turn Off Everything-Corridor
+- alias: ZLB-CR Wall Switch - Double Press - Leave Room and Turn Off Everything - Corridor
   trigger:
   - platform: state
     entity_id:
@@ -270,7 +370,7 @@ automation:
     data:
       option: Outside
   id: automation.zlb_cr_wall_switch_double_press_leave_room_and_turn_off_everything_corridor
-- alias: ZOc-CR Occupancy Update-Corridor
+- alias: ZOc-CR Occupancy Update - Corridor
   trigger:
   - entity_id: group.corridor_motion
     platform: state
@@ -353,7 +453,19 @@ input_boolean:
   curtain_control_when_dark_outdoor_corridor:
     name: Curtain Control When Dark Outdoor Corridor
     initial: 'off'
-switch: []
+switch:
+- platform: group
+  name: Ground Corridor Wall Switch 1
+  entities: switch.corridor_wall_switch_left
+- platform: group
+  name: Ground Corridor Wall Switch 2
+  entities: switch.corridor_wall_switch_right
+- platform: group
+  name: First Corridor Wall Switch 1
+  entities: switch.corridor_wall_switch_left
+- platform: group
+  name: First Corridor Wall Switch 2
+  entities: switch.corridor_wall_switch_right
 cover: []
 template:
 - sensor:
@@ -383,11 +495,17 @@ group:
     - group.corridor_motion
     - binary_sensor.ground_corridor_motion_sensor_motion
     - binary_sensor.first_corridor_motion_sensor_motion
+    - binary_sensor.en_suite_room_entrance_motion_sensor_motion
+    - binary_sensor.living_room_entrance_motion_sensor_motion
+    - binary_sensor.master_room_entrance_motion_sensor_motion
   corridor_motion:
     name: Corridor Motion
     entities:
     - binary_sensor.ground_corridor_motion_sensor_motion
     - binary_sensor.first_corridor_motion_sensor_motion
+    - binary_sensor.en_suite_room_entrance_motion_sensor_motion
+    - binary_sensor.living_room_entrance_motion_sensor_motion
+    - binary_sensor.master_room_entrance_motion_sensor_motion
   corridor_lights_and_tvs:
     name: Corridor Lights And Tvs
     entities:
@@ -397,6 +515,8 @@ group:
     entities:
     - input_boolean.ceiling_light_control_when_bright_outdoor_corridor
     - input_boolean.ceiling_light_control_when_dark_outdoor_corridor
+    - automation.zlb_cr_flex_wall_switch_on_postion_1_automatically_turn_on_the_wall_switch_back_when_turned_off_corridor
+    - automation.zlb_cr_flex_wall_switch_on_postion_2_automatically_turn_on_the_wall_switch_back_when_turned_off_corridor
     - automation.zh_cr_heating_schedule_on_if_staying_in_the_room_corridor
     - automation.zh_cr_heating_schedule_off_if_people_left_the_room_corridor
     - automation.zh_cr_heating_manual_override_corridor
@@ -404,3 +524,7 @@ group:
     - automation.zlb_cr_wall_switch_single_press_toggle_ceiling_light_corridor
     - automation.zlb_cr_wall_switch_double_press_leave_room_and_turn_off_everything_corridor
     - automation.zoc_cr_occupancy_update_corridor
+    - switch.corridor_wall_switch_left
+    - switch.corridor_wall_switch_right
+    - switch.corridor_wall_switch_left
+    - switch.corridor_wall_switch_right

@@ -11,6 +11,10 @@ import argparse
 
 class RoomBase:
   def __init__ (self):
+
+    # Create Empty JSON Database
+    self.reset_json_environment()
+    
     # Basic Parameter
     self.get_room_config()
     self.get_room_name_and_property()
@@ -25,8 +29,7 @@ class RoomBase:
     self.get_temperature_control_entities()
     self.get_post_room_config()
     
-    # Render json database
-    self.reset_json_environment()
+
     # Populate entities into database
     self.get_entity_declarations()
     self.get_automation_declarations()
@@ -54,6 +57,7 @@ class RoomBase:
     self.cfg_temp_control       = False
     self.cfg_temp_calibration   = False
     self.cfg_tv                 = False
+    self.cfg_flex_wall_switch   = False
 
     # Adavanced Enables
     self.cfg_scene_colour_led   = False
@@ -146,7 +150,15 @@ class RoomBase:
 
 
   def getPostfix(self, entity):
-    return re.sub("^.*\.", "", entity)
+    postfix = re.sub("^.*\.", "", entity)
+    
+    # This regex does not seem to work to capture special characters
+    if re.search('[\./!"£$%^&*()]', postfix) != None:
+      raise TypeError( "\n" +\
+                       "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n" + \
+                       "Postfix " + postfix + " still have specical characters $./!\"£$%^&*()" + "\n" + \
+                       "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n")
+    return postfix
 
   def convertPostfixToName(self, postfix):
     return re.sub("_", " ", postfix)
@@ -268,7 +280,7 @@ class RoomBase:
     return ratio_sensor_config
 
 
-  def add_mac_device(self, mac, name, comment, model, postfix=None, integration='Xiaomi Gateway 3'):
+  def add_mac_device(self, mac, name, comment, model, postfix=None, integration='Xiaomi Gateway 3', flex_switch=None):
     
     name_postfix   = ' ' + postfix if postfix != None else ''
 
@@ -308,7 +320,7 @@ class RoomBase:
       
       
       
-      # Wall Switches
+      # Wall Switches Per Each Physical Wall Switch
       for i in range(1,key_num+1):
         
         
@@ -345,20 +357,33 @@ class RoomBase:
         # added wall switches
         self.wall_switches += [raw_switch_entity]
         
+        # added Yeelight Flex automation
+        if flex_switch != None:
+          if flex_switch == True:
+            self.gen_flex_wall_switch_automations(flex_wall_switch_index=1, flex_wall_switch_entity=raw_switch_entity)
+          else:
+            for flex_switch_index_local in flex_switch:
+              if flex_switch_index_local == i:
+                self.gen_flex_wall_switch_automations(flex_wall_switch_index=i, flex_wall_switch_entity=raw_switch_entity)
+        
+
+        
       # Wall Buttons
-      self.template_list += [
-        {
-          "sensor": [
-            {
-              "name": name + " Wall Button" + name_postfix,
-              # Entity id starts with 0 so have to use a different format
-              # https://community.home-assistant.io/t/error-in-template-i-am-missing-something/92464/3
-              "state": '{{states.sensor["' + mac + '_action"].state}}'
-            }
-          ],
-          "configured": True 
-        }        
-      ]
+      # Hack Z2M integration and no need to rename the devices for now
+      if integration == 'Xiaomi Gateway 3':
+        self.template_list += [
+          {
+            "sensor": [
+              {
+                "name": name + " Wall Button" + name_postfix,
+                # Entity id starts with 0 so have to use a different format
+                # https://community.home-assistant.io/t/error-in-template-i-am-missing-something/92464/3
+                "state": '{{states.sensor["' + mac + '_action"].state}}'
+              }
+            ],
+            "configured": True 
+          }        
+        ]
     ###################################################################################################
     # Contacts
     #
@@ -1330,6 +1355,23 @@ class RoomBase:
       }
     ]
 
+
+  def gen_flex_wall_switch_automations(self, flex_wall_switch_index, flex_wall_switch_entity):
+    self.automations += [
+      {
+        "alias":"ZLB-" + self.automation_room_name + "Flex Wall Switch On Postion " + str(flex_wall_switch_index)  + "- Automatically Turn on the Wall Switch Back When Turned Off -" + self.room_name,
+        "configured": self.cfg_flex_wall_switch,
+        "trigger": [
+          {
+            "platform": "state",
+            "entity_id": flex_wall_switch_entity,
+            "to": "off"
+          }
+        ],
+        "action": [self.turn(flex_wall_switch_entity, "on")]
+      }
+    ]    
+
   def gen_wall_button_double_automations(self):
     self.automations += [
       {
@@ -1473,6 +1515,7 @@ class RoomBase:
     elif entity_list == self.wall_switches and state == 'on':
       action_service = self.convertToSingleService(
                         [{"service":"homeassistant.turn_off", "entity_id": entity_list},
+                         {"delay": {"milliseconds": 200}},
                          {"service":"homeassistant.turn_on",  "entity_id": entity_list}],
                         alias='Everytime to turn on a wall switch, make sure to turn off it first to make sure the smart lights will be back on')
                          
@@ -1965,10 +2008,11 @@ class MasterRoom(RoomBase):
     self.cfg_motion_bed_led     = True
     self.cfg_auto_curtain_ctl   = True
     self.cfg_tv                 = True
+    self.cfg_flex_wall_switch   = True
     
   def get_entity_declarations(self):
     super().get_entity_declarations()
-    self.add_mac_device("0x04cf8cdf3c7ad638", self.room_name,                      'Wall Switch',        "Aqara D1 Wall Switch (With Neutral, Triple Rocker)", integration='Z2M')
+    self.add_mac_device("0x04cf8cdf3c7ad638", self.room_name,                      'Wall Switch',        "Aqara D1 Wall Switch (With Neutral, Triple Rocker)", flex_switch=[2,3])
     self.add_mac_device("582d343b6a27",       self.room_name,                      'Temperature Sesnor', "Mijia2 Temperature Sensor", postfix='new_1')
     self.add_mac_device("a4c138ecdbba",       self.room_name,                      'Temperature Sesnor', "Mijia2 Temperature Sensor", postfix='new_2')
     self.add_mac_device("dced830908fb",       self.room_name,                      'Motion Sensor',      "Ziqing Occupancy Sensor")
@@ -2060,6 +2104,7 @@ class MasterToilet(RoomBase):
     self.cfg_scene              = True            
     self.cfg_motion_light       = True
     self.cfg_remote_light       = True
+    self.cfg_flex_wall_switch   = True
 
   def get_entity_declarations(self):
     super().get_entity_declarations()
@@ -2071,7 +2116,7 @@ class MasterToilet(RoomBase):
     self.add_mac_device('0x00158d00054750ca',      self.room_name + ' Shower',                'Motion Sensor',      'Aqara Motion and Illuminance Sensor', integration='Z2M')
     self.add_mac_device('0x00158d000171756e',      self.room_name + ' Floor LED',             'Switch',             'Mi Power Plug ZigBee')
     # Dressing Room
-    self.add_mac_device("0x00158d00042d4092",      self.room_name + " Dressing Room",         'Wall Switch',        "Aqara D1 Wall Switch (With Neutral, Single Rocker)")
+    self.add_mac_device("0x00158d00042d4092",      self.room_name + " Dressing Room",         'Wall Switch',        "Aqara D1 Wall Switch (With Neutral, Single Rocker)", flex_switch=True)
     self.add_mac_device("28d1272057d5",            self.room_name + " Dressing Room Light",   'Light',              "Mijia BLE Lights")
 
   def get_motion_sensor_entities(self):
@@ -2108,10 +2153,14 @@ class Kitchen(RoomBase):
     self.cfg_remote_light       = True
     self.cfg_auto_curtain_ctl   = True
     self.cfg_tv                 = True
-
+    self.cfg_flex_wall_switch   = True
+    
   def get_motion_sensor_entities(self):
     super().get_motion_sensor_entities()
     self.all_motion_sensors = [
+
+     #"binary_sensor.kitchen_occupancy_sensor_occupancy",
+
       "binary_sensor.kitchen_worktop_motion_sensor_motion",
       "binary_sensor.kitchen_dining_motion_sensor_motion"
     ]
@@ -2119,9 +2168,11 @@ class Kitchen(RoomBase):
 
   def get_entity_declarations(self):
     super().get_entity_declarations()
-    self.add_mac_device("a4c1380e91a7",           self.room_name,                          'Temperature Sensor', "Mijia2 Temperature Sensor")     
-    self.add_mac_device("curtain_1e9e",           self.room_name + " Curtain",             'Curtain',            "Generic Curtains")     
-    self.add_mac_device('0x04cf8cdf3c7ad647',     self.room_name,                          'Wall Switch',        'Aqara D1 Wall Switch (With Neutral, Triple Rocker)', integration='Z2M')
+    self.add_mac_device("a4c1380e91a7",           self.room_name,               'Temperature Sensor', "Mijia2 Temperature Sensor")     
+    self.add_mac_device("curtain_1e9e",           self.room_name + " Curtain",  'Curtain',            "Generic Curtains")     
+    self.add_mac_device('0x04cf8cdf3c7ad647',     self.room_name,               'Wall Switch',        'Aqara D1 Wall Switch (With Neutral, Triple Rocker)', integration='Z2M', flex_switch=[2])
+    self.add_mac_device("dced8308f596",           self.room_name,               'Motion Sensor',      "Ziqing Occupancy Sensor")
+
 
     
     #self.add_mac_device("e4aaec4500e4",           self.room_name + " Window",              "Mijia2 Contact")     
@@ -2147,20 +2198,16 @@ class Kitchen(RoomBase):
     # Cover entities
     self.curtains               = ["cover.kitchen_curtain"] 
 
-  # Kitchen - Left - Ceiling light & Dining light
-  # Kitchen - Right - Floor LED
-  # [TODO] Kitchen - Middle - Kitchen worktop led
-  # [TODO] Kitchen - xxx - Extractor
   def gen_wall_button_single_automations(self):
     self.gen_a_wall_button_toggle_automation( button_state_list=["single_left", "button_1_single"],
                                               button_state_name='Single Left',
-                                              light_list=self.ceiling_lights,
+                                              light_list='light.kitchen_ceiling_light',
                                               light_name='Ceiling Light')
 
     self.gen_a_wall_button_toggle_automation( button_state_list=["single_center", "button_2_single"],
                                               button_state_name='Single Center',
-                                              light_list=self.ceiling_lights,
-                                              light_name='Ceiling Light')
+                                              light_list='light.kitchen_dining_light',
+                                              light_name='Dining Light')
 
     self.gen_a_wall_button_toggle_automation( button_state_list=["single_right", "button_3_single"],
                                               button_state_name='Single Right',
@@ -2197,14 +2244,19 @@ class LivingRoom(RoomBase):
     self.cfg_temp_control       = True
     self.cfg_temp_calibration   = True
     self.cfg_tv                 = True
+    self.cfg_flex_wall_switch   = True
 
   def get_motion_sensor_entities(self):
     super().get_motion_sensor_entities()
     self.all_motion_sensors = [
       "binary_sensor.living_room_sofa_motion_sensor_motion",
-      "binary_sensor.living_room_tv_motion_sensor_motion",
+      "binary_sensor.living_room_entrance_motion_sensor_motion",
       "binary_sensor.tais_desk_motion_sensor_motion"
     ]
+
+  def get_room_name_and_property(self):  
+    super().get_room_name_and_property()
+    self.room_type              = 'bedroom' # as we often fall into sleep in living room
 
   def get_entity_declarations(self):
     super().get_entity_declarations()
@@ -2215,7 +2267,7 @@ class LivingRoom(RoomBase):
 
     self.add_mac_device("2ab7",               self.room_name,              'Temperature Sensor', "Mijia2 Temperature Clock",  postfix='1', integration='Passive BLE Monitor')
     self.add_mac_device("a4c13864aca3",       self.room_name,              'Temperature Sensor', "Mijia2 Temperature Sensor", postfix='2')
-    self.add_mac_device('0x00158d00045e2300', 'Living Room',               'Wall Switch',        'Aqara Single Key Wired Wall Switch Without Neutral Wire')
+    self.add_mac_device('0x00158d00045e2300', 'Living Room',               'Wall Switch',        'Aqara Single Key Wired Wall Switch Without Neutral Wire', flex_switch=True)
     self.add_mac_device('54ef44e31acd',       'Tais Desk',                 'Motion Sensor',      'Mijia2 Motion Sensor')
 
     
@@ -2258,7 +2310,7 @@ class Garden(RoomBase):
 
   def get_room_name_and_property(self):  
     super().get_room_name_and_property()
-    self.room_type              = 'bedroom'
+    self.room_type              = 'landing'
 
   def get_light_entities(self):
     super().get_light_entities()
@@ -2312,6 +2364,7 @@ class EnSuiteRoom(RoomBase):
 
   def get_entity_declarations(self):
     super().get_entity_declarations()
+    self.add_mac_device('0x00158d000403d6c0', self.room_name,               'Button',             'MiJia Wireless Switch')
     self.add_mac_device('0x00158d00047d69e6', self.room_name,               'Wall Switch',        'Aqara D1 Wall Switch (With Neutral, Single Rocker)')
     self.add_mac_device("dced8308f496",       self.room_name,               'Motion Sensor',      "Ziqing Occupancy Sensor")
     self.add_mac_device('0x00158d00057b37be', self.room_name + ' Entrance', 'Motion Sensor',      'Aqara Motion and Illuminance Sensor')
@@ -2402,13 +2455,14 @@ class GuestRoom(RoomBase):
     self.cfg_scene              = True            
     self.cfg_motion_light       = True
     self.cfg_remote_light       = True
-
+    self.cfg_flex_wall_switch   = True
+    
   def get_entity_declarations(self):
     super().get_entity_declarations()
     self.add_mac_device("582d343483e9",       self.room_name,                    'Temperature Sensor', "Qingping Temperature Sensor")
     self.add_mac_device("50ec50dd67be",       self.room_name + " Lamp",          'Light',              "Generic Lights")
     self.add_mac_device("28d12735ea1e",       self.room_name + " Ceiling Light", 'Light',              "Generic Lights")
-    self.add_mac_device('0x00158d00047b69d2', self.room_name,                    'Wall Switch',        'Aqara D1 Wall Switch (With Neutral, Single Rocker)')
+    self.add_mac_device('0x00158d00047b69d2', self.room_name,                    'Wall Switch',        'Aqara D1 Wall Switch (With Neutral, Single Rocker)', flex_switch=True)
 
 
   def get_motion_sensor_entities(self):
@@ -2519,7 +2573,6 @@ class Study(RoomBase):
 
   def get_entity_declarations(self):
     super().get_entity_declarations()
-    self.add_mac_device('0x00158d000403d6c0', self.room_name, 'Button',      'MiJia Wireless Switch')
     self.add_mac_device('0x00158d00045245be', self.room_name, 'Wall Switch', 'Aqara D1 Wall Switch (With Neutral, Single Rocker)', integration='Z2M')
     
 
@@ -2538,7 +2591,8 @@ class Corridor(RoomBase):
     self.cfg_group_auto         = True
     self.cfg_temp_control       = True
     self.cfg_remote_light       = True
-
+    self.cfg_flex_wall_switch   = True
+    
   def get_room_name_and_property(self):  
     super().get_room_name_and_property()
     self.room_type              = 'landing'
@@ -2550,7 +2604,10 @@ class Corridor(RoomBase):
     super().get_motion_sensor_entities()
     self.all_motion_sensors = [
       "binary_sensor.ground_corridor_motion_sensor_motion",
-      "binary_sensor.first_corridor_motion_sensor_motion"
+      "binary_sensor.first_corridor_motion_sensor_motion",
+      "binary_sensor.en_suite_room_entrance_motion_sensor_motion",
+      "binary_sensor.living_room_entrance_motion_sensor_motion",
+      "binary_sensor.master_room_entrance_motion_sensor_motion"
     ]
 
 
@@ -2567,8 +2624,8 @@ class Corridor(RoomBase):
     self.add_mac_device('50ec50ded70f',       'First Corridor BLE Light',    'Light',              'Mijia BLE Lights')
     self.add_mac_device('50ec50df9323',       'Ground Corridor BLE Light',   'Light',              'Mijia BLE Lights')
     self.add_mac_device('0x00158d00045019fd', 'Ground Corridor',             'Motion Sensor',      'Aqara Motion and Illuminance Sensor', integration='Z2M')
-    #self.add_mac_device('0x00158d00048783e5', 'Ground Corridor',             'Wall Switch',        'Aqara D1 Wall Switch (With Neutral, Double Rocker)', integration='Z2M')
-    #self.add_mac_device('0x00158d0005210fcf', 'First Corridor',              'Wall Switch',        'Aqara D1 Wall Switch (With Neutral, Double Rocker)', integration='Z2M')
+    self.add_mac_device('0x00158d00048783e5', 'Ground Corridor',             'Wall Switch',        'Aqara D1 Wall Switch (With Neutral, Double Rocker)', integration='Z2M', flex_switch=[1])
+    self.add_mac_device('0x00158d0005210fcf', 'First Corridor',              'Wall Switch',        'Aqara D1 Wall Switch (With Neutral, Double Rocker)', integration='Z2M', flex_switch=[2])
     
 #('0x00158d0004525183', 'First Corridor',             'Aqara Motion and Illuminance Sensor')
 #('0x00158d00045f640a', 'Upstairs Heating',           'Aqara Single Key Wired Wall Switch Without Neutral Wire')
@@ -2866,13 +2923,13 @@ if args.render_auto_config :
   render_package_for_rooms = [ 
             LivingRoom(),
             Kitchen(),
-            EnSuiteToilet(),
+            #EnSuiteToilet(),
             GuestRoom(),
             Study(),
             GuestToilet(),
             Garden(),
             Corridor(),
-            EnSuiteRoom(),
+            #EnSuiteRoom(),
             GroundToilet(),
             MasterRoom(),
             MasterToilet(),
@@ -2892,7 +2949,8 @@ if args.create_system_config:
   write_core_entity_entries_json()
 
 # Instantiate and render dashboard into yaml
-dashboard = OverallDashboard()
+# Disable it as we dashboard does not need to be updated
+#dashboard = OverallDashboard()
 
 
 # All Zigbee devices mac-name mapping
