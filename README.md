@@ -19,6 +19,7 @@ All the rooms in my place supports automations on
 - Room scenes can be activated using wireless buttons through a circular order
 - All Alexa devices will be alarmed and TV will show the front-door live feed if the doorbell is pressed
 - Washing machine notification pushed to phone when washing cycle completes
+- Yeelight flex switch support on yeelight ceiling lights using smart wall switches
 
 GUI to control:
 - Apple Home app used by MacBook/iPhone/iPad
