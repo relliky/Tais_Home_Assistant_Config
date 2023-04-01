@@ -16,8 +16,9 @@ All the rooms in my place supports automations on
 - Lighting/Curtain/TV off at midnight
 - Lighting temperature/color, speakers volume, TVs startup volume/brightness change throughout the day adaptively
 - Sonos speakers grouping/ungrouping based on motion sensor to achieve music/TV audio following people 
-- Light/Curtain/TV/Scene on-off using wireless buttons
+- Room scenes can be activated using wireless buttons through a circular order
 - All Alexa devices will be alarmed and TV will show the front-door live feed if the doorbell is pressed
+- Washing machine notification pushed to phone when washing cycle completes
 
 GUI to control:
 - Apple Home app used by MacBook/iPhone/iPad
@@ -44,18 +45,24 @@ Remote Control:
 
 Other smart features but not done in Home Assistant:
 - Video/Game streaming from a PC to multiple Fire TV devices in sync by using Parsec. Useful to play videos sync living room TV content to dining room TV content wirelessly.
-- Game streaming/Video streaming using NVDIA GPU and Moonlight from the gaming PC to TV/computer/phone/tablets/nintendo switch
-- Proxmox VE running
+- Game streaming/Video streaming using NVDIA GPU and Moonlight/Parsec from the gaming PC to TV/computer/phone/tablets/nintendo switch
+- Synology VM
   - Home Assistant OS VM
-  - Plex Media Server LXC
+  - Plex Media Server
     - Streamed from multiple Plex client apps from TV/computer/phones/tablets for its video and music library
     - Streamed from Alexa-enabled devices for its music library
     - DLNA server feeding into HA media player
-  - Ubuntu LXC
+  - Docker
     - Running Airconnect to enable Sonos speakers with Airplay
     - Scheduled Unifi AP reboot
-- VNC server (on a gaming PC and an old laptop)
+  - NVR for RTSP cameras    
+  - Backup
+    - Hourly local backup on HA config files
+    - Daily cloud backup of home survillience videos
+    - Docker/VM daily backups
+- VNC server (on a gaming PC)
 - All TVs supports airplay for casting contents from iPhone/iPad
+- Ring doorbell video notification pushed to all FireTV and audio notification pushed to all Echo Dots.
 
 
 <br><br>
@@ -78,15 +85,13 @@ This is my device list which are connected to HA via 6 protocols
     - Xiaomi Vacuum Robot 
   - Sonos integration
     - Sonos Soundbar and Speakers
-  - Eufy integration
-    - Eufy Doorbells
+  - Ring integration
+    - Ring Doorbells
   - WebRTC Camera
-    - Eufy Cameras
+    - Reolink Cameras
   - Xiaomi Gateway 3 integration
     - Xiaomi Gateways v3
-  - Xiaomi Gateway integration
-    - Xiaomi Gateways v1
-  - MQTT integration
+  - MQTT integration/Zigbee2mqtt
     - Sonoff Zigbee USB dongle
 
 - 5Ghz Wifi Devices (10+ devices)
@@ -102,10 +107,13 @@ This is my device list which are connected to HA via 6 protocols
     - Windows laptops
 
 - Zigbee Devices (80+ devices)
-  - MQTT integration
+  - MQTT integration  
   - Philps Hue integration
     - IKEA white spectrum GU10 
     - IKEA colour GU10 
+    - Hue colour E27
+    - Hue white E27
+    - Hue white GU10
   - Xiaomi Gateway 3/Xiaomi Gateway integration
     - Xiaomi/Aqara Motion Sensors
     - Xiaomi/Aqara Door Window Contact Sensors
