@@ -19,9 +19,12 @@ All the rooms in my place supports automations on
 - Lighting/Curtain/TV shut off at midnight
 - Lighting temperature/color, speakers volume, TVs startup volume/brightness change throughout the day adaptively
 - Sonos speakers grouping/ungrouping based on motion sensor to achieve music/TV audio following people 
-- All Alexa devices will be alarmed and TV will show the front-door live feed if the doorbell is pressed
-- Washing machine notification pushed to phone when washing cycle completes
 - Yeelight flex switch support on yeelight ceiling lights using smart wall switches
+- Notification pushed to phone and all alexa speakers
+  - Washing machine completion notifications
+  - Front door Ring doorbell notifications (live view is pushed to FireTV as well)
+  - Bin collection date notifications
+  - Window left open notifications
 
 GUI to control:
 - Apple Home app used by MacBook/iPhone/iPad
@@ -81,7 +84,8 @@ This is my device list which are connected to HA via 6 protocols
     - Meross Homekit Wifi Wall Plugs
     - Meross Homekit LED Strips 
   - Yeelight integration
-    - Yeelight Wifi Bulbs (Colour) E27 (Yeelight)
+    - Yeelight Wifi Bulbs (Colour) E27 (Yeelight
+    - Yeelight Wifi Ceiling/Dining Lights (Terrbile attenna with poor signal reception but looks really good and modern)
   - Magic Home/SmartThings integration
     - Magic Home LED Strips 
   - Xiaomi IoT/Xiaomi MIoT Auto integration
@@ -96,6 +100,8 @@ This is my device list which are connected to HA via 6 protocols
     - Xiaomi Gateways v3
   - MQTT integration/Zigbee2mqtt
     - Sonoff Zigbee USB dongle
+  - Ecovacs integration
+    - DEEBOT X1 OMNI Robot Vacuum And Mop
 
 - 5Ghz Wifi Devices (10+ devices)
   - Andriod TV integration 
@@ -133,6 +139,9 @@ This is my device list which are connected to HA via 6 protocols
     - Xiaomi Door Window Contact Sensors 2
     - Xiaomi Temperature and Humidity Sensors
     - Xiaomi White Temperature Bulb E27
+    - Ziqing Occupancy Sensor (minimeter radars)
+  - Switchbot integration
+    - SwitchBot Curtain Rod 2
   
 - Proprietary Protocol (10+ devices)
   - Tado integration
@@ -190,5 +199,8 @@ Other integration I haven't mentioned above.
   - Pyscript
   - HACS
 
-
+- Notes
+  - Local Calendar integration and Google Calendar integration for family events (such as bin collection dates)
+  - Shopping list integration used for family to-do list
+  - Google Keep integration for family notes
 
