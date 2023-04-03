@@ -1,3 +1,8 @@
+#####################################################################
+# This script won't update en-suite room/toilet configurations
+# unless it is intentional to stop breaking tenants automation. 
+#####################################################################
+
 import re
 import yaml
 import os
@@ -1923,6 +1928,11 @@ class RoomBase:
 
       # Open a new file and write automation
       f = open(self.auto_gen_yaml_path, "w")
+
+      f.write("#############################################################################\n")
+      f.write("# DO NOT MODIFY. This is an automatically generated file.                   # \n")      
+      f.write("# Please modify the python source code under python_templates directory.    #\n")      
+      f.write("#############################################################################\n")
       
       f.write(yaml.dump(self.entity_declarations, sort_keys=False, width=float("inf")))
       #for category_name in self.entity_declarations:
@@ -2031,7 +2041,9 @@ class MasterRoom(RoomBase):
                                         name='Master Room Temperature Sensor')
 
 
-
+  # Remove wall switch single automation
+  def gen_wall_button_single_automations(self):
+    pass
 
 
 #('0x00158d0005228ba8', 'Master Room TV',             'Aqara Motion and Illuminance Sensor')
@@ -2204,10 +2216,10 @@ class Kitchen(RoomBase):
                                               light_list='light.kitchen_ceiling_light',
                                               light_name='Ceiling Light')
 
-    self.gen_a_wall_button_toggle_automation( button_state_list=["single_center", "button_2_single"],
-                                              button_state_name='Single Center',
-                                              light_list='light.kitchen_dining_light',
-                                              light_name='Dining Light')
+    #self.gen_a_wall_button_toggle_automation( button_state_list=["single_center", "button_2_single"],
+    #                                          button_state_name='Single Center',
+    #                                          light_list='light.kitchen_dining_light',
+    #                                          light_name='Dining Light')
 
     self.gen_a_wall_button_toggle_automation( button_state_list=["single_right", "button_3_single"],
                                               button_state_name='Single Right',
@@ -2832,7 +2844,6 @@ class OverallDashboard(RoomBase):
 
     # Open a new file and write automation
     f = open(self.auto_gen_yaml_path, "w")
-    
     f.write(yaml.dump(self.overall_dashboard, sort_keys=False, width=float("inf")))
     f.close()
 
@@ -2923,13 +2934,13 @@ if args.render_auto_config :
   render_package_for_rooms = [ 
             LivingRoom(),
             Kitchen(),
-            #EnSuiteToilet(),
             GuestRoom(),
             Study(),
             GuestToilet(),
             Garden(),
             Corridor(),
-            #EnSuiteRoom(),
+           #EnSuiteToilet(),
+           #EnSuiteRoom(),
             GroundToilet(),
             MasterRoom(),
             MasterToilet(),
