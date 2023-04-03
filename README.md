@@ -32,15 +32,19 @@ GUI to control:
 - Home Assistant Dashboard used by any laptops/smart phones/tablets
   - All above + TV remote/Room default temperature scheduler
   - User permission control. Each room user only has access to their rooms and common areas.
-  
+  - My dashboard demo https://www.bilibili.com/video/BV1YG4y1s7b8
+
+
 Voice Assistant:
-- Alexa (free alexa integration via Emulated Hue)
+- Alexa (free alexa integration via Emulated Hue, no longer used)
+- Alexa (Nuba casa paid subscription)
   - Support controlling HA appliances and calling HA scripts to set a scene
   - Extra commands supported:
     - Alexa, Find my iPhone
       - This will set a "Find My" alert to my iphone. Other apple devices are also supported.
     - Alex, set TV brightness to xxx
       - This will adjust TV brightness in the same room where the Echo speaker is called.
+
 - Siri
   - Support limited devices in Homekit
 
