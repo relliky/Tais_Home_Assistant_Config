@@ -11,12 +11,14 @@ Home Assistant Community activity https://community.home-assistant.io/u/relliky/
 This is my configuration of Home Assistant used in the house. 
 
 All the rooms in my place supports automations on
-- Heating/Lighting/Curtain/TV photo slideshow automatically on-off based on presence (motion sensors) in all rooms and the garden
+- Scene turned on based on presence (motion sensors) in all rooms and the garden, customizable scnene per room
+- The scenes includes heating schedule, lighting, curtain state, TV photo slideshows.
+- The scenes can be activated using wireless buttons through a circular order
+- Wall switch buttons used to shut down everything when left room/house
 - Heating - smart thermostatic radiator valve calibration using external temperature sensor
-- Lighting/Curtain/TV off at midnight
+- Lighting/Curtain/TV shut off at midnight
 - Lighting temperature/color, speakers volume, TVs startup volume/brightness change throughout the day adaptively
 - Sonos speakers grouping/ungrouping based on motion sensor to achieve music/TV audio following people 
-- Room scenes can be activated using wireless buttons through a circular order
 - All Alexa devices will be alarmed and TV will show the front-door live feed if the doorbell is pressed
 - Washing machine notification pushed to phone when washing cycle completes
 - Yeelight flex switch support on yeelight ceiling lights using smart wall switches
