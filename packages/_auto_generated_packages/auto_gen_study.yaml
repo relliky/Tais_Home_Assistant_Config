@@ -22,7 +22,7 @@ automation:
   - if:
     - condition: numeric_state
       entity_id: sensor.met_office_cambridge_city_airport_temperature_3_hourly
-      above: '20'
+      above: '18'
     - condition: time
       after: '10:00:00'
       before: '13:00:00'
@@ -345,8 +345,14 @@ automation:
     for: 00:01:00
   action:
     parallel:
-    - service: homeassistant.turn_on
-      entity_id: automation.zl_st_ceiling_lights_on_or_open_curtains_if_entering_to_room_study
+    - alias: Turn automation.zl_st_ceiling_lights_on_or_open_curtains_if_entering_to_room_study state=on
+      if:
+        condition: state
+        entity_id: input_boolean.always_on_constant
+        state: 'on'
+      then:
+        service: homeassistant.turn_on
+        entity_id: automation.zl_st_ceiling_lights_on_or_open_curtains_if_entering_to_room_study
     - alias: Turn nothing state=off
       if:
         condition: state
@@ -419,6 +425,25 @@ automation:
           then:
             service: cover.close_cover
             entity_id: []
+- alias: ZL-ST Disable Entering Lights-on Automation If any People are in the Room-Study
+  trigger:
+  - platform: state
+    entity_id: input_select.study_occupancy
+    to:
+    - Just Entered
+    - In Sleep
+    - Stayed Inside
+  action:
+  - delay: 00:00:10
+  - alias: Turn automation.zl_st_ceiling_lights_on_or_open_curtains_if_entering_to_room_study state=off
+    if:
+      condition: state
+      entity_id: input_boolean.always_on_constant
+      state: 'on'
+    then:
+      service: homeassistant.turn_off
+      entity_id: automation.zl_st_ceiling_lights_on_or_open_curtains_if_entering_to_room_study
+  id: automation.zl_st_disable_entering_lights_on_automation_if_any_people_are_in_the_room_study
 - alias: ZH-ST Heating Schedule On If Staying In the Room-Study
   id: automation.zh_st_heating_schedule_on_if_staying_in_the_room_study
   trigger:
@@ -868,25 +893,13 @@ automation:
           entity_id: input_boolean.always_on_constant
           state: 'on'
         then:
-        - alias: Turn nothing state=on
-          if:
-            condition: state
-            entity_id: input_boolean.always_on_constant
-            state: 'on'
-          then:
-            service: cover.open_cover
-            entity_id: []
-        - alias: Turn nothing state=on light_brightness=100
-          if:
-            condition: state
-            entity_id: input_boolean.always_on_constant
-            state: 'on'
-          then:
-            service: light.turn_on
-            entity_id: []
-            data:
-              brightness_pct: 100
-        - service: pyscript.set_rgb_light_list
+        - service: pyscript.turn_rgb_light
+          data:
+            light_list:
+            - light.study_ceiling_light
+            state: 'off'
+            rgb: non_rgb_only
+        - service: pyscript.turn_rgb_light
           data:
             light_list:
             - light.study_ceiling_light
@@ -1599,8 +1612,18 @@ switch:
 - platform: group
   name: Study Wall Switch 1
   entities: switch.study_wall_switch
-cover: []
-template: []
+cover:
+- platform: group
+  name: Study Blind
+  entities: cover.0x00158d00070b2f2a_motor
+template:
+- sensor:
+  - name: Study Heating Required
+    state: '{% set climate = "climate.study" %}{% if states(climate) == "unavailable" %}off{% else %} {{ ((state_attr(climate, "temperature")  > state_attr(climate, "current_temperature"))  and  (not states(climate, "off")) )  }}{% endif %}'
+- sensor:
+  - name: Study Blind Curtain Battery
+    unit_of_measurement: '%'
+    state: '{{states.sensor["0x00158d00070b2f2a_battery"].state}}'
 binary_sensor: []
 light: []
 group:
@@ -1627,6 +1650,7 @@ group:
     - input_boolean.ceiling_light_control_when_dark_outdoor_study
     - automation.zl_st_ceiling_lights_on_or_open_curtains_if_entering_to_room_study
     - automation.zl_st_lights_off_if_no_person_study
+    - automation.zl_st_disable_entering_lights_on_automation_if_any_people_are_in_the_room_study
     - automation.zh_st_heating_schedule_on_if_staying_in_the_room_study
     - automation.zh_st_heating_schedule_off_if_people_left_the_room_study
     - automation.zh_st_heating_manual_override_study

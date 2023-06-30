@@ -37,7 +37,7 @@ automation:
   - if:
     - condition: numeric_state
       entity_id: sensor.met_office_cambridge_city_airport_temperature_3_hourly
-      above: '20'
+      above: '18'
     - condition: time
       after: '10:00:00'
       before: '13:00:00'
@@ -450,8 +450,14 @@ automation:
     for: 00:01:00
   action:
     parallel:
-    - service: homeassistant.turn_on
-      entity_id: automation.zl_gr_ceiling_lights_on_or_open_curtains_if_entering_to_room_guest_room
+    - alias: Turn automation.zl_gr_ceiling_lights_on_or_open_curtains_if_entering_to_room_guest_room state=on
+      if:
+        condition: state
+        entity_id: input_boolean.always_on_constant
+        state: 'on'
+      then:
+        service: homeassistant.turn_on
+        entity_id: automation.zl_gr_ceiling_lights_on_or_open_curtains_if_entering_to_room_guest_room
     - alias: Turn nothing state=off
       if:
         condition: state
@@ -525,6 +531,25 @@ automation:
           then:
             service: cover.close_cover
             entity_id: []
+- alias: ZL-GR Disable Entering Lights-on Automation If any People are in the Room-Guest Room
+  trigger:
+  - platform: state
+    entity_id: input_select.guest_room_occupancy
+    to:
+    - Just Entered
+    - In Sleep
+    - Stayed Inside
+  action:
+  - delay: 00:00:10
+  - alias: Turn automation.zl_gr_ceiling_lights_on_or_open_curtains_if_entering_to_room_guest_room state=off
+    if:
+      condition: state
+      entity_id: input_boolean.always_on_constant
+      state: 'on'
+    then:
+      service: homeassistant.turn_off
+      entity_id: automation.zl_gr_ceiling_lights_on_or_open_curtains_if_entering_to_room_guest_room
+  id: automation.zl_gr_disable_entering_lights_on_automation_if_any_people_are_in_the_room_guest_room
 - alias: ZH-GR Heating Schedule On If Staying In the Room-Guest Room
   id: automation.zh_gr_heating_schedule_on_if_staying_in_the_room_guest_room
   trigger:
@@ -1036,56 +1061,14 @@ automation:
           entity_id: input_boolean.always_on_constant
           state: 'on'
         then:
-        - alias: Turn light.guest_room_lamp state=on
-          if:
-            condition: state
-            entity_id: input_boolean.always_on_constant
-            state: 'on'
-          then:
-            alias: Turn on lamps first and check if light colour is white. Reset colour lamps to white and apply adaptive lighting.
-            if:
-              condition: state
-              entity_id: input_boolean.always_on_constant
-              state: 'on'
-            then:
-            - service: homeassistant.turn_on
-              entity_id:
-              - light.guest_room_lamp
-            - delay: 00:00:02
-            - if:
-                condition: state
-                entity_id:
-                - light.guest_room_lamp
-                state: color_temp
-                attribute: color_mode
-              then:
-                service: script.do_nothing
-              else:
-              - service: light.turn_on
-                entity_id:
-                - light.guest_room_lamp
-                data:
-                  kelvin: '3000'
-              - delay: 00:00:02
-              - service: light.turn_off
-                entity_id:
-                - light.guest_room_lamp
-              - delay: 00:00:02
-              - service: light.turn_on
-                entity_id:
-                - light.guest_room_lamp
-        - alias: Turn light.guest_room_lamp state=on light_brightness=100
-          if:
-            condition: state
-            entity_id: input_boolean.always_on_constant
-            state: 'on'
-          then:
-            service: light.turn_on
-            entity_id:
+        - service: pyscript.turn_rgb_light
+          data:
+            light_list:
             - light.guest_room_lamp
-            data:
-              brightness_pct: 100
-        - service: pyscript.set_rgb_light_list
+            - light.guest_room_ceiling_light
+            state: 'off'
+            rgb: non_rgb_only
+        - service: pyscript.turn_rgb_light
           data:
             light_list:
             - light.guest_room_lamp
@@ -1604,173 +1587,6 @@ automation:
                   service: cover.open_cover
                   entity_id: []
   id: automation.zl_gr_applies_different_scenes_based_on_scene_selections_state_execution_guest_room
-- alias: ZLB-GR Wall Switch - Single Press - Toggle Ceiling Light-Guest Room
-  trigger:
-  - platform: state
-    entity_id:
-    - sensor.guest_room_wall_button
-    to:
-    - '1'
-    - single
-    - single_left
-    - single_right
-    - single_center
-    - button_1_single
-    - button_2_single
-    - button_3_single
-  action:
-  - alias: Turn light.guest_room_ceiling_light state=toggle
-    if:
-      condition: state
-      entity_id: input_boolean.always_on_constant
-      state: 'on'
-    then:
-      if:
-      - alias: any ceiling lights is unavailable, using wall switches to control instead
-        condition: state
-        entity_id:
-        - light.guest_room_ceiling_light
-        state: unavailable
-        match: any
-      then:
-        alias: Turn switch.0x00158d00047b69d2_switch state=toggle
-        if:
-          condition: state
-          entity_id: input_boolean.always_on_constant
-          state: 'on'
-        then:
-          if:
-          - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
-            condition: state
-            entity_id:
-            - switch.0x00158d00047b69d2_switch
-            state: 'on'
-            match: any
-          then:
-            alias: Turn switch.0x00158d00047b69d2_switch state=off
-            if:
-              condition: state
-              entity_id: input_boolean.always_on_constant
-              state: 'on'
-            then:
-              service: homeassistant.turn_off
-              entity_id:
-              - switch.0x00158d00047b69d2_switch
-          else:
-            alias: Turn switch.0x00158d00047b69d2_switch state=on
-            if:
-              condition: state
-              entity_id: input_boolean.always_on_constant
-              state: 'on'
-            then:
-              alias: Everytime to turn on a wall switch, make sure to turn off it first to make sure the smart lights will be back on
-              if:
-                condition: state
-                entity_id: input_boolean.always_on_constant
-                state: 'on'
-              then:
-              - service: homeassistant.turn_off
-                entity_id:
-                - switch.0x00158d00047b69d2_switch
-              - delay:
-                  milliseconds: 200
-              - service: homeassistant.turn_on
-                entity_id:
-                - switch.0x00158d00047b69d2_switch
-      else:
-        alias: Turn light.guest_room_ceiling_light state=toggle
-        if:
-          condition: state
-          entity_id: input_boolean.always_on_constant
-          state: 'on'
-        then:
-          if:
-          - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
-            condition: state
-            entity_id:
-            - light.guest_room_ceiling_light
-            state: 'on'
-            match: any
-          then:
-            alias: Turn light.guest_room_ceiling_light state=off
-            if:
-              condition: state
-              entity_id: input_boolean.always_on_constant
-              state: 'on'
-            then:
-              if:
-              - alias: any ceiling lights is unavailable, using wall switches to control instead
-                condition: state
-                entity_id:
-                - light.guest_room_ceiling_light
-                state: unavailable
-                match: any
-              then:
-                alias: Turn switch.0x00158d00047b69d2_switch state=off
-                if:
-                  condition: state
-                  entity_id: input_boolean.always_on_constant
-                  state: 'on'
-                then:
-                  service: homeassistant.turn_off
-                  entity_id:
-                  - switch.0x00158d00047b69d2_switch
-              else:
-                alias: Turn light.guest_room_ceiling_light state=off
-                if:
-                  condition: state
-                  entity_id: input_boolean.always_on_constant
-                  state: 'on'
-                then:
-                  service: homeassistant.turn_off
-                  entity_id:
-                  - light.guest_room_ceiling_light
-          else:
-            alias: Turn light.guest_room_ceiling_light state=on
-            if:
-              condition: state
-              entity_id: input_boolean.always_on_constant
-              state: 'on'
-            then:
-              if:
-              - alias: any ceiling lights is unavailable, using wall switches to control instead
-                condition: state
-                entity_id:
-                - light.guest_room_ceiling_light
-                state: unavailable
-                match: any
-              then:
-                alias: Turn switch.0x00158d00047b69d2_switch state=on
-                if:
-                  condition: state
-                  entity_id: input_boolean.always_on_constant
-                  state: 'on'
-                then:
-                  alias: Everytime to turn on a wall switch, make sure to turn off it first to make sure the smart lights will be back on
-                  if:
-                    condition: state
-                    entity_id: input_boolean.always_on_constant
-                    state: 'on'
-                  then:
-                  - service: homeassistant.turn_off
-                    entity_id:
-                    - switch.0x00158d00047b69d2_switch
-                  - delay:
-                      milliseconds: 200
-                  - service: homeassistant.turn_on
-                    entity_id:
-                    - switch.0x00158d00047b69d2_switch
-              else:
-                alias: Turn light.guest_room_ceiling_light state=on
-                if:
-                  condition: state
-                  entity_id: input_boolean.always_on_constant
-                  state: 'on'
-                then:
-                  service: homeassistant.turn_on
-                  entity_id:
-                  - light.guest_room_ceiling_light
-  id: automation.zlb_gr_wall_switch_single_press_toggle_ceiling_light_guest_room
 - alias: ZLB-GR Wall Switch - Double Press - Leave Room and Turn Off Everything-Guest Room
   trigger:
   - platform: state
@@ -1889,8 +1705,14 @@ switch:
 - platform: group
   name: 'Guest Room Wall Switch '
   entities: switch.0x00158d00047b69d2_switch
-cover: []
+cover:
+- platform: group
+  name: Guest Room Curtain
+  entities: cover.curtain_1050
 template:
+- sensor:
+  - name: Guest Room Heating Required
+    state: '{% set climate = "climate.guest_room" %}{% if states(climate) == "unavailable" %}off{% else %} {{ ((state_attr(climate, "temperature")  > state_attr(climate, "current_temperature"))  and  (not states(climate, "off")) )  }}{% endif %}'
 - sensor:
   - name: Guest Room Temperature Sensor
     unit_of_measurement: "\xB0C"
@@ -1934,13 +1756,13 @@ group:
     - automation.zlb_gr_flex_wall_switch_on_postion_1_automatically_turn_on_the_wall_switch_back_when_turned_off_guest_room
     - automation.zl_gr_ceiling_lights_on_or_open_curtains_if_entering_to_room_guest_room
     - automation.zl_gr_lights_off_if_no_person_guest_room
+    - automation.zl_gr_disable_entering_lights_on_automation_if_any_people_are_in_the_room_guest_room
     - automation.zh_gr_heating_schedule_on_if_staying_in_the_room_guest_room
     - automation.zh_gr_heating_schedule_off_if_people_left_the_room_guest_room
     - automation.zh_gr_heating_manual_override_guest_room
     - automation.zh_gr_heating_manual_override_timeout_in_few_hours_guest_room
     - automation.zh_gr_valve_calibrate_temperature_using_external_sensor_guest_room
     - automation.zl_gr_applies_different_scenes_based_on_scene_selections_state_execution_guest_room
-    - automation.zlb_gr_wall_switch_single_press_toggle_ceiling_light_guest_room
     - automation.zlb_gr_wall_switch_double_press_leave_room_and_turn_off_everything_guest_room
     - automation.zoc_gr_occupancy_update_guest_room
     - switch.0x00158d00047b69d2_switch

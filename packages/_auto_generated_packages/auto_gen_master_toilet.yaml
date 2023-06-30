@@ -37,7 +37,7 @@ automation:
   - if:
     - condition: numeric_state
       entity_id: sensor.met_office_cambridge_city_airport_temperature_3_hourly
-      above: '20'
+      above: '18'
     - condition: time
       after: '10:00:00'
       before: '13:00:00'
@@ -369,8 +369,14 @@ automation:
     for: 00:01:00
   action:
     parallel:
-    - service: homeassistant.turn_on
-      entity_id: automation.zl_mt_ceiling_lights_on_or_open_curtains_if_entering_to_room_master_toilet
+    - alias: Turn automation.zl_mt_ceiling_lights_on_or_open_curtains_if_entering_to_room_master_toilet state=on
+      if:
+        condition: state
+        entity_id: input_boolean.always_on_constant
+        state: 'on'
+      then:
+        service: homeassistant.turn_on
+        entity_id: automation.zl_mt_ceiling_lights_on_or_open_curtains_if_entering_to_room_master_toilet
     - alias: Turn nothing state=off
       if:
         condition: state
@@ -445,6 +451,25 @@ automation:
             service: homeassistant.turn_off
             entity_id:
             - switch.master_toilet_floor_led
+- alias: ZL-MT Disable Entering Lights-on Automation If any People are in the Room-Master Toilet
+  trigger:
+  - platform: state
+    entity_id: input_select.master_toilet_occupancy
+    to:
+    - Just Entered
+    - In Sleep
+    - Stayed Inside
+  action:
+  - delay: 00:00:10
+  - alias: Turn automation.zl_mt_ceiling_lights_on_or_open_curtains_if_entering_to_room_master_toilet state=off
+    if:
+      condition: state
+      entity_id: input_boolean.always_on_constant
+      state: 'on'
+    then:
+      service: homeassistant.turn_off
+      entity_id: automation.zl_mt_ceiling_lights_on_or_open_curtains_if_entering_to_room_master_toilet
+  id: automation.zl_mt_disable_entering_lights_on_automation_if_any_people_are_in_the_room_master_toilet
 - alias: ZH-MT Heating Schedule On If Staying In the Room-Master Toilet
   id: automation.zh_mt_heating_schedule_on_if_staying_in_the_room_master_toilet
   trigger:
@@ -904,27 +929,14 @@ automation:
           entity_id: input_boolean.always_on_constant
           state: 'on'
         then:
-        - alias: Turn switch.master_toilet_floor_led state=on
-          if:
-            condition: state
-            entity_id: input_boolean.always_on_constant
-            state: 'on'
-          then:
-            service: homeassistant.turn_on
-            entity_id:
+        - service: pyscript.turn_rgb_light
+          data:
+            light_list:
+            - light.master_toilet_ceiling_light
             - switch.master_toilet_floor_led
-        - alias: Turn switch.master_toilet_floor_led state=on light_brightness=100
-          if:
-            condition: state
-            entity_id: input_boolean.always_on_constant
-            state: 'on'
-          then:
-            service: light.turn_on
-            entity_id:
-            - switch.master_toilet_floor_led
-            data:
-              brightness_pct: 100
-        - service: pyscript.set_rgb_light_list
+            state: 'off'
+            rgb: non_rgb_only
+        - service: pyscript.turn_rgb_light
           data:
             light_list:
             - light.master_toilet_ceiling_light
@@ -1363,180 +1375,6 @@ automation:
                   service: cover.open_cover
                   entity_id: []
   id: automation.zl_mt_applies_different_scenes_based_on_scene_selections_state_execution_master_toilet
-- alias: ZLB-MT Wall Switch - Single Press - Toggle Ceiling Light-Master Toilet
-  trigger:
-  - platform: state
-    entity_id:
-    - sensor.master_toilet_wall_button
-    to:
-    - '1'
-    - single
-    - single_left
-    - single_right
-    - single_center
-    - button_1_single
-    - button_2_single
-    - button_3_single
-  action:
-  - alias: Turn light.master_toilet_ceiling_light state=toggle
-    if:
-      condition: state
-      entity_id: input_boolean.always_on_constant
-      state: 'on'
-    then:
-      if:
-      - alias: any ceiling lights is unavailable, using wall switches to control instead
-        condition: state
-        entity_id:
-        - light.master_toilet_ceiling_light
-        state: unavailable
-        match: any
-      then:
-        alias: Turn switch.0x00158d00047d69be_switch switch.0x00158d00042d4092_switch state=toggle
-        if:
-          condition: state
-          entity_id: input_boolean.always_on_constant
-          state: 'on'
-        then:
-          if:
-          - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
-            condition: state
-            entity_id:
-            - switch.0x00158d00047d69be_switch
-            - switch.0x00158d00042d4092_switch
-            state: 'on'
-            match: any
-          then:
-            alias: Turn switch.0x00158d00047d69be_switch switch.0x00158d00042d4092_switch state=off
-            if:
-              condition: state
-              entity_id: input_boolean.always_on_constant
-              state: 'on'
-            then:
-              service: homeassistant.turn_off
-              entity_id:
-              - switch.0x00158d00047d69be_switch
-              - switch.0x00158d00042d4092_switch
-          else:
-            alias: Turn switch.0x00158d00047d69be_switch switch.0x00158d00042d4092_switch state=on
-            if:
-              condition: state
-              entity_id: input_boolean.always_on_constant
-              state: 'on'
-            then:
-              alias: Everytime to turn on a wall switch, make sure to turn off it first to make sure the smart lights will be back on
-              if:
-                condition: state
-                entity_id: input_boolean.always_on_constant
-                state: 'on'
-              then:
-              - service: homeassistant.turn_off
-                entity_id:
-                - switch.0x00158d00047d69be_switch
-                - switch.0x00158d00042d4092_switch
-              - delay:
-                  milliseconds: 200
-              - service: homeassistant.turn_on
-                entity_id:
-                - switch.0x00158d00047d69be_switch
-                - switch.0x00158d00042d4092_switch
-      else:
-        alias: Turn light.master_toilet_ceiling_light state=toggle
-        if:
-          condition: state
-          entity_id: input_boolean.always_on_constant
-          state: 'on'
-        then:
-          if:
-          - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
-            condition: state
-            entity_id:
-            - light.master_toilet_ceiling_light
-            state: 'on'
-            match: any
-          then:
-            alias: Turn light.master_toilet_ceiling_light state=off
-            if:
-              condition: state
-              entity_id: input_boolean.always_on_constant
-              state: 'on'
-            then:
-              if:
-              - alias: any ceiling lights is unavailable, using wall switches to control instead
-                condition: state
-                entity_id:
-                - light.master_toilet_ceiling_light
-                state: unavailable
-                match: any
-              then:
-                alias: Turn switch.0x00158d00047d69be_switch switch.0x00158d00042d4092_switch state=off
-                if:
-                  condition: state
-                  entity_id: input_boolean.always_on_constant
-                  state: 'on'
-                then:
-                  service: homeassistant.turn_off
-                  entity_id:
-                  - switch.0x00158d00047d69be_switch
-                  - switch.0x00158d00042d4092_switch
-              else:
-                alias: Turn light.master_toilet_ceiling_light state=off
-                if:
-                  condition: state
-                  entity_id: input_boolean.always_on_constant
-                  state: 'on'
-                then:
-                  service: homeassistant.turn_off
-                  entity_id:
-                  - light.master_toilet_ceiling_light
-          else:
-            alias: Turn light.master_toilet_ceiling_light state=on
-            if:
-              condition: state
-              entity_id: input_boolean.always_on_constant
-              state: 'on'
-            then:
-              if:
-              - alias: any ceiling lights is unavailable, using wall switches to control instead
-                condition: state
-                entity_id:
-                - light.master_toilet_ceiling_light
-                state: unavailable
-                match: any
-              then:
-                alias: Turn switch.0x00158d00047d69be_switch switch.0x00158d00042d4092_switch state=on
-                if:
-                  condition: state
-                  entity_id: input_boolean.always_on_constant
-                  state: 'on'
-                then:
-                  alias: Everytime to turn on a wall switch, make sure to turn off it first to make sure the smart lights will be back on
-                  if:
-                    condition: state
-                    entity_id: input_boolean.always_on_constant
-                    state: 'on'
-                  then:
-                  - service: homeassistant.turn_off
-                    entity_id:
-                    - switch.0x00158d00047d69be_switch
-                    - switch.0x00158d00042d4092_switch
-                  - delay:
-                      milliseconds: 200
-                  - service: homeassistant.turn_on
-                    entity_id:
-                    - switch.0x00158d00047d69be_switch
-                    - switch.0x00158d00042d4092_switch
-              else:
-                alias: Turn light.master_toilet_ceiling_light state=on
-                if:
-                  condition: state
-                  entity_id: input_boolean.always_on_constant
-                  state: 'on'
-                then:
-                  service: homeassistant.turn_on
-                  entity_id:
-                  - light.master_toilet_ceiling_light
-  id: automation.zlb_mt_wall_switch_single_press_toggle_ceiling_light_master_toilet
 - alias: ZLB-MT Wall Switch - Double Press - Leave Room and Turn Off Everything-Master Toilet
   trigger:
   - platform: state
@@ -1661,8 +1499,14 @@ switch:
 - platform: group
   name: 'Master Toilet Dressing Room Wall Switch '
   entities: switch.0x00158d00042d4092_switch
-cover: []
+cover:
+- platform: group
+  name: Master Toilet Dressing Room Blind
+  entities: cover.0x00158d00070b2f2a_motor
 template:
+- sensor:
+  - name: Master Toilet Heating Required
+    state: '{% set climate = "climate.master_toilet" %}{% if states(climate) == "unavailable" %}off{% else %} {{ ((state_attr(climate, "temperature")  > state_attr(climate, "current_temperature"))  and  (not states(climate, "off")) )  }}{% endif %}'
 - sensor:
   - name: Master Toilet Wall Button
     state: '{{states.sensor["0x00158d00047d69be_action"].state}}'
@@ -1697,6 +1541,10 @@ template:
 - sensor:
   - name: Master Toilet Dressing Room Wall Button
     state: '{{states.sensor["0x00158d00042d4092_action"].state}}'
+- sensor:
+  - name: Master Toilet Dressing Room Blind Curtain Battery
+    unit_of_measurement: '%'
+    state: '{{states.sensor["0x00158d00070b2f2a_battery"].state}}'
 binary_sensor:
 - platform: group
   name: Master Toilet Door
@@ -1742,13 +1590,13 @@ group:
     - automation.zlb_mt_flex_wall_switch_on_postion_1_automatically_turn_on_the_wall_switch_back_when_turned_off_master_toilet
     - automation.zl_mt_ceiling_lights_on_or_open_curtains_if_entering_to_room_master_toilet
     - automation.zl_mt_lights_off_if_no_person_master_toilet
+    - automation.zl_mt_disable_entering_lights_on_automation_if_any_people_are_in_the_room_master_toilet
     - automation.zh_mt_heating_schedule_on_if_staying_in_the_room_master_toilet
     - automation.zh_mt_heating_schedule_off_if_people_left_the_room_master_toilet
     - automation.zh_mt_heating_manual_override_master_toilet
     - automation.zh_mt_heating_manual_override_timeout_in_few_hours_master_toilet
     - automation.zh_mt_valve_calibrate_temperature_using_external_sensor_master_toilet
     - automation.zl_mt_applies_different_scenes_based_on_scene_selections_state_execution_master_toilet
-    - automation.zlb_mt_wall_switch_single_press_toggle_ceiling_light_master_toilet
     - automation.zlb_mt_wall_switch_double_press_leave_room_and_turn_off_everything_master_toilet
     - automation.zoc_mt_occupancy_update_master_toilet
     - switch.0x00158d00047d69be_switch

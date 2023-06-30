@@ -37,7 +37,7 @@ automation:
   - if:
     - condition: numeric_state
       entity_id: sensor.met_office_cambridge_city_airport_temperature_3_hourly
-      above: '20'
+      above: '15'
     - condition: time
       after: '13:00:00'
       before: '22:00:00'
@@ -459,8 +459,14 @@ automation:
     for: 00:01:00
   action:
     parallel:
-    - service: homeassistant.turn_on
-      entity_id: automation.zl_kc_ceiling_lights_on_or_open_curtains_if_entering_to_room_kitchen
+    - alias: Turn automation.zl_kc_ceiling_lights_on_or_open_curtains_if_entering_to_room_kitchen state=on
+      if:
+        condition: state
+        entity_id: input_boolean.always_on_constant
+        state: 'on'
+      then:
+        service: homeassistant.turn_on
+        entity_id: automation.zl_kc_ceiling_lights_on_or_open_curtains_if_entering_to_room_kitchen
     - alias: Turn cover.kitchen_curtain state=off
       if:
         condition: state
@@ -540,6 +546,25 @@ automation:
             service: homeassistant.turn_off
             entity_id:
             - switch.kitchen_floor_led
+- alias: ZL-KC Disable Entering Lights-on Automation If any People are in the Room-Kitchen
+  trigger:
+  - platform: state
+    entity_id: input_select.kitchen_occupancy
+    to:
+    - Just Entered
+    - In Sleep
+    - Stayed Inside
+  action:
+  - delay: 00:00:10
+  - alias: Turn automation.zl_kc_ceiling_lights_on_or_open_curtains_if_entering_to_room_kitchen state=off
+    if:
+      condition: state
+      entity_id: input_boolean.always_on_constant
+      state: 'on'
+    then:
+      service: homeassistant.turn_off
+      entity_id: automation.zl_kc_ceiling_lights_on_or_open_curtains_if_entering_to_room_kitchen
+  id: automation.zl_kc_disable_entering_lights_on_automation_if_any_people_are_in_the_room_kitchen
 - alias: ZH-KC Heating Schedule On If Staying In the Room-Kitchen
   id: automation.zh_kc_heating_schedule_on_if_staying_in_the_room_kitchen
   trigger:
@@ -1067,27 +1092,15 @@ automation:
           entity_id: input_boolean.always_on_constant
           state: 'on'
         then:
-        - alias: Turn switch.kitchen_floor_led state=on
-          if:
-            condition: state
-            entity_id: input_boolean.always_on_constant
-            state: 'on'
-          then:
-            service: homeassistant.turn_on
-            entity_id:
+        - service: pyscript.turn_rgb_light
+          data:
+            light_list:
+            - light.kitchen_ceiling_light
+            - light.kitchen_dining_light
             - switch.kitchen_floor_led
-        - alias: Turn switch.kitchen_floor_led state=on light_brightness=100
-          if:
-            condition: state
-            entity_id: input_boolean.always_on_constant
-            state: 'on'
-          then:
-            service: light.turn_on
-            entity_id:
-            - switch.kitchen_floor_led
-            data:
-              brightness_pct: 100
-        - service: pyscript.set_rgb_light_list
+            state: 'off'
+            rgb: non_rgb_only
+        - service: pyscript.turn_rgb_light
           data:
             light_list:
             - light.kitchen_ceiling_light
@@ -1663,16 +1676,16 @@ automation:
           service: homeassistant.turn_on
           entity_id: light.kitchen_ceiling_light
   id: automation.zlb_kc_wall_switch_single_left_press_toggle_ceiling_light_kitchen
-- alias: ZLB-KC Wall Switch - Single Right Press - Toggle Floor LED-Kitchen
+- alias: ZLB-KC Worktop Wall Switch - Single Left Press - Toggle Worktop LED-Kitchen
   trigger:
   - platform: state
     entity_id:
-    - sensor.kitchen_wall_button
+    - sensor.kitchen_extractor_wall_button
     to:
-    - single_right
-    - button_3_single
+    - single_left
+    - button_1_single
   action:
-  - alias: Turn switch.kitchen_floor_led state=toggle
+  - alias: Turn light.kitchen_worktop_led state=toggle
     if:
       condition: state
       entity_id: input_boolean.always_on_constant
@@ -1682,11 +1695,11 @@ automation:
       - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
         condition: state
         entity_id:
-        - switch.kitchen_floor_led
+        - light.kitchen_worktop_led
         state: 'on'
         match: any
       then:
-        alias: Turn switch.kitchen_floor_led state=off
+        alias: Turn light.kitchen_worktop_led state=off
         if:
           condition: state
           entity_id: input_boolean.always_on_constant
@@ -1694,9 +1707,9 @@ automation:
         then:
           service: homeassistant.turn_off
           entity_id:
-          - switch.kitchen_floor_led
+          - light.kitchen_worktop_led
       else:
-        alias: Turn switch.kitchen_floor_led state=on
+        alias: Turn light.kitchen_worktop_led state=on
         if:
           condition: state
           entity_id: input_boolean.always_on_constant
@@ -1704,8 +1717,8 @@ automation:
         then:
           service: homeassistant.turn_on
           entity_id:
-          - switch.kitchen_floor_led
-  id: automation.zlb_kc_wall_switch_single_right_press_toggle_floor_led_kitchen
+          - light.kitchen_worktop_led
+  id: automation.zlb_kc_worktop_wall_switch_single_left_press_toggle_worktop_led_kitchen
 - alias: ZLB-KC Wall Switch - Double Press - Leave Room and Turn Off Everything-Kitchen
   trigger:
   - platform: state
@@ -1831,6 +1844,9 @@ cover:
   entities: cover.curtain_1e9e
 template:
 - sensor:
+  - name: Kitchen Heating Required
+    state: '{% set climate = "climate.kitchen" %}{% if states(climate) == "unavailable" %}off{% else %} {{ ((state_attr(climate, "temperature")  > state_attr(climate, "current_temperature"))  and  (not states(climate, "off")) )  }}{% endif %}'
+- sensor:
   - name: Kitchen Temperature Sensor
     unit_of_measurement: "\xB0C"
     state: '{{states.sensor["a4c1380e91a7_temperature"].state | float | round(1)}}'
@@ -1849,11 +1865,13 @@ group:
     entities:
     - input_select.kitchen_occupancy
     - group.kitchen_motion
+    - binary_sensor.kitchen_occupancy_sensor_occupancy
     - binary_sensor.kitchen_worktop_motion_sensor_motion
     - binary_sensor.kitchen_dining_motion_sensor_motion
   kitchen_motion:
     name: Kitchen Motion
     entities:
+    - binary_sensor.kitchen_occupancy_sensor_occupancy
     - binary_sensor.kitchen_worktop_motion_sensor_motion
     - binary_sensor.kitchen_dining_motion_sensor_motion
   kitchen_lights_and_tvs:
@@ -1878,6 +1896,7 @@ group:
     - automation.zlb_kc_flex_wall_switch_on_postion_2_automatically_turn_on_the_wall_switch_back_when_turned_off_kitchen
     - automation.zl_kc_ceiling_lights_on_or_open_curtains_if_entering_to_room_kitchen
     - automation.zl_kc_lights_off_if_no_person_kitchen
+    - automation.zl_kc_disable_entering_lights_on_automation_if_any_people_are_in_the_room_kitchen
     - automation.zh_kc_heating_schedule_on_if_staying_in_the_room_kitchen
     - automation.zh_kc_heating_schedule_off_if_people_left_the_room_kitchen
     - automation.zh_kc_heating_manual_override_kitchen
@@ -1885,7 +1904,7 @@ group:
     - automation.zh_kc_valve_calibrate_temperature_using_external_sensor_kitchen
     - automation.zl_kc_applies_different_scenes_based_on_scene_selections_state_execution_kitchen
     - automation.zlb_kc_wall_switch_single_left_press_toggle_ceiling_light_kitchen
-    - automation.zlb_kc_wall_switch_single_right_press_toggle_floor_led_kitchen
+    - automation.zlb_kc_worktop_wall_switch_single_left_press_toggle_worktop_led_kitchen
     - automation.zlb_kc_wall_switch_double_press_leave_room_and_turn_off_everything_kitchen
     - automation.zoc_kc_occupancy_update_kitchen
     - switch.kitchen_wall_switch_left

@@ -52,7 +52,7 @@ automation:
   - if:
     - condition: numeric_state
       entity_id: sensor.met_office_cambridge_city_airport_temperature_3_hourly
-      above: '20'
+      above: '15'
     - condition: time
       after: '13:00:00'
       before: '22:00:00'
@@ -507,8 +507,14 @@ automation:
     for: 00:01:00
   action:
     parallel:
-    - service: homeassistant.turn_on
-      entity_id: automation.zl_mr_ceiling_lights_on_or_open_curtains_if_entering_to_room_master_room
+    - alias: Turn automation.zl_mr_ceiling_lights_on_or_open_curtains_if_entering_to_room_master_room state=on
+      if:
+        condition: state
+        entity_id: input_boolean.always_on_constant
+        state: 'on'
+      then:
+        service: homeassistant.turn_on
+        entity_id: automation.zl_mr_ceiling_lights_on_or_open_curtains_if_entering_to_room_master_room
     - alias: Turn cover.master_room_blind cover.master_room_curtain state=off
       if:
         condition: state
@@ -591,6 +597,25 @@ automation:
             - light.master_room_drawer_led
             - light.master_room_tv_led
             - light.master_room_bed_led
+- alias: ZL-MR Disable Entering Lights-on Automation If any People are in the Room-Master Room
+  trigger:
+  - platform: state
+    entity_id: input_select.master_room_occupancy
+    to:
+    - Just Entered
+    - In Sleep
+    - Stayed Inside
+  action:
+  - delay: 00:00:10
+  - alias: Turn automation.zl_mr_ceiling_lights_on_or_open_curtains_if_entering_to_room_master_room state=off
+    if:
+      condition: state
+      entity_id: input_boolean.always_on_constant
+      state: 'on'
+    then:
+      service: homeassistant.turn_off
+      entity_id: automation.zl_mr_ceiling_lights_on_or_open_curtains_if_entering_to_room_master_room
+  id: automation.zl_mr_disable_entering_lights_on_automation_if_any_people_are_in_the_room_master_room
 - alias: ZL-MR LED On for 3 Min if Walking In the Dark-Master Room
   mode: restart
   trigger:
@@ -1283,35 +1308,18 @@ automation:
           entity_id: input_boolean.always_on_constant
           state: 'on'
         then:
-        - alias: Turn light.master_room_lamp_1 light.master_room_lamp_2 light.master_room_drawer_led light.master_room_tv_led light.master_room_bed_led state=on
-          if:
-            condition: state
-            entity_id: input_boolean.always_on_constant
-            state: 'on'
-          then:
-            service: homeassistant.turn_on
-            entity_id:
+        - service: pyscript.turn_rgb_light
+          data:
+            light_list:
             - light.master_room_lamp_1
             - light.master_room_lamp_2
+            - light.master_room_ceiling_light
             - light.master_room_drawer_led
             - light.master_room_tv_led
             - light.master_room_bed_led
-        - alias: Turn light.master_room_lamp_1 light.master_room_lamp_2 light.master_room_drawer_led light.master_room_tv_led light.master_room_bed_led state=on light_brightness=100
-          if:
-            condition: state
-            entity_id: input_boolean.always_on_constant
-            state: 'on'
-          then:
-            service: light.turn_on
-            entity_id:
-            - light.master_room_lamp_1
-            - light.master_room_lamp_2
-            - light.master_room_drawer_led
-            - light.master_room_tv_led
-            - light.master_room_bed_led
-            data:
-              brightness_pct: 100
-        - service: pyscript.set_rgb_light_list
+            state: 'off'
+            rgb: non_rgb_only
+        - service: pyscript.turn_rgb_light
           data:
             light_list:
             - light.master_room_lamp_1
@@ -2309,8 +2317,14 @@ switch:
 - platform: group
   name: Master Room Wall Switch 3
   entities: switch.0x04cf8cdf3c7ad638_channel_3
-cover: []
+cover:
+- platform: group
+  name: Master Room Curtain
+  entities: cover.0x04cf8cdf3c73a19b_motor
 template:
+- sensor:
+  - name: Master Room Heating Required
+    state: '{% set climate = "climate.master_room" %}{% if states(climate) == "unavailable" %}off{% else %} {{ ((state_attr(climate, "temperature")  > state_attr(climate, "current_temperature"))  and  (not states(climate, "off")) )  }}{% endif %}'
 - sensor:
   - name: Master Room Wall Button
     state: '{{states.sensor["0x04cf8cdf3c7ad638_action"].state}}'
@@ -2342,6 +2356,10 @@ template:
   - name: Master Room TV Motion Sensor Battery
     unit_of_measurement: '%'
     state: '{{states.sensor["0x00158d0005228ba8_battery"].state}}'
+- sensor:
+  - name: Master Room Curtain Curtain Battery
+    unit_of_measurement: '%'
+    state: '{{states.sensor["0x04cf8cdf3c73a19b_battery"].state}}'
 - sensor:
   - name: Master Room Temperature Sensor
     unit_of_measurement: "\xB0C"
@@ -2414,6 +2432,7 @@ group:
     - automation.zlb_mr_flex_wall_switch_on_postion_3_automatically_turn_on_the_wall_switch_back_when_turned_off_master_room
     - automation.zl_mr_ceiling_lights_on_or_open_curtains_if_entering_to_room_master_room
     - automation.zl_mr_lights_off_if_no_person_master_room
+    - automation.zl_mr_disable_entering_lights_on_automation_if_any_people_are_in_the_room_master_room
     - automation.zl_mr_led_on_for_3_min_if_walking_in_the_dark_master_room
     - automation.zh_mr_heating_schedule_on_if_staying_in_the_room_master_room
     - automation.zh_mr_heating_schedule_off_if_people_left_the_room_master_room

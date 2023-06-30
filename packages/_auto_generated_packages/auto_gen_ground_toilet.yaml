@@ -22,7 +22,7 @@ automation:
   - if:
     - condition: numeric_state
       entity_id: sensor.met_office_cambridge_city_airport_temperature_3_hourly
-      above: '20'
+      above: '18'
     - condition: time
       after: '10:00:00'
       before: '13:00:00'
@@ -351,8 +351,14 @@ automation:
     for: 00:01:00
   action:
     parallel:
-    - service: homeassistant.turn_on
-      entity_id: automation.zl_0t_ceiling_lights_on_or_open_curtains_if_entering_to_room_ground_toilet
+    - alias: Turn automation.zl_0t_ceiling_lights_on_or_open_curtains_if_entering_to_room_ground_toilet state=on
+      if:
+        condition: state
+        entity_id: input_boolean.always_on_constant
+        state: 'on'
+      then:
+        service: homeassistant.turn_on
+        entity_id: automation.zl_0t_ceiling_lights_on_or_open_curtains_if_entering_to_room_ground_toilet
     - alias: Turn nothing state=off
       if:
         condition: state
@@ -426,6 +432,25 @@ automation:
           then:
             service: cover.close_cover
             entity_id: []
+- alias: ZL-0T Disable Entering Lights-on Automation If any People are in the Room-Ground Toilet
+  trigger:
+  - platform: state
+    entity_id: input_select.ground_toilet_occupancy
+    to:
+    - Just Entered
+    - In Sleep
+    - Stayed Inside
+  action:
+  - delay: 00:00:10
+  - alias: Turn automation.zl_0t_ceiling_lights_on_or_open_curtains_if_entering_to_room_ground_toilet state=off
+    if:
+      condition: state
+      entity_id: input_boolean.always_on_constant
+      state: 'on'
+    then:
+      service: homeassistant.turn_off
+      entity_id: automation.zl_0t_ceiling_lights_on_or_open_curtains_if_entering_to_room_ground_toilet
+  id: automation.zl_0t_disable_entering_lights_on_automation_if_any_people_are_in_the_room_ground_toilet
 - alias: ZH-0T Heating Schedule On If Staying In the Room-Ground Toilet
   id: automation.zh_0t_heating_schedule_on_if_staying_in_the_room_ground_toilet
   trigger:
@@ -881,25 +906,13 @@ automation:
           entity_id: input_boolean.always_on_constant
           state: 'on'
         then:
-        - alias: Turn nothing state=on
-          if:
-            condition: state
-            entity_id: input_boolean.always_on_constant
-            state: 'on'
-          then:
-            service: cover.open_cover
-            entity_id: []
-        - alias: Turn nothing state=on light_brightness=100
-          if:
-            condition: state
-            entity_id: input_boolean.always_on_constant
-            state: 'on'
-          then:
-            service: light.turn_on
-            entity_id: []
-            data:
-              brightness_pct: 100
-        - service: pyscript.set_rgb_light_list
+        - service: pyscript.turn_rgb_light
+          data:
+            light_list:
+            - light.ground_toilet_ceiling_light
+            state: 'off'
+            rgb: non_rgb_only
+        - service: pyscript.turn_rgb_light
           data:
             light_list:
             - light.ground_toilet_ceiling_light
@@ -1632,6 +1645,9 @@ switch:
 cover: []
 template:
 - sensor:
+  - name: Ground Toilet Heating Required
+    state: '{% set climate = "climate.ground_toilet" %}{% if states(climate) == "unavailable" %}off{% else %} {{ ((state_attr(climate, "temperature")  > state_attr(climate, "current_temperature"))  and  (not states(climate, "off")) )  }}{% endif %}'
+- sensor:
   - name: Ground Toilet Temperature Sensor
     unit_of_measurement: "\xB0C"
     state: '{{states.sensor["a4c1387c09bd_temperature"].state | float | round(1)}}'
@@ -1679,6 +1695,7 @@ group:
     - input_boolean.ceiling_light_control_when_dark_outdoor_ground_toilet
     - automation.zl_0t_ceiling_lights_on_or_open_curtains_if_entering_to_room_ground_toilet
     - automation.zl_0t_lights_off_if_no_person_ground_toilet
+    - automation.zl_0t_disable_entering_lights_on_automation_if_any_people_are_in_the_room_ground_toilet
     - automation.zh_0t_heating_schedule_on_if_staying_in_the_room_ground_toilet
     - automation.zh_0t_heating_schedule_off_if_people_left_the_room_ground_toilet
     - automation.zh_0t_heating_manual_override_ground_toilet

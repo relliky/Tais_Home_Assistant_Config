@@ -22,7 +22,7 @@ automation:
   - if:
     - condition: numeric_state
       entity_id: sensor.met_office_cambridge_city_airport_temperature_3_hourly
-      above: '20'
+      above: '18'
     - condition: time
       after: '10:00:00'
       before: '13:00:00'
@@ -354,8 +354,14 @@ automation:
     for: 00:01:00
   action:
     parallel:
-    - service: homeassistant.turn_on
-      entity_id: automation.zl_gt_ceiling_lights_on_or_open_curtains_if_entering_to_room_guest_toilet
+    - alias: Turn automation.zl_gt_ceiling_lights_on_or_open_curtains_if_entering_to_room_guest_toilet state=on
+      if:
+        condition: state
+        entity_id: input_boolean.always_on_constant
+        state: 'on'
+      then:
+        service: homeassistant.turn_on
+        entity_id: automation.zl_gt_ceiling_lights_on_or_open_curtains_if_entering_to_room_guest_toilet
     - alias: Turn nothing state=off
       if:
         condition: state
@@ -430,6 +436,25 @@ automation:
             service: homeassistant.turn_off
             entity_id:
             - switch.guest_toilet_floor_led
+- alias: ZL-GT Disable Entering Lights-on Automation If any People are in the Room-Guest Toilet
+  trigger:
+  - platform: state
+    entity_id: input_select.guest_toilet_occupancy
+    to:
+    - Just Entered
+    - In Sleep
+    - Stayed Inside
+  action:
+  - delay: 00:00:10
+  - alias: Turn automation.zl_gt_ceiling_lights_on_or_open_curtains_if_entering_to_room_guest_toilet state=off
+    if:
+      condition: state
+      entity_id: input_boolean.always_on_constant
+      state: 'on'
+    then:
+      service: homeassistant.turn_off
+      entity_id: automation.zl_gt_ceiling_lights_on_or_open_curtains_if_entering_to_room_guest_toilet
+  id: automation.zl_gt_disable_entering_lights_on_automation_if_any_people_are_in_the_room_guest_toilet
 - alias: ZH-GT Heating Schedule On If Staying In the Room-Guest Toilet
   id: automation.zh_gt_heating_schedule_on_if_staying_in_the_room_guest_toilet
   trigger:
@@ -889,27 +914,14 @@ automation:
           entity_id: input_boolean.always_on_constant
           state: 'on'
         then:
-        - alias: Turn switch.guest_toilet_floor_led state=on
-          if:
-            condition: state
-            entity_id: input_boolean.always_on_constant
-            state: 'on'
-          then:
-            service: homeassistant.turn_on
-            entity_id:
+        - service: pyscript.turn_rgb_light
+          data:
+            light_list:
+            - light.guest_toilet_ceiling_light
             - switch.guest_toilet_floor_led
-        - alias: Turn switch.guest_toilet_floor_led state=on light_brightness=100
-          if:
-            condition: state
-            entity_id: input_boolean.always_on_constant
-            state: 'on'
-          then:
-            service: light.turn_on
-            entity_id:
-            - switch.guest_toilet_floor_led
-            data:
-              brightness_pct: 100
-        - service: pyscript.set_rgb_light_list
+            state: 'off'
+            rgb: non_rgb_only
+        - service: pyscript.turn_rgb_light
           data:
             light_list:
             - light.guest_toilet_ceiling_light
@@ -1639,6 +1651,9 @@ switch:
 cover: []
 template:
 - sensor:
+  - name: Guest Toilet Heating Required
+    state: '{% set climate = "climate.guest_toilet" %}{% if states(climate) == "unavailable" %}off{% else %} {{ ((state_attr(climate, "temperature")  > state_attr(climate, "current_temperature"))  and  (not states(climate, "off")) )  }}{% endif %}'
+- sensor:
   - name: Guest Toilet Temperature Sensor
     unit_of_measurement: "\xB0C"
     state: '{{states.sensor["a4c1387a7b78_temperature"].state | float | round(1)}}'
@@ -1669,6 +1684,7 @@ group:
     - input_boolean.led_control_when_dark_outdoor_guest_toilet
     - automation.zl_gt_ceiling_lights_on_or_open_curtains_if_entering_to_room_guest_toilet
     - automation.zl_gt_lights_off_if_no_person_guest_toilet
+    - automation.zl_gt_disable_entering_lights_on_automation_if_any_people_are_in_the_room_guest_toilet
     - automation.zh_gt_heating_schedule_on_if_staying_in_the_room_guest_toilet
     - automation.zh_gt_heating_schedule_off_if_people_left_the_room_guest_toilet
     - automation.zh_gt_heating_manual_override_guest_toilet

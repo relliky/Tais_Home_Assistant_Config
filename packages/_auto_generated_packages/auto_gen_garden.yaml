@@ -22,7 +22,7 @@ automation:
   - if:
     - condition: numeric_state
       entity_id: sensor.met_office_cambridge_city_airport_temperature_3_hourly
-      above: '20'
+      above: '18'
     - condition: time
       after: '10:00:00'
       before: '13:00:00'
@@ -309,8 +309,14 @@ automation:
     for: 00:01:00
   action:
     parallel:
-    - service: homeassistant.turn_on
-      entity_id: automation.zl_gd_ceiling_lights_on_or_open_curtains_if_entering_to_room_garden
+    - alias: Turn automation.zl_gd_ceiling_lights_on_or_open_curtains_if_entering_to_room_garden state=on
+      if:
+        condition: state
+        entity_id: input_boolean.always_on_constant
+        state: 'on'
+      then:
+        service: homeassistant.turn_on
+        entity_id: automation.zl_gd_ceiling_lights_on_or_open_curtains_if_entering_to_room_garden
     - alias: Turn nothing state=off
       if:
         condition: state
@@ -382,6 +388,25 @@ automation:
           then:
             service: cover.close_cover
             entity_id: []
+- alias: ZL-GD Disable Entering Lights-on Automation If any People are in the Room-Garden
+  trigger:
+  - platform: state
+    entity_id: input_select.garden_occupancy
+    to:
+    - Just Entered
+    - In Sleep
+    - Stayed Inside
+  action:
+  - delay: 00:00:10
+  - alias: Turn automation.zl_gd_ceiling_lights_on_or_open_curtains_if_entering_to_room_garden state=off
+    if:
+      condition: state
+      entity_id: input_boolean.always_on_constant
+      state: 'on'
+    then:
+      service: homeassistant.turn_off
+      entity_id: automation.zl_gd_ceiling_lights_on_or_open_curtains_if_entering_to_room_garden
+  id: automation.zl_gd_disable_entering_lights_on_automation_if_any_people_are_in_the_room_garden
 - alias: ZL-GD Applies Different Scenes Based on Scene Selections (State Execution)-Garden
   trigger:
   - platform: state
@@ -672,25 +697,13 @@ automation:
           entity_id: input_boolean.always_on_constant
           state: 'on'
         then:
-        - alias: Turn nothing state=on
-          if:
-            condition: state
-            entity_id: input_boolean.always_on_constant
-            state: 'on'
-          then:
-            service: cover.open_cover
-            entity_id: []
-        - alias: Turn nothing state=on light_brightness=100
-          if:
-            condition: state
-            entity_id: input_boolean.always_on_constant
-            state: 'on'
-          then:
-            service: light.turn_on
-            entity_id: []
-            data:
-              brightness_pct: 100
-        - service: pyscript.set_rgb_light_list
+        - service: pyscript.turn_rgb_light
+          data:
+            light_list:
+            - switch.garden_ceiling_light
+            state: 'off'
+            rgb: non_rgb_only
+        - service: pyscript.turn_rgb_light
           data:
             light_list:
             - switch.garden_ceiling_light
@@ -1207,5 +1220,6 @@ group:
     - input_boolean.ceiling_light_control_when_dark_outdoor_garden
     - automation.zl_gd_ceiling_lights_on_or_open_curtains_if_entering_to_room_garden
     - automation.zl_gd_lights_off_if_no_person_garden
+    - automation.zl_gd_disable_entering_lights_on_automation_if_any_people_are_in_the_room_garden
     - automation.zl_gd_applies_different_scenes_based_on_scene_selections_state_execution_garden
     - automation.zoc_gd_occupancy_update_garden

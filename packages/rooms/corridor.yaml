@@ -86,35 +86,28 @@ template:
 #
 ###############################################
 automation:
-  - alias: H-Workaround Zone Heating On When Heating Required
-    id: zone_heating_on
+  - alias: H-Downstairs Zone Heating On When Heating Required
+    id: downstairs_zone_heating_on
     trigger:
       - platform: state
         entity_id: 
         - binary_sensor.downstairs_heating_required
-        - binary_sensor.upstairs_heating_required
       - minutes: /5
         platform: time_pattern        
     condition:    
-    - condition: or
-      conditions:
       - condition: state
         entity_id: binary_sensor.downstairs_heating_required      
-        state: "on"
-      - condition: state
-        entity_id: binary_sensor.upstairs_heating_required      
         state: "on"
     action:
       - service: switch.turn_on
         entity_id: switch.downstairs_heating
 
-  - alias: H-Workaround Zone Heating Off When No Heating Required
-    id: zone_heating_off
+  - alias: H-Downstairs Zone Heating Off When No Heating Required
+    id: downstairs_zone_heating_off
     trigger:
       - platform: state
         entity_id: 
         - binary_sensor.downstairs_heating_required
-        - binary_sensor.upstairs_heating_required
       - minutes: /5
         platform: time_pattern        
     condition:    
@@ -123,12 +116,43 @@ automation:
       - condition: state
         entity_id: binary_sensor.downstairs_heating_required      
         state: "off"
-      - condition: state
-        entity_id: binary_sensor.upstairs_heating_required      
-        state: "off"        
     action:
       - service: switch.turn_off
         entity_id: switch.downstairs_heating
+
+  - alias: H-Upstairs Zone Heating On When Heating Required
+    id: upstairs_zone_heating_on
+    trigger:
+      - platform: state
+        entity_id: 
+        - binary_sensor.upstairs_heating_required
+      - minutes: /5
+        platform: time_pattern        
+    condition:    
+      - condition: state
+        entity_id: binary_sensor.upstairs_heating_required      
+        state: "on"
+    action:
+      - service: switch.turn_on
+        entity_id: switch.upstairs_heating
+
+  - alias: H-Upstairs Zone Heating Off When No Heating Required
+    id: upstairs_zone_heating_off
+    trigger:
+      - platform: state
+        entity_id: 
+        - binary_sensor.upstairs_heating_required
+      - minutes: /5
+        platform: time_pattern        
+    condition:    
+    - condition: and
+      conditions:
+      - condition: state
+        entity_id: binary_sensor.upstairs_heating_required      
+        state: "off"
+    action:
+      - service: switch.turn_off
+        entity_id: switch.upstairs_heating
 
   ###############################################
   # Water Heating Automation based on motion sensors
@@ -181,11 +205,7 @@ automation:
   - alias: L-GC Corridor Lights On If People Present
     description: ""
     trigger:
-      - entity_id: binary_sensor.ground_corridor_motion_sensor_motion
-        platform: state
-        from: "off"
-        to: "on"
-      - entity_id: binary_sensor.first_corridor_motion_sensor_motion
+      - entity_id: group.corridor_motion
         platform: state
         from: "off"
         to: "on"
@@ -196,12 +216,7 @@ automation:
   - alias: L-GC Ground Corridor Lights Off If No Person For 2 Min
     description: ""
     trigger:
-      - entity_id: binary_sensor.ground_corridor_motion_sensor_motion
-        platform: state
-        from: "on"
-        to: "off"
-        for: 00:02:00
-      - entity_id: binary_sensor.first_corridor_motion_sensor_motion
+      - entity_id: group.corridor_motion
         platform: state
         from: "on"
         to: "off"
@@ -210,11 +225,7 @@ automation:
         platform: time_pattern
     condition:
       - condition: state
-        entity_id: binary_sensor.ground_corridor_motion_sensor_motion
-        for: 00:02:00
-        state: "off"
-      - condition: state
-        entity_id: binary_sensor.first_corridor_motion_sensor_motion
+        entity_id: group.corridor_motion
         for: 00:02:00
         state: "off"
     action:
