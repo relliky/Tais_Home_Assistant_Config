@@ -4,35 +4,8 @@
 #
 ###########################################
 
-# Room Motion
-group:
-  kitchen_motion:
-    name: Kitchen Motion
-    entities:
-      - binary_sensor.kitchen_worktop_motion_sensor_motion
-      - binary_sensor.kitchen_dining_motion_sensor_motion
-
-  #  kitchen_appliances:
-  #    name: Kitchen Appliances
-  #    entities:
-  #      - climate.kitchen
-  #      - switch.kitchen_floor_led
-  #      - light.kitchen_dining_light
-  #      - light.kitchen_ceiling_light
-  #      - switch.kitchen_worktop_led_left
-  #      - switch.kitchen_worktop_led_right
-  #      - media_player.kitchen_tv
-  #      - switch.kitchen_extractor
-  #      - switch.kitchen_drinking_hot_water
-
-#  kitchen_worktop_leds:
-#    name: Kitchen Worktop LEDs
-#    entities:
-#      - switch.kitchen_worktop_led_left
-#      - switch.kitchen_worktop_led_right
-
   ## Custom Variables
-  #input_boolean:
+input_boolean:
   #  kitchen_short_presence: # done
   #    name: "Kitchen Short Presence"
   #    initial: "off"
@@ -67,6 +40,44 @@ template:
       - name: "X1 Battery"
         state: "{{states.vacuum.x1.attributes.battery_level}}"
         unit_of_measurement: "%"
+
+  - sensor:
+    - name: Max Temperature Out Of All Rooms
+      unit_of_measurement: "\xB0C"
+      state: >
+        {% if states.sensor.living_room_temperature_sensor.state != 'unavailable' %}
+          {% set temp1 = states.sensor.living_room_temperature_sensor.state %}
+        {% else  %}
+          {% set temp1 = 5 %}
+        {% endif %}
+        
+        {% if states.sensor.master_room_temperature_sensor.state != 'unavailable' %}
+          {% set temp2 = states.sensor.master_room_temperature_sensor.state %}
+        {% else  %}
+          {% set temp2 = 5 %}
+        {% endif %}
+        
+        {% if states.sensor.en_suite_room_temperature_sensor.state != 'unavailable' %}
+          {% set temp3 = states.sensor.en_suite_room_temperature_sensor.state %}
+        {% else  %}
+          {% set temp2 = 5 %}
+        {% endif %}
+        
+        {{([float(temp1), float(temp2), float(temp3)]|max) }}      
+
+
+# Ice maker thermostat, turning on ice marker above certain temperature
+climate:
+  - platform: generic_thermostat
+    name: Ice Maker Turn On When Any Room Over Certain Temperature
+    heater: switch.kitchen_ice_maker
+    target_sensor: sensor.max_temperature_out_of_all_rooms
+    min_temp: 10
+    max_temp: 30
+    ac_mode: true
+    target_temp: 30
+    initial_hvac_mode: "off"
+    precision: 0.5
 
 ###############################################
 #
@@ -214,10 +225,6 @@ automation:
       - entity_id: binary_sensor.kitchen_worktop_motion_sensor_motion
         platform: state
         to: "on"
-    condition:
-      - after: "06:00:00"
-        before: "23:00:00"
-        condition: time
     action:
       - service: light.turn_on
         entity_id: light.kitchen_worktop_led
@@ -237,9 +244,6 @@ automation:
         entity_id: binary_sensor.kitchen_worktop_motion_sensor_motion
         for: 00:05:00
         state: "off"
-      - after: "06:00:00"
-        before: "23:00:00"
-        condition: time
     action:
       - service: light.turn_off
         entity_id: light.kitchen_worktop_led

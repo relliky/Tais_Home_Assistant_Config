@@ -3,6 +3,21 @@
 # Please modify the python source code under python_templates directory.    #
 #############################################################################
 automation:
+- alias: ZLB-ST Flex Wall Switch On Postion 1- Automatically Turn on the Wall Switch Back When Turned Off -Study
+  trigger:
+  - platform: state
+    entity_id: switch.study_wall_switch
+    to: 'off'
+  action:
+  - alias: Turn switch.study_wall_switch state=on
+    if:
+      condition: state
+      entity_id: input_boolean.always_on_constant
+      state: 'on'
+    then:
+      service: homeassistant.turn_on
+      entity_id: switch.study_wall_switch
+  id: automation.zlb_st_flex_wall_switch_on_postion_1_automatically_turn_on_the_wall_switch_back_when_turned_off_study
 - alias: ZL-ST Ceiling Lights On Or Open Curtains If Entering to Room-Study
   id: automation.zl_st_ceiling_lights_on_or_open_curtains_if_entering_to_room_study
   trigger:
@@ -29,7 +44,7 @@ automation:
     - condition: template
       value_template: '{{ now().month > 4 and now().month < 9 }}'
     - condition: state
-      entity_id: input_boolean.always_off_constant
+      entity_id: input_boolean.always_on_constant
       state: 'on'
     then:
       alias: Lights on in hot sunshine
@@ -89,45 +104,141 @@ automation:
                     service: homeassistant.turn_on
                     entity_id:
                     - light.study_ceiling_light
+            else:
+              alias: Turn light.study_ceiling_light state=off
+              if:
+                condition: state
+                entity_id: input_boolean.always_on_constant
+                state: 'on'
+              then:
+                if:
+                - alias: any ceiling lights is unavailable, using wall switches to control instead
+                  condition: state
+                  entity_id:
+                  - light.study_ceiling_light
+                  state: unavailable
+                  match: any
+                then:
+                  alias: Turn switch.study_wall_switch state=off
+                  if:
+                    condition: state
+                    entity_id: input_boolean.always_on_constant
+                    state: 'on'
+                  then:
+                    service: homeassistant.turn_off
+                    entity_id:
+                    - switch.study_wall_switch
+                else:
+                  alias: Turn light.study_ceiling_light state=off
+                  if:
+                    condition: state
+                    entity_id: input_boolean.always_on_constant
+                    state: 'on'
+                  then:
+                    service: homeassistant.turn_off
+                    entity_id:
+                    - light.study_ceiling_light
           - if:
               condition: state
               entity_id: input_boolean.lamp_control_in_hot_sunshine_study
               state: 'on'
             then:
-              alias: Turn nothing state=on
+              alias: Turn switch.study_studio_lamp state=on
               if:
                 condition: state
                 entity_id: input_boolean.always_on_constant
                 state: 'on'
               then:
-                service: cover.open_cover
-                entity_id: []
+                alias: Turn on lamps first and check if light color is white. Reset color lamps to white and apply adaptive lighting.
+                if:
+                  condition: state
+                  entity_id: input_boolean.always_on_constant
+                  state: 'on'
+                then:
+                - service: homeassistant.turn_on
+                  entity_id:
+                  - switch.study_studio_lamp
+                - delay: 00:00:02
+                - if:
+                    condition: state
+                    entity_id: []
+                    state: color_temp
+                    attribute: color_mode
+                  then:
+                    service: script.do_nothing
+                  else:
+                  - service: light.turn_on
+                    entity_id: []
+                    data:
+                      kelvin: '3000'
+                  - delay: 00:00:02
+                  - service: light.turn_off
+                    entity_id: []
+                  - delay: 00:00:02
+                  - service: light.turn_on
+                    entity_id: []
+            else:
+              alias: Turn switch.study_studio_lamp state=off
+              if:
+                condition: state
+                entity_id: input_boolean.always_on_constant
+                state: 'on'
+              then:
+                service: homeassistant.turn_off
+                entity_id:
+                - switch.study_studio_lamp
           - if:
               condition: state
               entity_id: input_boolean.led_control_in_hot_sunshine_study
               state: 'on'
             then:
-              alias: Turn nothing state=on
+              alias: Turn switch.study_screen_led state=on
               if:
                 condition: state
                 entity_id: input_boolean.always_on_constant
                 state: 'on'
               then:
-                service: cover.open_cover
-                entity_id: []
+                service: homeassistant.turn_on
+                entity_id:
+                - switch.study_screen_led
+            else:
+              alias: Turn switch.study_screen_led state=off
+              if:
+                condition: state
+                entity_id: input_boolean.always_on_constant
+                state: 'on'
+              then:
+                service: homeassistant.turn_off
+                entity_id:
+                - switch.study_screen_led
           - if:
               condition: state
               entity_id: input_boolean.curtain_control_in_hot_sunshine_study
               state: 'on'
             then:
-              alias: Turn nothing state=on
+              alias: Turn cover.study_blind state=on
               if:
                 condition: state
                 entity_id: input_boolean.always_on_constant
                 state: 'on'
               then:
-                service: cover.open_cover
-                entity_id: []
+                service: cover.set_cover_position
+                data:
+                  position: 0
+                entity_id:
+                - cover.study_blind
+            else:
+              alias: Turn cover.study_blind state=off
+              if:
+                condition: state
+                entity_id: input_boolean.always_on_constant
+                state: 'on'
+              then:
+                service: cover.set_cover_position
+                data:
+                  position: 2
+                entity_id:
+                - cover.study_blind
     else:
       if:
       - condition: state
@@ -191,45 +302,141 @@ automation:
                       service: homeassistant.turn_on
                       entity_id:
                       - light.study_ceiling_light
+              else:
+                alias: Turn light.study_ceiling_light state=off
+                if:
+                  condition: state
+                  entity_id: input_boolean.always_on_constant
+                  state: 'on'
+                then:
+                  if:
+                  - alias: any ceiling lights is unavailable, using wall switches to control instead
+                    condition: state
+                    entity_id:
+                    - light.study_ceiling_light
+                    state: unavailable
+                    match: any
+                  then:
+                    alias: Turn switch.study_wall_switch state=off
+                    if:
+                      condition: state
+                      entity_id: input_boolean.always_on_constant
+                      state: 'on'
+                    then:
+                      service: homeassistant.turn_off
+                      entity_id:
+                      - switch.study_wall_switch
+                  else:
+                    alias: Turn light.study_ceiling_light state=off
+                    if:
+                      condition: state
+                      entity_id: input_boolean.always_on_constant
+                      state: 'on'
+                    then:
+                      service: homeassistant.turn_off
+                      entity_id:
+                      - light.study_ceiling_light
             - if:
                 condition: state
                 entity_id: input_boolean.lamp_control_when_bright_outdoor_study
                 state: 'on'
               then:
-                alias: Turn nothing state=on
+                alias: Turn switch.study_studio_lamp state=on
                 if:
                   condition: state
                   entity_id: input_boolean.always_on_constant
                   state: 'on'
                 then:
-                  service: cover.open_cover
-                  entity_id: []
+                  alias: Turn on lamps first and check if light color is white. Reset color lamps to white and apply adaptive lighting.
+                  if:
+                    condition: state
+                    entity_id: input_boolean.always_on_constant
+                    state: 'on'
+                  then:
+                  - service: homeassistant.turn_on
+                    entity_id:
+                    - switch.study_studio_lamp
+                  - delay: 00:00:02
+                  - if:
+                      condition: state
+                      entity_id: []
+                      state: color_temp
+                      attribute: color_mode
+                    then:
+                      service: script.do_nothing
+                    else:
+                    - service: light.turn_on
+                      entity_id: []
+                      data:
+                        kelvin: '3000'
+                    - delay: 00:00:02
+                    - service: light.turn_off
+                      entity_id: []
+                    - delay: 00:00:02
+                    - service: light.turn_on
+                      entity_id: []
+              else:
+                alias: Turn switch.study_studio_lamp state=off
+                if:
+                  condition: state
+                  entity_id: input_boolean.always_on_constant
+                  state: 'on'
+                then:
+                  service: homeassistant.turn_off
+                  entity_id:
+                  - switch.study_studio_lamp
             - if:
                 condition: state
                 entity_id: input_boolean.led_control_when_bright_outdoor_study
                 state: 'on'
               then:
-                alias: Turn nothing state=on
+                alias: Turn switch.study_screen_led state=on
                 if:
                   condition: state
                   entity_id: input_boolean.always_on_constant
                   state: 'on'
                 then:
-                  service: cover.open_cover
-                  entity_id: []
+                  service: homeassistant.turn_on
+                  entity_id:
+                  - switch.study_screen_led
+              else:
+                alias: Turn switch.study_screen_led state=off
+                if:
+                  condition: state
+                  entity_id: input_boolean.always_on_constant
+                  state: 'on'
+                then:
+                  service: homeassistant.turn_off
+                  entity_id:
+                  - switch.study_screen_led
             - if:
                 condition: state
                 entity_id: input_boolean.curtain_control_when_bright_outdoor_study
                 state: 'on'
               then:
-                alias: Turn nothing state=on
+                alias: Turn cover.study_blind state=on
                 if:
                   condition: state
                   entity_id: input_boolean.always_on_constant
                   state: 'on'
                 then:
-                  service: cover.open_cover
-                  entity_id: []
+                  service: cover.set_cover_position
+                  data:
+                    position: 0
+                  entity_id:
+                  - cover.study_blind
+              else:
+                alias: Turn cover.study_blind state=off
+                if:
+                  condition: state
+                  entity_id: input_boolean.always_on_constant
+                  state: 'on'
+                then:
+                  service: cover.set_cover_position
+                  data:
+                    position: 2
+                  entity_id:
+                  - cover.study_blind
       else:
         alias: Lights on when dark outdoor
         if:
@@ -288,45 +495,141 @@ automation:
                       service: homeassistant.turn_on
                       entity_id:
                       - light.study_ceiling_light
+              else:
+                alias: Turn light.study_ceiling_light state=off
+                if:
+                  condition: state
+                  entity_id: input_boolean.always_on_constant
+                  state: 'on'
+                then:
+                  if:
+                  - alias: any ceiling lights is unavailable, using wall switches to control instead
+                    condition: state
+                    entity_id:
+                    - light.study_ceiling_light
+                    state: unavailable
+                    match: any
+                  then:
+                    alias: Turn switch.study_wall_switch state=off
+                    if:
+                      condition: state
+                      entity_id: input_boolean.always_on_constant
+                      state: 'on'
+                    then:
+                      service: homeassistant.turn_off
+                      entity_id:
+                      - switch.study_wall_switch
+                  else:
+                    alias: Turn light.study_ceiling_light state=off
+                    if:
+                      condition: state
+                      entity_id: input_boolean.always_on_constant
+                      state: 'on'
+                    then:
+                      service: homeassistant.turn_off
+                      entity_id:
+                      - light.study_ceiling_light
             - if:
                 condition: state
                 entity_id: input_boolean.lamp_control_when_dark_outdoor_study
                 state: 'on'
               then:
-                alias: Turn nothing state=on
+                alias: Turn switch.study_studio_lamp state=on
                 if:
                   condition: state
                   entity_id: input_boolean.always_on_constant
                   state: 'on'
                 then:
-                  service: cover.open_cover
-                  entity_id: []
+                  alias: Turn on lamps first and check if light color is white. Reset color lamps to white and apply adaptive lighting.
+                  if:
+                    condition: state
+                    entity_id: input_boolean.always_on_constant
+                    state: 'on'
+                  then:
+                  - service: homeassistant.turn_on
+                    entity_id:
+                    - switch.study_studio_lamp
+                  - delay: 00:00:02
+                  - if:
+                      condition: state
+                      entity_id: []
+                      state: color_temp
+                      attribute: color_mode
+                    then:
+                      service: script.do_nothing
+                    else:
+                    - service: light.turn_on
+                      entity_id: []
+                      data:
+                        kelvin: '3000'
+                    - delay: 00:00:02
+                    - service: light.turn_off
+                      entity_id: []
+                    - delay: 00:00:02
+                    - service: light.turn_on
+                      entity_id: []
+              else:
+                alias: Turn switch.study_studio_lamp state=off
+                if:
+                  condition: state
+                  entity_id: input_boolean.always_on_constant
+                  state: 'on'
+                then:
+                  service: homeassistant.turn_off
+                  entity_id:
+                  - switch.study_studio_lamp
             - if:
                 condition: state
                 entity_id: input_boolean.led_control_when_dark_outdoor_study
                 state: 'on'
               then:
-                alias: Turn nothing state=on
+                alias: Turn switch.study_screen_led state=on
                 if:
                   condition: state
                   entity_id: input_boolean.always_on_constant
                   state: 'on'
                 then:
-                  service: cover.open_cover
-                  entity_id: []
+                  service: homeassistant.turn_on
+                  entity_id:
+                  - switch.study_screen_led
+              else:
+                alias: Turn switch.study_screen_led state=off
+                if:
+                  condition: state
+                  entity_id: input_boolean.always_on_constant
+                  state: 'on'
+                then:
+                  service: homeassistant.turn_off
+                  entity_id:
+                  - switch.study_screen_led
             - if:
                 condition: state
                 entity_id: input_boolean.curtain_control_when_dark_outdoor_study
                 state: 'on'
               then:
-                alias: Turn nothing state=on
+                alias: Turn cover.study_blind state=on
                 if:
                   condition: state
                   entity_id: input_boolean.always_on_constant
                   state: 'on'
                 then:
-                  service: cover.open_cover
-                  entity_id: []
+                  service: cover.set_cover_position
+                  data:
+                    position: 0
+                  entity_id:
+                  - cover.study_blind
+              else:
+                alias: Turn cover.study_blind state=off
+                if:
+                  condition: state
+                  entity_id: input_boolean.always_on_constant
+                  state: 'on'
+                then:
+                  service: cover.set_cover_position
+                  data:
+                    position: 2
+                  entity_id:
+                  - cover.study_blind
 - alias: ZL-ST Lights Off If No Person-Study
   id: automation.zl_st_lights_off_if_no_person_study
   trigger:
@@ -353,22 +656,35 @@ automation:
       then:
         service: homeassistant.turn_on
         entity_id: automation.zl_st_ceiling_lights_on_or_open_curtains_if_entering_to_room_study
-    - alias: Turn nothing state=off
-      if:
+    - if:
         condition: state
-        entity_id: input_boolean.always_on_constant
+        entity_id: input_boolean.curtain_control_when_left_study
         state: 'on'
       then:
-        service: cover.close_cover
-        entity_id: []
-    - alias: Turn nothing state=off
-      if:
-        condition: state
-        entity_id: input_boolean.always_on_constant
-        state: 'on'
-      then:
-        service: cover.close_cover
-        entity_id: []
+        alias: Turn cover.study_blind state=on
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+          service: cover.set_cover_position
+          data:
+            position: 0
+          entity_id:
+          - cover.study_blind
+      else:
+        alias: Turn cover.study_blind state=off
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+          service: cover.set_cover_position
+          data:
+            position: 2
+          entity_id:
+          - cover.study_blind
+    - service: script.do_nothing
     - alias: All Off
       if:
         condition: state
@@ -409,22 +725,24 @@ automation:
                 service: homeassistant.turn_off
                 entity_id:
                 - light.study_ceiling_light
-        - alias: Turn nothing state=off
+        - alias: Turn switch.study_studio_lamp state=off
           if:
             condition: state
             entity_id: input_boolean.always_on_constant
             state: 'on'
           then:
-            service: cover.close_cover
-            entity_id: []
-        - alias: Turn nothing state=off
+            service: homeassistant.turn_off
+            entity_id:
+            - switch.study_studio_lamp
+        - alias: Turn switch.study_screen_led state=off
           if:
             condition: state
             entity_id: input_boolean.always_on_constant
             state: 'on'
           then:
-            service: cover.close_cover
-            entity_id: []
+            service: homeassistant.turn_off
+            entity_id:
+            - switch.study_screen_led
 - alias: ZL-ST Disable Entering Lights-on Automation If any People are in the Room-Study
   trigger:
   - platform: state
@@ -435,14 +753,10 @@ automation:
     - Stayed Inside
   action:
   - delay: 00:00:10
-  - alias: Turn automation.zl_st_ceiling_lights_on_or_open_curtains_if_entering_to_room_study state=off
-    if:
-      condition: state
-      entity_id: input_boolean.always_on_constant
-      state: 'on'
-    then:
-      service: homeassistant.turn_off
-      entity_id: automation.zl_st_ceiling_lights_on_or_open_curtains_if_entering_to_room_study
+  - service: automation.turn_off
+    entity_id: automation.zl_st_ceiling_lights_on_or_open_curtains_if_entering_to_room_study
+    data:
+      stop_actions: 'false'
   id: automation.zl_st_disable_entering_lights_on_automation_if_any_people_are_in_the_room_study
 - alias: ZH-ST Heating Schedule On If Staying In the Room-Study
   id: automation.zh_st_heating_schedule_on_if_staying_in_the_room_study
@@ -596,14 +910,40 @@ automation:
           state: 'on'
         then:
         - parallel:
-          - alias: Turn nothing state=on
+          - alias: Turn switch.study_studio_lamp state=on
             if:
               condition: state
               entity_id: input_boolean.always_on_constant
               state: 'on'
             then:
-              service: cover.open_cover
-              entity_id: []
+              alias: Turn on lamps first and check if light color is white. Reset color lamps to white and apply adaptive lighting.
+              if:
+                condition: state
+                entity_id: input_boolean.always_on_constant
+                state: 'on'
+              then:
+              - service: homeassistant.turn_on
+                entity_id:
+                - switch.study_studio_lamp
+              - delay: 00:00:02
+              - if:
+                  condition: state
+                  entity_id: []
+                  state: color_temp
+                  attribute: color_mode
+                then:
+                  service: script.do_nothing
+                else:
+                - service: light.turn_on
+                  entity_id: []
+                  data:
+                    kelvin: '3000'
+                - delay: 00:00:02
+                - service: light.turn_off
+                  entity_id: []
+                - delay: 00:00:02
+                - service: light.turn_on
+                  entity_id: []
           - alias: Turn light.study_ceiling_light state=on
             if:
               condition: state
@@ -648,24 +988,16 @@ automation:
                   service: homeassistant.turn_on
                   entity_id:
                   - light.study_ceiling_light
-          - alias: Turn nothing state=on
+          - alias: Turn switch.study_screen_led state=on
             if:
               condition: state
               entity_id: input_boolean.always_on_constant
               state: 'on'
             then:
-              service: cover.open_cover
-              entity_id: []
-          - alias: Turn nothing
-            if:
-              condition: state
-              entity_id: input_boolean.always_on_constant
-              state: 'on'
-            then:
-              service: samsungtv_smart.select_picture_mode
-              data:
-                entity_id: []
-                picture_mode: Standard
+              service: homeassistant.turn_on
+              entity_id:
+              - switch.study_screen_led
+          - service: script.do_nothing
     - conditions:
       - condition: state
         entity_id: input_select.study_scene
@@ -678,14 +1010,16 @@ automation:
           state: 'on'
         then:
         - parallel:
-          - alias: Turn nothing state=off
+          - alias: Turn switch.study_screen_led switch.study_studio_lamp state=off
             if:
               condition: state
               entity_id: input_boolean.always_on_constant
               state: 'on'
             then:
-              service: cover.close_cover
-              entity_id: []
+              service: homeassistant.turn_off
+              entity_id:
+              - switch.study_screen_led
+              - switch.study_studio_lamp
           - alias: Turn light.study_ceiling_light state=on
             if:
               condition: state
@@ -730,16 +1064,7 @@ automation:
                   service: homeassistant.turn_on
                   entity_id:
                   - light.study_ceiling_light
-          - alias: Turn nothing
-            if:
-              condition: state
-              entity_id: input_boolean.always_on_constant
-              state: 'on'
-            then:
-              service: samsungtv_smart.select_picture_mode
-              data:
-                entity_id: []
-                picture_mode: Standard
+          - service: script.do_nothing
     - conditions:
       - condition: state
         entity_id: input_select.study_scene
@@ -785,32 +1110,50 @@ automation:
                   service: homeassistant.turn_off
                   entity_id:
                   - light.study_ceiling_light
-          - alias: Turn nothing state=on
+          - alias: Turn switch.study_studio_lamp state=on
             if:
               condition: state
               entity_id: input_boolean.always_on_constant
               state: 'on'
             then:
-              service: cover.open_cover
-              entity_id: []
-          - alias: Turn nothing state=on
+              alias: Turn on lamps first and check if light color is white. Reset color lamps to white and apply adaptive lighting.
+              if:
+                condition: state
+                entity_id: input_boolean.always_on_constant
+                state: 'on'
+              then:
+              - service: homeassistant.turn_on
+                entity_id:
+                - switch.study_studio_lamp
+              - delay: 00:00:02
+              - if:
+                  condition: state
+                  entity_id: []
+                  state: color_temp
+                  attribute: color_mode
+                then:
+                  service: script.do_nothing
+                else:
+                - service: light.turn_on
+                  entity_id: []
+                  data:
+                    kelvin: '3000'
+                - delay: 00:00:02
+                - service: light.turn_off
+                  entity_id: []
+                - delay: 00:00:02
+                - service: light.turn_on
+                  entity_id: []
+          - alias: Turn switch.study_screen_led state=on
             if:
               condition: state
               entity_id: input_boolean.always_on_constant
               state: 'on'
             then:
-              service: cover.open_cover
-              entity_id: []
-          - alias: Turn nothing
-            if:
-              condition: state
-              entity_id: input_boolean.always_on_constant
-              state: 'on'
-            then:
-              service: samsungtv_smart.select_picture_mode
-              data:
-                entity_id: []
-                picture_mode: Standard
+              service: homeassistant.turn_on
+              entity_id:
+              - switch.study_screen_led
+          - service: script.do_nothing
     - conditions:
       - condition: state
         entity_id: input_select.study_scene
@@ -856,32 +1199,25 @@ automation:
                   service: homeassistant.turn_off
                   entity_id:
                   - light.study_ceiling_light
-          - alias: Turn nothing state=off
+          - alias: Turn switch.study_studio_lamp state=off
             if:
               condition: state
               entity_id: input_boolean.always_on_constant
               state: 'on'
             then:
-              service: cover.close_cover
-              entity_id: []
-          - alias: Turn nothing state=on
+              service: homeassistant.turn_off
+              entity_id:
+              - switch.study_studio_lamp
+          - alias: Turn switch.study_screen_led state=on
             if:
               condition: state
               entity_id: input_boolean.always_on_constant
               state: 'on'
             then:
-              service: cover.open_cover
-              entity_id: []
-          - alias: Turn nothing
-            if:
-              condition: state
-              entity_id: input_boolean.always_on_constant
-              state: 'on'
-            then:
-              service: samsungtv_smart.select_picture_mode
-              data:
-                entity_id: []
-                picture_mode: Natural
+              service: homeassistant.turn_on
+              entity_id:
+              - switch.study_screen_led
+          - service: script.do_nothing
     - conditions:
       - condition: state
         entity_id: input_select.study_scene
@@ -896,23 +1232,18 @@ automation:
         - service: pyscript.turn_rgb_light
           data:
             light_list:
+            - switch.study_studio_lamp
             - light.study_ceiling_light
+            - switch.study_screen_led
             state: 'off'
             rgb: non_rgb_only
         - service: pyscript.turn_rgb_light
           data:
             light_list:
+            - switch.study_studio_lamp
             - light.study_ceiling_light
-        - alias: Turn nothing
-          if:
-            condition: state
-            entity_id: input_boolean.always_on_constant
-            state: 'on'
-          then:
-            service: samsungtv_smart.select_picture_mode
-            data:
-              entity_id: []
-              picture_mode: Natural
+            - switch.study_screen_led
+        - service: script.do_nothing
     - conditions:
       - condition: state
         entity_id: input_select.study_scene
@@ -927,16 +1258,7 @@ automation:
         - parallel:
           - service: homeassistant.turn_on
             entity_id: scene.study_night_mode
-          - alias: Turn nothing
-            if:
-              condition: state
-              entity_id: input_boolean.always_on_constant
-              state: 'on'
-            then:
-              service: samsungtv_smart.select_picture_mode
-              data:
-                entity_id: []
-                picture_mode: Natural
+          - service: script.do_nothing
     - conditions:
       - condition: state
         entity_id: input_select.study_scene
@@ -951,16 +1273,7 @@ automation:
         - parallel:
           - service: homeassistant.turn_on
             entity_id: scene.study_dark_night_mode
-          - alias: Turn nothing
-            if:
-              condition: state
-              entity_id: input_boolean.always_on_constant
-              state: 'on'
-            then:
-              service: samsungtv_smart.select_picture_mode
-              data:
-                entity_id: []
-                picture_mode: Movie
+          - service: script.do_nothing
     - conditions:
       - condition: state
         entity_id: input_select.study_scene
@@ -1006,22 +1319,24 @@ automation:
                   service: homeassistant.turn_off
                   entity_id:
                   - light.study_ceiling_light
-          - alias: Turn nothing state=off
+          - alias: Turn switch.study_studio_lamp state=off
             if:
               condition: state
               entity_id: input_boolean.always_on_constant
               state: 'on'
             then:
-              service: cover.close_cover
-              entity_id: []
-          - alias: Turn nothing state=off
+              service: homeassistant.turn_off
+              entity_id:
+              - switch.study_studio_lamp
+          - alias: Turn switch.study_screen_led state=off
             if:
               condition: state
               entity_id: input_boolean.always_on_constant
               state: 'on'
             then:
-              service: cover.close_cover
-              entity_id: []
+              service: homeassistant.turn_off
+              entity_id:
+              - switch.study_screen_led
     - conditions:
       - condition: state
         entity_id: input_select.study_scene
@@ -1084,45 +1399,141 @@ automation:
                       service: homeassistant.turn_on
                       entity_id:
                       - light.study_ceiling_light
+              else:
+                alias: Turn light.study_ceiling_light state=off
+                if:
+                  condition: state
+                  entity_id: input_boolean.always_on_constant
+                  state: 'on'
+                then:
+                  if:
+                  - alias: any ceiling lights is unavailable, using wall switches to control instead
+                    condition: state
+                    entity_id:
+                    - light.study_ceiling_light
+                    state: unavailable
+                    match: any
+                  then:
+                    alias: Turn switch.study_wall_switch state=off
+                    if:
+                      condition: state
+                      entity_id: input_boolean.always_on_constant
+                      state: 'on'
+                    then:
+                      service: homeassistant.turn_off
+                      entity_id:
+                      - switch.study_wall_switch
+                  else:
+                    alias: Turn light.study_ceiling_light state=off
+                    if:
+                      condition: state
+                      entity_id: input_boolean.always_on_constant
+                      state: 'on'
+                    then:
+                      service: homeassistant.turn_off
+                      entity_id:
+                      - light.study_ceiling_light
             - if:
                 condition: state
                 entity_id: input_boolean.lamp_control_in_hot_sunshine_study
                 state: 'on'
               then:
-                alias: Turn nothing state=on
+                alias: Turn switch.study_studio_lamp state=on
                 if:
                   condition: state
                   entity_id: input_boolean.always_on_constant
                   state: 'on'
                 then:
-                  service: cover.open_cover
-                  entity_id: []
+                  alias: Turn on lamps first and check if light color is white. Reset color lamps to white and apply adaptive lighting.
+                  if:
+                    condition: state
+                    entity_id: input_boolean.always_on_constant
+                    state: 'on'
+                  then:
+                  - service: homeassistant.turn_on
+                    entity_id:
+                    - switch.study_studio_lamp
+                  - delay: 00:00:02
+                  - if:
+                      condition: state
+                      entity_id: []
+                      state: color_temp
+                      attribute: color_mode
+                    then:
+                      service: script.do_nothing
+                    else:
+                    - service: light.turn_on
+                      entity_id: []
+                      data:
+                        kelvin: '3000'
+                    - delay: 00:00:02
+                    - service: light.turn_off
+                      entity_id: []
+                    - delay: 00:00:02
+                    - service: light.turn_on
+                      entity_id: []
+              else:
+                alias: Turn switch.study_studio_lamp state=off
+                if:
+                  condition: state
+                  entity_id: input_boolean.always_on_constant
+                  state: 'on'
+                then:
+                  service: homeassistant.turn_off
+                  entity_id:
+                  - switch.study_studio_lamp
             - if:
                 condition: state
                 entity_id: input_boolean.led_control_in_hot_sunshine_study
                 state: 'on'
               then:
-                alias: Turn nothing state=on
+                alias: Turn switch.study_screen_led state=on
                 if:
                   condition: state
                   entity_id: input_boolean.always_on_constant
                   state: 'on'
                 then:
-                  service: cover.open_cover
-                  entity_id: []
+                  service: homeassistant.turn_on
+                  entity_id:
+                  - switch.study_screen_led
+              else:
+                alias: Turn switch.study_screen_led state=off
+                if:
+                  condition: state
+                  entity_id: input_boolean.always_on_constant
+                  state: 'on'
+                then:
+                  service: homeassistant.turn_off
+                  entity_id:
+                  - switch.study_screen_led
             - if:
                 condition: state
                 entity_id: input_boolean.curtain_control_in_hot_sunshine_study
                 state: 'on'
               then:
-                alias: Turn nothing state=on
+                alias: Turn cover.study_blind state=on
                 if:
                   condition: state
                   entity_id: input_boolean.always_on_constant
                   state: 'on'
                 then:
-                  service: cover.open_cover
-                  entity_id: []
+                  service: cover.set_cover_position
+                  data:
+                    position: 0
+                  entity_id:
+                  - cover.study_blind
+              else:
+                alias: Turn cover.study_blind state=off
+                if:
+                  condition: state
+                  entity_id: input_boolean.always_on_constant
+                  state: 'on'
+                then:
+                  service: cover.set_cover_position
+                  data:
+                    position: 2
+                  entity_id:
+                  - cover.study_blind
     - conditions:
       - condition: state
         entity_id: input_select.study_scene
@@ -1185,45 +1596,141 @@ automation:
                       service: homeassistant.turn_on
                       entity_id:
                       - light.study_ceiling_light
+              else:
+                alias: Turn light.study_ceiling_light state=off
+                if:
+                  condition: state
+                  entity_id: input_boolean.always_on_constant
+                  state: 'on'
+                then:
+                  if:
+                  - alias: any ceiling lights is unavailable, using wall switches to control instead
+                    condition: state
+                    entity_id:
+                    - light.study_ceiling_light
+                    state: unavailable
+                    match: any
+                  then:
+                    alias: Turn switch.study_wall_switch state=off
+                    if:
+                      condition: state
+                      entity_id: input_boolean.always_on_constant
+                      state: 'on'
+                    then:
+                      service: homeassistant.turn_off
+                      entity_id:
+                      - switch.study_wall_switch
+                  else:
+                    alias: Turn light.study_ceiling_light state=off
+                    if:
+                      condition: state
+                      entity_id: input_boolean.always_on_constant
+                      state: 'on'
+                    then:
+                      service: homeassistant.turn_off
+                      entity_id:
+                      - light.study_ceiling_light
             - if:
                 condition: state
                 entity_id: input_boolean.lamp_control_when_bright_outdoor_study
                 state: 'on'
               then:
-                alias: Turn nothing state=on
+                alias: Turn switch.study_studio_lamp state=on
                 if:
                   condition: state
                   entity_id: input_boolean.always_on_constant
                   state: 'on'
                 then:
-                  service: cover.open_cover
-                  entity_id: []
+                  alias: Turn on lamps first and check if light color is white. Reset color lamps to white and apply adaptive lighting.
+                  if:
+                    condition: state
+                    entity_id: input_boolean.always_on_constant
+                    state: 'on'
+                  then:
+                  - service: homeassistant.turn_on
+                    entity_id:
+                    - switch.study_studio_lamp
+                  - delay: 00:00:02
+                  - if:
+                      condition: state
+                      entity_id: []
+                      state: color_temp
+                      attribute: color_mode
+                    then:
+                      service: script.do_nothing
+                    else:
+                    - service: light.turn_on
+                      entity_id: []
+                      data:
+                        kelvin: '3000'
+                    - delay: 00:00:02
+                    - service: light.turn_off
+                      entity_id: []
+                    - delay: 00:00:02
+                    - service: light.turn_on
+                      entity_id: []
+              else:
+                alias: Turn switch.study_studio_lamp state=off
+                if:
+                  condition: state
+                  entity_id: input_boolean.always_on_constant
+                  state: 'on'
+                then:
+                  service: homeassistant.turn_off
+                  entity_id:
+                  - switch.study_studio_lamp
             - if:
                 condition: state
                 entity_id: input_boolean.led_control_when_bright_outdoor_study
                 state: 'on'
               then:
-                alias: Turn nothing state=on
+                alias: Turn switch.study_screen_led state=on
                 if:
                   condition: state
                   entity_id: input_boolean.always_on_constant
                   state: 'on'
                 then:
-                  service: cover.open_cover
-                  entity_id: []
+                  service: homeassistant.turn_on
+                  entity_id:
+                  - switch.study_screen_led
+              else:
+                alias: Turn switch.study_screen_led state=off
+                if:
+                  condition: state
+                  entity_id: input_boolean.always_on_constant
+                  state: 'on'
+                then:
+                  service: homeassistant.turn_off
+                  entity_id:
+                  - switch.study_screen_led
             - if:
                 condition: state
                 entity_id: input_boolean.curtain_control_when_bright_outdoor_study
                 state: 'on'
               then:
-                alias: Turn nothing state=on
+                alias: Turn cover.study_blind state=on
                 if:
                   condition: state
                   entity_id: input_boolean.always_on_constant
                   state: 'on'
                 then:
-                  service: cover.open_cover
-                  entity_id: []
+                  service: cover.set_cover_position
+                  data:
+                    position: 0
+                  entity_id:
+                  - cover.study_blind
+              else:
+                alias: Turn cover.study_blind state=off
+                if:
+                  condition: state
+                  entity_id: input_boolean.always_on_constant
+                  state: 'on'
+                then:
+                  service: cover.set_cover_position
+                  data:
+                    position: 2
+                  entity_id:
+                  - cover.study_blind
     - conditions:
       - condition: state
         entity_id: input_select.study_scene
@@ -1286,157 +1793,6 @@ automation:
                       service: homeassistant.turn_on
                       entity_id:
                       - light.study_ceiling_light
-            - if:
-                condition: state
-                entity_id: input_boolean.lamp_control_when_dark_outdoor_study
-                state: 'on'
-              then:
-                alias: Turn nothing state=on
-                if:
-                  condition: state
-                  entity_id: input_boolean.always_on_constant
-                  state: 'on'
-                then:
-                  service: cover.open_cover
-                  entity_id: []
-            - if:
-                condition: state
-                entity_id: input_boolean.led_control_when_dark_outdoor_study
-                state: 'on'
-              then:
-                alias: Turn nothing state=on
-                if:
-                  condition: state
-                  entity_id: input_boolean.always_on_constant
-                  state: 'on'
-                then:
-                  service: cover.open_cover
-                  entity_id: []
-            - if:
-                condition: state
-                entity_id: input_boolean.curtain_control_when_dark_outdoor_study
-                state: 'on'
-              then:
-                alias: Turn nothing state=on
-                if:
-                  condition: state
-                  entity_id: input_boolean.always_on_constant
-                  state: 'on'
-                then:
-                  service: cover.open_cover
-                  entity_id: []
-  id: automation.zl_st_applies_different_scenes_based_on_scene_selections_state_execution_study
-- alias: ZLB-ST Wall Switch - Single Press - Toggle Ceiling Light-Study
-  trigger:
-  - platform: state
-    entity_id:
-    - sensor.study_wall_button
-    to:
-    - '1'
-    - single
-    - single_left
-    - single_right
-    - single_center
-    - button_1_single
-    - button_2_single
-    - button_3_single
-  action:
-  - alias: Turn light.study_ceiling_light state=toggle
-    if:
-      condition: state
-      entity_id: input_boolean.always_on_constant
-      state: 'on'
-    then:
-      if:
-      - alias: any ceiling lights is unavailable, using wall switches to control instead
-        condition: state
-        entity_id:
-        - light.study_ceiling_light
-        state: unavailable
-        match: any
-      then:
-        alias: Turn switch.study_wall_switch state=toggle
-        if:
-          condition: state
-          entity_id: input_boolean.always_on_constant
-          state: 'on'
-        then:
-          if:
-          - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
-            condition: state
-            entity_id:
-            - switch.study_wall_switch
-            state: 'on'
-            match: any
-          then:
-            alias: Turn switch.study_wall_switch state=off
-            if:
-              condition: state
-              entity_id: input_boolean.always_on_constant
-              state: 'on'
-            then:
-              service: homeassistant.turn_off
-              entity_id:
-              - switch.study_wall_switch
-          else:
-            alias: Turn switch.study_wall_switch state=on
-            if:
-              condition: state
-              entity_id: input_boolean.always_on_constant
-              state: 'on'
-            then:
-              alias: Everytime to turn on a wall switch, make sure to turn off it first to make sure the smart lights will be back on
-              if:
-                condition: state
-                entity_id: input_boolean.always_on_constant
-                state: 'on'
-              then:
-              - service: homeassistant.turn_off
-                entity_id:
-                - switch.study_wall_switch
-              - delay:
-                  milliseconds: 200
-              - service: homeassistant.turn_on
-                entity_id:
-                - switch.study_wall_switch
-      else:
-        alias: Turn light.study_ceiling_light state=toggle
-        if:
-          condition: state
-          entity_id: input_boolean.always_on_constant
-          state: 'on'
-        then:
-          if:
-          - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
-            condition: state
-            entity_id:
-            - light.study_ceiling_light
-            state: 'on'
-            match: any
-          then:
-            alias: Turn light.study_ceiling_light state=off
-            if:
-              condition: state
-              entity_id: input_boolean.always_on_constant
-              state: 'on'
-            then:
-              if:
-              - alias: any ceiling lights is unavailable, using wall switches to control instead
-                condition: state
-                entity_id:
-                - light.study_ceiling_light
-                state: unavailable
-                match: any
-              then:
-                alias: Turn switch.study_wall_switch state=off
-                if:
-                  condition: state
-                  entity_id: input_boolean.always_on_constant
-                  state: 'on'
-                then:
-                  service: homeassistant.turn_off
-                  entity_id:
-                  - switch.study_wall_switch
               else:
                 alias: Turn light.study_ceiling_light state=off
                 if:
@@ -1444,46 +1800,88 @@ automation:
                   entity_id: input_boolean.always_on_constant
                   state: 'on'
                 then:
-                  service: homeassistant.turn_off
-                  entity_id:
-                  - light.study_ceiling_light
-          else:
-            alias: Turn light.study_ceiling_light state=on
-            if:
-              condition: state
-              entity_id: input_boolean.always_on_constant
-              state: 'on'
-            then:
-              if:
-              - alias: any ceiling lights is unavailable, using wall switches to control instead
+                  if:
+                  - alias: any ceiling lights is unavailable, using wall switches to control instead
+                    condition: state
+                    entity_id:
+                    - light.study_ceiling_light
+                    state: unavailable
+                    match: any
+                  then:
+                    alias: Turn switch.study_wall_switch state=off
+                    if:
+                      condition: state
+                      entity_id: input_boolean.always_on_constant
+                      state: 'on'
+                    then:
+                      service: homeassistant.turn_off
+                      entity_id:
+                      - switch.study_wall_switch
+                  else:
+                    alias: Turn light.study_ceiling_light state=off
+                    if:
+                      condition: state
+                      entity_id: input_boolean.always_on_constant
+                      state: 'on'
+                    then:
+                      service: homeassistant.turn_off
+                      entity_id:
+                      - light.study_ceiling_light
+            - if:
                 condition: state
-                entity_id:
-                - light.study_ceiling_light
-                state: unavailable
-                match: any
+                entity_id: input_boolean.lamp_control_when_dark_outdoor_study
+                state: 'on'
               then:
-                alias: Turn switch.study_wall_switch state=on
+                alias: Turn switch.study_studio_lamp state=on
                 if:
                   condition: state
                   entity_id: input_boolean.always_on_constant
                   state: 'on'
                 then:
-                  alias: Everytime to turn on a wall switch, make sure to turn off it first to make sure the smart lights will be back on
+                  alias: Turn on lamps first and check if light color is white. Reset color lamps to white and apply adaptive lighting.
                   if:
                     condition: state
                     entity_id: input_boolean.always_on_constant
                     state: 'on'
                   then:
-                  - service: homeassistant.turn_off
-                    entity_id:
-                    - switch.study_wall_switch
-                  - delay:
-                      milliseconds: 200
                   - service: homeassistant.turn_on
                     entity_id:
-                    - switch.study_wall_switch
+                    - switch.study_studio_lamp
+                  - delay: 00:00:02
+                  - if:
+                      condition: state
+                      entity_id: []
+                      state: color_temp
+                      attribute: color_mode
+                    then:
+                      service: script.do_nothing
+                    else:
+                    - service: light.turn_on
+                      entity_id: []
+                      data:
+                        kelvin: '3000'
+                    - delay: 00:00:02
+                    - service: light.turn_off
+                      entity_id: []
+                    - delay: 00:00:02
+                    - service: light.turn_on
+                      entity_id: []
               else:
-                alias: Turn light.study_ceiling_light state=on
+                alias: Turn switch.study_studio_lamp state=off
+                if:
+                  condition: state
+                  entity_id: input_boolean.always_on_constant
+                  state: 'on'
+                then:
+                  service: homeassistant.turn_off
+                  entity_id:
+                  - switch.study_studio_lamp
+            - if:
+                condition: state
+                entity_id: input_boolean.led_control_when_dark_outdoor_study
+                state: 'on'
+              then:
+                alias: Turn switch.study_screen_led state=on
                 if:
                   condition: state
                   entity_id: input_boolean.always_on_constant
@@ -1491,8 +1889,46 @@ automation:
                 then:
                   service: homeassistant.turn_on
                   entity_id:
-                  - light.study_ceiling_light
-  id: automation.zlb_st_wall_switch_single_press_toggle_ceiling_light_study
+                  - switch.study_screen_led
+              else:
+                alias: Turn switch.study_screen_led state=off
+                if:
+                  condition: state
+                  entity_id: input_boolean.always_on_constant
+                  state: 'on'
+                then:
+                  service: homeassistant.turn_off
+                  entity_id:
+                  - switch.study_screen_led
+            - if:
+                condition: state
+                entity_id: input_boolean.curtain_control_when_dark_outdoor_study
+                state: 'on'
+              then:
+                alias: Turn cover.study_blind state=on
+                if:
+                  condition: state
+                  entity_id: input_boolean.always_on_constant
+                  state: 'on'
+                then:
+                  service: cover.set_cover_position
+                  data:
+                    position: 0
+                  entity_id:
+                  - cover.study_blind
+              else:
+                alias: Turn cover.study_blind state=off
+                if:
+                  condition: state
+                  entity_id: input_boolean.always_on_constant
+                  state: 'on'
+                then:
+                  service: cover.set_cover_position
+                  data:
+                    position: 2
+                  entity_id:
+                  - cover.study_blind
+  id: automation.zl_st_applies_different_scenes_based_on_scene_selections_state_execution_study
 - alias: ZLB-ST Wall Switch - Double Press - Leave Room and Turn Off Everything-Study
   trigger:
   - platform: state
@@ -1538,11 +1974,50 @@ automation:
       motion_on_ratio_for_2x_min_str: sensor.study_motion_on_ratio_for_last_8_minutes
       room_type: common_area
   id: automation.zoc_st_occupancy_update_study
+- alias: ZN-ST Notify Zigbee Offline Devices -Study
+  trigger:
+  - platform: state
+    entity_id: switch.guest_room_wall_switch
+    to: unavailable
+    for: 00:03:00
+  action:
+  - service: script.notify_alexa_speakers_and_phones
+    data:
+      tts_message: 'ST gateway zigbee devices are offline. Restarting gateway. Offline device: switch.guest_room_wall_switch'
+      notify_tai: 'yes'
+  - alias: Turn switch.study_gateway_power state=off
+    if:
+      condition: state
+      entity_id: input_boolean.always_on_constant
+      state: 'on'
+    then:
+      service: homeassistant.turn_off
+      entity_id: switch.study_gateway_power
+  - delay: 00:00:02
+  - alias: Turn switch.study_gateway_power state=on
+    if:
+      condition: state
+      entity_id: input_boolean.always_on_constant
+      state: 'on'
+    then:
+      service: homeassistant.turn_on
+      entity_id: switch.study_gateway_power
+  id: automation.zn_st_notify_zigbee_offline_devices_study
+- alias: ZN-ST Notify Wifi Offline Devices -Study
+  trigger:
+  - platform: state
+    entity_id: light.master_room_drawer_led
+    to: unavailable
+    for: 00:03:00
+  action: []
+  id: automation.zn_st_notify_wifi_offline_devices_study
 input_select:
   study_scene:
     name: Study Scene
     options:
     - Idle
+    - Lamp LED White
+    - LED White
     - All White
     - Ceiling Light White
     - All Off
@@ -1574,56 +2049,64 @@ input_boolean:
   study_heating_override:
     name: Study Heating Override
     initial: 'off'
+  curtain_control_when_left_study:
+    name: Curtain Control When Left Study
   ceiling_light_control_in_hot_sunshine_study:
     name: Ceiling Light Control In Hot Sunshine Study
-    initial: 'off'
   lamp_control_in_hot_sunshine_study:
     name: Lamp Control In Hot Sunshine Study
-    initial: 'off'
   led_control_in_hot_sunshine_study:
     name: Led Control In Hot Sunshine Study
-    initial: 'off'
   curtain_control_in_hot_sunshine_study:
     name: Curtain Control In Hot Sunshine Study
-    initial: 'off'
   ceiling_light_control_when_bright_outdoor_study:
     name: Ceiling Light Control When Bright Outdoor Study
   lamp_control_when_bright_outdoor_study:
     name: Lamp Control When Bright Outdoor Study
-    initial: 'off'
   led_control_when_bright_outdoor_study:
     name: Led Control When Bright Outdoor Study
-    initial: 'off'
   curtain_control_when_bright_outdoor_study:
     name: Curtain Control When Bright Outdoor Study
-    initial: 'off'
   ceiling_light_control_when_dark_outdoor_study:
     name: Ceiling Light Control When Dark Outdoor Study
   lamp_control_when_dark_outdoor_study:
     name: Lamp Control When Dark Outdoor Study
-    initial: 'off'
   led_control_when_dark_outdoor_study:
     name: Led Control When Dark Outdoor Study
-    initial: 'off'
   curtain_control_when_dark_outdoor_study:
     name: Curtain Control When Dark Outdoor Study
-    initial: 'off'
 switch:
 - platform: group
   name: Study Wall Switch 1
   entities: switch.study_wall_switch
+- platform: group
+  name: Study Studio Lamp 1
+  entities: switch.mss210_b083_outlet
+- platform: group
+  name: Study Studio Lamp 2
+  entities: switch.mss210_ce70_outlet
+- platform: group
+  name: Study Gateway Power
+  entities: switch.1001e49ade_1
 cover:
 - platform: group
   name: Study Blind
-  entities: cover.0x00158d00070b2f2a_motor
+  entities: cover.0x00158d00070b2f26_motor
+- platform: group
+  name: Study Blind
+  entities: cover.0x00158d00070b2f26_motor
 template:
-- sensor:
+- binary_sensor:
   - name: Study Heating Required
     state: '{% set climate = "climate.study" %}{% if states(climate) == "unavailable" %}off{% else %} {{ ((state_attr(climate, "temperature")  > state_attr(climate, "current_temperature"))  and  (not states(climate, "off")) )  }}{% endif %}'
 - sensor:
   - name: Study Blind Curtain Battery
     unit_of_measurement: '%'
-    state: '{{states.sensor["0x00158d00070b2f2a_battery"].state}}'
+    state: '{{states.sensor["0x00158d00070b2f26_battery"].state}}'
+- sensor:
+  - name: Study Blind Curtain Battery
+    unit_of_measurement: '%'
+    state: '{{states.sensor["0x00158d00070b2f26_battery"].state}}'
 binary_sensor: []
 light: []
 group:
@@ -1639,15 +2122,36 @@ group:
     entities:
     - binary_sensor.study_motion_sensor_motion
     - binary_sensor.kes_desk_motion_sensor_motion
-  study_lights_and_tvs:
-    name: Study Lights And Tvs
+  study_lights:
+    name: Study Lights
     entities:
+    - switch.study_screen_led
+    - switch.study_studio_lamp
     - light.study_ceiling_light
+  study_windows:
+    name: Study Windows
+    entities: []
+  study_curtains:
+    name: Study Curtains
+    entities:
+    - cover.study_blind
   study_auto_gen_automations:
     name: Study Auto-gen Automations
     entities:
+    - input_boolean.curtain_control_when_left_study
+    - input_boolean.ceiling_light_control_in_hot_sunshine_study
+    - input_boolean.lamp_control_in_hot_sunshine_study
+    - input_boolean.led_control_in_hot_sunshine_study
+    - input_boolean.curtain_control_in_hot_sunshine_study
     - input_boolean.ceiling_light_control_when_bright_outdoor_study
+    - input_boolean.lamp_control_when_bright_outdoor_study
+    - input_boolean.led_control_when_bright_outdoor_study
+    - input_boolean.curtain_control_when_bright_outdoor_study
     - input_boolean.ceiling_light_control_when_dark_outdoor_study
+    - input_boolean.lamp_control_when_dark_outdoor_study
+    - input_boolean.led_control_when_dark_outdoor_study
+    - input_boolean.curtain_control_when_dark_outdoor_study
+    - automation.zlb_st_flex_wall_switch_on_postion_1_automatically_turn_on_the_wall_switch_back_when_turned_off_study
     - automation.zl_st_ceiling_lights_on_or_open_curtains_if_entering_to_room_study
     - automation.zl_st_lights_off_if_no_person_study
     - automation.zl_st_disable_entering_lights_on_automation_if_any_people_are_in_the_room_study
@@ -1657,7 +2161,8 @@ group:
     - automation.zh_st_heating_manual_override_timeout_in_few_hours_study
     - automation.zh_st_valve_calibrate_temperature_using_external_sensor_study
     - automation.zl_st_applies_different_scenes_based_on_scene_selections_state_execution_study
-    - automation.zlb_st_wall_switch_single_press_toggle_ceiling_light_study
     - automation.zlb_st_wall_switch_double_press_leave_room_and_turn_off_everything_study
     - automation.zoc_st_occupancy_update_study
+    - automation.zn_st_notify_zigbee_offline_devices_study
+    - automation.zn_st_notify_wifi_offline_devices_study
     - switch.study_wall_switch

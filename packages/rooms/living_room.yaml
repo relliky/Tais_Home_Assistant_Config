@@ -241,6 +241,94 @@ automation tv:
 #
 ###############################################
 automation:
+  # Boiler Room
+  - alias: L-LR Living Room Boiler Room Light On If People Present
+    id: fdjklafjdkl213421451jfklds
+    description: ""
+    trigger:
+      - entity_id: binary_sensor.boiler_room_motion_sensor_motion
+        platform: state
+        from: "off"
+        to: "on"
+    action:
+      - service: light.turn_on
+        entity_id: light.boiler_room_light
+        
+  - alias: L-LR Living Room Boiler Room Lights Off If No Person For 2 Min
+    id: fjdakls85432tjkgfreda98yt4tnkjge
+    description: ""
+    trigger:
+      - entity_id: binary_sensor.boiler_room_motion_sensor_motion
+        platform: state
+        from: "on"
+        to: "off"
+        for: 00:02:00
+      - minutes: /5
+        platform: time_pattern
+    condition:
+      - condition: state
+        entity_id: binary_sensor.boiler_room_motion_sensor_motion
+        for: 00:02:00
+        state: "off"
+    action:
+      - service: light.turn_off
+        entity_id: light.boiler_room_light
+  
+  
+
+
+  # Tais Desk
+  # Lighting Automation based on motion sensors
+  - alias: L-LR Living Room Tai's Desk light On If People Present Sits In the Chair
+    id: "1676066351420"
+    trigger:
+      #- entity_id: sensor.tais_desk_chair_movement_sensor
+      #  platform: state
+      #  to: "vibration"
+      #- entity_id: sensor.tais_desk_chair_movement_sensor
+      #  platform: state
+      #  to: "tilt"
+      - entity_id: binary_sensor.tais_desk_motion_sensor_motion
+        platform: state
+        from: "off"
+        to: "on"
+    action:
+      - service: light.turn_on
+        entity_id: 
+          #- light.tais_desk_lamps
+          - light.living_room_3_head_lamp_1
+          - light.living_room_3_head_lamp_2
+          - light.living_room_3_head_lamp_3
+        # Only turn on screen LED in daytime
+      - condition: time
+        after: "06:00:00"
+        before: "20:00:00"
+      - service: switch.turn_on
+        entity_id: switch.tais_desk_screen_led
+
+  - alias: L-LR Living Room Tai's Desk light Off If Person Left the Chair
+    id: "1636063351125"
+    trigger:
+      - entity_id:
+          #- sensor.tais_desk_chair_movement_sensor
+          - binary_sensor.tais_desk_motion_sensor_motion
+        platform: state
+        to: "off"
+        for: 00:05:00
+      - minutes: /5
+        platform: time_pattern
+    condition:
+      - entity_id:
+          #- sensor.tais_desk_chair_movement_sensor
+          - binary_sensor.tais_desk_motion_sensor_motion
+        condition: state
+        state: "off"
+        for: 00:05:00
+    action:
+      - service: switch.turn_off
+        entity_id: switch.tais_desk_screen_led
+
+
   ###############################################
   # Heating/TV Automation based on motion sensors
   ###############################################

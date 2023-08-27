@@ -21,59 +21,6 @@ input_boolean:
   home_alarm:
     name: "Home Alarm"
 
-# Helper sensors for detecting requirement for downstairs/upstairs heating
-template:
-  - binary_sensor:
-      - name: "Upstairs Heating Required"
-        state: >
-          {{ ((states.climate.master_toilet.attributes.temperature         > 
-               states.climate.master_toilet.attributes.current_temperature     )  and 
-              (states.climate.master_toilet.state != 'off')                          ) or
-
-             ((states.climate.master_room.attributes.temperature         > 
-               states.climate.master_room.attributes.current_temperature     )  and 
-              (states.climate.master_room.state != 'off')                          ) or
-             
-             ((states.climate.study.attributes.temperature         > 
-               states.climate.study.attributes.current_temperature     )  and 
-              (states.climate.study.state != 'off')                          ) or
-              
-             ((states.climate.guest_toilet.attributes.temperature         > 
-               states.climate.guest_toilet.attributes.current_temperature     )  and 
-              (states.climate.guest_toilet.state != 'off')                          ) or
-
-             ((states.climate.guest_room.attributes.temperature         > 
-               states.climate.guest_room.attributes.current_temperature     )  and 
-              (states.climate.guest_room.state != 'off')                          ) or
-
-             ((states.climate.en_suite_toilet.attributes.temperature         > 
-               states.climate.en_suite_toilet.attributes.current_temperature     )  and 
-              (states.climate.en_suite_toilet.state != 'off')                          ) or
-
-             ((states.climate.en_suite_room.attributes.temperature         > 
-               states.climate.en_suite_room.attributes.current_temperature     )  and 
-              (states.climate.en_suite_room.state != 'off')                          ) 
-          }}
-
-  - binary_sensor:
-      - name: "Downstairs Heating Required"
-        state: >
-          {{ ((states.climate.kitchen.attributes.temperature         > 
-               states.climate.kitchen.attributes.current_temperature     )  and 
-              (states.climate.kitchen.state != 'off')                          ) or
-
-             ((states.climate.living_room.attributes.temperature         > 
-               states.climate.living_room.attributes.current_temperature     )  and 
-              (states.climate.living_room.state != 'off')                          ) or
-             
-             ((states.climate.ground_toilet.attributes.temperature         > 
-               states.climate.ground_toilet.attributes.current_temperature     )  and 
-              (states.climate.ground_toilet.state != 'off')                          ) or
-              
-             ((states.climate.corridor.attributes.temperature         > 
-               states.climate.corridor.attributes.current_temperature     )  and 
-              (states.climate.corridor.state != 'off')                          ) 
-          }}
 
 
 
@@ -91,12 +38,12 @@ automation:
     trigger:
       - platform: state
         entity_id: 
-        - binary_sensor.downstairs_heating_required
+        - group.downstairs_heating_required
       - minutes: /5
         platform: time_pattern        
     condition:    
       - condition: state
-        entity_id: binary_sensor.downstairs_heating_required      
+        entity_id: group.downstairs_heating_required      
         state: "on"
     action:
       - service: switch.turn_on
@@ -107,14 +54,14 @@ automation:
     trigger:
       - platform: state
         entity_id: 
-        - binary_sensor.downstairs_heating_required
+        - group.downstairs_heating_required
       - minutes: /5
         platform: time_pattern        
     condition:    
     - condition: and
       conditions:
       - condition: state
-        entity_id: binary_sensor.downstairs_heating_required      
+        entity_id: group.downstairs_heating_required      
         state: "off"
     action:
       - service: switch.turn_off
@@ -125,12 +72,12 @@ automation:
     trigger:
       - platform: state
         entity_id: 
-        - binary_sensor.upstairs_heating_required
+        - group.upstairs_heating_required
       - minutes: /5
         platform: time_pattern        
     condition:    
       - condition: state
-        entity_id: binary_sensor.upstairs_heating_required      
+        entity_id: group.upstairs_heating_required      
         state: "on"
     action:
       - service: switch.turn_on
@@ -141,14 +88,14 @@ automation:
     trigger:
       - platform: state
         entity_id: 
-        - binary_sensor.upstairs_heating_required
+        - group.upstairs_heating_required
       - minutes: /5
         platform: time_pattern        
     condition:    
     - condition: and
       conditions:
       - condition: state
-        entity_id: binary_sensor.upstairs_heating_required      
+        entity_id: group.upstairs_heating_required      
         state: "off"
     action:
       - service: switch.turn_off

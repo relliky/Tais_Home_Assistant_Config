@@ -95,3 +95,53 @@
     target:
       entity_id: automation.auto_set_master_room
   mode: single
+- id: '1692481937669'
+  alias: Test automation 123
+  description: ''
+  trigger:
+  - platform: zone
+    entity_id: person.tai
+    zone: zone.home
+    event: leave
+    id: people_left_home
+  - platform: state
+    entity_id:
+    - group.master_room_motion
+    to: 'Off'
+    for:
+      hours: 0
+      minutes: 5
+      seconds: 0
+    id: people_left_room
+  - platform: time
+    at:
+    - '21:00:00'
+    - '23:00:00'
+    - 01:00:00
+    id: hit_time
+  condition:
+  - condition: state
+    entity_id: binary_sensor.master_room_balcony_door
+    state: 'on'
+    for:
+      hours: 0
+      minutes: 0
+      seconds: 10
+  action:
+  - choose:
+    - conditions:
+      - condition: trigger
+        id:
+        - people_left_home
+        - people_left_room
+      sequence:
+      - service: script.do_nothing
+        data: {}
+    - conditions:
+      - condition: trigger
+        id:
+        - hit_time
+      sequence:
+      - service: script.do_nothing
+        data: {}
+  mode: single

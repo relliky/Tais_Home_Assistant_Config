@@ -53,17 +53,17 @@
                     "cards": [
                       {
                         "type": "custom:mushroom-template-card",
-                        "icon": "mdi:youtube-tv",
-                        "icon_color": "blue",
-                        "layout": "horizontal",
-                        "entity": "input_boolean.placeholder",
-                        "fill_container": true,
-                        "primary": "Living Room",
-                        "secondary": "{% set temperature_sensor = 'sensor.living_room_temperature_sensor' %}\n{% set motion_postfix     = 'living_room_motion' %}\n{{ states(temperature_sensor) }}°C | {{\n (as_timestamp(now()) -\n as_timestamp(states.group[motion_postfix].last_changed)) |\n timestamp_custom(\"%H:%M\", false) }} ",
+                        "icon": "{% set entity = 'input_boolean.placeholder' %}\nmdi:youtube-tv",
+                        "icon_color": "{% set entity = 'input_boolean.placeholder' %}\nblue",
                         "tap_action": {
                           "action": "navigate",
                           "navigation_path": "/living-room/living-room"
-                        }
+                        },
+                        "entity": "input_boolean.placeholder",
+                        "layout": "horizontal",
+                        "fill_container": true,
+                        "primary": "Living Room",
+                        "secondary": "{% if states.sensor.living_room_temperature_sensor.state is defined %} {{ states.sensor.living_room_temperature_sensor.state }}°C {% endif %}{% set motion_postfix     = 'living_room_motion' %}\n{% set motion = 'group.living_room_motion' %}\n{% if is_state(motion, 'on') %}\n  🙋🏻\n{% else %}\n  🦶🏻\n{% endif %}{{\n (as_timestamp(now()) -\n as_timestamp(states.group[motion_postfix].last_changed)) |\n timestamp_custom(\"%H:%M\", false) }} "
                       },
                       {
                         "type": "custom:stack-in-card",
@@ -71,58 +71,95 @@
                         "cards": [
                           {
                             "type": "custom:mushroom-template-card",
-                            "icon": "{% set occupancy = 'input_select.living_room_occupancy' %} {% if   is_state(occupancy, 'Outside') %}\n  mdi:door-closed\n{% elif is_state(occupancy, 'Just Entered') %}\n  mdi:arrow-right-circle\n{% elif is_state(occupancy, 'In Sleep') %}\n  mdi:sleep\n{% else %}\n  mdi:account-multiple\n{% endif %}",
-                            "icon_color": "{% set occupancy = 'input_select.living_room_occupancy' %} {% if   is_state(occupancy, 'Outside') %} {% elif is_state(occupancy, 'Just Entered')%}\n  green\n{% elif is_state(occupancy, 'In Sleep') %}\n  blue            \n{% else %}\n  purple\n{% endif %}",
-                            "layout": "horizontal",
-                            "entity": "input_boolean.placeholder",
-                            "fill_container": true,
-                            "primary": null,
-                            "secondary": null,
+                            "icon": "{% set entity = 'input_select.living_room_occupancy' %}\n{% if   is_state(entity, 'Outside') %}\n  mdi:door-closed\n{% elif is_state(entity, 'Just Entered') %}\n  mdi:arrow-right-circle\n{% elif is_state(entity, 'In Sleep') %}\n  mdi:sleep\n{% else %}\n  mdi:account-multiple\n{% endif %}",
+                            "icon_color": "{% set entity = 'input_select.living_room_occupancy' %}\n{% if   is_state(entity, 'Outside') %} {% elif is_state(entity, 'Just Entered')%}\n  green\n{% elif is_state(entity, 'In Sleep') %}\n  blue            \n{% else %}\n  purple\n{% endif %}",
                             "tap_action": {
-                              "action": "navigate",
-                              "navigation_path": "/living-room/living-room"
+                              "action": "more-info"
+                            },
+                            "entity": "input_select.living_room_occupancy",
+                            "layout": "horizontal",
+                            "fill_container": true
+                          },
+                          {
+                            "type": "conditional",
+                            "conditions": [
+                              {
+                                "entity": "climate.living_room",
+                                "state": "heat"
+                              }
+                            ],
+                            "card": {
+                              "type": "custom:mushroom-template-card",
+                              "icon": "{% set entity = 'climate.living_room' %}\n{% if is_state(entity, 'heat') %}\n  mdi:heating-coil\n{% else %}\n  mdi:snowflake\n{% endif %}",
+                              "icon_color": "{% set entity = 'climate.living_room' %}\n{% if is_state(entity, 'heat') %}\n  {% if state_attr(entity, 'temperature') > state_attr(entity, 'current_temperature') %}\n  red\n {% else %}\n blue\n  {% endif %}\n {% endif %}\n",
+                              "tap_action": {
+                                "action": "more-info"
+                              },
+                              "entity": "climate.living_room",
+                              "layout": "horizontal",
+                              "fill_container": true
                             }
                           },
                           {
                             "type": "custom:mushroom-template-card",
-                            "icon": "{% set motion = 'group.living_room_motion' %}  \n{% if is_state(motion, 'on') %}\n  mdi:run-fast\n{% else %}\n  mdi:shoe-print\n{% endif %}",
-                            "icon_color": "{% set motion = 'group.living_room_motion' %}  \n{% if is_state(motion, 'on') %}\n  blue\n{% endif %}",
-                            "layout": "horizontal",
-                            "entity": "input_boolean.placeholder",
-                            "fill_container": true,
-                            "primary": null,
-                            "secondary": null,
+                            "icon": "{% set entity = 'group.living_room_lights' %}\n{% if is_state(entity, 'on') %}\n  mdi:floor-lamp\n{% else %}\n  mdi:floor-lamp-outline\n{% endif %}",
+                            "icon_color": "{% set entity = 'group.living_room_lights' %}\n{% if is_state(entity, 'on') %}\n  amber\n{% endif %}",
                             "tap_action": {
-                              "action": "navigate",
-                              "navigation_path": "/living-room/living-room"
+                              "action": "more-info"
+                            },
+                            "entity": "group.living_room_lights",
+                            "layout": "horizontal",
+                            "fill_container": true
+                          },
+                          {
+                            "type": "conditional",
+                            "conditions": [
+                              {
+                                "entity": "group.living_room_windows",
+                                "state": "on"
+                              }
+                            ],
+                            "card": {
+                              "type": "custom:mushroom-template-card",
+                              "icon": "{% set entity = 'group.living_room_windows' %}\n{% if is_state(entity, 'on') %}\n  mdi:window-open-variant\n{% else %}\n  mdi:window-closed-variant\n{% endif %}",
+                              "icon_color": "{% set entity = 'group.living_room_windows' %}\n{% if is_state(entity, 'on') %}\n  lime\n{% endif %}",
+                              "tap_action": {
+                                "action": "more-info"
+                              },
+                              "entity": "group.living_room_windows",
+                              "layout": "horizontal",
+                              "fill_container": true
                             }
                           },
                           {
                             "type": "custom:mushroom-template-card",
-                            "icon": "{% set thermostat = 'climate.living_room' %} \n{% if is_state(thermostat, 'heat') %}\n  mdi:heating-coil\n{% else %}\n  mdi:snowflake\n{% endif %}",
-                            "icon_color": "{% set thermostat = 'climate.living_room' %} \n{% if is_state(thermostat, 'heat') %}\n  {% if state_attr(thermostat, 'temperature') > state_attr(thermostat, 'current_temperature') %}\n  red\n {% else %}\n blue\n  {% endif %}\n {% endif %}\n",
-                            "layout": "horizontal",
-                            "entity": "input_boolean.placeholder",
-                            "fill_container": true,
-                            "primary": null,
-                            "secondary": null,
+                            "icon": "{% set entity = 'media_player.living_room_tv' %}\nmdi:television-classic",
+                            "icon_color": "{% set entity = 'media_player.living_room_tv' %}\n{% if is_state(entity, 'on') %}\n  deep-orange\n{% endif %}",
                             "tap_action": {
-                              "action": "navigate",
-                              "navigation_path": "/living-room/living-room"
-                            }
+                              "action": "more-info"
+                            },
+                            "entity": "media_player.living_room_tv",
+                            "layout": "horizontal",
+                            "fill_container": true
                           },
                           {
-                            "type": "custom:mushroom-template-card",
-                            "icon": "{% set light = 'group.living_room_lights_and_tvs' %}  \n{% if is_state(light, 'on') %}\n  mdi:floor-lamp\n{% else %}\n  mdi:floor-lamp-outline\n{% endif %}",
-                            "icon_color": "{% set light = 'group.living_room_lights_and_tvs' %}  \n{% if is_state(light, 'on') %}\n  yellow\n{% endif %}",
-                            "layout": "horizontal",
-                            "entity": "input_boolean.placeholder",
-                            "fill_container": true,
-                            "primary": null,
-                            "secondary": null,
-                            "tap_action": {
-                              "action": "navigate",
-                              "navigation_path": "/living-room/living-room"
+                            "type": "conditional",
+                            "conditions": [
+                              {
+                                "entity": "group.living_room_curtains",
+                                "state": "open"
+                              }
+                            ],
+                            "card": {
+                              "type": "custom:mushroom-template-card",
+                              "icon": "{% set entity = 'group.living_room_curtains' %}\n{% if is_state(entity, 'open') %}\n  mdi:curtains\n{% else %}\n  mdi:curtains-closed\n{% endif %}",
+                              "icon_color": "{% set entity = 'group.living_room_curtains' %}\n{% if is_state(entity, 'open') %}\n  green       \n{% endif %}",
+                              "tap_action": {
+                                "action": "more-info"
+                              },
+                              "entity": "group.living_room_curtains",
+                              "layout": "horizontal",
+                              "fill_container": true
                             }
                           }
                         ]
@@ -164,17 +201,17 @@
                     "cards": [
                       {
                         "type": "custom:mushroom-template-card",
-                        "icon": "mdi:silverware-clean",
-                        "icon_color": "blue",
-                        "layout": "horizontal",
-                        "entity": "input_boolean.placeholder",
-                        "fill_container": true,
-                        "primary": "Kitchen",
-                        "secondary": "{% set temperature_sensor = 'sensor.kitchen_temperature_sensor' %}\n{% set motion_postfix     = 'kitchen_motion' %}\n{{ states(temperature_sensor) }}°C | {{\n (as_timestamp(now()) -\n as_timestamp(states.group[motion_postfix].last_changed)) |\n timestamp_custom(\"%H:%M\", false) }}  | {{states('vacuum.x1')}}",
+                        "icon": "{% set entity = 'input_boolean.placeholder' %}\nmdi:silverware-clean",
+                        "icon_color": "{% set entity = 'input_boolean.placeholder' %}\nblue",
                         "tap_action": {
                           "action": "navigate",
                           "navigation_path": "/lovelace-kitchen/kitchen"
-                        }
+                        },
+                        "entity": "input_boolean.placeholder",
+                        "layout": "horizontal",
+                        "fill_container": true,
+                        "primary": "Kitchen",
+                        "secondary": "{% if states.sensor.kitchen_temperature_sensor.state is defined %} {{ states.sensor.kitchen_temperature_sensor.state }}°C {% endif %}{% set motion_postfix     = 'kitchen_motion' %}\n{% set motion = 'group.kitchen_motion' %}\n{% if is_state(motion, 'on') %}\n  🙋🏻\n{% else %}\n  🦶🏻\n{% endif %}{{\n (as_timestamp(now()) -\n as_timestamp(states.group[motion_postfix].last_changed)) |\n timestamp_custom(\"%H:%M\", false) }} {% set vaccum = 'vacuum.x1' %} {% if   is_state(vaccum, 'docked') %}\n 🔋 \n{% elif is_state(vaccum, 'cleaning') %}\n 🧹 \n{% elif is_state(occupancy, 'unavailable') %}\n 🌐 \n{% else %}\n {{states('vacuum.x1')}} \n{% endif %}"
                       },
                       {
                         "type": "custom:stack-in-card",
@@ -182,58 +219,195 @@
                         "cards": [
                           {
                             "type": "custom:mushroom-template-card",
-                            "icon": "{% set occupancy = 'input_select.kitchen_occupancy' %} {% if   is_state(occupancy, 'Outside') %}\n  mdi:door-closed\n{% elif is_state(occupancy, 'Just Entered') %}\n  mdi:arrow-right-circle\n{% elif is_state(occupancy, 'In Sleep') %}\n  mdi:sleep\n{% else %}\n  mdi:account-multiple\n{% endif %}",
-                            "icon_color": "{% set occupancy = 'input_select.kitchen_occupancy' %} {% if   is_state(occupancy, 'Outside') %} {% elif is_state(occupancy, 'Just Entered')%}\n  green\n{% elif is_state(occupancy, 'In Sleep') %}\n  blue            \n{% else %}\n  purple\n{% endif %}",
-                            "layout": "horizontal",
-                            "entity": "input_boolean.placeholder",
-                            "fill_container": true,
-                            "primary": null,
-                            "secondary": null,
+                            "icon": "{% set entity = 'input_select.kitchen_occupancy' %}\n{% if   is_state(entity, 'Outside') %}\n  mdi:door-closed\n{% elif is_state(entity, 'Just Entered') %}\n  mdi:arrow-right-circle\n{% elif is_state(entity, 'In Sleep') %}\n  mdi:sleep\n{% else %}\n  mdi:account-multiple\n{% endif %}",
+                            "icon_color": "{% set entity = 'input_select.kitchen_occupancy' %}\n{% if   is_state(entity, 'Outside') %} {% elif is_state(entity, 'Just Entered')%}\n  green\n{% elif is_state(entity, 'In Sleep') %}\n  blue            \n{% else %}\n  purple\n{% endif %}",
                             "tap_action": {
-                              "action": "navigate",
-                              "navigation_path": "/lovelace-kitchen/kitchen"
+                              "action": "more-info"
+                            },
+                            "entity": "input_select.kitchen_occupancy",
+                            "layout": "horizontal",
+                            "fill_container": true
+                          },
+                          {
+                            "type": "conditional",
+                            "conditions": [
+                              {
+                                "entity": "climate.kitchen",
+                                "state": "heat"
+                              }
+                            ],
+                            "card": {
+                              "type": "custom:mushroom-template-card",
+                              "icon": "{% set entity = 'climate.kitchen' %}\n{% if is_state(entity, 'heat') %}\n  mdi:heating-coil\n{% else %}\n  mdi:snowflake\n{% endif %}",
+                              "icon_color": "{% set entity = 'climate.kitchen' %}\n{% if is_state(entity, 'heat') %}\n  {% if state_attr(entity, 'temperature') > state_attr(entity, 'current_temperature') %}\n  red\n {% else %}\n blue\n  {% endif %}\n {% endif %}\n",
+                              "tap_action": {
+                                "action": "more-info"
+                              },
+                              "entity": "climate.kitchen",
+                              "layout": "horizontal",
+                              "fill_container": true
                             }
                           },
                           {
                             "type": "custom:mushroom-template-card",
-                            "icon": "{% set motion = 'group.kitchen_motion' %}  \n{% if is_state(motion, 'on') %}\n  mdi:run-fast\n{% else %}\n  mdi:shoe-print\n{% endif %}",
-                            "icon_color": "{% set motion = 'group.kitchen_motion' %}  \n{% if is_state(motion, 'on') %}\n  blue\n{% endif %}",
-                            "layout": "horizontal",
-                            "entity": "input_boolean.placeholder",
-                            "fill_container": true,
-                            "primary": null,
-                            "secondary": null,
+                            "icon": "{% set entity = 'group.kitchen_lights' %}\n{% if is_state(entity, 'on') %}\n  mdi:floor-lamp\n{% else %}\n  mdi:floor-lamp-outline\n{% endif %}",
+                            "icon_color": "{% set entity = 'group.kitchen_lights' %}\n{% if is_state(entity, 'on') %}\n  amber\n{% endif %}",
                             "tap_action": {
-                              "action": "navigate",
-                              "navigation_path": "/lovelace-kitchen/kitchen"
+                              "action": "more-info"
+                            },
+                            "entity": "group.kitchen_lights",
+                            "layout": "horizontal",
+                            "fill_container": true
+                          },
+                          {
+                            "type": "conditional",
+                            "conditions": [
+                              {
+                                "entity": "group.kitchen_windows",
+                                "state": "on"
+                              }
+                            ],
+                            "card": {
+                              "type": "custom:mushroom-template-card",
+                              "icon": "{% set entity = 'group.kitchen_windows' %}\n{% if is_state(entity, 'on') %}\n  mdi:window-open-variant\n{% else %}\n  mdi:window-closed-variant\n{% endif %}",
+                              "icon_color": "{% set entity = 'group.kitchen_windows' %}\n{% if is_state(entity, 'on') %}\n  lime\n{% endif %}",
+                              "tap_action": {
+                                "action": "more-info"
+                              },
+                              "entity": "group.kitchen_windows",
+                              "layout": "horizontal",
+                              "fill_container": true
                             }
                           },
                           {
                             "type": "custom:mushroom-template-card",
-                            "icon": "{% set thermostat = 'climate.kitchen' %} \n{% if is_state(thermostat, 'heat') %}\n  mdi:heating-coil\n{% else %}\n  mdi:snowflake\n{% endif %}",
-                            "icon_color": "{% set thermostat = 'climate.kitchen' %} \n{% if is_state(thermostat, 'heat') %}\n  {% if state_attr(thermostat, 'temperature') > state_attr(thermostat, 'current_temperature') %}\n  red\n {% else %}\n blue\n  {% endif %}\n {% endif %}\n",
-                            "layout": "horizontal",
-                            "entity": "input_boolean.placeholder",
-                            "fill_container": true,
-                            "primary": null,
-                            "secondary": null,
+                            "icon": "{% set entity = 'media_player.kitchen_tv' %}\nmdi:television-classic",
+                            "icon_color": "{% set entity = 'media_player.kitchen_tv' %}\n{% if is_state(entity, 'on') %}\n  deep-orange\n{% endif %}",
                             "tap_action": {
-                              "action": "navigate",
-                              "navigation_path": "/lovelace-kitchen/kitchen"
+                              "action": "more-info"
+                            },
+                            "entity": "media_player.kitchen_tv",
+                            "layout": "horizontal",
+                            "fill_container": true
+                          },
+                          {
+                            "type": "conditional",
+                            "conditions": [
+                              {
+                                "entity": "group.kitchen_curtains",
+                                "state": "open"
+                              }
+                            ],
+                            "card": {
+                              "type": "custom:mushroom-template-card",
+                              "icon": "{% set entity = 'group.kitchen_curtains' %}\n{% if is_state(entity, 'open') %}\n  mdi:curtains\n{% else %}\n  mdi:curtains-closed\n{% endif %}",
+                              "icon_color": "{% set entity = 'group.kitchen_curtains' %}\n{% if is_state(entity, 'open') %}\n  green       \n{% endif %}",
+                              "tap_action": {
+                                "action": "more-info"
+                              },
+                              "entity": "group.kitchen_curtains",
+                              "layout": "horizontal",
+                              "fill_container": true
                             }
                           },
                           {
-                            "type": "custom:mushroom-template-card",
-                            "icon": "{% set light = 'group.kitchen_lights_and_tvs' %}  \n{% if is_state(light, 'on') %}\n  mdi:floor-lamp\n{% else %}\n  mdi:floor-lamp-outline\n{% endif %}",
-                            "icon_color": "{% set light = 'group.kitchen_lights_and_tvs' %}  \n{% if is_state(light, 'on') %}\n  yellow\n{% endif %}",
-                            "layout": "horizontal",
-                            "entity": "input_boolean.placeholder",
-                            "fill_container": true,
-                            "primary": null,
-                            "secondary": null,
-                            "tap_action": {
-                              "action": "navigate",
-                              "navigation_path": "/lovelace-kitchen/kitchen"
+                            "type": "conditional",
+                            "conditions": [
+                              {
+                                "entity": "binary_sensor.rice_cooker_power",
+                                "state": "on"
+                              }
+                            ],
+                            "card": {
+                              "type": "custom:mushroom-template-card",
+                              "icon": "{% set entity = 'binary_sensor.rice_cooker_power' %}\nmdi:rice",
+                              "icon_color": "{% set entity = 'binary_sensor.rice_cooker_power' %}\n{% if is_state(entity, 'on') %}\n  red       \n{% endif %}",
+                              "tap_action": {
+                                "action": "more-info"
+                              },
+                              "entity": "binary_sensor.rice_cooker_power",
+                              "layout": "horizontal",
+                              "fill_container": true
+                            }
+                          },
+                          {
+                            "type": "conditional",
+                            "conditions": [
+                              {
+                                "entity": "binary_sensor.washing_machine_power",
+                                "state": "on"
+                              }
+                            ],
+                            "card": {
+                              "type": "custom:mushroom-template-card",
+                              "icon": "{% set entity = 'binary_sensor.washing_machine_power' %}\nmdi:washing-machine",
+                              "icon_color": "{% set entity = 'binary_sensor.washing_machine_power' %}\n{% if is_state(entity, 'on') %}\n  blue       \n{% endif %}",
+                              "tap_action": {
+                                "action": "more-info"
+                              },
+                              "entity": "binary_sensor.washing_machine_power",
+                              "layout": "horizontal",
+                              "fill_container": true
+                            }
+                          },
+                          {
+                            "type": "conditional",
+                            "conditions": [
+                              {
+                                "entity": "switch.kitchen_ice_maker",
+                                "state": "on"
+                              }
+                            ],
+                            "card": {
+                              "type": "custom:mushroom-template-card",
+                              "icon": "{% set entity = 'switch.kitchen_ice_maker' %}\nmdi:ice-cream",
+                              "icon_color": "{% set entity = 'switch.kitchen_ice_maker' %}\n{% if is_state(entity, 'on') %}\n  yellow       \n{% endif %}",
+                              "tap_action": {
+                                "action": "more-info"
+                              },
+                              "entity": "switch.kitchen_ice_maker",
+                              "layout": "horizontal",
+                              "fill_container": true
+                            }
+                          },
+                          {
+                            "type": "conditional",
+                            "conditions": [
+                              {
+                                "entity": "switch.kitchen_extractor",
+                                "state": "on"
+                              }
+                            ],
+                            "card": {
+                              "type": "custom:mushroom-template-card",
+                              "icon": "{% set entity = 'switch.kitchen_extractor' %}\nhass:fan",
+                              "icon_color": "{% set entity = 'switch.kitchen_extractor' %}\n{% if is_state(entity, 'on') %}\n  cyan       \n{% endif %}",
+                              "tap_action": {
+                                "action": "more-info"
+                              },
+                              "entity": "switch.kitchen_extractor",
+                              "layout": "horizontal",
+                              "fill_container": true
+                            }
+                          },
+                          {
+                            "type": "conditional",
+                            "conditions": [
+                              {
+                                "entity": "vacuum.x1",
+                                "state": "cleaning"
+                              }
+                            ],
+                            "card": {
+                              "type": "custom:mushroom-template-card",
+                              "icon": "{% set entity = 'vacuum.x1' %}\nhass:fan",
+                              "icon_color": "{% set entity = 'vacuum.x1' %}\n{% if is_state(entity, 'cleaning') %}\n  cyan       \n{% endif %}",
+                              "tap_action": {
+                                "action": "more-info"
+                              },
+                              "entity": "vacuum.x1",
+                              "layout": "horizontal",
+                              "fill_container": true
                             }
                           }
                         ]
@@ -275,17 +449,17 @@
                     "cards": [
                       {
                         "type": "custom:mushroom-template-card",
-                        "icon": "mdi:bed-king-outline",
-                        "icon_color": "blue",
-                        "layout": "horizontal",
-                        "entity": "input_boolean.placeholder",
-                        "fill_container": true,
-                        "primary": "Master Room",
-                        "secondary": "{% set temperature_sensor = 'sensor.master_room_temperature_sensor' %}\n{% set motion_postfix     = 'master_room_motion' %}\n{{ states(temperature_sensor) }}°C | {{\n (as_timestamp(now()) -\n as_timestamp(states.group[motion_postfix].last_changed)) |\n timestamp_custom(\"%H:%M\", false) }} ",
+                        "icon": "{% set entity = 'input_boolean.placeholder' %}\nmdi:bed-king-outline",
+                        "icon_color": "{% set entity = 'input_boolean.placeholder' %}\nblue",
                         "tap_action": {
                           "action": "navigate",
                           "navigation_path": "/master-room/master-room"
-                        }
+                        },
+                        "entity": "input_boolean.placeholder",
+                        "layout": "horizontal",
+                        "fill_container": true,
+                        "primary": "Master Room",
+                        "secondary": "{% if states.sensor.master_room_temperature_sensor.state is defined %} {{ states.sensor.master_room_temperature_sensor.state }}°C {% endif %}{% set motion_postfix     = 'master_room_motion' %}\n{% set motion = 'group.master_room_motion' %}\n{% if is_state(motion, 'on') %}\n  🙋🏻\n{% else %}\n  🦶🏻\n{% endif %}{{\n (as_timestamp(now()) -\n as_timestamp(states.group[motion_postfix].last_changed)) |\n timestamp_custom(\"%H:%M\", false) }} "
                       },
                       {
                         "type": "custom:stack-in-card",
@@ -293,58 +467,95 @@
                         "cards": [
                           {
                             "type": "custom:mushroom-template-card",
-                            "icon": "{% set occupancy = 'input_select.master_room_occupancy' %} {% if   is_state(occupancy, 'Outside') %}\n  mdi:door-closed\n{% elif is_state(occupancy, 'Just Entered') %}\n  mdi:arrow-right-circle\n{% elif is_state(occupancy, 'In Sleep') %}\n  mdi:sleep\n{% else %}\n  mdi:account-multiple\n{% endif %}",
-                            "icon_color": "{% set occupancy = 'input_select.master_room_occupancy' %} {% if   is_state(occupancy, 'Outside') %} {% elif is_state(occupancy, 'Just Entered')%}\n  green\n{% elif is_state(occupancy, 'In Sleep') %}\n  blue            \n{% else %}\n  purple\n{% endif %}",
-                            "layout": "horizontal",
-                            "entity": "input_boolean.placeholder",
-                            "fill_container": true,
-                            "primary": null,
-                            "secondary": null,
+                            "icon": "{% set entity = 'input_select.master_room_occupancy' %}\n{% if   is_state(entity, 'Outside') %}\n  mdi:door-closed\n{% elif is_state(entity, 'Just Entered') %}\n  mdi:arrow-right-circle\n{% elif is_state(entity, 'In Sleep') %}\n  mdi:sleep\n{% else %}\n  mdi:account-multiple\n{% endif %}",
+                            "icon_color": "{% set entity = 'input_select.master_room_occupancy' %}\n{% if   is_state(entity, 'Outside') %} {% elif is_state(entity, 'Just Entered')%}\n  green\n{% elif is_state(entity, 'In Sleep') %}\n  blue            \n{% else %}\n  purple\n{% endif %}",
                             "tap_action": {
-                              "action": "navigate",
-                              "navigation_path": "/master-room/master-room"
+                              "action": "more-info"
+                            },
+                            "entity": "input_select.master_room_occupancy",
+                            "layout": "horizontal",
+                            "fill_container": true
+                          },
+                          {
+                            "type": "conditional",
+                            "conditions": [
+                              {
+                                "entity": "climate.master_room",
+                                "state": "heat"
+                              }
+                            ],
+                            "card": {
+                              "type": "custom:mushroom-template-card",
+                              "icon": "{% set entity = 'climate.master_room' %}\n{% if is_state(entity, 'heat') %}\n  mdi:heating-coil\n{% else %}\n  mdi:snowflake\n{% endif %}",
+                              "icon_color": "{% set entity = 'climate.master_room' %}\n{% if is_state(entity, 'heat') %}\n  {% if state_attr(entity, 'temperature') > state_attr(entity, 'current_temperature') %}\n  red\n {% else %}\n blue\n  {% endif %}\n {% endif %}\n",
+                              "tap_action": {
+                                "action": "more-info"
+                              },
+                              "entity": "climate.master_room",
+                              "layout": "horizontal",
+                              "fill_container": true
                             }
                           },
                           {
                             "type": "custom:mushroom-template-card",
-                            "icon": "{% set motion = 'group.master_room_motion' %}  \n{% if is_state(motion, 'on') %}\n  mdi:run-fast\n{% else %}\n  mdi:shoe-print\n{% endif %}",
-                            "icon_color": "{% set motion = 'group.master_room_motion' %}  \n{% if is_state(motion, 'on') %}\n  blue\n{% endif %}",
-                            "layout": "horizontal",
-                            "entity": "input_boolean.placeholder",
-                            "fill_container": true,
-                            "primary": null,
-                            "secondary": null,
+                            "icon": "{% set entity = 'group.master_room_lights' %}\n{% if is_state(entity, 'on') %}\n  mdi:floor-lamp\n{% else %}\n  mdi:floor-lamp-outline\n{% endif %}",
+                            "icon_color": "{% set entity = 'group.master_room_lights' %}\n{% if is_state(entity, 'on') %}\n  amber\n{% endif %}",
                             "tap_action": {
-                              "action": "navigate",
-                              "navigation_path": "/master-room/master-room"
+                              "action": "more-info"
+                            },
+                            "entity": "group.master_room_lights",
+                            "layout": "horizontal",
+                            "fill_container": true
+                          },
+                          {
+                            "type": "conditional",
+                            "conditions": [
+                              {
+                                "entity": "group.master_room_windows",
+                                "state": "on"
+                              }
+                            ],
+                            "card": {
+                              "type": "custom:mushroom-template-card",
+                              "icon": "{% set entity = 'group.master_room_windows' %}\n{% if is_state(entity, 'on') %}\n  mdi:window-open-variant\n{% else %}\n  mdi:window-closed-variant\n{% endif %}",
+                              "icon_color": "{% set entity = 'group.master_room_windows' %}\n{% if is_state(entity, 'on') %}\n  lime\n{% endif %}",
+                              "tap_action": {
+                                "action": "more-info"
+                              },
+                              "entity": "group.master_room_windows",
+                              "layout": "horizontal",
+                              "fill_container": true
                             }
                           },
                           {
                             "type": "custom:mushroom-template-card",
-                            "icon": "{% set thermostat = 'climate.master_room' %} \n{% if is_state(thermostat, 'heat') %}\n  mdi:heating-coil\n{% else %}\n  mdi:snowflake\n{% endif %}",
-                            "icon_color": "{% set thermostat = 'climate.master_room' %} \n{% if is_state(thermostat, 'heat') %}\n  {% if state_attr(thermostat, 'temperature') > state_attr(thermostat, 'current_temperature') %}\n  red\n {% else %}\n blue\n  {% endif %}\n {% endif %}\n",
-                            "layout": "horizontal",
-                            "entity": "input_boolean.placeholder",
-                            "fill_container": true,
-                            "primary": null,
-                            "secondary": null,
+                            "icon": "{% set entity = 'media_player.master_room_tv' %}\nmdi:television-classic",
+                            "icon_color": "{% set entity = 'media_player.master_room_tv' %}\n{% if is_state(entity, 'on') %}\n  deep-orange\n{% endif %}",
                             "tap_action": {
-                              "action": "navigate",
-                              "navigation_path": "/master-room/master-room"
-                            }
+                              "action": "more-info"
+                            },
+                            "entity": "media_player.master_room_tv",
+                            "layout": "horizontal",
+                            "fill_container": true
                           },
                           {
-                            "type": "custom:mushroom-template-card",
-                            "icon": "{% set light = 'group.master_room_lights_and_tvs' %}  \n{% if is_state(light, 'on') %}\n  mdi:floor-lamp\n{% else %}\n  mdi:floor-lamp-outline\n{% endif %}",
-                            "icon_color": "{% set light = 'group.master_room_lights_and_tvs' %}  \n{% if is_state(light, 'on') %}\n  yellow\n{% endif %}",
-                            "layout": "horizontal",
-                            "entity": "input_boolean.placeholder",
-                            "fill_container": true,
-                            "primary": null,
-                            "secondary": null,
-                            "tap_action": {
-                              "action": "navigate",
-                              "navigation_path": "/master-room/master-room"
+                            "type": "conditional",
+                            "conditions": [
+                              {
+                                "entity": "group.master_room_curtains",
+                                "state": "open"
+                              }
+                            ],
+                            "card": {
+                              "type": "custom:mushroom-template-card",
+                              "icon": "{% set entity = 'group.master_room_curtains' %}\n{% if is_state(entity, 'open') %}\n  mdi:curtains\n{% else %}\n  mdi:curtains-closed\n{% endif %}",
+                              "icon_color": "{% set entity = 'group.master_room_curtains' %}\n{% if is_state(entity, 'open') %}\n  green       \n{% endif %}",
+                              "tap_action": {
+                                "action": "more-info"
+                              },
+                              "entity": "group.master_room_curtains",
+                              "layout": "horizontal",
+                              "fill_container": true
                             }
                           }
                         ]
@@ -386,17 +597,17 @@
                     "cards": [
                       {
                         "type": "custom:mushroom-template-card",
-                        "icon": "mdi:shower-head",
-                        "icon_color": "blue",
-                        "layout": "horizontal",
-                        "entity": "input_boolean.placeholder",
-                        "fill_container": true,
-                        "primary": "Master Toilet",
-                        "secondary": "{% set temperature_sensor = 'sensor.master_toilet_temperature_sensor' %}\n{% set motion_postfix     = 'master_toilet_motion' %}\n{{ states(temperature_sensor) }}°C | {{\n (as_timestamp(now()) -\n as_timestamp(states.group[motion_postfix].last_changed)) |\n timestamp_custom(\"%H:%M\", false) }} ",
+                        "icon": "{% set entity = 'input_boolean.placeholder' %}\nmdi:shower-head",
+                        "icon_color": "{% set entity = 'input_boolean.placeholder' %}\nblue",
                         "tap_action": {
                           "action": "navigate",
                           "navigation_path": "/master-room/master-toilet"
-                        }
+                        },
+                        "entity": "input_boolean.placeholder",
+                        "layout": "horizontal",
+                        "fill_container": true,
+                        "primary": "Master Toilet",
+                        "secondary": "{% if states.sensor.master_toilet_temperature_sensor.state is defined %} {{ states.sensor.master_toilet_temperature_sensor.state }}°C {% endif %}{% set motion_postfix     = 'master_toilet_motion' %}\n{% set motion = 'group.master_toilet_motion' %}\n{% if is_state(motion, 'on') %}\n  🙋🏻\n{% else %}\n  🦶🏻\n{% endif %}{{\n (as_timestamp(now()) -\n as_timestamp(states.group[motion_postfix].last_changed)) |\n timestamp_custom(\"%H:%M\", false) }} "
                       },
                       {
                         "type": "custom:stack-in-card",
@@ -404,58 +615,64 @@
                         "cards": [
                           {
                             "type": "custom:mushroom-template-card",
-                            "icon": "{% set occupancy = 'input_select.master_toilet_occupancy' %} {% if   is_state(occupancy, 'Outside') %}\n  mdi:door-closed\n{% elif is_state(occupancy, 'Just Entered') %}\n  mdi:arrow-right-circle\n{% elif is_state(occupancy, 'In Sleep') %}\n  mdi:sleep\n{% else %}\n  mdi:account-multiple\n{% endif %}",
-                            "icon_color": "{% set occupancy = 'input_select.master_toilet_occupancy' %} {% if   is_state(occupancy, 'Outside') %} {% elif is_state(occupancy, 'Just Entered')%}\n  green\n{% elif is_state(occupancy, 'In Sleep') %}\n  blue            \n{% else %}\n  purple\n{% endif %}",
-                            "layout": "horizontal",
-                            "entity": "input_boolean.placeholder",
-                            "fill_container": true,
-                            "primary": null,
-                            "secondary": null,
+                            "icon": "{% set entity = 'input_select.master_toilet_occupancy' %}\n{% if   is_state(entity, 'Outside') %}\n  mdi:door-closed\n{% elif is_state(entity, 'Just Entered') %}\n  mdi:arrow-right-circle\n{% elif is_state(entity, 'In Sleep') %}\n  mdi:sleep\n{% else %}\n  mdi:account-multiple\n{% endif %}",
+                            "icon_color": "{% set entity = 'input_select.master_toilet_occupancy' %}\n{% if   is_state(entity, 'Outside') %} {% elif is_state(entity, 'Just Entered')%}\n  green\n{% elif is_state(entity, 'In Sleep') %}\n  blue            \n{% else %}\n  purple\n{% endif %}",
                             "tap_action": {
-                              "action": "navigate",
-                              "navigation_path": "/master-room/master-toilet"
+                              "action": "more-info"
+                            },
+                            "entity": "input_select.master_toilet_occupancy",
+                            "layout": "horizontal",
+                            "fill_container": true
+                          },
+                          {
+                            "type": "conditional",
+                            "conditions": [
+                              {
+                                "entity": "climate.master_toilet",
+                                "state": "heat"
+                              }
+                            ],
+                            "card": {
+                              "type": "custom:mushroom-template-card",
+                              "icon": "{% set entity = 'climate.master_toilet' %}\n{% if is_state(entity, 'heat') %}\n  mdi:heating-coil\n{% else %}\n  mdi:snowflake\n{% endif %}",
+                              "icon_color": "{% set entity = 'climate.master_toilet' %}\n{% if is_state(entity, 'heat') %}\n  {% if state_attr(entity, 'temperature') > state_attr(entity, 'current_temperature') %}\n  red\n {% else %}\n blue\n  {% endif %}\n {% endif %}\n",
+                              "tap_action": {
+                                "action": "more-info"
+                              },
+                              "entity": "climate.master_toilet",
+                              "layout": "horizontal",
+                              "fill_container": true
                             }
                           },
                           {
                             "type": "custom:mushroom-template-card",
-                            "icon": "{% set motion = 'group.master_toilet_motion' %}  \n{% if is_state(motion, 'on') %}\n  mdi:run-fast\n{% else %}\n  mdi:shoe-print\n{% endif %}",
-                            "icon_color": "{% set motion = 'group.master_toilet_motion' %}  \n{% if is_state(motion, 'on') %}\n  blue\n{% endif %}",
-                            "layout": "horizontal",
-                            "entity": "input_boolean.placeholder",
-                            "fill_container": true,
-                            "primary": null,
-                            "secondary": null,
+                            "icon": "{% set entity = 'group.master_toilet_lights' %}\n{% if is_state(entity, 'on') %}\n  mdi:floor-lamp\n{% else %}\n  mdi:floor-lamp-outline\n{% endif %}",
+                            "icon_color": "{% set entity = 'group.master_toilet_lights' %}\n{% if is_state(entity, 'on') %}\n  amber\n{% endif %}",
                             "tap_action": {
-                              "action": "navigate",
-                              "navigation_path": "/master-room/master-toilet"
-                            }
+                              "action": "more-info"
+                            },
+                            "entity": "group.master_toilet_lights",
+                            "layout": "horizontal",
+                            "fill_container": true
                           },
                           {
-                            "type": "custom:mushroom-template-card",
-                            "icon": "{% set thermostat = 'climate.master_toilet' %} \n{% if is_state(thermostat, 'heat') %}\n  mdi:heating-coil\n{% else %}\n  mdi:snowflake\n{% endif %}",
-                            "icon_color": "{% set thermostat = 'climate.master_toilet' %} \n{% if is_state(thermostat, 'heat') %}\n  {% if state_attr(thermostat, 'temperature') > state_attr(thermostat, 'current_temperature') %}\n  red\n {% else %}\n blue\n  {% endif %}\n {% endif %}\n",
-                            "layout": "horizontal",
-                            "entity": "input_boolean.placeholder",
-                            "fill_container": true,
-                            "primary": null,
-                            "secondary": null,
-                            "tap_action": {
-                              "action": "navigate",
-                              "navigation_path": "/master-room/master-toilet"
-                            }
-                          },
-                          {
-                            "type": "custom:mushroom-template-card",
-                            "icon": "{% set light = 'group.master_toilet_lights_and_tvs' %}  \n{% if is_state(light, 'on') %}\n  mdi:floor-lamp\n{% else %}\n  mdi:floor-lamp-outline\n{% endif %}",
-                            "icon_color": "{% set light = 'group.master_toilet_lights_and_tvs' %}  \n{% if is_state(light, 'on') %}\n  yellow\n{% endif %}",
-                            "layout": "horizontal",
-                            "entity": "input_boolean.placeholder",
-                            "fill_container": true,
-                            "primary": null,
-                            "secondary": null,
-                            "tap_action": {
-                              "action": "navigate",
-                              "navigation_path": "/master-room/master-toilet"
+                            "type": "conditional",
+                            "conditions": [
+                              {
+                                "entity": "group.master_toilet_curtains",
+                                "state": "open"
+                              }
+                            ],
+                            "card": {
+                              "type": "custom:mushroom-template-card",
+                              "icon": "{% set entity = 'group.master_toilet_curtains' %}\n{% if is_state(entity, 'open') %}\n  mdi:curtains\n{% else %}\n  mdi:curtains-closed\n{% endif %}",
+                              "icon_color": "{% set entity = 'group.master_toilet_curtains' %}\n{% if is_state(entity, 'open') %}\n  green       \n{% endif %}",
+                              "tap_action": {
+                                "action": "more-info"
+                              },
+                              "entity": "group.master_toilet_curtains",
+                              "layout": "horizontal",
+                              "fill_container": true
                             }
                           }
                         ]
@@ -497,17 +714,17 @@
                     "cards": [
                       {
                         "type": "custom:mushroom-template-card",
-                        "icon": "mdi:desk",
-                        "icon_color": "blue",
-                        "layout": "horizontal",
-                        "entity": "input_boolean.placeholder",
-                        "fill_container": true,
-                        "primary": "Study",
-                        "secondary": "{% set temperature_sensor = 'sensor.study_temperature_sensor' %}\n{% set motion_postfix     = 'study_motion' %}\n{{ states(temperature_sensor) }}°C | {{\n (as_timestamp(now()) -\n as_timestamp(states.group[motion_postfix].last_changed)) |\n timestamp_custom(\"%H:%M\", false) }} ",
+                        "icon": "{% set entity = 'input_boolean.placeholder' %}\nmdi:desk",
+                        "icon_color": "{% set entity = 'input_boolean.placeholder' %}\nblue",
                         "tap_action": {
                           "action": "navigate",
                           "navigation_path": "/lovelace-misc/study"
-                        }
+                        },
+                        "entity": "input_boolean.placeholder",
+                        "layout": "horizontal",
+                        "fill_container": true,
+                        "primary": "Study",
+                        "secondary": "{% if states.sensor.study_temperature_sensor.state is defined %} {{ states.sensor.study_temperature_sensor.state }}°C {% endif %}{% set motion_postfix     = 'study_motion' %}\n{% set motion = 'group.study_motion' %}\n{% if is_state(motion, 'on') %}\n  🙋🏻\n{% else %}\n  🦶🏻\n{% endif %}{{\n (as_timestamp(now()) -\n as_timestamp(states.group[motion_postfix].last_changed)) |\n timestamp_custom(\"%H:%M\", false) }} "
                       },
                       {
                         "type": "custom:stack-in-card",
@@ -515,58 +732,64 @@
                         "cards": [
                           {
                             "type": "custom:mushroom-template-card",
-                            "icon": "{% set occupancy = 'input_select.study_occupancy' %} {% if   is_state(occupancy, 'Outside') %}\n  mdi:door-closed\n{% elif is_state(occupancy, 'Just Entered') %}\n  mdi:arrow-right-circle\n{% elif is_state(occupancy, 'In Sleep') %}\n  mdi:sleep\n{% else %}\n  mdi:account-multiple\n{% endif %}",
-                            "icon_color": "{% set occupancy = 'input_select.study_occupancy' %} {% if   is_state(occupancy, 'Outside') %} {% elif is_state(occupancy, 'Just Entered')%}\n  green\n{% elif is_state(occupancy, 'In Sleep') %}\n  blue            \n{% else %}\n  purple\n{% endif %}",
-                            "layout": "horizontal",
-                            "entity": "input_boolean.placeholder",
-                            "fill_container": true,
-                            "primary": null,
-                            "secondary": null,
+                            "icon": "{% set entity = 'input_select.study_occupancy' %}\n{% if   is_state(entity, 'Outside') %}\n  mdi:door-closed\n{% elif is_state(entity, 'Just Entered') %}\n  mdi:arrow-right-circle\n{% elif is_state(entity, 'In Sleep') %}\n  mdi:sleep\n{% else %}\n  mdi:account-multiple\n{% endif %}",
+                            "icon_color": "{% set entity = 'input_select.study_occupancy' %}\n{% if   is_state(entity, 'Outside') %} {% elif is_state(entity, 'Just Entered')%}\n  green\n{% elif is_state(entity, 'In Sleep') %}\n  blue            \n{% else %}\n  purple\n{% endif %}",
                             "tap_action": {
-                              "action": "navigate",
-                              "navigation_path": "/lovelace-misc/study"
+                              "action": "more-info"
+                            },
+                            "entity": "input_select.study_occupancy",
+                            "layout": "horizontal",
+                            "fill_container": true
+                          },
+                          {
+                            "type": "conditional",
+                            "conditions": [
+                              {
+                                "entity": "climate.study",
+                                "state": "heat"
+                              }
+                            ],
+                            "card": {
+                              "type": "custom:mushroom-template-card",
+                              "icon": "{% set entity = 'climate.study' %}\n{% if is_state(entity, 'heat') %}\n  mdi:heating-coil\n{% else %}\n  mdi:snowflake\n{% endif %}",
+                              "icon_color": "{% set entity = 'climate.study' %}\n{% if is_state(entity, 'heat') %}\n  {% if state_attr(entity, 'temperature') > state_attr(entity, 'current_temperature') %}\n  red\n {% else %}\n blue\n  {% endif %}\n {% endif %}\n",
+                              "tap_action": {
+                                "action": "more-info"
+                              },
+                              "entity": "climate.study",
+                              "layout": "horizontal",
+                              "fill_container": true
                             }
                           },
                           {
                             "type": "custom:mushroom-template-card",
-                            "icon": "{% set motion = 'group.study_motion' %}  \n{% if is_state(motion, 'on') %}\n  mdi:run-fast\n{% else %}\n  mdi:shoe-print\n{% endif %}",
-                            "icon_color": "{% set motion = 'group.study_motion' %}  \n{% if is_state(motion, 'on') %}\n  blue\n{% endif %}",
-                            "layout": "horizontal",
-                            "entity": "input_boolean.placeholder",
-                            "fill_container": true,
-                            "primary": null,
-                            "secondary": null,
+                            "icon": "{% set entity = 'group.study_lights' %}\n{% if is_state(entity, 'on') %}\n  mdi:floor-lamp\n{% else %}\n  mdi:floor-lamp-outline\n{% endif %}",
+                            "icon_color": "{% set entity = 'group.study_lights' %}\n{% if is_state(entity, 'on') %}\n  amber\n{% endif %}",
                             "tap_action": {
-                              "action": "navigate",
-                              "navigation_path": "/lovelace-misc/study"
-                            }
+                              "action": "more-info"
+                            },
+                            "entity": "group.study_lights",
+                            "layout": "horizontal",
+                            "fill_container": true
                           },
                           {
-                            "type": "custom:mushroom-template-card",
-                            "icon": "{% set thermostat = 'climate.study' %} \n{% if is_state(thermostat, 'heat') %}\n  mdi:heating-coil\n{% else %}\n  mdi:snowflake\n{% endif %}",
-                            "icon_color": "{% set thermostat = 'climate.study' %} \n{% if is_state(thermostat, 'heat') %}\n  {% if state_attr(thermostat, 'temperature') > state_attr(thermostat, 'current_temperature') %}\n  red\n {% else %}\n blue\n  {% endif %}\n {% endif %}\n",
-                            "layout": "horizontal",
-                            "entity": "input_boolean.placeholder",
-                            "fill_container": true,
-                            "primary": null,
-                            "secondary": null,
-                            "tap_action": {
-                              "action": "navigate",
-                              "navigation_path": "/lovelace-misc/study"
-                            }
-                          },
-                          {
-                            "type": "custom:mushroom-template-card",
-                            "icon": "{% set light = 'group.study_lights_and_tvs' %}  \n{% if is_state(light, 'on') %}\n  mdi:floor-lamp\n{% else %}\n  mdi:floor-lamp-outline\n{% endif %}",
-                            "icon_color": "{% set light = 'group.study_lights_and_tvs' %}  \n{% if is_state(light, 'on') %}\n  yellow\n{% endif %}",
-                            "layout": "horizontal",
-                            "entity": "input_boolean.placeholder",
-                            "fill_container": true,
-                            "primary": null,
-                            "secondary": null,
-                            "tap_action": {
-                              "action": "navigate",
-                              "navigation_path": "/lovelace-misc/study"
+                            "type": "conditional",
+                            "conditions": [
+                              {
+                                "entity": "group.study_curtains",
+                                "state": "open"
+                              }
+                            ],
+                            "card": {
+                              "type": "custom:mushroom-template-card",
+                              "icon": "{% set entity = 'group.study_curtains' %}\n{% if is_state(entity, 'open') %}\n  mdi:curtains\n{% else %}\n  mdi:curtains-closed\n{% endif %}",
+                              "icon_color": "{% set entity = 'group.study_curtains' %}\n{% if is_state(entity, 'open') %}\n  green       \n{% endif %}",
+                              "tap_action": {
+                                "action": "more-info"
+                              },
+                              "entity": "group.study_curtains",
+                              "layout": "horizontal",
+                              "fill_container": true
                             }
                           }
                         ]
@@ -625,26 +848,26 @@
                         "mode": "horizontal",
                         "cards": [
                           {
-                            "type": "custom:mushroom-entity-card",
-                            "entity": "switch.gaming_pc",
-                            "icon": "mdi:desktop-classic",
-                            "icon_color": "amber",
-                            "primary_info": "state",
-                            "secondary_info": "none",
+                            "type": "custom:mushroom-template-card",
+                            "icon": "{% set entity = 'switch.gaming_pc' %}\nmdi:desktop-classic",
+                            "icon_color": "{% set entity = 'switch.gaming_pc' %}\n{% set entity = 'switch.gaming_pc' %} {% if   is_state(entity, 'on') %} amber {% endif %}",
                             "tap_action": {
                               "action": "more-info"
-                            }
+                            },
+                            "entity": "switch.gaming_pc",
+                            "layout": "horizontal",
+                            "fill_container": true
                           },
                           {
-                            "type": "custom:mushroom-entity-card",
-                            "entity": "binary_sensor.fire_tv_streaming_pc_contents",
-                            "icon": "mdi:television-box",
-                            "icon_color": "deep-orange",
-                            "primary_info": "state",
-                            "secondary_info": "none",
+                            "type": "custom:mushroom-template-card",
+                            "icon": "{% set entity = 'binary_sensor.fire_tv_streaming_pc_contents' %}\nmdi:television-box",
+                            "icon_color": "{% set entity = 'binary_sensor.fire_tv_streaming_pc_contents' %}\n{% set entity = 'binary_sensor.fire_tv_streaming_pc_contents' %} {% if   is_state(entity, 'on') %} deep-orange {% endif %}",
                             "tap_action": {
                               "action": "more-info"
-                            }
+                            },
+                            "entity": "binary_sensor.fire_tv_streaming_pc_contents",
+                            "layout": "horizontal",
+                            "fill_container": true
                           }
                         ]
                       }
@@ -685,17 +908,17 @@
                     "cards": [
                       {
                         "type": "custom:mushroom-template-card",
-                        "icon": "mdi:toilet",
-                        "icon_color": "blue",
-                        "layout": "horizontal",
+                        "icon": "{% set entity = 'input_boolean.placeholder' %}\nmdi:toilet",
+                        "icon_color": "{% set entity = 'input_boolean.placeholder' %}\nblue",
+                        "tap_action": {
+                          "action": "navigate",
+                          "navigation_path": "/lovelace-misc/corridors"
+                        },
                         "entity": "input_boolean.placeholder",
+                        "layout": "horizontal",
                         "fill_container": true,
                         "primary": "Ground Toilet",
-                        "secondary": "{% set temperature_sensor = 'sensor.ground_toilet_temperature_sensor' %}\n{% set motion_postfix     = 'ground_toilet_motion' %}\n{{ states(temperature_sensor) }}°C | {{\n (as_timestamp(now()) -\n as_timestamp(states.group[motion_postfix].last_changed)) |\n timestamp_custom(\"%H:%M\", false) }} ",
-                        "tap_action": {
-                          "action": "navigate",
-                          "navigation_path": "/lovelace-misc/corridors"
-                        }
+                        "secondary": "{% if states.sensor.ground_toilet_temperature_sensor.state is defined %} {{ states.sensor.ground_toilet_temperature_sensor.state }}°C {% endif %}{% set motion_postfix     = 'ground_toilet_motion' %}\n{% set motion = 'group.ground_toilet_motion' %}\n{% if is_state(motion, 'on') %}\n  🙋🏻\n{% else %}\n  🦶🏻\n{% endif %}{{\n (as_timestamp(now()) -\n as_timestamp(states.group[motion_postfix].last_changed)) |\n timestamp_custom(\"%H:%M\", false) }} "
                       },
                       {
                         "type": "custom:stack-in-card",
@@ -703,59 +926,45 @@
                         "cards": [
                           {
                             "type": "custom:mushroom-template-card",
-                            "icon": "{% set occupancy = 'input_select.ground_toilet_occupancy' %} {% if   is_state(occupancy, 'Outside') %}\n  mdi:door-closed\n{% elif is_state(occupancy, 'Just Entered') %}\n  mdi:arrow-right-circle\n{% elif is_state(occupancy, 'In Sleep') %}\n  mdi:sleep\n{% else %}\n  mdi:account-multiple\n{% endif %}",
-                            "icon_color": "{% set occupancy = 'input_select.ground_toilet_occupancy' %} {% if   is_state(occupancy, 'Outside') %} {% elif is_state(occupancy, 'Just Entered')%}\n  green\n{% elif is_state(occupancy, 'In Sleep') %}\n  blue            \n{% else %}\n  purple\n{% endif %}",
-                            "layout": "horizontal",
-                            "entity": "input_boolean.placeholder",
-                            "fill_container": true,
-                            "primary": null,
-                            "secondary": null,
+                            "icon": "{% set entity = 'input_select.ground_toilet_occupancy' %}\n{% if   is_state(entity, 'Outside') %}\n  mdi:door-closed\n{% elif is_state(entity, 'Just Entered') %}\n  mdi:arrow-right-circle\n{% elif is_state(entity, 'In Sleep') %}\n  mdi:sleep\n{% else %}\n  mdi:account-multiple\n{% endif %}",
+                            "icon_color": "{% set entity = 'input_select.ground_toilet_occupancy' %}\n{% if   is_state(entity, 'Outside') %} {% elif is_state(entity, 'Just Entered')%}\n  green\n{% elif is_state(entity, 'In Sleep') %}\n  blue            \n{% else %}\n  purple\n{% endif %}",
                             "tap_action": {
-                              "action": "navigate",
-                              "navigation_path": "/lovelace-misc/corridors"
+                              "action": "more-info"
+                            },
+                            "entity": "input_select.ground_toilet_occupancy",
+                            "layout": "horizontal",
+                            "fill_container": true
+                          },
+                          {
+                            "type": "conditional",
+                            "conditions": [
+                              {
+                                "entity": "climate.ground_toilet",
+                                "state": "heat"
+                              }
+                            ],
+                            "card": {
+                              "type": "custom:mushroom-template-card",
+                              "icon": "{% set entity = 'climate.ground_toilet' %}\n{% if is_state(entity, 'heat') %}\n  mdi:heating-coil\n{% else %}\n  mdi:snowflake\n{% endif %}",
+                              "icon_color": "{% set entity = 'climate.ground_toilet' %}\n{% if is_state(entity, 'heat') %}\n  {% if state_attr(entity, 'temperature') > state_attr(entity, 'current_temperature') %}\n  red\n {% else %}\n blue\n  {% endif %}\n {% endif %}\n",
+                              "tap_action": {
+                                "action": "more-info"
+                              },
+                              "entity": "climate.ground_toilet",
+                              "layout": "horizontal",
+                              "fill_container": true
                             }
                           },
                           {
                             "type": "custom:mushroom-template-card",
-                            "icon": "{% set motion = 'group.ground_toilet_motion' %}  \n{% if is_state(motion, 'on') %}\n  mdi:run-fast\n{% else %}\n  mdi:shoe-print\n{% endif %}",
-                            "icon_color": "{% set motion = 'group.ground_toilet_motion' %}  \n{% if is_state(motion, 'on') %}\n  blue\n{% endif %}",
-                            "layout": "horizontal",
-                            "entity": "input_boolean.placeholder",
-                            "fill_container": true,
-                            "primary": null,
-                            "secondary": null,
+                            "icon": "{% set entity = 'group.ground_toilet_lights' %}\n{% if is_state(entity, 'on') %}\n  mdi:floor-lamp\n{% else %}\n  mdi:floor-lamp-outline\n{% endif %}",
+                            "icon_color": "{% set entity = 'group.ground_toilet_lights' %}\n{% if is_state(entity, 'on') %}\n  amber\n{% endif %}",
                             "tap_action": {
-                              "action": "navigate",
-                              "navigation_path": "/lovelace-misc/corridors"
-                            }
-                          },
-                          {
-                            "type": "custom:mushroom-template-card",
-                            "icon": "{% set thermostat = 'climate.ground_toilet' %} \n{% if is_state(thermostat, 'heat') %}\n  mdi:heating-coil\n{% else %}\n  mdi:snowflake\n{% endif %}",
-                            "icon_color": "{% set thermostat = 'climate.ground_toilet' %} \n{% if is_state(thermostat, 'heat') %}\n  {% if state_attr(thermostat, 'temperature') > state_attr(thermostat, 'current_temperature') %}\n  red\n {% else %}\n blue\n  {% endif %}\n {% endif %}\n",
+                              "action": "more-info"
+                            },
+                            "entity": "group.ground_toilet_lights",
                             "layout": "horizontal",
-                            "entity": "input_boolean.placeholder",
-                            "fill_container": true,
-                            "primary": null,
-                            "secondary": null,
-                            "tap_action": {
-                              "action": "navigate",
-                              "navigation_path": "/lovelace-misc/corridors"
-                            }
-                          },
-                          {
-                            "type": "custom:mushroom-template-card",
-                            "icon": "{% set light = 'group.ground_toilet_lights_and_tvs' %}  \n{% if is_state(light, 'on') %}\n  mdi:floor-lamp\n{% else %}\n  mdi:floor-lamp-outline\n{% endif %}",
-                            "icon_color": "{% set light = 'group.ground_toilet_lights_and_tvs' %}  \n{% if is_state(light, 'on') %}\n  yellow\n{% endif %}",
-                            "layout": "horizontal",
-                            "entity": "input_boolean.placeholder",
-                            "fill_container": true,
-                            "primary": null,
-                            "secondary": null,
-                            "tap_action": {
-                              "action": "navigate",
-                              "navigation_path": "/lovelace-misc/corridors"
-                            }
+                            "fill_container": true
                           }
                         ]
                       }
@@ -796,17 +1005,17 @@
                     "cards": [
                       {
                         "type": "custom:mushroom-template-card",
-                        "icon": "mdi:toilet",
-                        "icon_color": "blue",
-                        "layout": "horizontal",
+                        "icon": "{% set entity = 'input_boolean.placeholder' %}\nmdi:toilet",
+                        "icon_color": "{% set entity = 'input_boolean.placeholder' %}\nblue",
+                        "tap_action": {
+                          "action": "navigate",
+                          "navigation_path": "/lovelace-misc/corridors"
+                        },
                         "entity": "input_boolean.placeholder",
+                        "layout": "horizontal",
                         "fill_container": true,
                         "primary": "Corridor",
-                        "secondary": "{% set temperature_sensor = 'sensor.corridor_temperature_sensor' %}\n{% set motion_postfix     = 'corridor_motion' %}\n{{ states(temperature_sensor) }}°C | {{\n (as_timestamp(now()) -\n as_timestamp(states.group[motion_postfix].last_changed)) |\n timestamp_custom(\"%H:%M\", false) }} ",
-                        "tap_action": {
-                          "action": "navigate",
-                          "navigation_path": "/lovelace-misc/corridors"
-                        }
+                        "secondary": "🔔 {{states.sensor.front_door_battery.state}}%{% if states.sensor.corridor_temperature_sensor.state is defined %} {{ states.sensor.corridor_temperature_sensor.state }}°C {% endif %}{% set motion_postfix     = 'corridor_motion' %}\n{% set motion = 'group.corridor_motion' %}\n{% if is_state(motion, 'on') %}\n  🙋🏻\n{% else %}\n  🦶🏻\n{% endif %}{{\n (as_timestamp(now()) -\n as_timestamp(states.group[motion_postfix].last_changed)) |\n timestamp_custom(\"%H:%M\", false) }} "
                       },
                       {
                         "type": "custom:stack-in-card",
@@ -814,59 +1023,45 @@
                         "cards": [
                           {
                             "type": "custom:mushroom-template-card",
-                            "icon": "{% set occupancy = 'input_select.corridor_occupancy' %} {% if   is_state(occupancy, 'Outside') %}\n  mdi:door-closed\n{% elif is_state(occupancy, 'Just Entered') %}\n  mdi:arrow-right-circle\n{% elif is_state(occupancy, 'In Sleep') %}\n  mdi:sleep\n{% else %}\n  mdi:account-multiple\n{% endif %}",
-                            "icon_color": "{% set occupancy = 'input_select.corridor_occupancy' %} {% if   is_state(occupancy, 'Outside') %} {% elif is_state(occupancy, 'Just Entered')%}\n  green\n{% elif is_state(occupancy, 'In Sleep') %}\n  blue            \n{% else %}\n  purple\n{% endif %}",
-                            "layout": "horizontal",
-                            "entity": "input_boolean.placeholder",
-                            "fill_container": true,
-                            "primary": null,
-                            "secondary": null,
+                            "icon": "{% set entity = 'input_select.corridor_occupancy' %}\n{% if   is_state(entity, 'Outside') %}\n  mdi:door-closed\n{% elif is_state(entity, 'Just Entered') %}\n  mdi:arrow-right-circle\n{% elif is_state(entity, 'In Sleep') %}\n  mdi:sleep\n{% else %}\n  mdi:account-multiple\n{% endif %}",
+                            "icon_color": "{% set entity = 'input_select.corridor_occupancy' %}\n{% if   is_state(entity, 'Outside') %} {% elif is_state(entity, 'Just Entered')%}\n  green\n{% elif is_state(entity, 'In Sleep') %}\n  blue            \n{% else %}\n  purple\n{% endif %}",
                             "tap_action": {
-                              "action": "navigate",
-                              "navigation_path": "/lovelace-misc/corridors"
+                              "action": "more-info"
+                            },
+                            "entity": "input_select.corridor_occupancy",
+                            "layout": "horizontal",
+                            "fill_container": true
+                          },
+                          {
+                            "type": "conditional",
+                            "conditions": [
+                              {
+                                "entity": "climate.corridor",
+                                "state": "heat"
+                              }
+                            ],
+                            "card": {
+                              "type": "custom:mushroom-template-card",
+                              "icon": "{% set entity = 'climate.corridor' %}\n{% if is_state(entity, 'heat') %}\n  mdi:heating-coil\n{% else %}\n  mdi:snowflake\n{% endif %}",
+                              "icon_color": "{% set entity = 'climate.corridor' %}\n{% if is_state(entity, 'heat') %}\n  {% if state_attr(entity, 'temperature') > state_attr(entity, 'current_temperature') %}\n  red\n {% else %}\n blue\n  {% endif %}\n {% endif %}\n",
+                              "tap_action": {
+                                "action": "more-info"
+                              },
+                              "entity": "climate.corridor",
+                              "layout": "horizontal",
+                              "fill_container": true
                             }
                           },
                           {
                             "type": "custom:mushroom-template-card",
-                            "icon": "{% set motion = 'group.corridor_motion' %}  \n{% if is_state(motion, 'on') %}\n  mdi:run-fast\n{% else %}\n  mdi:shoe-print\n{% endif %}",
-                            "icon_color": "{% set motion = 'group.corridor_motion' %}  \n{% if is_state(motion, 'on') %}\n  blue\n{% endif %}",
-                            "layout": "horizontal",
-                            "entity": "input_boolean.placeholder",
-                            "fill_container": true,
-                            "primary": null,
-                            "secondary": null,
+                            "icon": "{% set entity = 'group.corridor_lights' %}\n{% if is_state(entity, 'on') %}\n  mdi:floor-lamp\n{% else %}\n  mdi:floor-lamp-outline\n{% endif %}",
+                            "icon_color": "{% set entity = 'group.corridor_lights' %}\n{% if is_state(entity, 'on') %}\n  amber\n{% endif %}",
                             "tap_action": {
-                              "action": "navigate",
-                              "navigation_path": "/lovelace-misc/corridors"
-                            }
-                          },
-                          {
-                            "type": "custom:mushroom-template-card",
-                            "icon": "{% set thermostat = 'climate.corridor' %} \n{% if is_state(thermostat, 'heat') %}\n  mdi:heating-coil\n{% else %}\n  mdi:snowflake\n{% endif %}",
-                            "icon_color": "{% set thermostat = 'climate.corridor' %} \n{% if is_state(thermostat, 'heat') %}\n  {% if state_attr(thermostat, 'temperature') > state_attr(thermostat, 'current_temperature') %}\n  red\n {% else %}\n blue\n  {% endif %}\n {% endif %}\n",
+                              "action": "more-info"
+                            },
+                            "entity": "group.corridor_lights",
                             "layout": "horizontal",
-                            "entity": "input_boolean.placeholder",
-                            "fill_container": true,
-                            "primary": null,
-                            "secondary": null,
-                            "tap_action": {
-                              "action": "navigate",
-                              "navigation_path": "/lovelace-misc/corridors"
-                            }
-                          },
-                          {
-                            "type": "custom:mushroom-template-card",
-                            "icon": "{% set light = 'group.corridor_lights_and_tvs' %}  \n{% if is_state(light, 'on') %}\n  mdi:floor-lamp\n{% else %}\n  mdi:floor-lamp-outline\n{% endif %}",
-                            "icon_color": "{% set light = 'group.corridor_lights_and_tvs' %}  \n{% if is_state(light, 'on') %}\n  yellow\n{% endif %}",
-                            "layout": "horizontal",
-                            "entity": "input_boolean.placeholder",
-                            "fill_container": true,
-                            "primary": null,
-                            "secondary": null,
-                            "tap_action": {
-                              "action": "navigate",
-                              "navigation_path": "/lovelace-misc/corridors"
-                            }
+                            "fill_container": true
                           }
                         ]
                       }
@@ -907,17 +1102,17 @@
                     "cards": [
                       {
                         "type": "custom:mushroom-template-card",
-                        "icon": "mdi:beach",
-                        "icon_color": "blue",
-                        "layout": "horizontal",
-                        "entity": "input_boolean.placeholder",
-                        "fill_container": true,
-                        "primary": "Garden",
-                        "secondary": "{% set temperature_sensor = 'sensor.garden_temperature_sensor' %}\n{% set motion_postfix     = 'garden_motion' %}\n{{ states(temperature_sensor) }}°C | {{\n (as_timestamp(now()) -\n as_timestamp(states.group[motion_postfix].last_changed)) |\n timestamp_custom(\"%H:%M\", false) }} ",
+                        "icon": "{% set entity = 'input_boolean.placeholder' %}\nmdi:beach",
+                        "icon_color": "{% set entity = 'input_boolean.placeholder' %}\nblue",
                         "tap_action": {
                           "action": "navigate",
                           "navigation_path": "/lovelace-garden/garden"
-                        }
+                        },
+                        "entity": "input_boolean.placeholder",
+                        "layout": "horizontal",
+                        "fill_container": true,
+                        "primary": "Garden",
+                        "secondary": "{% if states.sensor.garden_temperature_sensor.state is defined %} {{ states.sensor.garden_temperature_sensor.state }}°C {% endif %}{% set motion_postfix     = 'garden_motion' %}\n{% set motion = 'group.garden_motion' %}\n{% if is_state(motion, 'on') %}\n  🙋🏻\n{% else %}\n  🦶🏻\n{% endif %}{{\n (as_timestamp(now()) -\n as_timestamp(states.group[motion_postfix].last_changed)) |\n timestamp_custom(\"%H:%M\", false) }} "
                       },
                       {
                         "type": "custom:stack-in-card",
@@ -925,59 +1120,25 @@
                         "cards": [
                           {
                             "type": "custom:mushroom-template-card",
-                            "icon": "{% set occupancy = 'input_select.garden_occupancy' %} {% if   is_state(occupancy, 'Outside') %}\n  mdi:door-closed\n{% elif is_state(occupancy, 'Just Entered') %}\n  mdi:arrow-right-circle\n{% elif is_state(occupancy, 'In Sleep') %}\n  mdi:sleep\n{% else %}\n  mdi:account-multiple\n{% endif %}",
-                            "icon_color": "{% set occupancy = 'input_select.garden_occupancy' %} {% if   is_state(occupancy, 'Outside') %} {% elif is_state(occupancy, 'Just Entered')%}\n  green\n{% elif is_state(occupancy, 'In Sleep') %}\n  blue            \n{% else %}\n  purple\n{% endif %}",
-                            "layout": "horizontal",
-                            "entity": "input_boolean.placeholder",
-                            "fill_container": true,
-                            "primary": null,
-                            "secondary": null,
+                            "icon": "{% set entity = 'input_select.garden_occupancy' %}\n{% if   is_state(entity, 'Outside') %}\n  mdi:door-closed\n{% elif is_state(entity, 'Just Entered') %}\n  mdi:arrow-right-circle\n{% elif is_state(entity, 'In Sleep') %}\n  mdi:sleep\n{% else %}\n  mdi:account-multiple\n{% endif %}",
+                            "icon_color": "{% set entity = 'input_select.garden_occupancy' %}\n{% if   is_state(entity, 'Outside') %} {% elif is_state(entity, 'Just Entered')%}\n  green\n{% elif is_state(entity, 'In Sleep') %}\n  blue            \n{% else %}\n  purple\n{% endif %}",
                             "tap_action": {
-                              "action": "navigate",
-                              "navigation_path": "/lovelace-garden/garden"
-                            }
+                              "action": "more-info"
+                            },
+                            "entity": "input_select.garden_occupancy",
+                            "layout": "horizontal",
+                            "fill_container": true
                           },
                           {
                             "type": "custom:mushroom-template-card",
-                            "icon": "{% set motion = 'group.garden_motion' %}  \n{% if is_state(motion, 'on') %}\n  mdi:run-fast\n{% else %}\n  mdi:shoe-print\n{% endif %}",
-                            "icon_color": "{% set motion = 'group.garden_motion' %}  \n{% if is_state(motion, 'on') %}\n  blue\n{% endif %}",
-                            "layout": "horizontal",
-                            "entity": "input_boolean.placeholder",
-                            "fill_container": true,
-                            "primary": null,
-                            "secondary": null,
+                            "icon": "{% set entity = 'group.garden_lights' %}\n{% if is_state(entity, 'on') %}\n  mdi:floor-lamp\n{% else %}\n  mdi:floor-lamp-outline\n{% endif %}",
+                            "icon_color": "{% set entity = 'group.garden_lights' %}\n{% if is_state(entity, 'on') %}\n  amber\n{% endif %}",
                             "tap_action": {
-                              "action": "navigate",
-                              "navigation_path": "/lovelace-garden/garden"
-                            }
-                          },
-                          {
-                            "type": "custom:mushroom-template-card",
-                            "icon": "{% set thermostat = 'climate.garden' %} \n{% if is_state(thermostat, 'heat') %}\n  mdi:heating-coil\n{% else %}\n  mdi:snowflake\n{% endif %}",
-                            "icon_color": "{% set thermostat = 'climate.garden' %} \n{% if is_state(thermostat, 'heat') %}\n  {% if state_attr(thermostat, 'temperature') > state_attr(thermostat, 'current_temperature') %}\n  red\n {% else %}\n blue\n  {% endif %}\n {% endif %}\n",
+                              "action": "more-info"
+                            },
+                            "entity": "group.garden_lights",
                             "layout": "horizontal",
-                            "entity": "input_boolean.placeholder",
-                            "fill_container": true,
-                            "primary": null,
-                            "secondary": null,
-                            "tap_action": {
-                              "action": "navigate",
-                              "navigation_path": "/lovelace-garden/garden"
-                            }
-                          },
-                          {
-                            "type": "custom:mushroom-template-card",
-                            "icon": "{% set light = 'group.garden_lights_and_tvs' %}  \n{% if is_state(light, 'on') %}\n  mdi:floor-lamp\n{% else %}\n  mdi:floor-lamp-outline\n{% endif %}",
-                            "icon_color": "{% set light = 'group.garden_lights_and_tvs' %}  \n{% if is_state(light, 'on') %}\n  yellow\n{% endif %}",
-                            "layout": "horizontal",
-                            "entity": "input_boolean.placeholder",
-                            "fill_container": true,
-                            "primary": null,
-                            "secondary": null,
-                            "tap_action": {
-                              "action": "navigate",
-                              "navigation_path": "/lovelace-garden/garden"
-                            }
+                            "fill_container": true
                           }
                         ]
                       }
@@ -1018,17 +1179,17 @@
                     "cards": [
                       {
                         "type": "custom:mushroom-template-card",
-                        "icon": "mdi:bed-queen",
-                        "icon_color": "blue",
-                        "layout": "horizontal",
-                        "entity": "input_boolean.placeholder",
-                        "fill_container": true,
-                        "primary": "En-suite Room",
-                        "secondary": "{% set temperature_sensor = 'sensor.en_suite_room_temperature_sensor' %}\n{% set motion_postfix     = 'en_suite_room_motion' %}\n{{ states(temperature_sensor) }}°C | {{\n (as_timestamp(now()) -\n as_timestamp(states.group[motion_postfix].last_changed)) |\n timestamp_custom(\"%H:%M\", false) }} ",
+                        "icon": "{% set entity = 'input_boolean.placeholder' %}\nmdi:bed-queen",
+                        "icon_color": "{% set entity = 'input_boolean.placeholder' %}\nblue",
                         "tap_action": {
                           "action": "navigate",
                           "navigation_path": "/en-suite-room/en-suite-room"
-                        }
+                        },
+                        "entity": "input_boolean.placeholder",
+                        "layout": "horizontal",
+                        "fill_container": true,
+                        "primary": "En-suite Room",
+                        "secondary": "{% if states.sensor.en_suite_room_temperature_sensor.state is defined %} {{ states.sensor.en_suite_room_temperature_sensor.state }}°C {% endif %}{% set motion_postfix     = 'en_suite_room_motion' %}\n{% set motion = 'group.en_suite_room_motion' %}\n{% if is_state(motion, 'on') %}\n  🙋🏻\n{% else %}\n  🦶🏻\n{% endif %}{{\n (as_timestamp(now()) -\n as_timestamp(states.group[motion_postfix].last_changed)) |\n timestamp_custom(\"%H:%M\", false) }} "
                       },
                       {
                         "type": "custom:stack-in-card",
@@ -1036,58 +1197,75 @@
                         "cards": [
                           {
                             "type": "custom:mushroom-template-card",
-                            "icon": "{% set occupancy = 'input_select.en_suite_room_occupancy' %} {% if   is_state(occupancy, 'Outside') %}\n  mdi:door-closed\n{% elif is_state(occupancy, 'Just Entered') %}\n  mdi:arrow-right-circle\n{% elif is_state(occupancy, 'In Sleep') %}\n  mdi:sleep\n{% else %}\n  mdi:account-multiple\n{% endif %}",
-                            "icon_color": "{% set occupancy = 'input_select.en_suite_room_occupancy' %} {% if   is_state(occupancy, 'Outside') %} {% elif is_state(occupancy, 'Just Entered')%}\n  green\n{% elif is_state(occupancy, 'In Sleep') %}\n  blue            \n{% else %}\n  purple\n{% endif %}",
-                            "layout": "horizontal",
-                            "entity": "input_boolean.placeholder",
-                            "fill_container": true,
-                            "primary": null,
-                            "secondary": null,
+                            "icon": "{% set entity = 'input_select.en_suite_room_occupancy' %}\n{% if   is_state(entity, 'Outside') %}\n  mdi:door-closed\n{% elif is_state(entity, 'Just Entered') %}\n  mdi:arrow-right-circle\n{% elif is_state(entity, 'In Sleep') %}\n  mdi:sleep\n{% else %}\n  mdi:account-multiple\n{% endif %}",
+                            "icon_color": "{% set entity = 'input_select.en_suite_room_occupancy' %}\n{% if   is_state(entity, 'Outside') %} {% elif is_state(entity, 'Just Entered')%}\n  green\n{% elif is_state(entity, 'In Sleep') %}\n  blue            \n{% else %}\n  purple\n{% endif %}",
                             "tap_action": {
-                              "action": "navigate",
-                              "navigation_path": "/en-suite-room/en-suite-room"
+                              "action": "more-info"
+                            },
+                            "entity": "input_select.en_suite_room_occupancy",
+                            "layout": "horizontal",
+                            "fill_container": true
+                          },
+                          {
+                            "type": "conditional",
+                            "conditions": [
+                              {
+                                "entity": "climate.en_suite_room",
+                                "state": "heat"
+                              }
+                            ],
+                            "card": {
+                              "type": "custom:mushroom-template-card",
+                              "icon": "{% set entity = 'climate.en_suite_room' %}\n{% if is_state(entity, 'heat') %}\n  mdi:heating-coil\n{% else %}\n  mdi:snowflake\n{% endif %}",
+                              "icon_color": "{% set entity = 'climate.en_suite_room' %}\n{% if is_state(entity, 'heat') %}\n  {% if state_attr(entity, 'temperature') > state_attr(entity, 'current_temperature') %}\n  red\n {% else %}\n blue\n  {% endif %}\n {% endif %}\n",
+                              "tap_action": {
+                                "action": "more-info"
+                              },
+                              "entity": "climate.en_suite_room",
+                              "layout": "horizontal",
+                              "fill_container": true
                             }
                           },
                           {
                             "type": "custom:mushroom-template-card",
-                            "icon": "{% set motion = 'group.en_suite_room_motion' %}  \n{% if is_state(motion, 'on') %}\n  mdi:run-fast\n{% else %}\n  mdi:shoe-print\n{% endif %}",
-                            "icon_color": "{% set motion = 'group.en_suite_room_motion' %}  \n{% if is_state(motion, 'on') %}\n  blue\n{% endif %}",
-                            "layout": "horizontal",
-                            "entity": "input_boolean.placeholder",
-                            "fill_container": true,
-                            "primary": null,
-                            "secondary": null,
+                            "icon": "{% set entity = 'group.en_suite_room_lights' %}\n{% if is_state(entity, 'on') %}\n  mdi:floor-lamp\n{% else %}\n  mdi:floor-lamp-outline\n{% endif %}",
+                            "icon_color": "{% set entity = 'group.en_suite_room_lights' %}\n{% if is_state(entity, 'on') %}\n  amber\n{% endif %}",
                             "tap_action": {
-                              "action": "navigate",
-                              "navigation_path": "/en-suite-room/en-suite-room"
-                            }
+                              "action": "more-info"
+                            },
+                            "entity": "group.en_suite_room_lights",
+                            "layout": "horizontal",
+                            "fill_container": true
                           },
                           {
                             "type": "custom:mushroom-template-card",
-                            "icon": "{% set thermostat = 'climate.en_suite_room' %} \n{% if is_state(thermostat, 'heat') %}\n  mdi:heating-coil\n{% else %}\n  mdi:snowflake\n{% endif %}",
-                            "icon_color": "{% set thermostat = 'climate.en_suite_room' %} \n{% if is_state(thermostat, 'heat') %}\n  {% if state_attr(thermostat, 'temperature') > state_attr(thermostat, 'current_temperature') %}\n  red\n {% else %}\n blue\n  {% endif %}\n {% endif %}\n",
-                            "layout": "horizontal",
-                            "entity": "input_boolean.placeholder",
-                            "fill_container": true,
-                            "primary": null,
-                            "secondary": null,
+                            "icon": "{% set entity = 'media_player.portable_tv' %}\nmdi:television-classic",
+                            "icon_color": "{% set entity = 'media_player.portable_tv' %}\n{% if is_state(entity, 'on') %}\n  deep-orange\n{% endif %}",
                             "tap_action": {
-                              "action": "navigate",
-                              "navigation_path": "/en-suite-room/en-suite-room"
-                            }
+                              "action": "more-info"
+                            },
+                            "entity": "media_player.portable_tv",
+                            "layout": "horizontal",
+                            "fill_container": true
                           },
                           {
-                            "type": "custom:mushroom-template-card",
-                            "icon": "{% set light = 'group.en_suite_room_lights_and_tvs' %}  \n{% if is_state(light, 'on') %}\n  mdi:floor-lamp\n{% else %}\n  mdi:floor-lamp-outline\n{% endif %}",
-                            "icon_color": "{% set light = 'group.en_suite_room_lights_and_tvs' %}  \n{% if is_state(light, 'on') %}\n  yellow\n{% endif %}",
-                            "layout": "horizontal",
-                            "entity": "input_boolean.placeholder",
-                            "fill_container": true,
-                            "primary": null,
-                            "secondary": null,
-                            "tap_action": {
-                              "action": "navigate",
-                              "navigation_path": "/en-suite-room/en-suite-room"
+                            "type": "conditional",
+                            "conditions": [
+                              {
+                                "entity": "group.en_suite_room_curtains",
+                                "state": "open"
+                              }
+                            ],
+                            "card": {
+                              "type": "custom:mushroom-template-card",
+                              "icon": "{% set entity = 'group.en_suite_room_curtains' %}\n{% if is_state(entity, 'open') %}\n  mdi:curtains\n{% else %}\n  mdi:curtains-closed\n{% endif %}",
+                              "icon_color": "{% set entity = 'group.en_suite_room_curtains' %}\n{% if is_state(entity, 'open') %}\n  green       \n{% endif %}",
+                              "tap_action": {
+                                "action": "more-info"
+                              },
+                              "entity": "group.en_suite_room_curtains",
+                              "layout": "horizontal",
+                              "fill_container": true
                             }
                           }
                         ]
@@ -1129,17 +1307,17 @@
                     "cards": [
                       {
                         "type": "custom:mushroom-template-card",
-                        "icon": "mdi:shower-head",
-                        "icon_color": "blue",
-                        "layout": "horizontal",
-                        "entity": "input_boolean.placeholder",
-                        "fill_container": true,
-                        "primary": "En-suite Toilet",
-                        "secondary": "{% set temperature_sensor = 'sensor.en_suite_toilet_temperature_sensor' %}\n{% set motion_postfix     = 'en_suite_toilet_motion' %}\n{{ states(temperature_sensor) }}°C | {{\n (as_timestamp(now()) -\n as_timestamp(states.group[motion_postfix].last_changed)) |\n timestamp_custom(\"%H:%M\", false) }} ",
+                        "icon": "{% set entity = 'input_boolean.placeholder' %}\nmdi:shower-head",
+                        "icon_color": "{% set entity = 'input_boolean.placeholder' %}\nblue",
                         "tap_action": {
                           "action": "navigate",
                           "navigation_path": "/en-suite-room/en-suite-toilet"
-                        }
+                        },
+                        "entity": "input_boolean.placeholder",
+                        "layout": "horizontal",
+                        "fill_container": true,
+                        "primary": "En-suite Toilet",
+                        "secondary": "{% if states.sensor.en_suite_toilet_temperature_sensor.state is defined %} {{ states.sensor.en_suite_toilet_temperature_sensor.state }}°C {% endif %}{% set motion_postfix     = 'en_suite_toilet_motion' %}\n{% set motion = 'group.en_suite_toilet_motion' %}\n{% if is_state(motion, 'on') %}\n  🙋🏻\n{% else %}\n  🦶🏻\n{% endif %}{{\n (as_timestamp(now()) -\n as_timestamp(states.group[motion_postfix].last_changed)) |\n timestamp_custom(\"%H:%M\", false) }} "
                       },
                       {
                         "type": "custom:stack-in-card",
@@ -1147,59 +1325,45 @@
                         "cards": [
                           {
                             "type": "custom:mushroom-template-card",
-                            "icon": "{% set occupancy = 'input_select.en_suite_toilet_occupancy' %} {% if   is_state(occupancy, 'Outside') %}\n  mdi:door-closed\n{% elif is_state(occupancy, 'Just Entered') %}\n  mdi:arrow-right-circle\n{% elif is_state(occupancy, 'In Sleep') %}\n  mdi:sleep\n{% else %}\n  mdi:account-multiple\n{% endif %}",
-                            "icon_color": "{% set occupancy = 'input_select.en_suite_toilet_occupancy' %} {% if   is_state(occupancy, 'Outside') %} {% elif is_state(occupancy, 'Just Entered')%}\n  green\n{% elif is_state(occupancy, 'In Sleep') %}\n  blue            \n{% else %}\n  purple\n{% endif %}",
-                            "layout": "horizontal",
-                            "entity": "input_boolean.placeholder",
-                            "fill_container": true,
-                            "primary": null,
-                            "secondary": null,
+                            "icon": "{% set entity = 'input_select.en_suite_toilet_occupancy' %}\n{% if   is_state(entity, 'Outside') %}\n  mdi:door-closed\n{% elif is_state(entity, 'Just Entered') %}\n  mdi:arrow-right-circle\n{% elif is_state(entity, 'In Sleep') %}\n  mdi:sleep\n{% else %}\n  mdi:account-multiple\n{% endif %}",
+                            "icon_color": "{% set entity = 'input_select.en_suite_toilet_occupancy' %}\n{% if   is_state(entity, 'Outside') %} {% elif is_state(entity, 'Just Entered')%}\n  green\n{% elif is_state(entity, 'In Sleep') %}\n  blue            \n{% else %}\n  purple\n{% endif %}",
                             "tap_action": {
-                              "action": "navigate",
-                              "navigation_path": "/en-suite-room/en-suite-toilet"
+                              "action": "more-info"
+                            },
+                            "entity": "input_select.en_suite_toilet_occupancy",
+                            "layout": "horizontal",
+                            "fill_container": true
+                          },
+                          {
+                            "type": "conditional",
+                            "conditions": [
+                              {
+                                "entity": "climate.en_suite_toilet",
+                                "state": "heat"
+                              }
+                            ],
+                            "card": {
+                              "type": "custom:mushroom-template-card",
+                              "icon": "{% set entity = 'climate.en_suite_toilet' %}\n{% if is_state(entity, 'heat') %}\n  mdi:heating-coil\n{% else %}\n  mdi:snowflake\n{% endif %}",
+                              "icon_color": "{% set entity = 'climate.en_suite_toilet' %}\n{% if is_state(entity, 'heat') %}\n  {% if state_attr(entity, 'temperature') > state_attr(entity, 'current_temperature') %}\n  red\n {% else %}\n blue\n  {% endif %}\n {% endif %}\n",
+                              "tap_action": {
+                                "action": "more-info"
+                              },
+                              "entity": "climate.en_suite_toilet",
+                              "layout": "horizontal",
+                              "fill_container": true
                             }
                           },
                           {
                             "type": "custom:mushroom-template-card",
-                            "icon": "{% set motion = 'group.en_suite_toilet_motion' %}  \n{% if is_state(motion, 'on') %}\n  mdi:run-fast\n{% else %}\n  mdi:shoe-print\n{% endif %}",
-                            "icon_color": "{% set motion = 'group.en_suite_toilet_motion' %}  \n{% if is_state(motion, 'on') %}\n  blue\n{% endif %}",
-                            "layout": "horizontal",
-                            "entity": "input_boolean.placeholder",
-                            "fill_container": true,
-                            "primary": null,
-                            "secondary": null,
+                            "icon": "{% set entity = 'group.en_suite_toilet_lights' %}\n{% if is_state(entity, 'on') %}\n  mdi:floor-lamp\n{% else %}\n  mdi:floor-lamp-outline\n{% endif %}",
+                            "icon_color": "{% set entity = 'group.en_suite_toilet_lights' %}\n{% if is_state(entity, 'on') %}\n  amber\n{% endif %}",
                             "tap_action": {
-                              "action": "navigate",
-                              "navigation_path": "/en-suite-room/en-suite-toilet"
-                            }
-                          },
-                          {
-                            "type": "custom:mushroom-template-card",
-                            "icon": "{% set thermostat = 'climate.en_suite_toilet' %} \n{% if is_state(thermostat, 'heat') %}\n  mdi:heating-coil\n{% else %}\n  mdi:snowflake\n{% endif %}",
-                            "icon_color": "{% set thermostat = 'climate.en_suite_toilet' %} \n{% if is_state(thermostat, 'heat') %}\n  {% if state_attr(thermostat, 'temperature') > state_attr(thermostat, 'current_temperature') %}\n  red\n {% else %}\n blue\n  {% endif %}\n {% endif %}\n",
+                              "action": "more-info"
+                            },
+                            "entity": "group.en_suite_toilet_lights",
                             "layout": "horizontal",
-                            "entity": "input_boolean.placeholder",
-                            "fill_container": true,
-                            "primary": null,
-                            "secondary": null,
-                            "tap_action": {
-                              "action": "navigate",
-                              "navigation_path": "/en-suite-room/en-suite-toilet"
-                            }
-                          },
-                          {
-                            "type": "custom:mushroom-template-card",
-                            "icon": "{% set light = 'group.en_suite_toilet_lights_and_tvs' %}  \n{% if is_state(light, 'on') %}\n  mdi:floor-lamp\n{% else %}\n  mdi:floor-lamp-outline\n{% endif %}",
-                            "icon_color": "{% set light = 'group.en_suite_toilet_lights_and_tvs' %}  \n{% if is_state(light, 'on') %}\n  yellow\n{% endif %}",
-                            "layout": "horizontal",
-                            "entity": "input_boolean.placeholder",
-                            "fill_container": true,
-                            "primary": null,
-                            "secondary": null,
-                            "tap_action": {
-                              "action": "navigate",
-                              "navigation_path": "/en-suite-room/en-suite-toilet"
-                            }
+                            "fill_container": true
                           }
                         ]
                       }
@@ -1240,17 +1404,17 @@
                     "cards": [
                       {
                         "type": "custom:mushroom-template-card",
-                        "icon": "mdi:bed-queen-outline",
-                        "icon_color": "blue",
-                        "layout": "horizontal",
-                        "entity": "input_boolean.placeholder",
-                        "fill_container": true,
-                        "primary": "Guest Room",
-                        "secondary": "{% set temperature_sensor = 'sensor.guest_room_temperature_sensor' %}\n{% set motion_postfix     = 'guest_room_motion' %}\n{{ states(temperature_sensor) }}°C | {{\n (as_timestamp(now()) -\n as_timestamp(states.group[motion_postfix].last_changed)) |\n timestamp_custom(\"%H:%M\", false) }} ",
+                        "icon": "{% set entity = 'input_boolean.placeholder' %}\nmdi:bed-queen-outline",
+                        "icon_color": "{% set entity = 'input_boolean.placeholder' %}\nblue",
                         "tap_action": {
                           "action": "navigate",
                           "navigation_path": "/guest-room/guest-room"
-                        }
+                        },
+                        "entity": "input_boolean.placeholder",
+                        "layout": "horizontal",
+                        "fill_container": true,
+                        "primary": "Guest Room",
+                        "secondary": "{% if states.sensor.guest_room_temperature_sensor.state is defined %} {{ states.sensor.guest_room_temperature_sensor.state }}°C {% endif %}{% set motion_postfix     = 'guest_room_motion' %}\n{% set motion = 'group.guest_room_motion' %}\n{% if is_state(motion, 'on') %}\n  🙋🏻\n{% else %}\n  🦶🏻\n{% endif %}{{\n (as_timestamp(now()) -\n as_timestamp(states.group[motion_postfix].last_changed)) |\n timestamp_custom(\"%H:%M\", false) }} "
                       },
                       {
                         "type": "custom:stack-in-card",
@@ -1258,59 +1422,45 @@
                         "cards": [
                           {
                             "type": "custom:mushroom-template-card",
-                            "icon": "{% set occupancy = 'input_select.guest_room_occupancy' %} {% if   is_state(occupancy, 'Outside') %}\n  mdi:door-closed\n{% elif is_state(occupancy, 'Just Entered') %}\n  mdi:arrow-right-circle\n{% elif is_state(occupancy, 'In Sleep') %}\n  mdi:sleep\n{% else %}\n  mdi:account-multiple\n{% endif %}",
-                            "icon_color": "{% set occupancy = 'input_select.guest_room_occupancy' %} {% if   is_state(occupancy, 'Outside') %} {% elif is_state(occupancy, 'Just Entered')%}\n  green\n{% elif is_state(occupancy, 'In Sleep') %}\n  blue            \n{% else %}\n  purple\n{% endif %}",
-                            "layout": "horizontal",
-                            "entity": "input_boolean.placeholder",
-                            "fill_container": true,
-                            "primary": null,
-                            "secondary": null,
+                            "icon": "{% set entity = 'input_select.guest_room_occupancy' %}\n{% if   is_state(entity, 'Outside') %}\n  mdi:door-closed\n{% elif is_state(entity, 'Just Entered') %}\n  mdi:arrow-right-circle\n{% elif is_state(entity, 'In Sleep') %}\n  mdi:sleep\n{% else %}\n  mdi:account-multiple\n{% endif %}",
+                            "icon_color": "{% set entity = 'input_select.guest_room_occupancy' %}\n{% if   is_state(entity, 'Outside') %} {% elif is_state(entity, 'Just Entered')%}\n  green\n{% elif is_state(entity, 'In Sleep') %}\n  blue            \n{% else %}\n  purple\n{% endif %}",
                             "tap_action": {
-                              "action": "navigate",
-                              "navigation_path": "/guest-room/guest-room"
+                              "action": "more-info"
+                            },
+                            "entity": "input_select.guest_room_occupancy",
+                            "layout": "horizontal",
+                            "fill_container": true
+                          },
+                          {
+                            "type": "conditional",
+                            "conditions": [
+                              {
+                                "entity": "climate.guest_room",
+                                "state": "heat"
+                              }
+                            ],
+                            "card": {
+                              "type": "custom:mushroom-template-card",
+                              "icon": "{% set entity = 'climate.guest_room' %}\n{% if is_state(entity, 'heat') %}\n  mdi:heating-coil\n{% else %}\n  mdi:snowflake\n{% endif %}",
+                              "icon_color": "{% set entity = 'climate.guest_room' %}\n{% if is_state(entity, 'heat') %}\n  {% if state_attr(entity, 'temperature') > state_attr(entity, 'current_temperature') %}\n  red\n {% else %}\n blue\n  {% endif %}\n {% endif %}\n",
+                              "tap_action": {
+                                "action": "more-info"
+                              },
+                              "entity": "climate.guest_room",
+                              "layout": "horizontal",
+                              "fill_container": true
                             }
                           },
                           {
                             "type": "custom:mushroom-template-card",
-                            "icon": "{% set motion = 'group.guest_room_motion' %}  \n{% if is_state(motion, 'on') %}\n  mdi:run-fast\n{% else %}\n  mdi:shoe-print\n{% endif %}",
-                            "icon_color": "{% set motion = 'group.guest_room_motion' %}  \n{% if is_state(motion, 'on') %}\n  blue\n{% endif %}",
-                            "layout": "horizontal",
-                            "entity": "input_boolean.placeholder",
-                            "fill_container": true,
-                            "primary": null,
-                            "secondary": null,
+                            "icon": "{% set entity = 'group.guest_room_lights' %}\n{% if is_state(entity, 'on') %}\n  mdi:floor-lamp\n{% else %}\n  mdi:floor-lamp-outline\n{% endif %}",
+                            "icon_color": "{% set entity = 'group.guest_room_lights' %}\n{% if is_state(entity, 'on') %}\n  amber\n{% endif %}",
                             "tap_action": {
-                              "action": "navigate",
-                              "navigation_path": "/guest-room/guest-room"
-                            }
-                          },
-                          {
-                            "type": "custom:mushroom-template-card",
-                            "icon": "{% set thermostat = 'climate.guest_room' %} \n{% if is_state(thermostat, 'heat') %}\n  mdi:heating-coil\n{% else %}\n  mdi:snowflake\n{% endif %}",
-                            "icon_color": "{% set thermostat = 'climate.guest_room' %} \n{% if is_state(thermostat, 'heat') %}\n  {% if state_attr(thermostat, 'temperature') > state_attr(thermostat, 'current_temperature') %}\n  red\n {% else %}\n blue\n  {% endif %}\n {% endif %}\n",
+                              "action": "more-info"
+                            },
+                            "entity": "group.guest_room_lights",
                             "layout": "horizontal",
-                            "entity": "input_boolean.placeholder",
-                            "fill_container": true,
-                            "primary": null,
-                            "secondary": null,
-                            "tap_action": {
-                              "action": "navigate",
-                              "navigation_path": "/guest-room/guest-room"
-                            }
-                          },
-                          {
-                            "type": "custom:mushroom-template-card",
-                            "icon": "{% set light = 'group.guest_room_lights_and_tvs' %}  \n{% if is_state(light, 'on') %}\n  mdi:floor-lamp\n{% else %}\n  mdi:floor-lamp-outline\n{% endif %}",
-                            "icon_color": "{% set light = 'group.guest_room_lights_and_tvs' %}  \n{% if is_state(light, 'on') %}\n  yellow\n{% endif %}",
-                            "layout": "horizontal",
-                            "entity": "input_boolean.placeholder",
-                            "fill_container": true,
-                            "primary": null,
-                            "secondary": null,
-                            "tap_action": {
-                              "action": "navigate",
-                              "navigation_path": "/guest-room/guest-room"
-                            }
+                            "fill_container": true
                           }
                         ]
                       }
@@ -1351,17 +1501,17 @@
                     "cards": [
                       {
                         "type": "custom:mushroom-template-card",
-                        "icon": "mdi:shower",
-                        "icon_color": "blue",
-                        "layout": "horizontal",
-                        "entity": "input_boolean.placeholder",
-                        "fill_container": true,
-                        "primary": "Guest Toilet",
-                        "secondary": "{% set temperature_sensor = 'sensor.guest_toilet_temperature_sensor' %}\n{% set motion_postfix     = 'guest_toilet_motion' %}\n{{ states(temperature_sensor) }}°C | {{\n (as_timestamp(now()) -\n as_timestamp(states.group[motion_postfix].last_changed)) |\n timestamp_custom(\"%H:%M\", false) }} ",
+                        "icon": "{% set entity = 'input_boolean.placeholder' %}\nmdi:shower",
+                        "icon_color": "{% set entity = 'input_boolean.placeholder' %}\nblue",
                         "tap_action": {
                           "action": "navigate",
                           "navigation_path": "/guest-room/guest-toilet"
-                        }
+                        },
+                        "entity": "input_boolean.placeholder",
+                        "layout": "horizontal",
+                        "fill_container": true,
+                        "primary": "Guest Toilet",
+                        "secondary": "{% if states.sensor.guest_toilet_temperature_sensor.state is defined %} {{ states.sensor.guest_toilet_temperature_sensor.state }}°C {% endif %}{% set motion_postfix     = 'guest_toilet_motion' %}\n{% set motion = 'group.guest_toilet_motion' %}\n{% if is_state(motion, 'on') %}\n  🙋🏻\n{% else %}\n  🦶🏻\n{% endif %}{{\n (as_timestamp(now()) -\n as_timestamp(states.group[motion_postfix].last_changed)) |\n timestamp_custom(\"%H:%M\", false) }} "
                       },
                       {
                         "type": "custom:stack-in-card",
@@ -1369,59 +1519,45 @@
                         "cards": [
                           {
                             "type": "custom:mushroom-template-card",
-                            "icon": "{% set occupancy = 'input_select.guest_toilet_occupancy' %} {% if   is_state(occupancy, 'Outside') %}\n  mdi:door-closed\n{% elif is_state(occupancy, 'Just Entered') %}\n  mdi:arrow-right-circle\n{% elif is_state(occupancy, 'In Sleep') %}\n  mdi:sleep\n{% else %}\n  mdi:account-multiple\n{% endif %}",
-                            "icon_color": "{% set occupancy = 'input_select.guest_toilet_occupancy' %} {% if   is_state(occupancy, 'Outside') %} {% elif is_state(occupancy, 'Just Entered')%}\n  green\n{% elif is_state(occupancy, 'In Sleep') %}\n  blue            \n{% else %}\n  purple\n{% endif %}",
-                            "layout": "horizontal",
-                            "entity": "input_boolean.placeholder",
-                            "fill_container": true,
-                            "primary": null,
-                            "secondary": null,
+                            "icon": "{% set entity = 'input_select.guest_toilet_occupancy' %}\n{% if   is_state(entity, 'Outside') %}\n  mdi:door-closed\n{% elif is_state(entity, 'Just Entered') %}\n  mdi:arrow-right-circle\n{% elif is_state(entity, 'In Sleep') %}\n  mdi:sleep\n{% else %}\n  mdi:account-multiple\n{% endif %}",
+                            "icon_color": "{% set entity = 'input_select.guest_toilet_occupancy' %}\n{% if   is_state(entity, 'Outside') %} {% elif is_state(entity, 'Just Entered')%}\n  green\n{% elif is_state(entity, 'In Sleep') %}\n  blue            \n{% else %}\n  purple\n{% endif %}",
                             "tap_action": {
-                              "action": "navigate",
-                              "navigation_path": "/guest-room/guest-toilet"
+                              "action": "more-info"
+                            },
+                            "entity": "input_select.guest_toilet_occupancy",
+                            "layout": "horizontal",
+                            "fill_container": true
+                          },
+                          {
+                            "type": "conditional",
+                            "conditions": [
+                              {
+                                "entity": "climate.guest_toilet",
+                                "state": "heat"
+                              }
+                            ],
+                            "card": {
+                              "type": "custom:mushroom-template-card",
+                              "icon": "{% set entity = 'climate.guest_toilet' %}\n{% if is_state(entity, 'heat') %}\n  mdi:heating-coil\n{% else %}\n  mdi:snowflake\n{% endif %}",
+                              "icon_color": "{% set entity = 'climate.guest_toilet' %}\n{% if is_state(entity, 'heat') %}\n  {% if state_attr(entity, 'temperature') > state_attr(entity, 'current_temperature') %}\n  red\n {% else %}\n blue\n  {% endif %}\n {% endif %}\n",
+                              "tap_action": {
+                                "action": "more-info"
+                              },
+                              "entity": "climate.guest_toilet",
+                              "layout": "horizontal",
+                              "fill_container": true
                             }
                           },
                           {
                             "type": "custom:mushroom-template-card",
-                            "icon": "{% set motion = 'group.guest_toilet_motion' %}  \n{% if is_state(motion, 'on') %}\n  mdi:run-fast\n{% else %}\n  mdi:shoe-print\n{% endif %}",
-                            "icon_color": "{% set motion = 'group.guest_toilet_motion' %}  \n{% if is_state(motion, 'on') %}\n  blue\n{% endif %}",
-                            "layout": "horizontal",
-                            "entity": "input_boolean.placeholder",
-                            "fill_container": true,
-                            "primary": null,
-                            "secondary": null,
+                            "icon": "{% set entity = 'group.guest_toilet_lights' %}\n{% if is_state(entity, 'on') %}\n  mdi:floor-lamp\n{% else %}\n  mdi:floor-lamp-outline\n{% endif %}",
+                            "icon_color": "{% set entity = 'group.guest_toilet_lights' %}\n{% if is_state(entity, 'on') %}\n  amber\n{% endif %}",
                             "tap_action": {
-                              "action": "navigate",
-                              "navigation_path": "/guest-room/guest-toilet"
-                            }
-                          },
-                          {
-                            "type": "custom:mushroom-template-card",
-                            "icon": "{% set thermostat = 'climate.guest_toilet' %} \n{% if is_state(thermostat, 'heat') %}\n  mdi:heating-coil\n{% else %}\n  mdi:snowflake\n{% endif %}",
-                            "icon_color": "{% set thermostat = 'climate.guest_toilet' %} \n{% if is_state(thermostat, 'heat') %}\n  {% if state_attr(thermostat, 'temperature') > state_attr(thermostat, 'current_temperature') %}\n  red\n {% else %}\n blue\n  {% endif %}\n {% endif %}\n",
+                              "action": "more-info"
+                            },
+                            "entity": "group.guest_toilet_lights",
                             "layout": "horizontal",
-                            "entity": "input_boolean.placeholder",
-                            "fill_container": true,
-                            "primary": null,
-                            "secondary": null,
-                            "tap_action": {
-                              "action": "navigate",
-                              "navigation_path": "/guest-room/guest-toilet"
-                            }
-                          },
-                          {
-                            "type": "custom:mushroom-template-card",
-                            "icon": "{% set light = 'group.guest_toilet_lights_and_tvs' %}  \n{% if is_state(light, 'on') %}\n  mdi:floor-lamp\n{% else %}\n  mdi:floor-lamp-outline\n{% endif %}",
-                            "icon_color": "{% set light = 'group.guest_toilet_lights_and_tvs' %}  \n{% if is_state(light, 'on') %}\n  yellow\n{% endif %}",
-                            "layout": "horizontal",
-                            "entity": "input_boolean.placeholder",
-                            "fill_container": true,
-                            "primary": null,
-                            "secondary": null,
-                            "tap_action": {
-                              "action": "navigate",
-                              "navigation_path": "/guest-room/guest-toilet"
-                            }
+                            "fill_container": true
                           }
                         ]
                       }
@@ -1716,16 +1852,6 @@
                   }
                 ]
               }
-            },
-            {
-              "type": "custom:google-keep-card",
-              "entity": "sensor.google_keep_12345",
-              "theme": "dark",
-              "alpha": 0.7,
-              "show": [
-                "checked",
-                "unchecked"
-              ]
             }
           ]
         }
