@@ -1,8 +1,11 @@
 import yaml
 import json
+import os
 
-with open('example.yaml', 'r') as file:
+script_dir  = os.path.dirname(os.path.realpath(__file__))
+
+with open(script_dir + '/example.yaml', 'r') as file:
     configuration = yaml.safe_load(file)
 
-with open('example.json', 'w') as json_file:
+with open(script_dir + '/example.json', 'w') as json_file:
     json.dump(configuration, json_file, indent=2)

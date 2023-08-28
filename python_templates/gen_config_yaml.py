@@ -57,7 +57,6 @@ class RoomBase:
                           'dashboard-tablet'          if dashboard_type == 'tablet' else \
                           'dashboard-mobile'          if dashboard_type == 'mobile' else \
                           'uninitialized_dashboard_root'
-    self.views = []
     # Render config
     self.writeConfig()
 
@@ -297,6 +296,12 @@ class RoomBase:
     self.template_list       = []
     self.binary_sensor_list  = []
     self.light_list          = []
+    self.room_cards          = []
+    self.views               = []
+    self.dashboard_type      = None
+    self.header_card_list    = []
+    self.main_card_list      = []
+    self.tail_card_list      = []    
 
   def get_occupancy_ratio_sensor_config(self, x_minutes_multiple_str):
     x_minutes_multiple =  1 if x_minutes_multiple_str == '1x' else \
@@ -339,11 +344,34 @@ class RoomBase:
   # card icon color 
   # double tab action
   def getEntityCard(self, entity, entity_name=None, entity_name_translation=None, 
-                          card_name=None, card_type=None,card_icon=None,card_icon_color=None,double_tab_action=None):
+                          card_name=None, card_type=None,card_icon=None,card_icon_color=None,double_tab_action=None,simple=None):
     card = {}     
     
-    #if entity_name != None:
-    #  card_name = 
+    # remove entity name to get entity type
+    # "light" = Remove ".living_room_ceiling_light" from "light.living_room_ceiling_light"
+    entity_type = re.sub("\.(\w+)$", "", entity)
+
+    if entity_type in ['light', 'cover', 'climate']:
+      card_type = 'custom:mushroom-' + entity_type    + '-card'
+    elif entity_type in ['media_player']:
+      card_type = 'custom:mushroom-' + 'media-player' + '-card'
+    if entity_type in ['binary_sensor', 'switch', 'input_boolean']:
+      card_type = 'custom:mushroom-' + 'entity'       + '-card'
+    elif entity_type in ['group']:
+      card_type = 'custom:group-card'
+    elif entity_type in ['sensor']:
+      card_type = 'sensor'
+
+    if entity_name is None:
+      entity_name = self.getName(entity)
+
+    if card_name is None:
+      # Remove room name from entity name to get card name
+      # "Ceiling Light" = Remove "Living Room" from "Living Room Ceiling Light" 
+      card_name = re.sub(self.room_name, "", entity_name)
+
+    #if entity_name_translation != None:
+    #  entity_name_translation = 
 
     # light
     if card_type == 'custom:mushroom-light-card':
@@ -355,27 +383,11 @@ class RoomBase:
         "show_color_control": True,
         "show_color_temp_control": True,
         "collapsible_controls": False,
-        "name": '' if card_name==None else card_name,
-        "icon": '' if card_icon==None else card_icon,
+        "name": '' if card_name is None else card_name,
+        "icon": '' if card_icon is None else card_icon,
         "entity": entity
       }
     
-    # entity card
-    # binary_sensor    - tap to more-info
-    # switch           - tap to toggle
-    # input boolean
-    elif card_type == 'custom:mushroom-entity-card':
-      card = {
-        "type": card_type,
-        "fill_container": True,
-        "tap_action":{
-          "action": "toggle"
-        },
-        "name": '' if card_name==None else card_name,
-        "icon": '' if card_icon==None else card_icon,
-        "entity": entity
-      }
-
     # cover
     elif card_type == 'custom:mushroom-cover-card':
       card = {
@@ -392,8 +404,8 @@ class RoomBase:
         },                
         "show_position_control": True,
         "show_buttons_control": True,
-        "name": '' if card_name==None else card_name,
-        "icon": '' if card_icon==None else card_icon,
+        "name": '' if card_name is None else card_name,
+        "icon": '' if card_icon is None else card_icon,
         "entity": entity
       }
 
@@ -403,35 +415,13 @@ class RoomBase:
         "type": card_type,
         "show_temperature_control": True,
         "collapsible_controls": False,
-        "name": '' if card_name==None else card_name,
-        "icon": '' if card_icon==None else card_icon,
-        "entity": entity
-      }
-
-    # group card
-    elif card_type == 'custom:group-card':
-      card = {
-        "type": card_type,
-        "card":{
-          "type": "entities",
-          "title": '' if card_name==None else card_name
-        },
-        "group": entity
-      }
-
-    # sensor
-    elif card_type == 'sensor':
-      card = {
-        "type": card_type,
-        "graph": "line",
-        "name": '' if card_name==None else card_name,
-        "icon": '' if card_icon==None else card_icon,
+        "name": '' if card_name is None else card_name,
+        "icon": '' if card_icon is None else card_icon,
         "entity": entity
       }
 
     # media_player card
     # tap - toggle/navigate/more-info
-    # 
     elif card_type == 'custom:mushroom-media-player-card':
       card = {
         "type": card_type,
@@ -445,35 +435,188 @@ class RoomBase:
           "volume_buttons"
         ],
         "show_volume_level": False,
-        "name": '' if card_name==None else card_name,
-        "icon": '' if card_icon==None else card_icon,
+        "name": '' if card_name is None else card_name,
+        "icon": '' if card_icon is None else card_icon,
         "entity": entity
       }
+    # group card
+    elif card_type == 'custom:group-card':
+      card = {
+        "type": card_type,
+        "card":{
+          "type": "entities",
+          "title": '' if card_name is None else card_name
+        },
+        "group": entity
+      }
 
-    # schduler card
+    # sensor
+    elif card_type == 'sensor':
+      if simple is True:
+        card = {
+          "type": card_type,
+          "graph": "line",
+          "name": '' if card_name is None else card_name,
+          "icon": '' if card_icon is None else card_icon,
+          "entity": entity
+        }
+      else: # complex minigraph temperature sensor card from 
+      # https://bbs.hassbian.com/forum.php?mod=redirect&goto=findpost&ptid=22509&pid=550976
+        card = {
+          "type": "custom:vertical-stack-in-card",
+          "cards": [
+            {
+              "type": "custom:mushroom-template-card",
+              "entity": entity,
+              "primary": card_name,
+              "secondary": "{{ states('" + entity + "') | round(0) }}\u00b0C\n",
+              "icon": "mdi:thermometer",
+              "icon_color": "{% set value = states('" + entity + "') | int %}\n{% if value < 18 %}\n  blue\n{% elif value < 28 %}\n  light-green\n{% elif value < 40 %}\n  red\n{% else %}\n  green\n{% endif %}",
+              "tap_action": {
+                "action": "more-info"
+              }
+            },
+            {
+              "type": "custom:layout-card",
+              "layout_type": "masonry",
+              "layout": {
+                "width": 150,
+                "max_cols": 1,
+                "height": "auto",
+                "padding": "0px",
+                "card_margin": "var(--masonry-view-card-margin, -10px 8px 15px)"
+              },
+              "cards": [
+                {
+                  "type": "custom:mini-graph-card",
+                  "entities": [
+                    {
+                      "entity": entity,
+                      "name": "Temperature"
+                    }
+                  ],
+                  "color_thresholds": [
+                    {
+                      "value": -10,
+                      "color": "#0000ff"
+                    },
+                    {
+                      "value": 18,
+                      "color": "#0000ff"
+                    },
+                    {
+                      "value": 18.1,
+                      "color": "#00FF00"
+                    },
+                    {
+                      "value": 28,
+                      "color": "#00FF00"
+                    },
+                    {
+                      "value": 28.1,
+                      "color": "#FF0000"
+                    },
+                    {
+                      "value": 40,
+                      "color": "#FF0000"
+                    }
+                  ],
+                  "hours_to_show": 24,
+                  "line_width": 3,
+                  "animate": True,
+                  "show": {
+                    "name": False,
+                    "icon": False,
+                    "state": False,
+                    "legend": False,
+                    "fill": "fade"
+                  },
+                  "card_mod": {
+                    "style": "ha-card {\n  background: none;\n  box-shadow: none;\n  --ha-card-border-width: 0;\n}"
+                  }
+                }
+              ]
+            }
+          ]
+        }
 
+    # entity card
+    # binary_sensor    - tap to more-info
+    # switch           - tap to toggle
+    # input boolean
+    elif card_type == 'custom:mushroom-entity-card':
+      card = {
+        "type": card_type,
+        "fill_container": True,
+        "tap_action":{
+          "action": "toggle"
+        },
+        "name": '' if card_name is None else card_name,
+        "icon": '' if card_icon is None else card_icon,
+        "entity": entity
+      }
+    
     # entities card
     # input_timer
     # input_number
     # input_select
+    elif card_type == 'entities':
+      card = {
+        "type": card_type,
+        "entities":[
+          {"name": '' if card_name is None else card_name,
+           "entity": entity}
+        ]
+      }
+
+    # schduler card
+    elif card_type == 'scheduler-card':
+      card = {
+        "type": card_type,
+        "include":[
+          {"entity": entity}
+        ],
+        "exclude": [],
+        "title": False,
+        "time_step": 30        
+      }
 
     # timer card
+    elif card_type == 'custom:flipdown-timer-card':
+      card = {
+        "type": card_type,
+        "show_hour": True,
+        "show_title": True,
+        "theme": 'dark',
+        "styles": {
+          "rotor": {
+            "width": "50px",
+            "height": "80px"},
+          "button": {
+            "width": "100px",
+            "location": "bottom"}
+        },
+        "name": '' if card_name is None else card_name,
+        "icon": '' if card_icon is None else card_icon,
+        "entity": entity
+      }
 
     return card
 
 
-  def addEntityCard(self, entity, entity_name=None, entity_name_translation=None, 
-                          card_name=None, card_type=None,card_icon=None,card_icon_color=None,double_tab_action=None):
-
-    self.room_cards += self.getEntityCard(entity=entity,
-                                          entity_name=entity_name,
-                                          entity_name_translation=entity_name_translation,
-                                          card_name=card_name,
-                                          card_type=card_type,
-                                          card_icon=card_icon,
-                                          card_icon_color=card_icon_color,
-                                          double_tab_action=double_tab_action
-                                         )
+#  def addEntityCard(self, entity, entity_name=None, entity_name_translation=None, 
+#                          card_name=None, card_type=None,card_icon=None,card_icon_color=None,double_tab_action=None, card_group=None):
+#
+#
+#    self.room_cards += [self.getEntityCard(entity=entity,
+#                                          entity_name=entity_name,
+#                                          entity_name_translation=entity_name_translation,
+#                                          card_name=card_name,
+#                                          card_type=card_type,
+#                                          card_icon=card_icon,
+#                                          card_icon_color=card_icon_color,
+#                                          double_tab_action=double_tab_action
+#                                         )]
 
   def add_mac_device(self, mac, name, comment, model, postfix=None, integration='Xiaomi Gateway 3', flex_switch=None, power_on_threshold=None, switch_rename_dir=None, light_wall_switch=True, belong_to_group=None):
 
@@ -555,7 +698,7 @@ class RoomBase:
         ]
 
         # Rename switches based on switch rename
-        if switch_rename_dir != None and i in switch_rename_dir:
+        if switch_rename_dir is not None and i in switch_rename_dir:
           #print (switch_rename_dir[i])
           self.switch_list += [
             {
@@ -576,7 +719,7 @@ class RoomBase:
           self.cfg_flex_switch = True
           
           # Generate flex automation instead
-          if flex_switch == True:
+          if flex_switch is True:
             self.gen_flex_wall_switch_automations(flex_wall_switch_index=1, flex_wall_switch_entity=raw_switch_entity)
           else:
             for flex_switch_index_local in flex_switch:
@@ -2192,7 +2335,6 @@ class RoomBase:
 
 
   def getDashboardSettings(self):
-    self.views                  = []
     self.dashboard_default_root = 'Uninitliazed_dashboard_root'
     self.dashboard_view_name = 'Uninitliazed_dashboard_view_name'
     self.room_icon           = 'Uninitliazed_room_icon'
@@ -2232,14 +2374,15 @@ class RoomBase:
                             tap_entity=None, 
                             condition_state='on', 
                             condition_state_not=None, 
+                            condition_states=None,
                             tap_action='more-info'):
     
     self.dashboard_view_path = "/" + self.dashboard_root + "/" + self.room_entity
     
     tap_action_dict = {}
-    entity = tap_entity                  if tap_entity       != None else \
-             condition_entity            if condition_entity != None else \
-             'input_boolean.placeholder'
+    entity =  tap_entity                  if tap_entity       != None else \
+              condition_entity            if condition_entity != None else \
+              'input_boolean.placeholder'
              
     if   tap_action == 'navigate':
       tap_action_dict = {
@@ -2258,11 +2401,15 @@ class RoomBase:
       "fill_container": True,
     } | ({"primary"  : primary  } if primary   !=None else {}) \
       | ({"secondary": secondary} if secondary !=None else {}) 
-     
+
     if condition_entity == None:
-        return template_card
+      return template_card
     else:
-        return {
+      condition_card = {}
+
+      # Use single condition
+      if condition_states is None:
+        condition_card = {
           "type": "conditional",
           "conditions": [
             ( {"entity":    condition_entity}) | ( 
@@ -2270,6 +2417,17 @@ class RoomBase:
               {"state":     condition_state}    )
           ],
           "card": template_card }
+          
+      else: # Use multiple conditions 
+        condition_card = {
+          "type": "custom:state-switch",
+          "entity": condition_entity,
+          states: {}}
+        for state in condition_states:
+          condition_card['states'] |= { state : template_card}
+
+      return condition_card
+
 
   def getNavigationRoomCard (self):
     type = 'mushroom'
@@ -2381,18 +2539,31 @@ class RoomBase:
 
   def getRoomViews(self):
     # Add room header navagation cards (back card + scene card)
-    self.addView(title=self.room_name, 
-                 viewPath=self.room_entity, 
-                 cards=[self.getRoomHeaderNavigationCard()]
-                 )
+    self.header_card_list += self.getHeaderCardList()
+    
+    all_cards = self.getLayoutWrapperCardList(self.header_card_list) + \
+                self.getLayoutWrapperCardList(self.main_card_list)
+    
+    self.addView(title=self.room_name, viewPath=self.room_entity, cards=all_cards)
     return self.views
 
-  def getRoomHeaderNavigationCard(self,navigate_path=None):
+
+  def getLayoutWrapperCardList(self, cards=None):
+    
+    if self.dashboard_type == 'mobile':
+      grid_cards = [{
+          "square": False,
+          "columns": 2,
+          "type": "grid",
+          "cards": cards}]          
+    else: # elif self.dashboard_type == 'tablet':
+      grid_cards = cards
+
+    return grid_cards
+  
+  def getHeaderCardList(self,navigate_path=None):
     # Navigation header
-    return ({
-      "square": False,
-      "type": "grid",
-      "cards": [
+    return ([
         {
           "type": "custom:mushroom-template-card",
           "entity": "input_boolean.placeholder",
@@ -2427,9 +2598,7 @@ class RoomBase:
           "state_color": True,
           "title": "Run a Scene",
         }
-      ],
-      "columns": 2
-    })
+    ])
   
 
   # Create a new yaml and write to it
@@ -2910,6 +3079,13 @@ class LivingRoom(RoomBase):
                                         name='Living Room Temperature Sensor')
 
 #    self.add_mac_device("living_room_ceiling_light_yeelight", self.room_name + ' Ceiling Light', 'Light',              "Yeelight Ceiling Light")
+
+    self.main_card_list.append(self.getEntityCard(entity=self.tvs[0],     card_name='TV'))
+    self.main_card_list.append(self.getEntityCard(entity=self.thermostat, card_name='Raditor'))
+    for light in self.lights:
+      self.main_card_list.append(self.getEntityCard(entity=light))
+    for curtain in self.curtains:
+      self.main_card_list.append(self.getEntityCard(entity=curtain))
 
 
     self.add_mac_device("dced8308e951",                       self.room_name,                    'Motion Sensor',      "Ziqing Occupancy Sensor")
@@ -3549,40 +3725,19 @@ class Dashboard(RoomBase):
               EnSuiteToilet(   dashboard_type=dashboard_type),
               GuestRoom(       dashboard_type=dashboard_type),
               GuestToilet(     dashboard_type=dashboard_type)]
-    self.addNavigationRoomView()
+    self.addNavigationView()
     self.addAllRoomView()
     self.getDashbaord()
     self.writeConfig()
     print ("-------------------------------------")
 
-                    
-  def getNavigationCards(self):
-    if self.dashboard_type == 'mobile':
-      for room in self.rooms:
-        self.room_nav_cards += [room.getNavigationRoomCard()]
-  
-      self.home_navigation_card = [{
-          "square": False,
-          "columns": 2,
-          "type": "grid",
-          "cards": self.room_nav_cards}]   
-          
-    else: # elif self.dashboard_type == 'tablet':
-      self.home_navigation_card = []
+  def addNavigationView(self):
+    for room in self.rooms:
+      self.room_nav_cards += [room.getNavigationRoomCard()]
 
-      for room in self.rooms:
-        self.room_nav_cards = [room.getNavigationRoomCard()]
-  
-        self.home_navigation_card += [{
-            "square": False,
-            "columns": 1,
-            "type": "grid",
-            "cards": self.room_nav_cards}]   
-            
-    return self.home_navigation_card
+    room_nav_grid_cards = self.getLayoutWrapperCardList(self.room_nav_cards)
 
-  def addNavigationRoomView(self):
-    self.addView(viewPath='home', cards=self.getNavigationCards())
+    self.addView(viewPath='home', cards=room_nav_grid_cards)
 
   def addAllRoomView(self):
       for room in self.rooms:
@@ -3712,6 +3867,11 @@ parser.add_argument('-d', '-dy', '-dyaml', dest ='render_dashboard_yaml', defaul
                     action ='store_true', help ='Render lovelace config files to YAML format. Default to false as it takes extra time and lovelace are not updated often')
 parser.add_argument('-dj', '-djson', dest ='render_dashboard_json', default=False, 
                     action ='store_true', help ='Render lovelace config files to JSON format. Default to false as it takes extra time and lovelace are not updated often')
+parser.add_argument('-dm', '-dmobile', dest ='render_dashboard_mobile', default=False, 
+                    action ='store_true', help ='Render mobile dashboard. Default to false as it takes extra time and lovelace are not updated often')
+parser.add_argument('-dt', '-dtablet', dest ='render_dashboard_tablet', default=False, 
+                    action ='store_true', help ='Render tablet dashboard. Default to false as it takes extra time and lovelace are not updated often')
+
 args = parser.parse_args()
 
 if args.render_auto_config :
@@ -3744,7 +3904,7 @@ if args.create_system_config:
 
 # Instantiate and render dashboard into yaml
 # Default to disable it as the dashboard does not need to be updated
-dashboard_type = 'mobile'
+dashboard_type = 'tablet' if args.render_dashboard_tablet is True else 'mobile'
 #dashboard_type = 'tablet'
 
 if args.render_dashboard_yaml:

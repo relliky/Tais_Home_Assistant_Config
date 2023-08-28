@@ -1,40 +1,79 @@
-{
-  "square": false,
-  "type": "grid",
-  "cards": [
-    {
-      "type": "custom:mushroom-template-card",
-      "entity": "input_boolean.placeholder",
-      "icon": "mdi:keyboard-return",
-      "icon_color": "yellow",
-      "primary": "HOME",
-      "secondary": "",
-      "layout": "vertical",
-      "hold_action": {
-        "action": "toggle"
+[
+  {
+    "type": "custom:vertical-stack-in-card",
+    "cards": [
+      {
+        "type": "custom:mushroom-template-card",
+        "entity": "sensor.miaomiaoce_t2_7342_temperature_humidity_sensor",
+        "primary": "\u4e3b\u5367\u6e29\u5ea6",
+        "secondary": "{{ states('sensor.miaomiaoce_t2_7342_temperature_humidity_sensor') | round(0) }}\u00b0C\n",
+        "icon": "mdi:thermometer",
+        "icon_color": "{% set value = states('sensor.miaomiaoce_t2_d82f_temperature_humidity_sensor') | int %}\n{% if value < 18 %}\n  blue\n{% elif value < 28 %}\n  light-green\n{% elif value < 40 %}\n  red\n{% else %}\n  green\n{% endif %}",
+        "tap_action": {
+          "action": "more-info"
+        }
       },
-      "fill_container": false,
-      "multiline_secondary": false,
-      "card_mod": {
-        "style": {
-          "mushroom-state-info$": ".primary {\n  font-size: 16px !important;\n  position: relative;\n  top: 0px;\n  left: 0px;\n  overflow: visible !important;\n  white-space:  \n}\n",
-          "mushroom-shape-icon$": ".shape {\n  position: relative;\n  left: 0px;\n  top: 0px;\n}\n",
-          ".": ":host {\n  --mush-icon-size: 80px;\n}\n"
-        }
+      {
+        "type": "custom:layout-card",
+        "layout_type": "masonry",
+        "layout": {
+          "width": 150,
+          "max_cols": 1,
+          "height": "auto",
+          "padding": "0px",
+          "card_margin": "var(--masonry-view-card-margin, -10px 8px 15px)"
+        },
+        "cards": [
+          {
+            "type": "custom:mini-graph-card",
+            "entities": [
+              {
+                "entity": "sensor.miaomiaoce_t2_7342_temperature_humidity_sensor",
+                "name": "Temperature"
+              }
+            ],
+            "color_thresholds": [
+              {
+                "value": -10,
+                "color": "#0000ff"
+              },
+              {
+                "value": 18,
+                "color": "#0000ff"
+              },
+              {
+                "value": 18.1,
+                "color": "#00FF00"
+              },
+              {
+                "value": 28,
+                "color": "#00FF00"
+              },
+              {
+                "value": 28.1,
+                "color": "#FF0000"
+              },
+              {
+                "value": 40,
+                "color": "#FF0000"
+              }
+            ],
+            "hours_to_show": 24,
+            "line_width": 3,
+            "animate": true,
+            "show": {
+              "name": false,
+              "icon": false,
+              "state": false,
+              "legend": false,
+              "fill": "fade"
+            },
+            "card_mod": {
+              "style": "ha-card {\n  background: none;\n  box-shadow: none;\n  --ha-card-border-width: 0;\n}"
+            }
+          }
+        ]
       }
-    },
-    {
-      "type": "entities",
-      "entities": [
-        {
-          "entity": "input_select.kitchen_scene",
-          "name": "Scene"
-        }
-      ],
-      "state_color": true,
-      "title": "Run a Scene",
-      "show_header_toggle": false
-    }
-  ],
-  "columns": 2
-}
+    ]
+  }
+]
