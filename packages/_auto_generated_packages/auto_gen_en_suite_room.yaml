@@ -25,7 +25,7 @@ automation:
       above: '15'
     - condition: time
       after: '13:00:00'
-      before: '22:00:00'
+      before: '21:00:00'
     - condition: template
       value_template: '{{ now().month > 4 and now().month < 9 }}'
     - condition: state
@@ -646,7 +646,7 @@ automation:
     entity_id: input_select.en_suite_room_occupancy
     state: Outside
   - condition: state
-    entity_id: group.en_suite_room_motion
+    entity_id: group.en_suite_room_motion_group
     state: 'off'
     for: 00:01:00
   action:
@@ -1480,6 +1480,20 @@ automation:
                 entity_id:
                 - media_player.portable_tv
                 picture_mode: Movie
+    - conditions:
+      - condition: state
+        entity_id: input_select.en_suite_room_scene
+        state: Sleep Mode
+      sequence:
+        alias: Sleep Mode
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+        - parallel:
+          - service: homeassistant.turn_on
+            entity_id: scene.en_suite_room_sleep_mode
     - conditions:
       - condition: state
         entity_id: input_select.en_suite_room_scene
@@ -2629,10 +2643,10 @@ automation:
   id: automation.zlb_er_wall_switch_double_press_leave_room_and_turn_off_everything_en_suite_room
 - alias: ZOc-ER Occupancy Update-En-suite Room
   trigger:
-  - entity_id: group.en_suite_room_motion
+  - entity_id: group.en_suite_room_motion_group
     platform: state
     to: 'on'
-  - entity_id: group.en_suite_room_motion
+  - entity_id: group.en_suite_room_motion_group
     platform: state
     to: 'off'
     for: 05:00:00
@@ -2642,7 +2656,7 @@ automation:
   - service: pyscript.room_occupancy_state_machine
     data:
       occupancy_entity_str: input_select.en_suite_room_occupancy
-      motion_str: group.en_suite_room_motion
+      motion_str: group.en_suite_room_motion_group
       motion_on_ratio_for_x_min_str: sensor.en_suite_room_motion_on_ratio_for_last_4_minutes
       motion_on_ratio_for_2x_min_str: sensor.en_suite_room_motion_on_ratio_for_last_8_minutes
       room_type: bedroom
@@ -2687,7 +2701,7 @@ input_select:
 sensor:
 - platform: history_stats
   name: En-suite Room Motion On Ratio For Last 4 Minutes
-  entity_id: group.en_suite_room_motion
+  entity_id: group.en_suite_room_motion_group
   state: 'on'
   type: ratio
   duration:
@@ -2695,7 +2709,7 @@ sensor:
   end: '{{ (now() | as_timestamp) | as_datetime | as_local }}'
 - platform: history_stats
   name: En-suite Room Motion On Ratio For Last 8 Minutes
-  entity_id: group.en_suite_room_motion
+  entity_id: group.en_suite_room_motion_group
   state: 'on'
   type: ratio
   duration:
@@ -2797,37 +2811,37 @@ binary_sensor:
 light: []
 group:
   en_suite_room_occupancy_group:
-    name: En-suite Room Occuapancy Group
+    name: En Suite Room Occupancy Group
     entities:
     - input_select.en_suite_room_occupancy
-    - group.en_suite_room_motion
+    - group.en_suite_room_motion_group
     - binary_sensor.en_suite_room_bed_motion_sensor_motion
     - binary_sensor.en_suite_room_entrance_motion_sensor_motion
     - binary_sensor.en_suite_room_floor_motion_sensor_motion
     - binary_sensor.en_suite_room_occupancy_sensor_occupancy
-  en_suite_room_motion:
-    name: En Suite Room Motion
+  en_suite_room_motion_group:
+    name: En Suite Room Motion Group
     entities:
     - binary_sensor.en_suite_room_bed_motion_sensor_motion
     - binary_sensor.en_suite_room_entrance_motion_sensor_motion
     - binary_sensor.en_suite_room_floor_motion_sensor_motion
     - binary_sensor.en_suite_room_occupancy_sensor_occupancy
-  en_suite_room_lights:
-    name: En Suite Room Lights
+  en_suite_room_light_group:
+    name: En Suite Room Light Group
     entities:
     - light.en_suite_room_bed_led
     - light.en_suite_room_lamp_1
     - light.en_suite_room_lamp_2
     - light.en_suite_room_ceiling_light
-  en_suite_room_windows:
-    name: En Suite Room Windows
+  en_suite_room_window_group:
+    name: En Suite Room Window Group
     entities: []
-  en_suite_room_curtains:
-    name: En Suite Room Curtains
+  en_suite_room_curtain_group:
+    name: En Suite Room Curtain Group
     entities:
     - cover.en_suite_room_curtain
   en_suite_room_auto_gen_automations:
-    name: En-suite Room Auto-gen Automations
+    name: En Suite Room Auto Gen Automations
     entities:
     - input_boolean.curtain_control_when_left_en_suite_room
     - input_boolean.ceiling_light_control_in_hot_sunshine_en_suite_room

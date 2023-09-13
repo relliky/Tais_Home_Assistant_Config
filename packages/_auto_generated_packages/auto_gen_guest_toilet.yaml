@@ -7,7 +7,7 @@ automation:
   id: automation.zl_gt_ceiling_lights_on_or_open_curtains_if_entering_to_room_guest_toilet
   trigger:
     entity_id:
-    - group.guest_toilet_motion
+    - group.guest_toilet_motion_group
     platform: state
     to: 'on'
   action:
@@ -24,8 +24,8 @@ automation:
       entity_id: sensor.met_office_cambridge_city_airport_temperature_3_hourly
       above: '18'
     - condition: time
-      after: '10:00:00'
-      before: '13:00:00'
+      after: 06:00:00
+      before: '16:00:00'
     - condition: template
       value_template: '{{ now().month > 4 and now().month < 9 }}'
     - condition: state
@@ -454,7 +454,7 @@ automation:
     entity_id: input_select.guest_toilet_occupancy
     state: Outside
   - condition: state
-    entity_id: group.guest_toilet_motion
+    entity_id: group.guest_toilet_motion_group
     state: 'off'
     for: 00:01:00
   action:
@@ -987,6 +987,20 @@ automation:
           - service: homeassistant.turn_on
             entity_id: scene.guest_toilet_dark_night_mode
           - service: script.do_nothing
+    - conditions:
+      - condition: state
+        entity_id: input_select.guest_toilet_scene
+        state: Sleep Mode
+      sequence:
+        alias: Sleep Mode
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+        - parallel:
+          - service: homeassistant.turn_on
+            entity_id: scene.guest_toilet_sleep_mode
     - conditions:
       - condition: state
         entity_id: input_select.guest_toilet_scene
@@ -1655,10 +1669,10 @@ automation:
   id: automation.zlb_gt_wall_switch_double_press_leave_room_and_turn_off_everything_guest_toilet
 - alias: ZOc-GT Occupancy Update-Guest Toilet
   trigger:
-  - entity_id: group.guest_toilet_motion
+  - entity_id: group.guest_toilet_motion_group
     platform: state
     to: 'on'
-  - entity_id: group.guest_toilet_motion
+  - entity_id: group.guest_toilet_motion_group
     platform: state
     to: 'off'
     for: 05:00:00
@@ -1668,7 +1682,7 @@ automation:
   - service: pyscript.room_occupancy_state_machine
     data:
       occupancy_entity_str: input_select.guest_toilet_occupancy
-      motion_str: group.guest_toilet_motion
+      motion_str: group.guest_toilet_motion_group
       motion_on_ratio_for_x_min_str: sensor.guest_toilet_motion_on_ratio_for_last_4_minutes
       motion_on_ratio_for_2x_min_str: sensor.guest_toilet_motion_on_ratio_for_last_8_minutes
       room_type: toilet
@@ -1692,7 +1706,7 @@ input_select:
 sensor:
 - platform: history_stats
   name: Guest Toilet Motion On Ratio For Last 4 Minutes
-  entity_id: group.guest_toilet_motion
+  entity_id: group.guest_toilet_motion_group
   state: 'on'
   type: ratio
   duration:
@@ -1700,7 +1714,7 @@ sensor:
   end: '{{ (now() | as_timestamp) | as_datetime | as_local }}'
 - platform: history_stats
   name: Guest Toilet Motion On Ratio For Last 8 Minutes
-  entity_id: group.guest_toilet_motion
+  entity_id: group.guest_toilet_motion_group
   state: 'on'
   type: ratio
   duration:
@@ -1765,28 +1779,28 @@ binary_sensor: []
 light: []
 group:
   guest_toilet_occupancy_group:
-    name: Guest Toilet Occuapancy Group
+    name: Guest Toilet Occupancy Group
     entities:
     - input_select.guest_toilet_occupancy
-    - group.guest_toilet_motion
+    - group.guest_toilet_motion_group
     - binary_sensor.guest_toilet_motion_sensor_motion
-  guest_toilet_motion:
-    name: Guest Toilet Motion
+  guest_toilet_motion_group:
+    name: Guest Toilet Motion Group
     entities:
     - binary_sensor.guest_toilet_motion_sensor_motion
-  guest_toilet_lights:
-    name: Guest Toilet Lights
+  guest_toilet_light_group:
+    name: Guest Toilet Light Group
     entities:
     - switch.guest_toilet_floor_led
     - light.guest_toilet_ceiling_light
-  guest_toilet_windows:
-    name: Guest Toilet Windows
+  guest_toilet_window_group:
+    name: Guest Toilet Window Group
     entities: []
-  guest_toilet_curtains:
-    name: Guest Toilet Curtains
+  guest_toilet_curtain_group:
+    name: Guest Toilet Curtain Group
     entities: []
   guest_toilet_auto_gen_automations:
-    name: Guest Toilet Auto-gen Automations
+    name: Guest Toilet Auto Gen Automations
     entities:
     - input_boolean.ceiling_light_control_when_bright_outdoor_guest_toilet
     - input_boolean.led_control_when_bright_outdoor_guest_toilet

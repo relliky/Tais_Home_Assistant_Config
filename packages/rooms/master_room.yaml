@@ -490,7 +490,7 @@ automation light:
         to: "on"
     action:
       - service: homeassistant.turn_on
-        entity_id: 
+        entity_id:
           #- light.master_room_entrance_led_light
           - switch.master_room_entrance_wall_switch
       - choose:
@@ -519,10 +519,9 @@ automation light:
         for: 00:02:00
     action:
       - service: homeassistant.turn_off
-        entity_id: 
-        #- light.master_room_entrance_led_light
-        - switch.master_room_entrance_wall_switch
-
+        entity_id:
+          #- light.master_room_entrance_led_light
+          - switch.master_room_entrance_wall_switch
 
   - alias: L-MR-M Master Room Balcony Lights On If Door Open
     id: "1615068441570"
@@ -657,11 +656,11 @@ automation light:
       - service: media_player.turn_off
         entity_id: media_player.master_room_tv
       # Tuya blinds sometimes are not receiving commands - make sure it is properly executed
-      - delay: "00:02:00"
+      - delay: "00:00:10"
       - service: script.master_room_close_all_curtains
-      - delay: "00:02:00"
+      - delay: "00:00:10"
       - service: script.master_room_close_all_curtains
-      - delay: "00:02:00"
+      - delay: "00:00:10"
       - service: script.master_room_close_all_curtains
 
 ##########################################
@@ -671,83 +670,6 @@ automation light:
 # Scripts - open/close/status
 # Automation - based on motions/buttons
 ##########################################
-# Blinds
-cover group:
-  - platform: group
-    name: Master Room Blind
-    entities:
-      - cover.master_room_blind_1
-      - cover.master_room_blind_2
-
-cover timed_blind:
-  - platform: cover_rf_time_based
-    devices:
-      master_room_blind_1:
-        name: Master Room Blind 1
-        travelling_time_up: 95
-        travelling_time_down: 95
-        close_script_entity_id: script.master_room_blind_left_tuya_close
-        stop_script_entity_id: script.master_room_blind_left_tuya_stop
-        open_script_entity_id: script.master_room_blind_left_tuya_open
-
-  - platform: cover_rf_time_based
-    devices:
-      master_room_blind_2:
-        name: Master Room Blind 2
-        travelling_time_up: 95
-        travelling_time_down: 95
-        close_script_entity_id: script.master_room_blind_right_tuya_close
-        stop_script_entity_id: script.master_room_blind_right_tuya_stop
-        open_script_entity_id: script.master_room_blind_right_tuya_open
-
-script blind_script:
-  master_room_open_blind:
-    alias: Master Room Open Blind
-    sequence:
-      - service: cover.open_cover
-        entity_id: cover.master_room_blind
-
-  master_room_close_blind:
-    alias: Master Room Close Blind
-    sequence:
-      - service: cover.close_cover
-        entity_id: cover.master_room_blind
-
-  master_room_blind_left_tuya_open:
-    alias: Master Room Blind Left Open
-    sequence:
-      - service: cover.open_cover
-        entity_id: cover.master_room_blind_left_tuya
-
-  master_room_blind_left_tuya_close:
-    alias: Master Room Blind Left Close
-    sequence:
-      - service: cover.close_cover
-        entity_id: cover.master_room_blind_left_tuya
-
-  master_room_blind_left_tuya_stop:
-    alias: Master Room Blind Left Stop
-    sequence:
-      - service: cover.stop_cover
-        entity_id: cover.master_room_blind_left_tuya
-
-  master_room_blind_right_tuya_open:
-    alias: Master Room Blind Right Open
-    sequence:
-      - service: cover.open_cover
-        entity_id: cover.master_room_blind_right_tuya
-
-  master_room_blind_right_tuya_close:
-    alias: Master Room Blind Right Close
-    sequence:
-      - service: cover.close_cover
-        entity_id: cover.master_room_blind_right_tuya
-
-  master_room_blind_right_tuya_stop:
-    alias: Master Room Blind Right Stop
-    sequence:
-      - service: cover.stop_cover
-        entity_id: cover.master_room_blind_right_tuya
 
 # Scripts
 script curtain:
@@ -846,160 +768,9 @@ automation button:
         to: single
     action:
       - service: homeassistant.toggle
-        entity_id: 
-        #- light.master_room_entrance_led_light
-        - switch.master_room_entrance_wall_switch
-        
-
-  #  - alias: L-MR-B Master Room Six Key - Middle Keys Double Press - Toggle Bedside Lights
-  #    id: "1603640020890"
-  #    trigger:
-  #      - platform: state
-  #        entity_id: sensor.master_room_six_key_button
-  #        to: button_4_double
-  #      - platform: state
-  #        entity_id: sensor.master_room_six_key_button
-  #        to: button_3_double
-  #    action:
-  #      - service: script.master_room_bedside_lights_toggle
-  #
-  #- alias: B-MR Master Room Six Key - Middle Key 3 Single Press - Toggle Bedside Light Door
-  #  id: "1603640020891"
-  #  trigger:
-  #    - platform: state
-  #      entity_id: sensor.master_room_six_key_button
-  #      to: button_3_single
-  #  action:
-  #    - entity_id: light.master_room_lamp_1
-  #      service: light.toggle
-  #
-  #- alias: B-MR Master Room Six Key - Middle Key 4 Single Press - Toggle Bedside Light Wall
-  #  id: "1603640020892"
-  #  trigger:
-  #    - platform: state
-  #      entity_id: sensor.master_room_six_key_button
-  #      to: button_4_single
-  #  action:
-  #    - entity_id: light.master_room_lamp_2
-  #      service: light.toggle
-
-  - alias: L-MR-B Master Room Six Key - Right Keys Long Press - Toggle Blind Right
-    id: "1603640020893"
-    # This automation needs to restart to interrupt the previous run
-    mode: restart
-    trigger:
-      - platform: state
-        entity_id: sensor.master_room_six_key_button
-        to: button_5_hold
-      - platform: state
-        entity_id: sensor.master_room_six_key_button
-        to: button_6_hold
-    action:
-      - choose:
-          # IF
-          - conditions:
-              - condition: state
-                entity_id: input_boolean.master_room_right_blind_moving_in_progress
-                state: "off"
-            sequence:
-              # Mark the curtain as moving in progress and toggle the curtain
-              - service: input_boolean.turn_on
-                entity_id: input_boolean.master_room_right_blind_moving_in_progress
-              - service: script.master_room_right_blind_toggle
-              # Wait for curtain motor to finish and mark it as completed
-              - delay: "00:01:30"
-              - service: input_boolean.turn_off
-                entity_id: input_boolean.master_room_right_blind_moving_in_progress
-          # ELSE IF
-          - conditions:
-              - condition: state
-                entity_id: input_boolean.master_room_right_blind_moving_in_progress
-                state: "on"
-            sequence:
-              # Stop the motor and mark it as stopped
-              - service: cover.stop_cover
-                entity_id: cover.master_room_blind_2
-              - service: input_boolean.turn_off
-                entity_id: input_boolean.master_room_right_blind_moving_in_progress
-
-  - alias: L-MR-B Master Room Six Key - Left Keys Long Press - Toggle Blind Left
-    id: "1603640020897"
-    # This automation needs to restart to interrupt the previous run
-    mode: restart
-    trigger:
-      - platform: state
-        entity_id: sensor.master_room_six_key_button
-        to: button_1_hold
-      - platform: state
-        entity_id: sensor.master_room_six_key_button
-        to: button_2_hold
-    action:
-      - choose:
-          # IF
-          - conditions:
-              - condition: state
-                entity_id: input_boolean.master_room_left_blind_moving_in_progress
-                state: "off"
-            sequence:
-              # Mark the curtain as moving in progress and toggle the curtain
-              - service: input_boolean.turn_on
-                entity_id: input_boolean.master_room_left_blind_moving_in_progress
-              - service: script.master_room_left_blind_toggle
-              # Wait for curtain motor to finish and mark it as completed
-              - delay: "00:01:30"
-              - service: input_boolean.turn_off
-                entity_id: input_boolean.master_room_left_blind_moving_in_progress
-          # ELSE IF
-          - conditions:
-              - condition: state
-                entity_id: input_boolean.master_room_left_blind_moving_in_progress
-                state: "on"
-            sequence:
-              # Stop the motor and mark it as stopped
-              - service: cover.stop_cover
-                entity_id: cover.master_room_blind_1
-              - service: input_boolean.turn_off
-                entity_id: input_boolean.master_room_left_blind_moving_in_progress
-
-  - alias: L-MR-B Master Room Six Key - Middle Keys Long Press - Toggle Curtain
-    id: "1603640020894"
-    # This automation needs to restart to interrupt the previous run
-    mode: restart
-    trigger:
-      - platform: state
-        entity_id: sensor.master_room_six_key_button
-        to: button_3_hold
-      - platform: state
-        entity_id: sensor.master_room_six_key_button
-        to: button_4_hold
-    action:
-      - choose:
-          # IF
-          # REVISIT: this variable checking can be replaced by checking the position of the curtain
-          - conditions:
-              - condition: state
-                entity_id: input_boolean.master_room_curtain_moving_in_progress
-                state: "off"
-            sequence:
-              # Mark the curtain as moving in progress and toggle the curtain
-              - service: input_boolean.turn_on
-                entity_id: input_boolean.master_room_curtain_moving_in_progress
-              - service: script.master_room_curtain_toggle
-              # Wait for curtain motor to finish and mark it as completed
-              - delay: "00:00:10"
-              - service: input_boolean.turn_off
-                entity_id: input_boolean.master_room_curtain_moving_in_progress
-          # ELSE IF
-          - conditions:
-              - condition: state
-                entity_id: input_boolean.master_room_curtain_moving_in_progress
-                state: "on"
-            sequence:
-              # Stop the motor and mark it as stopped
-              - service: cover.stop_cover
-                entity_id: cover.master_room_curtain
-              - service: input_boolean.turn_off
-                entity_id: input_boolean.master_room_curtain_moving_in_progress
+        entity_id:
+          #- light.master_room_entrance_led_light
+          - switch.master_room_entrance_wall_switch
 
 ###############################################
 # TV Media Script/Automation

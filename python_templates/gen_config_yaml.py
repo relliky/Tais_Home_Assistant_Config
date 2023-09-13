@@ -53,9 +53,9 @@ class RoomBase:
     # Get dashboard settings
     self.dashboard_type = dashboard_type
     self.getDashboardSettings()
-    self.dashboard_root = self.dashboard_default_root if dashboard_type == None     else \
-                          'dashboard-tablet'          if dashboard_type == 'tablet' else \
-                          'dashboard-mobile'          if dashboard_type == 'mobile' else \
+    self.dashboard_root = self.dashboard_default_root if dashboard_type == 'default' else \
+                          'dashboard-tablet'          if dashboard_type == 'tablet'  else \
+                          'dashboard-mobile'          if dashboard_type == 'mobile'  else \
                           'uninitialized_dashboard_root'
     # Render config
     self.writeConfig()
@@ -100,20 +100,21 @@ class RoomBase:
     self.west_face_windows = True     if self.room_entity in ['en_suite_room', 'master_room', 'kitchen'] else False
     
   def get_motion_sensor_entities(self):  
+    self.motion_group    = "group." + self.room_entity + "_motion_group"
+    self.occupancy_group = "group." + self.room_entity + "_occupancy_group"
+
     # Motion sensor entities
     self.bed_motion_sensors      =  ["binary_sensor." + self.room_entity + "_bed_motion_sensor_motion"] if self.room_type == 'bedroom' else []
     self.non_bed_motion_sensors  =  []
-    self.room_motion_sensor      =   "group."         + self.room_entity + "_motion"
     self.all_motion_sensors      =  ["uninitialized_all_motion_sensors"]
     self.entrance_motion_sensors =  ["binary_sensor." + self.room_entity + "_entrance_motion_sensor_motion"] if self.room_type == 'bedroom' else \
-                                    [self.room_motion_sensor]
+                                    [self.motion_group]
     self.room_occupancy          = "input_select."  + self.room_entity + "_occupancy"               
     self.occupancy_state_duration= 4 # Minutes
     self.occupancy_on_x_min_ratio_sensor  = "unitialized_ratio_sensor"
     self.occupancy_on_2x_min_ratio_sensor = "unitialized_ratio_sensor"
 
-    self.room_motions = "group." + self.room_entity + "_motion"
-
+    
   def get_remote_entities(self):  
     # Button (sensor) entities
     self.xiaomi_buttons          = []
@@ -143,7 +144,7 @@ class RoomBase:
     self.leds                    = []
 
     self.lights                  = self.leds + self.lamps + self.ceiling_lights
-    self.room_lights             =  'group.' + self.room_entity + '_lights'
+    self.light_group             =  'group.' + self.room_entity + '_light_group'
 
 
   def get_lighting_control_entities(self):
@@ -210,15 +211,15 @@ class RoomBase:
     self.daytime_lights_off_timeout   = "00:15:00"
     self.nighttime_lights_off_timeout = "02:00:00" if self.room_type == "bedroom" else \
                                         self.daytime_lights_off_timeout
-    self.daytime_start                = "10:00:00"
+    self.daytime_start                = "06:00:00"
     self.afternoon_start              = "13:00:00"
-    self.daytime_end                  = "22:00:00"
+    self.daytime_end                  = "21:00:00"
 
   def get_cover_entities(self):
     # Cover entities
     self.curtains                      = []
     self.aqara_shutter_blind           = False
-    self.room_curtains                 = 'group.' + self.room_entity + '_curtains'
+    self.curtain_group                 = 'group.' + self.room_entity + '_curtain_group'
 
     # Cover extra controls
 #    self.light_in_daytime_postfix      = self.room_entity + "_light_in_daytime" 
@@ -229,7 +230,7 @@ class RoomBase:
 
   def get_window_entities(self):
     self.windows                        = []
-    self.room_windows                   = 'group.' + self.room_entity + '_windows'
+    self.window_group                   = 'group.' + self.room_entity + '_window_group'
 
   def get_temperature_control_entities(self):
     # Temperature sensor entities
@@ -267,6 +268,9 @@ class RoomBase:
     # Scene automation internal variable
     self.cur_scene           = 'unintialized_cur_scene'
     
+    if self.cfg_group_auto:
+      self.room_auto_gen_automations = "group." + self.room_entity + "_auto_gen_automations"
+
     #self.config = { nameof(self.room_entity              ) : self.room_entity               ,
     #                nameof(self.room_name                     ) : self.room_name                      ,
     #                nameof(self.room_type                ) : self.room_type                 ,
@@ -322,7 +326,7 @@ class RoomBase:
     ratio_sensor_config = {
         "platform": "history_stats",
         "name": sensor_name,
-        "entity_id": self.room_motion_sensor,
+        "entity_id": self.motion_group,
         "state": "on",
         "type": "ratio",
         "duration": {
@@ -344,23 +348,31 @@ class RoomBase:
   # card icon color 
   # double tab action
   def getEntityCard(self, entity, entity_name=None, entity_name_translation=None, 
-                          card_name=None, card_type=None,card_icon=None,card_icon_color=None,double_tab_action=None,simple=None):
+                          card_name=None, card_type=None,card_icon=None,card_icon_color=None,double_tab_action=None,simple=None,
+                          secondary_info=None):
     card = {}     
     
-    # remove entity name to get entity type
-    # "light" = Remove ".living_room_ceiling_light" from "light.living_room_ceiling_light"
-    entity_type = re.sub("\.(\w+)$", "", entity)
+    # Set up card_type based on entity_type
+    if card_type is None:
 
-    if entity_type in ['light', 'cover', 'climate']:
-      card_type = 'custom:mushroom-' + entity_type    + '-card'
-    elif entity_type in ['media_player']:
-      card_type = 'custom:mushroom-' + 'media-player' + '-card'
-    if entity_type in ['binary_sensor', 'switch', 'input_boolean']:
-      card_type = 'custom:mushroom-' + 'entity'       + '-card'
-    elif entity_type in ['group']:
-      card_type = 'custom:group-card'
-    elif entity_type in ['sensor']:
-      card_type = 'sensor'
+      # remove entity name to get entity type
+      # "light" = Remove ".living_room_ceiling_light" from "light.living_room_ceiling_light"
+      entity_type = re.sub("\.(\w+)$", "", entity)
+
+      if entity_type in ['light', 'cover', 'climate']:
+        card_type = 'custom:mushroom-' + entity_type    + '-card'
+      elif entity_type in ['media_player']:
+        card_type = 'custom:mushroom-' + 'media-player' + '-card'
+      if entity_type in ['binary_sensor', 'switch', 'input_boolean']:
+        card_type = 'custom:mushroom-' + 'entity'       + '-card'
+      elif entity_type in ['group']:
+        card_type = 'custom:group-card'
+      elif entity_type in ['sensor']:
+        card_type = 'sensor'
+      elif entity_type in ['input_select']:
+        card_type = 'custom:mushroom-select-card'
+      elif entity_type in ['input_number', 'number']:
+        card_type = 'custom:mushroom-number-card'
 
     if entity_name is None:
       entity_name = self.getName(entity)
@@ -373,20 +385,23 @@ class RoomBase:
     #if entity_name_translation != None:
     #  entity_name_translation = 
 
+    card_name = '' if card_name is None else card_name
+    card_icon = '' if card_icon is None else card_icon
+
     # light
     if card_type == 'custom:mushroom-light-card':
       card = {
         "type": card_type,
         "fill_container": True,
-        "use_light_color": True,
+        "use_light_color": False,
         "show_brightness_control": True,
-        "show_color_control": True,
+        "show_color_control": False,
         "show_color_temp_control": True,
         "collapsible_controls": False,
-        "name": '' if card_name is None else card_name,
-        "icon": '' if card_icon is None else card_icon,
+        "name": card_name,
+        "icon": card_icon,
         "entity": entity
-      }
+      } | self.getCardMod('ios16_toggle', card_type=card_type, color='ios_yellow')
     
     # cover
     elif card_type == 'custom:mushroom-cover-card':
@@ -404,8 +419,8 @@ class RoomBase:
         },                
         "show_position_control": True,
         "show_buttons_control": True,
-        "name": '' if card_name is None else card_name,
-        "icon": '' if card_icon is None else card_icon,
+        "name": card_name,
+        "icon": card_icon,
         "entity": entity
       }
 
@@ -415,8 +430,8 @@ class RoomBase:
         "type": card_type,
         "show_temperature_control": True,
         "collapsible_controls": False,
-        "name": '' if card_name is None else card_name,
-        "icon": '' if card_icon is None else card_icon,
+        "name": card_name,
+        "icon": card_icon,
         "entity": entity
       }
 
@@ -430,13 +445,13 @@ class RoomBase:
           "action": "more-info"
         },
         "volume_controls":[
-          "volume_mute",
+         # "volume_mute",
           "volume_set",
           "volume_buttons"
         ],
         "show_volume_level": False,
-        "name": '' if card_name is None else card_name,
-        "icon": '' if card_icon is None else card_icon,
+        "name": card_name,
+        "icon": card_icon,
         "entity": entity
       }
     # group card
@@ -445,7 +460,7 @@ class RoomBase:
         "type": card_type,
         "card":{
           "type": "entities",
-          "title": '' if card_name is None else card_name
+          "title": card_name
         },
         "group": entity
       }
@@ -456,8 +471,8 @@ class RoomBase:
         card = {
           "type": card_type,
           "graph": "line",
-          "name": '' if card_name is None else card_name,
-          "icon": '' if card_icon is None else card_icon,
+          "name": card_name,
+          "icon": card_icon,
           "entity": entity
         }
       else: # complex minigraph temperature sensor card from 
@@ -475,7 +490,7 @@ class RoomBase:
               "tap_action": {
                 "action": "more-info"
               }
-            },
+            } | self.getCardModColor('transparent'),
             {
               "type": "custom:layout-card",
               "layout_type": "masonry",
@@ -489,6 +504,9 @@ class RoomBase:
               "cards": [
                 {
                   "type": "custom:mini-graph-card",
+                  "tap_action": {
+                    "action": "more-info"
+                  },
                   "entities": [
                     {
                       "entity": entity,
@@ -509,11 +527,11 @@ class RoomBase:
                       "color": "#00FF00"
                     },
                     {
-                      "value": 28,
+                      "value": 27,
                       "color": "#00FF00"
                     },
                     {
-                      "value": 28.1,
+                      "value": 27.1,
                       "color": "#FF0000"
                     },
                     {
@@ -551,33 +569,30 @@ class RoomBase:
         "tap_action":{
           "action": "toggle"
         },
-        "name": '' if card_name is None else card_name,
-        "icon": '' if card_icon is None else card_icon,
+        "name": card_name,
+        "icon": card_icon,
         "entity": entity
       }
     
     # entities card
     # input_timer
-    # input_number
-    # input_select
     elif card_type == 'entities':
       card = {
         "type": card_type,
         "entities":[
-          {"name": '' if card_name is None else card_name,
-           "entity": entity}
+          { "name":   card_name,
+            "entity": entity}
         ]
       }
 
     # schduler card
-    elif card_type == 'scheduler-card':
+    elif card_type == 'custom:scheduler-card':
       card = {
         "type": card_type,
-        "include":[
-          {"entity": entity}
-        ],
+        "include": entity,
         "exclude": [],
-        "title": False,
+        "title": True,
+        "discover_existing": True,
         "time_step": 30        
       }
 
@@ -596,13 +611,150 @@ class RoomBase:
             "width": "100px",
             "location": "bottom"}
         },
-        "name": '' if card_name is None else card_name,
-        "icon": '' if card_icon is None else card_icon,
+        "name": card_name,
+        "icon": card_icon,
         "entity": entity
       }
 
+    # input_number
+    # number
+    elif card_type == 'custom:mushroom-number-card':
+      card = {
+        "type": card_type,
+        "fill_container": True,
+        "tap_action":{
+          "action": "more-info"
+        },
+        "display_mode": "buttons",
+        "name": card_name,
+        "icon": 'mdi:counter' if card_icon is None else card_icon,
+        "entity": entity
+      }
+
+    # input_select
+    elif card_type == 'custom:mushroom-select-card':
+      card = {
+        "type": card_type,
+        "fill_container": True,
+        "tap_action":{
+          "action": "more-info"
+        },
+        "icon": "mdi:brightness-4" if card_icon is None else card_icon,
+        "secondary_info": state if secondary_info is None else secondary_info,
+        "name": card_name,
+        "icon": card_icon,
+        "entity": entity
+      }
     return card
 
+
+
+  def getCardMod(self, style='background_color_select', card_type=None, color=None, support_dark_mode=True):
+    css_variable = ""
+
+    if style == 'background_color_select':
+      css_variable += ":host { --ha-card-background:" + self.getColor(color) + ";}\n" 
+
+    elif style == 'ios16_toggle':
+      entity_is_on_condition = " (states(config.entity) in ['on']) " + \
+                                  ("and (states('sun.sun') != 'below_horizon')" if support_dark_mode == True else '')
+
+      # Make card background white if on, dark if off
+      css_variable += (":host {\n"
+      "--ha-card-background:    {% if" + entity_is_on_condition + "%} " + self.getColor("less_transparent_white") + "  {% else  %} " + self.getColor("more_transparent_grey") + "  {% endif %};\n" 
+      "--primary-text-color:    {% if" + entity_is_on_condition + "%} black                                            {% else  %} white                                           {% endif %};\n" 
+      "--secondary-text-color : {% if" + entity_is_on_condition + "%} " + self.getColor("dark_grey") +                "{% else  %} " + self.getColor("light_grey") +             " {% endif %};\n"
+      ";}\n")
+      
+      # Make icon a bit larger, similar to ios 16
+      css_variable += ("ha-card > mushroom-card > mushroom-state-item > mushroom-shape-icon > ha-state-icon {\n"
+      "--mdc-icon-size: 0.7em;"
+      ";}\n")
+
+      # Make icon inner white if on, outter dark if off
+      if card_type == 'custom:mushroom-light-card':
+          css_variable +=  "ha-card > mushroom-card > mushroom-state-item > mushroom-shape-icon {"       + " \n" + \
+            "--icon-color-disabled:   " + self.getColor(color)                                           + ";\n" + \
+            "--shape-color-disabled:  " + self.getColor("more_transparent_grey")                         + ";\n" + \
+            "--icon-color:            " + self.getColor("white")                                         + ";\n" + \
+            "--shape-color:            {% if state_attr(config.entity, 'color_mode') == 'color_temp' %}" + " \n" + \
+                                          self.getColor(color)                                           + " \n" + \
+                                      "{% else  %}"                                                      + " \n" + \
+                                      "   rgb{{state_attr(config.entity, 'rgb_color')}}"                 + " \n" + \
+                                      "{% endif%}"                                                       + ";\n" + \
+            "}\n"
+
+      else:
+        css_variable += ( "ha-card > mushroom-card > mushroom-state-item > mushroom-shape-icon {\n"
+          "--icon-color-disabled:  " + self.getColor(color)            + ";\n"
+          "--shape-color-disabled: " + self.getColor("more_transparent_grey") + ";\n"
+          "--icon-color:           " + self.getColor("white")                 + ";\n"
+          "--shape-color:          " + self.getColor(color)            + ";\n"
+          "}\n")
+
+      # Make brightness slider color same as the light color if it is in RGB, otherwise use ios_yellow
+      if card_type == 'custom:mushroom-light-card':
+          css_variable +=  "ha-card > mushroom-card > div > mushroom-light-brightness-control {"         + " \n" + \
+            "--slider-color:           {% if state_attr(config.entity, 'color_mode') == 'color_temp' %}" + " \n" + \
+                                          self.getColor(color)                                           + " \n" + \
+                                      "{% else  %}"                                                      + " \n" + \
+                                      "   rgb{{state_attr(config.entity, 'rgb_color')}}"                 + " \n" + \
+                                      "{% endif%}"                                                       + ";\n" + \
+            "--slider-bg-color:        {% if state_attr(config.entity, 'color_mode') == 'color_temp' %}" + " \n" + \
+                                          "{{ '" + self.getColor(color) + "' | regex_replace(',([\d\.])+\)$', ',0.2)') }}" + " \n" + \
+                                      "{% else  %}"                                                      + " \n" + \
+                                      "   rgba{{(state_attr(config.entity, 'rgb_color')|string)[0:-1]}}, 0.2)"  + " \n" + \
+                                      "{% endif%}"                                                       + ";\n" + \
+            "}\n"
+
+      # Make bottom buttons background more visiable in white card
+      # and default in dark card
+      if card_type == 'custom:mushroom-light-card':
+        for index in [2,3]:
+          css_variable += "" + \
+            "ha-card > mushroom-card > div > mushroom-button:nth-child(" + str(index) + ") {"
+          css_variable += "" + \
+            "  --bg-color: {% if " + entity_is_on_condition + " %} " + self.getColor("less_transparent_white") + " {% else %} rgba(var(--rgb-primary-text-color), 0.05)" +  " {% endif %};" + \
+            "}\n"
+        
+    else: 
+      raise TypeError( "\n" +\
+          "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n" + \
+          "getCardMod does not support style = " + style + \
+          "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n")
+
+    return {
+      "card_mod": {
+        "style":  css_variable 
+      }    
+    }
+
+  def getColor(self, color):
+    # The last digit of rgba represents opacity and the value of it is between 0.0 and 1.0 
+    # !! always needs to follow the rgba format to maintain a compatibility 
+    if color == 'transparent':
+      return "rgba(245, 245, 245, 0)"
+    elif color == 'more_transparent_grey':
+      return "rgba(10, 10, 10, 0.4)"
+    elif color == 'less_transparent_grey':
+      return "rgba(10, 10, 10, 0.7)"
+    elif color == 'most_transparent_white':
+      return "rgba(245, 245, 245, 0.1)"
+    elif color == 'more_transparent_white':
+      return "rgba(245, 245, 245, 0.3)"
+    elif color == 'less_transparent_white':
+      return "rgba(245, 245, 245, 0.9)"
+    elif color == 'dark_grey':
+      return "rgba(100, 100, 100, 1)"
+    elif color == 'light_grey':
+      return "rgba(220, 220, 220, 1)"
+    elif color == 'ios_yellow':
+      return "rgba(253,204,0,1)"
+    else: 
+      return color
+
+  def getCardModColor(self, color):
+    return self.getCardMod('background_color_select', color=color)
 
 #  def addEntityCard(self, entity, entity_name=None, entity_name_translation=None, 
 #                          card_name=None, card_type=None,card_icon=None,card_icon_color=None,double_tab_action=None, card_group=None):
@@ -682,10 +834,10 @@ class RoomBase:
           alias_switch_name = name + " Wall Switch " + str(i) + name_postfix
           raw_switch_entity = "switch." + self.room_entity + '_wall_switch' + postfix
         else:
-          raise TypeError( "\n" +\
-                           "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n" + \
-                           "Model " + model + " does not support this integration. Name = " + name + name_postfix + ', MAC Address:' + mac + ", Integration " + integration + "\n" + \
-                           "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n")
+          raise TypeError("\n" +\
+                          "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n" + \
+                          "Model " + model + " does not support this integration. Name = " + name + name_postfix + ', MAC Address:' + mac + ", Integration " + integration + "\n" + \
+                          "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n")
                 
           
         self.switch_list += [
@@ -1084,8 +1236,9 @@ class RoomBase:
           "configured": self.cfg_scene,
           "options": \
           ['Idle']
-        + (["Hue"            ] if self.cfg_scene_color_led or self.cfg_scene_color_lamp else [])  
-        + (["Night Mode",
+        + (["Hue"            ] if self.cfg_scene_color_led or self.cfg_scene_color_lamp else [])
+        + (["Sleep Mode",
+            "Night Mode",
             "Dark Night Mode"] if self.cfg_custom_scene else[])
         + (["Lamp LED White" ] if len(self.lamps) > 0 else [])  
         + (["LED White"      ] if len(self.leds)  > 0 else [])  
@@ -1221,39 +1374,73 @@ class RoomBase:
       # automations for generating groups
       if self.cfg_occupancy:
         self.group_dict |= {
-          self.room_entity + "_occupancy_group" : {
-            "name": self.room_name + " Occuapancy Group",
-            "entities": [self.room_occupancy, self.room_motion_sensor] + self.all_motion_sensors 
+          self.getPostfix(self.occupancy_group) : {
+            "name": self.getName(self.occupancy_group), 
+            "entities": [self.room_occupancy, self.motion_group] + self.all_motion_sensors 
           }  
         }
       
       self.group_dict |= {
-        self.getPostfix(self.room_motions) : {
-          "name": self.getName(self.room_motions), 
+        self.getPostfix(self.motion_group) : {
+          "name": self.getName(self.motion_group), 
           "entities": self.all_motion_sensors
         }          
       }  
 
       self.group_dict |= {
-        self.getPostfix(self.room_lights): {
-          "name" : self.getName(self.room_lights),
+        self.getPostfix(self.light_group): {
+          "name" : self.getName(self.light_group),
           "entities": self.lights
         }          
       }  
 
       self.group_dict |= {
-        self.getPostfix(self.room_windows): {
-          "name" : self.getName(self.room_windows),
+        self.getPostfix(self.window_group): {
+          "name" : self.getName(self.window_group),
           "entities": self.windows
         }          
       }  
 
       self.group_dict |= {
-        self.getPostfix(self.room_curtains): {
-          "name" : self.getName(self.room_curtains),
+        self.getPostfix(self.curtain_group): {
+          "name" : self.getName(self.curtain_group),
           "entities": self.curtains
         }          
       }  
+
+      # Add dashboard cards
+      # Entertainment
+      if self.tvs is not None and self.tvs != []:
+        self.main_card_list.append(self.getEntityCard(entity=self.tvs[0],     card_name='TV'))
+
+      # Light and curtains
+      for light in self.lights:
+        self.main_card_list.append(self.getEntityCard(entity=light))
+
+      for curtain in self.curtains:
+        self.main_card_list.append(self.getEntityCard(entity=curtain))
+      
+      # Climate Control
+      if self.thermostat is not None:      
+        self.main_card_list.append(self.getEntityCard(entity=self.thermostat, card_name='Raditor'))
+
+      if self.cfg_temp_control:
+        self.main_card_list.append(self.getEntityCard(entity=self.room_heating_override, card_name='Heating Override'))
+
+      if self.temperature_sensor is not None:
+        self.main_card_list.append(self.getEntityCard(entity=self.temperature_sensor, card_name='Temperature'))
+
+      if self.cfg_temp_control:
+        self.tail_card_list.append(self.getEntityCard(entity=[self.thermostat], entity_name='', card_name='Schedule', card_type='custom:scheduler-card'))
+
+      # Motion 
+      if self.cfg_occupancy:
+        self.tail_card_list.append(self.getEntityCard(entity=self.occupancy_group, card_name='Occupancy'))
+
+      # Room Automation Control
+      if self.cfg_group_auto:      
+        self.tail_card_list.append(self.getEntityCard(entity=self.room_auto_gen_automations, card_name='Automation Control'))
+      
 
 
   def get_script_dict(self):
@@ -1264,13 +1451,15 @@ class RoomBase:
     self.gen_motion_light_automations()
     self.gen_temp_control_automations()
     self.gen_xiaomi_button_automations()
-    if self.cfg_flex_switch == False:
-      self.gen_wall_button_single_automations()
+    self.gen_wall_button_single_automations()
     self.gen_wall_button_double_automations()
     self.gen_occupancy_automations()
     self.gen_tv_automations()
     self.gen_room_specific_automations()
-    
+    self.gen_window_automations()
+
+
+
     for self.automation in self.automations:
       #print ("@@ " + self.automation['alias'])
       self.automation['id'] = self.getIDFromAlias(self.automation['alias'])
@@ -1308,15 +1497,14 @@ class RoomBase:
     # added wall switch control
     self.automation_entity_list += self.wall_switches
 
-    
     if self.cfg_group_auto:
       self.group_dict |= {
-          self.room_entity + "_auto_gen_automations" : {
-            "name": self.room_name + " Auto-gen Automations",
-            "entities": self.automation_entity_list ,
-          } 
-      }
-      
+        self.getPostfix(self.room_auto_gen_automations) : {
+          "name": self.getName(self.room_auto_gen_automations), 
+          "entities": self.automation_entity_list 
+        }  
+      }      
+
     self.entity_declarations |= {
       "group":  self.group_dict
     }
@@ -1385,7 +1573,7 @@ class RoomBase:
           # Make sure that if room_occupany is forced to Outside because of people override (by button for example)
           # and people are going back to the room, the lights should not be turned off
           { "condition": "state",
-            "entity_id": self.room_motion_sensor,
+            "entity_id": self.motion_group,
             "state": "off",
             "for": "00:01:00"
           }],
@@ -1493,6 +1681,139 @@ class RoomBase:
       }
     ]
 
+  def gen_window_automations(self):
+    if len(self.windows) > 0:
+      self.add_window_open_notification_when_leaving_zone_automations()
+      self.add_window_open_notification_when_going_to_sleep_automations()
+      self.add_window_open_notification_when_timeout_automations()
+
+  def add_window_open_notification_when_leaving_zone_automations(self):
+    self.automations += [{
+      "alias": "ZN-" + self.automation_room_name + "Notify Window Left Open When Tai is Leaving Zone" + "-" + self.room_name,
+      "configured": True,
+      "trigger": [
+        {
+          "platform": "zone",
+          "entity_id": "device_tracker.tais_iphone_13",
+          "zone": "zone.home",
+          "event": "leave"
+        }
+      ],
+      "condition": [
+        {
+          "condition": "state",
+          "entity_id": self.window_group,
+          "state": "on"
+        }
+      ],
+      "action": [
+        {
+          "service": "script.notify_alexa_speakers_and_phones",
+          "data": {
+            "tts_message": self.room_name + " windows are left open. But you have left home. Is that ok?",
+            "notify_tai": "yes"
+          }
+        }
+      ]
+    }]
+
+    self.automations += [{
+      "alias": "ZN-" + self.automation_room_name + "Notify Window Left Open When Ke is Leaving Zone" + "-" + self.room_name,
+      "configured": True,
+      "trigger": [
+        {
+          "platform": "zone",
+          "entity_id": "device_tracker.kes_iphone_14_pro_max",
+          "zone": "zone.home",
+          "event": "leave"
+        }
+      ],
+      "condition": [
+        {
+          "condition": "state",
+          "entity_id": self.window_group,
+          "state": "on"
+        }
+      ],
+      "action": [
+        {
+          "service": "script.notify_alexa_speakers_and_phones",
+          "data": {
+            "tts_message": self.room_name + " windows are left open. But you have left home. Is that ok?",
+            "notify_ke": "yes"
+          }
+        }
+      ]
+    }]
+
+
+  def add_window_open_notification_when_going_to_sleep_automations(self):
+    self.automations += [{
+      "alias": "ZN-" + self.automation_room_name + "Notify Window Left Open in Bedtime " + "-" + self.room_name,
+      "configured": True,
+      "trigger": [
+        {
+          "platform": "time",
+          "at": [
+                  "21:00:00",
+                  "23:00:00",
+                  "00:00:00",
+                  "01:00:00",
+                  "02:00:00",
+                  "03:00:00"
+                ]
+        }
+      ],
+      "condition": [
+        {
+          "condition": "state",
+          "entity_id": self.window_group,
+          "state": "on"
+        }
+      ],
+      "action": [
+        {
+          "service": "script.notify_alexa_speakers_and_phones",
+          "data": {
+            "tts_message": self.room_name + " windows are left open. But it's almost bedtime time. Is that ok?",
+            "notify_tai": "yes",
+            "notify_ke": "yes"
+          }
+        }
+      ]
+    }]
+
+
+  def add_window_open_notification_when_timeout_automations(self):
+    self.automations += [{
+      "alias": "ZN-" + self.automation_room_name + "Notify Window Left Open After Timeout"  + "-" + self.room_name,
+      "configured": True,
+      "trigger": [
+        {
+          "platform": "template",
+          "value_template": "{{(now().timestamp() - states." + self.window_group + ".last_changed.timestamp()) > state_attr('input_datetime.qianjie_windows_open_timeout', 'timestamp')}}\n"
+        }
+      ],
+      "condition": [
+        {
+          "condition": "state",
+          "entity_id": self.window_group,
+          "state": "on"
+        }
+      ],
+      "action": [
+        {
+          "service": "script.notify_alexa_speakers_and_phones",
+          "data": {
+            "tts_message": self.room_name + " windows are left open for a while. Is that ok?",
+            "notify_tai": "yes",
+            "notify_ke": "yes"
+          }
+        }
+      ],
+      "mode": "single"
+    }]
+ 
 
   def gen_temp_control_automations(self):
     self.automation_heating_on = {"alias":"ZH-" + self.automation_room_name + "Heating Schedule On If Staying In the Room" + "-" + self.room_name}
@@ -1549,7 +1870,7 @@ class RoomBase:
               ## Make sure that if room_occupany is forced to Outside because of people override (by button for example)
               ## and people are going back to the room, the lights should not be turned off
               #{ "condition": "state",
-              #  "entity_id": self.room_motion_sensor,
+              #  "entity_id": self.motion_group,
               #  "state": "off",
               #  "for": "00:01:00"
               #},      
@@ -1674,6 +1995,8 @@ class RoomBase:
     if self.cfg_led_only_scene:
       cond_seq += [self.setNewSceneFromOldScene(nxt_scene="LED White")]
     if self.cfg_custom_scene:
+      cond_seq+= [self.setNewSceneFromOldScene(nxt_scene="Sleep Mode")]
+    if self.cfg_custom_scene:
       #cond_seq += [self.setNewSceneFromOldScene(nxt_scene="Night Mode")] 
       cond_seq+= [self.setNewSceneFromOldScene(nxt_scene="Dark Night Mode")]
       
@@ -1764,6 +2087,7 @@ class RoomBase:
               self.callSceneServiceIfSelected("Hue"),
               self.callSceneServiceIfSelected("Night Mode"),
               self.callSceneServiceIfSelected("Dark Night Mode"),
+              self.callSceneServiceIfSelected("Sleep Mode"),
               self.callSceneServiceIfSelected("All Off"),
               self.callSceneServiceIfSelected("Lights on in hot sunshine"),
               self.callSceneServiceIfSelected("Lights on when bright outdoor"),
@@ -1834,6 +2158,7 @@ class RoomBase:
   # [TODO] Master Room - Single - Scenes 
   # [TODO] Master Toilet Dressing Room 
   def gen_wall_button_single_automations(self):
+    if self.cfg_flex_switch == False:
       self.gen_a_button_toggle_automation( button_state_list=[ "1", "single", "single_left", "single_right", "single_center", 
                                                               "button_1_single", "button_2_single", "button_3_single"],
                                            button_state_name='Single')
@@ -1924,12 +2249,12 @@ class RoomBase:
         "configured": self.cfg_occupancy,
         "trigger": [
           {
-            "entity_id": self.room_motion_sensor,
+            "entity_id": self.motion_group,
             "platform": "state",
             "to": "on"
           },
           {
-            "entity_id": self.room_motion_sensor,
+            "entity_id": self.motion_group,
             "platform": "state",
             "to": "off",
             "for": "05:00:00"
@@ -1943,7 +2268,7 @@ class RoomBase:
           {
             "service" : "pyscript.room_occupancy_state_machine",
             "data":{"occupancy_entity_str":           self.room_occupancy,
-                    "motion_str":                     self.room_motion_sensor,                                 
+                    "motion_str":                     self.motion_group,                                 
                     "motion_on_ratio_for_x_min_str":  self.occupancy_on_x_min_ratio_sensor,
                     "motion_on_ratio_for_2x_min_str": self.occupancy_on_2x_min_ratio_sensor,
                     "room_type":                      self.room_type 
@@ -1954,7 +2279,7 @@ class RoomBase:
     ]
 
   # Generate automation ID/entity_name based on alias name
-  def getIDFromName (self, name):
+  def getIDFromName(self, name):
     id = name.lower()
     id = re.sub("-", "_", id)
     id = re.sub("\.", "_", id)
@@ -2164,6 +2489,9 @@ class RoomBase:
           scene_service += [{ "service": "homeassistant.turn_on",
                               "entity_id": "scene." + self.room_entity + "_dark_night_mode" },
                             self.turn(self.tvs, tv_brightness=1)]
+      elif scene_name == "Sleep Mode": 
+          scene_service += [{ "service": "homeassistant.turn_on",
+                              "entity_id": "scene." + self.room_entity + "_sleep_mode"}]
       elif scene_name == 'All Off':
           scene_service += [self.turn(self.ceiling_lights, "off"),
                             self.turn(self.lamps, "off"),
@@ -2300,11 +2628,11 @@ class RoomBase:
                   "entity_id": self.outside_temperature,
                   "above": "15" if self.west_face_windows else "18"
                 },
-                # In the morning/afternoon
+                # In the period that there might be a direct sunshine
                 {
                   "condition": "time",
-                  "after":  self.afternoon_start if self.west_face_windows else self.daytime_start,
-                  "before": self.daytime_end     if self.west_face_windows else self.afternoon_start
+                  "after":  "13:00:00"           if self.west_face_windows else self.daytime_start,
+                  "before": self.daytime_end     if self.west_face_windows else "16:00:00"
                 },
                 # Summer
                 {
@@ -2338,6 +2666,7 @@ class RoomBase:
     self.dashboard_default_root = 'Uninitliazed_dashboard_root'
     self.dashboard_view_name = 'Uninitliazed_dashboard_view_name'
     self.room_icon           = 'Uninitliazed_room_icon'
+    self.room_theme          = 'Mushroom Shadow'
 
   def getRestricedAccess(self, user, inner_card):
     if user not in ['us', 'en_suite_room_user', 'guest_room_user']:
@@ -2445,17 +2774,18 @@ class RoomBase:
             icon_color = "blue",
             primary    = self.room_name,
             secondary  = "{% if "+temperature_sensor_template_reference+" is defined %} {{ "+temperature_sensor_template_reference+" }}\u00b0C {% endif %}" + \
-                         "{% set motion_postfix     = '"+self.getPostfix(self.room_motion_sensor)+"' %}\n" + \
-                         "{% set motion = '"+self.room_motion_sensor+"' %}\n{% if is_state(motion, 'on') %}\n  🙋🏻\n{% else %}\n  🦶🏻\n{% endif %}{{\n (as_timestamp(now()) -\n as_timestamp(states.group[motion_postfix].last_changed)) |\n timestamp_custom(\"%H:%M\", false) }} ",
+                         "{% set motion_postfix     = '"+self.getPostfix(self.motion_group)+"' %}\n" + \
+                         "{% set motion = '"+self.motion_group+"' %}\n{% if is_state(motion, 'on') %}\n  🙋🏻\n{% else %}\n  🦶🏻\n{% endif %}{{\n (as_timestamp(now()) -\n as_timestamp(states.group[motion_postfix].last_changed)) |\n timestamp_custom(\"%H:%M\", false) }} ",
             tap_action = 'navigate'             
           ),
-          {
+          # Make the bottom stack-in-card transparent
+          self.getCardModColor("transparent") | {
             "type": "custom:stack-in-card",
             "mode": "horizontal",
             "cards": [
               #self.getTemplateCard(
-              #  icon       = "{% set motion = '"+self.room_motion_sensor+"' %}  \n{% if is_state(motion, 'on') %}\n  mdi:run-fast\n{% else %}\n  mdi:shoe-print\n{% endif %}",
-              #  icon_color = "{% set motion = '"+self.room_motion_sensor+"' %}  \n{% if is_state(motion, 'on') %}\n  blue\n{% endif %}",
+              #  icon       = "{% set motion = '"+self.motion_group+"' %}  \n{% if is_state(motion, 'on') %}\n  mdi:run-fast\n{% else %}\n  mdi:shoe-print\n{% endif %}",
+              #  icon_color = "{% set motion = '"+self.motion_group+"' %}  \n{% if is_state(motion, 'on') %}\n  blue\n{% endif %}",
               #),
             ] + ([] if self.cfg_occupancy == False else [
               self.getTemplateCard(
@@ -2476,13 +2806,13 @@ class RoomBase:
               self.getTemplateCard(
                 icon       = "{% if is_state(entity, 'on') %}\n  mdi:floor-lamp\n{% else %}\n  mdi:floor-lamp-outline\n{% endif %}",
                 icon_color = "{% if is_state(entity, 'on') %}\n  amber\n{% endif %}",
-                tap_entity = self.room_lights
+                tap_entity = self.light_group
               )
             ]) + ([] if self.windows == [] else [
               self.getTemplateCard(
                 icon       = "{% if is_state(entity, 'on') %}\n  mdi:window-open-variant\n{% else %}\n  mdi:window-closed-variant\n{% endif %}",
                 icon_color = "{% if is_state(entity, 'on') %}\n  lime\n{% endif %}",
-                condition_entity = self.room_windows
+                condition_entity = self.window_group
               )
             ]) + ([] if self.tvs == [] else [
               self.getTemplateCard(
@@ -2497,7 +2827,7 @@ class RoomBase:
                 icon       = "{% if is_state(entity, 'open') %}\n  mdi:curtains\n{% else %}\n  mdi:curtains-closed\n{% endif %}",
                 icon_color = "{% if is_state(entity, 'open') %}\n  green       \n{% endif %}",
                 condition_state  = 'open',
-                condition_entity = self.room_curtains
+                condition_entity = self.curtain_group
               )
             ])
           }
@@ -2525,7 +2855,7 @@ class RoomBase:
   def addView(self, viewPath='',
                     cards=[], 
                     theme="Mushroom Shadow",
-                    title='Mobile-Home'):
+                    title=''):
                       
     self.views += [{
                   "theme": theme,
@@ -2542,22 +2872,28 @@ class RoomBase:
     self.header_card_list += self.getHeaderCardList()
     
     all_cards = self.getLayoutWrapperCardList(self.header_card_list) + \
-                self.getLayoutWrapperCardList(self.main_card_list)
+                self.getLayoutWrapperCardList(self.main_card_list)   + \
+                self.tail_card_list
     
-    self.addView(title=self.room_name, viewPath=self.room_entity, cards=all_cards)
+    self.addView(title=self.room_name, theme=self.room_theme, viewPath=self.room_entity, cards=all_cards)
     return self.views
 
 
   def getLayoutWrapperCardList(self, cards=None):
     
-    if self.dashboard_type == 'mobile':
+    if self.dashboard_type in ['mobile', 'default']:
       grid_cards = [{
           "square": False,
           "columns": 2,
           "type": "grid",
           "cards": cards}]          
-    else: # elif self.dashboard_type == 'tablet':
+    elif self.dashboard_type == 'tablet':
       grid_cards = cards
+    else: 
+        raise TypeError( "\n" +\
+          "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n" + \
+          "getLayoutWrapperCardList does not support dashboard_type" + dashboard_type + \
+          "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n")
 
     return grid_cards
   
@@ -2587,17 +2923,18 @@ class RoomBase:
             }
           }
         },
-        {
-          "type": "entities",
-          "entities": [
-            {
-              "entity": self.room_scene_ctl,
-              "name": "Scene"
-            }
-          ],
-          "state_color": True,
-          "title": "Run a Scene",
-        }
+        self.getEntityCard(entity=self.room_scene_ctl, secondary_info='none')
+#        {
+#          "type": "entities",
+#          "entities": [
+#            {
+#              "entity": self.room_scene_ctl,
+#              "name": "Scene"
+#            }
+#          ],
+#          "state_color": True,
+#          "title": "Run a Scene",
+#        }
     ])
   
 
@@ -2757,9 +3094,9 @@ class MasterRoom(RoomBase):
     super().get_window_entities()
     self.windows                 = ["binary_sensor.master_room_balcony_door"]
 
-  def get_remote_entities(self):  
-    super().get_remote_entities()    
-    self.wall_buttons            = ["sensor." + self.room_entity + "_wall_button_2"]
+  #def get_remote_entities(self):  
+  #  super().get_remote_entities()    
+  #  self.wall_buttons            = ["sensor." + self.room_entity + "_wall_button_2"]
 
   # Remove wall switch single automation
   def gen_wall_button_single_automations(self):
@@ -2797,6 +3134,9 @@ class MasterRoom(RoomBase):
     self.other_lights            = ["switch.master_room_entrance_wall_switch",
                                     "switch.master_room_dressing_table_light"]
     
+    self.ceiling_lights          = ["light.master_room_ceiling_light_bulb_1",
+                                    "light.master_room_drawer_ceiling_light_yeelight"]
+                                    
     self.lights                  = self.leds + self.lamps + self.ceiling_lights + self.other_lights
     
   def get_cover_entities(self):
@@ -2824,11 +3164,16 @@ class MasterRoom(RoomBase):
       tts_message          = self.automation_room_name + "wifi devices are offline. You may want to manual restart 2.4Ghz Wifi."
       )
 
+  def gen_window_automations(self):
+    if len(self.windows) > 0:
+      self.add_window_open_notification_when_leaving_zone_automations()
+
   def getDashboardSettings(self):
     super().getDashboardSettings()
     self.dashboard_default_root = 'master-room'
-    self.dashboard_view_name = 'master-room'
-    self.room_icon           = 'mdi:bed-king-outline'
+    self.dashboard_view_name    = 'master-room'
+    self.room_icon              = 'mdi:bed-king-outline'
+    self.room_theme             = 'ios-dark-mode-dark-green'
 
 
 class MasterToilet(RoomBase):
@@ -2928,6 +3273,10 @@ class Kitchen(RoomBase):
     # MCCGQ02HL
     #self.add_mac_device("0x158d00023e6015",       self.room_name + " Worktop",             "Aqara Wireless Switch")     
   
+  def get_remote_entities(self):  
+    super().get_remote_entities()    
+    self.wall_buttons            = ["sensor." + self.room_entity + "_wall_button_2"]
+
   def get_window_entities(self):
     super().get_window_entities()
     self.windows                 = ["binary_sensor.kitchen_window"]
@@ -2986,7 +3335,7 @@ class Kitchen(RoomBase):
   def getNavigationRoomCard (self):
     room_card = super().getNavigationRoomCard()
     # Add vaccum info
-    room_card['card']['cards'][0]['secondary'] += "{% set vaccum = 'vacuum.x1' %} {% if   is_state(vaccum, 'docked') %}\n 🔋 \n{% elif is_state(vaccum, 'cleaning') %}\n 🧹 \n{% elif is_state(occupancy, 'unavailable') %}\n 🌐 \n{% else %}\n {{states('vacuum.x1')}} \n{% endif %}"
+    room_card['card']['cards'][0]['secondary'] += "{% set vaccum = 'vacuum.x1' %} {% if   is_state(vaccum, 'docked') %}\n 🔋 \n{% elif is_state(vaccum, 'cleaning') %}\n 🧹 \n{% elif is_state(vaccum, 'unavailable') %}\n 🌐 \n{% else %}\n {{states('vacuum.x1')}} \n{% endif %}"
     # Add additional cards
     room_card['card']['cards'][1]['cards']     += ([
       self.getTemplateCard(
@@ -3080,12 +3429,7 @@ class LivingRoom(RoomBase):
 
 #    self.add_mac_device("living_room_ceiling_light_yeelight", self.room_name + ' Ceiling Light', 'Light',              "Yeelight Ceiling Light")
 
-    self.main_card_list.append(self.getEntityCard(entity=self.tvs[0],     card_name='TV'))
-    self.main_card_list.append(self.getEntityCard(entity=self.thermostat, card_name='Raditor'))
-    for light in self.lights:
-      self.main_card_list.append(self.getEntityCard(entity=light))
-    for curtain in self.curtains:
-      self.main_card_list.append(self.getEntityCard(entity=curtain))
+
 
 
     self.add_mac_device("dced8308e951",                       self.room_name,                    'Motion Sensor',      "Ziqing Occupancy Sensor")
@@ -3152,6 +3496,11 @@ class LivingRoom(RoomBase):
       offline_device       = 'light.kitchen_worktop_led',
       tts_message          = self.automation_room_name + "wifi devices are offline. You may want to manual restart 2.4Ghz Wifi."
       )
+
+  def gen_window_automations(self):
+    if len(self.windows) > 0:
+      self.add_window_open_notification_when_leaving_zone_automations()
+      self.add_window_open_notification_when_going_to_sleep_automations()
 
   def getDashboardSettings(self):
     super().getDashboardSettings()
@@ -3583,18 +3932,18 @@ class WholeHome(RoomBase):
   def get_motion_sensor_entities(self):
     super().get_motion_sensor_entities()
     self.all_motion_sensors = [
-      "group.living_room_motion",
+      "group.living_room_motion_group",
       #"group.garden_motion",
-      "group.kitchen_motion",
-      "group.corridor_motion",
-      "group.study_motion",
-      "group.ground_toilet_motion",
-      "group.master_room_motion",
-      "group.master_toilet_motion",
-      "group.en_suite_room_motion",
-      "group.en_suite_toilet_motion",
-      "group.guest_room_motion",
-      "group.guest_toilet_motion"
+      "group.kitchen_motion_group",
+      "group.corridor_motion_group",
+      "group.study_motion_group",
+      "group.ground_toilet_motion_group",
+      "group.master_room_motion_group",
+      "group.master_toilet_motion_group",
+      "group.en_suite_room_motion_group",
+      "group.en_suite_toilet_motion_group",
+      "group.guest_room_motion_group",
+      "group.guest_toilet_motion_group"
     ]
 
 class System(RoomBase):
@@ -3638,7 +3987,7 @@ class System(RoomBase):
               "navigation_path": "/lovelace-system/system\\"
             }
           },
-          {
+          self.getCardModColor("transparent") | {
             "type": "custom:stack-in-card",
             "mode": "horizontal",
             "cards": [
@@ -3706,8 +4055,8 @@ class Dashboard(RoomBase):
   def __init__ (self, format=None, dashboard_type=None):
     print ("-------------------------------------")
     print ("** Generating Overall Lovelace Configs. **")
-    self.format         = 'yaml'   if format         == 'yaml'   else 'json'
-    self.dashboard_type = 'mobile' if dashboard_type == 'mobile' else 'tablet'
+    self.format         = 'yaml'   if format         == None else format
+    self.dashboard_type = 'mobile' if dashboard_type == None else dashboard_type
     self.room_nav_cards = []
     self.dashboard = {}
     self.views = []
@@ -3904,8 +4253,9 @@ if args.create_system_config:
 
 # Instantiate and render dashboard into yaml
 # Default to disable it as the dashboard does not need to be updated
-dashboard_type = 'tablet' if args.render_dashboard_tablet is True else 'mobile'
-#dashboard_type = 'tablet'
+dashboard_type = 'tablet' if args.render_dashboard_tablet is True else \
+                 'mobile' if args.render_dashboard_mobile is True else \
+                 'default'
 
 if args.render_dashboard_yaml:
   dashboard = Dashboard(format='yaml', dashboard_type=dashboard_type)

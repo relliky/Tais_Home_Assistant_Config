@@ -4,7 +4,7 @@
 #
 ###########################################
 
-  ## Custom Variables
+## Custom Variables
 input_boolean:
   #  kitchen_short_presence: # done
   #    name: "Kitchen Short Presence"
@@ -42,29 +42,28 @@ template:
         unit_of_measurement: "%"
 
   - sensor:
-    - name: Max Temperature Out Of All Rooms
-      unit_of_measurement: "\xB0C"
-      state: >
-        {% if states.sensor.living_room_temperature_sensor.state != 'unavailable' %}
-          {% set temp1 = states.sensor.living_room_temperature_sensor.state %}
-        {% else  %}
-          {% set temp1 = 5 %}
-        {% endif %}
-        
-        {% if states.sensor.master_room_temperature_sensor.state != 'unavailable' %}
-          {% set temp2 = states.sensor.master_room_temperature_sensor.state %}
-        {% else  %}
-          {% set temp2 = 5 %}
-        {% endif %}
-        
-        {% if states.sensor.en_suite_room_temperature_sensor.state != 'unavailable' %}
-          {% set temp3 = states.sensor.en_suite_room_temperature_sensor.state %}
-        {% else  %}
-          {% set temp2 = 5 %}
-        {% endif %}
-        
-        {{([float(temp1), float(temp2), float(temp3)]|max) }}      
+      - name: Max Temperature Out Of All Rooms
+        unit_of_measurement: "\xB0C"
+        state: >
+          {% if states.sensor.living_room_temperature_sensor.state != 'unavailable' %}
+            {% set temp1 = states.sensor.living_room_temperature_sensor.state %}
+          {% else  %}
+            {% set temp1 = 5 %}
+          {% endif %}
 
+          {% if states.sensor.master_room_temperature_sensor.state != 'unavailable' %}
+            {% set temp2 = states.sensor.master_room_temperature_sensor.state %}
+          {% else  %}
+            {% set temp2 = 5 %}
+          {% endif %}
+
+          {% if states.sensor.en_suite_room_temperature_sensor.state != 'unavailable' %}
+            {% set temp3 = states.sensor.en_suite_room_temperature_sensor.state %}
+          {% else  %}
+            {% set temp2 = 5 %}
+          {% endif %}
+
+          {{([float(temp1), float(temp2), float(temp3)]|max) }}
 
 # Ice maker thermostat, turning on ice marker above certain temperature
 climate:
@@ -73,9 +72,9 @@ climate:
     heater: switch.kitchen_ice_maker
     target_sensor: sensor.max_temperature_out_of_all_rooms
     min_temp: 10
-    max_temp: 30
+    max_temp: 35
     ac_mode: true
-    target_temp: 30
+    target_temp: 35
     initial_hvac_mode: "off"
     precision: 0.5
 
@@ -332,7 +331,7 @@ automation:
     trigger:
       - platform: state
         to: "on"
-        entity_id: group.kitchen_motion
+        entity_id: group.kitchen_motion_group
     condition:
       - condition: state
         entity_id: input_boolean.follow_music
@@ -360,12 +359,12 @@ automation:
         from: "on"
         to: "off"
         for: 00:02:00
-        entity_id: group.kitchen_motion
+        entity_id: group.kitchen_motion_group
       - minutes: /5
         platform: time_pattern
     condition:
       - condition: state
-        entity_id: group.kitchen_motion
+        entity_id: group.kitchen_motion_group
         for: 00:10:00
         state: "off"
     action:
@@ -391,7 +390,6 @@ automation:
   ###############################################
   # Vacuum based on time
   ###############################################
-
 #  - alias: T-KC Kitchen Vacuum Starts At 4am
 #    description: ""
 #    trigger:
@@ -407,7 +405,7 @@ automation:
 #    trigger:
 #      - platform: state
 #        entity_id:
-#          - group.kitchen_motion
+#          - group.kitchen_motion_group
 #    condition:
 #      - condition: state
 #        entity_id: sensor.x1_last_error

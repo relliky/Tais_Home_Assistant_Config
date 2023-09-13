@@ -39,8 +39,8 @@ automation:
       entity_id: sensor.met_office_cambridge_city_airport_temperature_3_hourly
       above: '18'
     - condition: time
-      after: '10:00:00'
-      before: '13:00:00'
+      after: 06:00:00
+      before: '16:00:00'
     - condition: template
       value_template: '{{ now().month > 4 and now().month < 9 }}'
     - condition: state
@@ -547,7 +547,7 @@ automation:
     entity_id: input_select.guest_room_occupancy
     state: Outside
   - condition: state
-    entity_id: group.guest_room_motion
+    entity_id: group.guest_room_motion_group
     state: 'off'
     for: 00:01:00
   action:
@@ -1134,6 +1134,20 @@ automation:
     - conditions:
       - condition: state
         entity_id: input_select.guest_room_scene
+        state: Sleep Mode
+      sequence:
+        alias: Sleep Mode
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+        - parallel:
+          - service: homeassistant.turn_on
+            entity_id: scene.guest_room_sleep_mode
+    - conditions:
+      - condition: state
+        entity_id: input_select.guest_room_scene
         state: All Off
       sequence:
         alias: All Off
@@ -1709,10 +1723,10 @@ automation:
   id: automation.zlb_gr_wall_switch_double_press_leave_room_and_turn_off_everything_guest_room
 - alias: ZOc-GR Occupancy Update-Guest Room
   trigger:
-  - entity_id: group.guest_room_motion
+  - entity_id: group.guest_room_motion_group
     platform: state
     to: 'on'
-  - entity_id: group.guest_room_motion
+  - entity_id: group.guest_room_motion_group
     platform: state
     to: 'off'
     for: 05:00:00
@@ -1722,7 +1736,7 @@ automation:
   - service: pyscript.room_occupancy_state_machine
     data:
       occupancy_entity_str: input_select.guest_room_occupancy
-      motion_str: group.guest_room_motion
+      motion_str: group.guest_room_motion_group
       motion_on_ratio_for_x_min_str: sensor.guest_room_motion_on_ratio_for_last_4_minutes
       motion_on_ratio_for_2x_min_str: sensor.guest_room_motion_on_ratio_for_last_8_minutes
       room_type: bedroom
@@ -1746,7 +1760,7 @@ input_select:
 sensor:
 - platform: history_stats
   name: Guest Room Motion On Ratio For Last 4 Minutes
-  entity_id: group.guest_room_motion
+  entity_id: group.guest_room_motion_group
   state: 'on'
   type: ratio
   duration:
@@ -1754,7 +1768,7 @@ sensor:
   end: '{{ (now() | as_timestamp) | as_datetime | as_local }}'
 - platform: history_stats
   name: Guest Room Motion On Ratio For Last 8 Minutes
-  entity_id: group.guest_room_motion
+  entity_id: group.guest_room_motion_group
   state: 'on'
   type: ratio
   duration:
@@ -1828,30 +1842,30 @@ light:
   entities: light.28d12735ea1e
 group:
   guest_room_occupancy_group:
-    name: Guest Room Occuapancy Group
+    name: Guest Room Occupancy Group
     entities:
     - input_select.guest_room_occupancy
-    - group.guest_room_motion
+    - group.guest_room_motion_group
     - binary_sensor.guest_room_door_motion_sensor_motion
     - binary_sensor.guest_room_bed_motion_sensor_motion
-  guest_room_motion:
-    name: Guest Room Motion
+  guest_room_motion_group:
+    name: Guest Room Motion Group
     entities:
     - binary_sensor.guest_room_door_motion_sensor_motion
     - binary_sensor.guest_room_bed_motion_sensor_motion
-  guest_room_lights:
-    name: Guest Room Lights
+  guest_room_light_group:
+    name: Guest Room Light Group
     entities:
     - light.guest_room_lamp
     - light.guest_room_ceiling_light
-  guest_room_windows:
-    name: Guest Room Windows
+  guest_room_window_group:
+    name: Guest Room Window Group
     entities: []
-  guest_room_curtains:
-    name: Guest Room Curtains
+  guest_room_curtain_group:
+    name: Guest Room Curtain Group
     entities: []
   guest_room_auto_gen_automations:
-    name: Guest Room Auto-gen Automations
+    name: Guest Room Auto Gen Automations
     entities:
     - input_boolean.ceiling_light_control_when_bright_outdoor_guest_room
     - input_boolean.lamp_control_when_bright_outdoor_guest_room

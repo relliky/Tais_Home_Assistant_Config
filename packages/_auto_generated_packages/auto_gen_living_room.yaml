@@ -39,8 +39,8 @@ automation:
       entity_id: sensor.met_office_cambridge_city_airport_temperature_3_hourly
       above: '18'
     - condition: time
-      after: '10:00:00'
-      before: '13:00:00'
+      after: 06:00:00
+      before: '16:00:00'
     - condition: template
       value_template: '{{ now().month > 4 and now().month < 9 }}'
     - condition: state
@@ -715,7 +715,7 @@ automation:
     entity_id: input_select.living_room_occupancy
     state: Outside
   - condition: state
-    entity_id: group.living_room_motion
+    entity_id: group.living_room_motion_group
     state: 'off'
     for: 00:01:00
   action:
@@ -1542,6 +1542,20 @@ automation:
                 entity_id:
                 - media_player.living_room_tv
                 picture_mode: Movie
+    - conditions:
+      - condition: state
+        entity_id: input_select.living_room_scene
+        state: Sleep Mode
+      sequence:
+        alias: Sleep Mode
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+        - parallel:
+          - service: homeassistant.turn_on
+            entity_id: scene.living_room_sleep_mode
     - conditions:
       - condition: state
         entity_id: input_select.living_room_scene
@@ -2602,10 +2616,10 @@ automation:
   id: automation.zlb_lr_wall_switch_double_press_leave_room_and_turn_off_everything_living_room
 - alias: ZOc-LR Occupancy Update-Living Room
   trigger:
-  - entity_id: group.living_room_motion
+  - entity_id: group.living_room_motion_group
     platform: state
     to: 'on'
-  - entity_id: group.living_room_motion
+  - entity_id: group.living_room_motion_group
     platform: state
     to: 'off'
     for: 05:00:00
@@ -2615,7 +2629,7 @@ automation:
   - service: pyscript.room_occupancy_state_machine
     data:
       occupancy_entity_str: input_select.living_room_occupancy
-      motion_str: group.living_room_motion
+      motion_str: group.living_room_motion_group
       motion_on_ratio_for_x_min_str: sensor.living_room_motion_on_ratio_for_last_4_minutes
       motion_on_ratio_for_2x_min_str: sensor.living_room_motion_on_ratio_for_last_8_minutes
       room_type: bedroom
@@ -2677,6 +2691,59 @@ automation:
     for: 00:03:00
   action: []
   id: automation.zn_lr_notify_wifi_offline_devices_living_room
+- alias: ZN-LR Notify Window Left Open When Tai is Leaving Zone-Living Room
+  trigger:
+  - platform: zone
+    entity_id: device_tracker.tais_iphone_13
+    zone: zone.home
+    event: leave
+  condition:
+  - condition: state
+    entity_id: group.living_room_window_group
+    state: 'on'
+  action:
+  - service: script.notify_alexa_speakers_and_phones
+    data:
+      tts_message: Living Room windows are left open. But you have left home. Is that ok?
+      notify_tai: 'yes'
+  id: automation.zn_lr_notify_window_left_open_when_tai_is_leaving_zone_living_room
+- alias: ZN-LR Notify Window Left Open When Ke is Leaving Zone-Living Room
+  trigger:
+  - platform: zone
+    entity_id: device_tracker.kes_iphone_14_pro_max
+    zone: zone.home
+    event: leave
+  condition:
+  - condition: state
+    entity_id: group.living_room_window_group
+    state: 'on'
+  action:
+  - service: script.notify_alexa_speakers_and_phones
+    data:
+      tts_message: Living Room windows are left open. But you have left home. Is that ok?
+      notify_ke: 'yes'
+  id: automation.zn_lr_notify_window_left_open_when_ke_is_leaving_zone_living_room
+- alias: ZN-LR Notify Window Left Open in Bedtime -Living Room
+  trigger:
+  - platform: time
+    at:
+    - '21:00:00'
+    - '23:00:00'
+    - 00:00:00
+    - 01:00:00
+    - 02:00:00
+    - 03:00:00
+  condition:
+  - condition: state
+    entity_id: group.living_room_window_group
+    state: 'on'
+  action:
+  - service: script.notify_alexa_speakers_and_phones
+    data:
+      tts_message: Living Room windows are left open. But it's almost bedtime time. Is that ok?
+      notify_tai: 'yes'
+      notify_ke: 'yes'
+  id: automation.zn_lr_notify_window_left_open_in_bedtime_living_room
 input_select:
   living_room_scene:
     name: Living Room Scene
@@ -2698,7 +2765,7 @@ input_select:
 sensor:
 - platform: history_stats
   name: Living Room Motion On Ratio For Last 4 Minutes
-  entity_id: group.living_room_motion
+  entity_id: group.living_room_motion_group
   state: 'on'
   type: ratio
   duration:
@@ -2706,7 +2773,7 @@ sensor:
   end: '{{ (now() | as_timestamp) | as_datetime | as_local }}'
 - platform: history_stats
   name: Living Room Motion On Ratio For Last 8 Minutes
-  entity_id: group.living_room_motion
+  entity_id: group.living_room_motion_group
   state: 'on'
   type: ratio
   duration:
@@ -2851,25 +2918,25 @@ light:
   entities: light.28d127202ef6_light
 group:
   living_room_occupancy_group:
-    name: Living Room Occuapancy Group
+    name: Living Room Occupancy Group
     entities:
     - input_select.living_room_occupancy
-    - group.living_room_motion
+    - group.living_room_motion_group
     - binary_sensor.living_room_sofa_motion_sensor_motion
     - binary_sensor.living_room_entrance_motion_sensor_motion
     - binary_sensor.tais_desk_motion_sensor_motion
     - binary_sensor.living_room_sofa_pressure_sensor
     - binary_sensor.living_room_occupancy_sensor_occupancy
-  living_room_motion:
-    name: Living Room Motion
+  living_room_motion_group:
+    name: Living Room Motion Group
     entities:
     - binary_sensor.living_room_sofa_motion_sensor_motion
     - binary_sensor.living_room_entrance_motion_sensor_motion
     - binary_sensor.tais_desk_motion_sensor_motion
     - binary_sensor.living_room_sofa_pressure_sensor
     - binary_sensor.living_room_occupancy_sensor_occupancy
-  living_room_lights:
-    name: Living Room Lights
+  living_room_light_group:
+    name: Living Room Light Group
     entities:
     - light.living_room_tv_led
     - light.living_room_sofa_led
@@ -2879,18 +2946,18 @@ group:
     - light.living_room_3_head_lamp_3
     - switch.living_room_floor_light_3
     - light.living_room_ceiling_light
-  living_room_windows:
-    name: Living Room Windows
+  living_room_window_group:
+    name: Living Room Window Group
     entities:
     - binary_sensor.living_room_sliding_door
     - binary_sensor.living_room_window
-  living_room_curtains:
-    name: Living Room Curtains
+  living_room_curtain_group:
+    name: Living Room Curtain Group
     entities:
     - cover.living_room_curtain_1
     - cover.living_room_curtain_2
   living_room_auto_gen_automations:
-    name: Living Room Auto-gen Automations
+    name: Living Room Auto Gen Automations
     entities:
     - input_boolean.curtain_control_when_left_living_room
     - input_boolean.ceiling_light_control_in_hot_sunshine_living_room
@@ -2924,4 +2991,7 @@ group:
     - automation.ztv_lr_reset_picture_mode_when_turning_on_tv_living_room
     - automation.zn_lr_notify_zigbee_offline_devices_living_room
     - automation.zn_lr_notify_wifi_offline_devices_living_room
+    - automation.zn_lr_notify_window_left_open_when_tai_is_leaving_zone_living_room
+    - automation.zn_lr_notify_window_left_open_when_ke_is_leaving_zone_living_room
+    - automation.zn_lr_notify_window_left_open_in_bedtime_living_room
     - switch.0x00158d0008d8ead8_switch

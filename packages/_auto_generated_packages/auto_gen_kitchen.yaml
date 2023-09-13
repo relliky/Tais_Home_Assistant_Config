@@ -22,7 +22,7 @@ automation:
   id: automation.zl_kc_ceiling_lights_on_or_open_curtains_if_entering_to_room_kitchen
   trigger:
     entity_id:
-    - group.kitchen_motion
+    - group.kitchen_motion_group
     platform: state
     to: 'on'
   action:
@@ -40,7 +40,7 @@ automation:
       above: '15'
     - condition: time
       after: '13:00:00'
-      before: '22:00:00'
+      before: '21:00:00'
     - condition: template
       value_template: '{{ now().month > 4 and now().month < 9 }}'
     - condition: state
@@ -538,7 +538,7 @@ automation:
     entity_id: input_select.kitchen_occupancy
     state: Outside
   - condition: state
-    entity_id: group.kitchen_motion
+    entity_id: group.kitchen_motion_group
     state: 'off'
     for: 00:01:00
   action:
@@ -1187,6 +1187,20 @@ automation:
     - conditions:
       - condition: state
         entity_id: input_select.kitchen_scene
+        state: Sleep Mode
+      sequence:
+        alias: Sleep Mode
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+        - parallel:
+          - service: homeassistant.turn_on
+            entity_id: scene.kitchen_sleep_mode
+    - conditions:
+      - condition: state
+        entity_id: input_select.kitchen_scene
         state: All Off
       sequence:
         alias: All Off
@@ -1730,11 +1744,94 @@ automation:
                   entity_id:
                   - cover.kitchen_curtain
   id: automation.zl_kc_applies_different_scenes_based_on_scene_selections_state_execution_kitchen
+- alias: ZLB-KC Wall Switch - Single Left Press - Toggle Ceiling Light-Kitchen
+  trigger:
+  - platform: state
+    entity_id:
+    - sensor.kitchen_wall_button_2
+    to:
+    - single_left
+    - button_1_single
+  action:
+  - alias: Turn light.kitchen_ceiling_light state=toggle
+    if:
+      condition: state
+      entity_id: input_boolean.always_on_constant
+      state: 'on'
+    then:
+      if:
+      - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
+        condition: state
+        entity_id: light.kitchen_ceiling_light
+        state: 'on'
+        match: any
+      then:
+        alias: Turn light.kitchen_ceiling_light state=off
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+          service: homeassistant.turn_off
+          entity_id: light.kitchen_ceiling_light
+      else:
+        alias: Turn light.kitchen_ceiling_light state=on
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+          service: homeassistant.turn_on
+          entity_id: light.kitchen_ceiling_light
+  id: automation.zlb_kc_wall_switch_single_left_press_toggle_ceiling_light_kitchen
+- alias: ZLB-KC Worktop Wall Switch - Single Left Press - Toggle Worktop LED-Kitchen
+  trigger:
+  - platform: state
+    entity_id:
+    - sensor.kitchen_extractor_wall_button
+    to:
+    - single_left
+    - button_1_single
+  action:
+  - alias: Turn light.kitchen_worktop_led state=toggle
+    if:
+      condition: state
+      entity_id: input_boolean.always_on_constant
+      state: 'on'
+    then:
+      if:
+      - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
+        condition: state
+        entity_id:
+        - light.kitchen_worktop_led
+        state: 'on'
+        match: any
+      then:
+        alias: Turn light.kitchen_worktop_led state=off
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+          service: homeassistant.turn_off
+          entity_id:
+          - light.kitchen_worktop_led
+      else:
+        alias: Turn light.kitchen_worktop_led state=on
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+          service: homeassistant.turn_on
+          entity_id:
+          - light.kitchen_worktop_led
+  id: automation.zlb_kc_worktop_wall_switch_single_left_press_toggle_worktop_led_kitchen
 - alias: ZLB-KC Wall Switch - Double Press - Leave Room and Turn Off Everything-Kitchen
   trigger:
   - platform: state
     entity_id:
-    - sensor.kitchen_wall_button
+    - sensor.kitchen_wall_button_2
     to:
     - '2'
     - double
@@ -1757,10 +1854,10 @@ automation:
   id: automation.zlb_kc_wall_switch_double_press_leave_room_and_turn_off_everything_kitchen
 - alias: ZOc-KC Occupancy Update-Kitchen
   trigger:
-  - entity_id: group.kitchen_motion
+  - entity_id: group.kitchen_motion_group
     platform: state
     to: 'on'
-  - entity_id: group.kitchen_motion
+  - entity_id: group.kitchen_motion_group
     platform: state
     to: 'off'
     for: 05:00:00
@@ -1770,7 +1867,7 @@ automation:
   - service: pyscript.room_occupancy_state_machine
     data:
       occupancy_entity_str: input_select.kitchen_occupancy
-      motion_str: group.kitchen_motion
+      motion_str: group.kitchen_motion_group
       motion_on_ratio_for_x_min_str: sensor.kitchen_motion_on_ratio_for_last_4_minutes
       motion_on_ratio_for_2x_min_str: sensor.kitchen_motion_on_ratio_for_last_8_minutes
       room_type: common_area
@@ -1795,6 +1892,77 @@ automation:
         - media_player.kitchen_tv
         picture_mode: Standard
   id: automation.ztv_kc_reset_picture_mode_when_turning_on_tv_kitchen
+- alias: ZN-KC Notify Window Left Open When Tai is Leaving Zone-Kitchen
+  trigger:
+  - platform: zone
+    entity_id: device_tracker.tais_iphone_13
+    zone: zone.home
+    event: leave
+  condition:
+  - condition: state
+    entity_id: group.kitchen_window_group
+    state: 'on'
+  action:
+  - service: script.notify_alexa_speakers_and_phones
+    data:
+      tts_message: Kitchen windows are left open. But you have left home. Is that ok?
+      notify_tai: 'yes'
+  id: automation.zn_kc_notify_window_left_open_when_tai_is_leaving_zone_kitchen
+- alias: ZN-KC Notify Window Left Open When Ke is Leaving Zone-Kitchen
+  trigger:
+  - platform: zone
+    entity_id: device_tracker.kes_iphone_14_pro_max
+    zone: zone.home
+    event: leave
+  condition:
+  - condition: state
+    entity_id: group.kitchen_window_group
+    state: 'on'
+  action:
+  - service: script.notify_alexa_speakers_and_phones
+    data:
+      tts_message: Kitchen windows are left open. But you have left home. Is that ok?
+      notify_ke: 'yes'
+  id: automation.zn_kc_notify_window_left_open_when_ke_is_leaving_zone_kitchen
+- alias: ZN-KC Notify Window Left Open in Bedtime -Kitchen
+  trigger:
+  - platform: time
+    at:
+    - '21:00:00'
+    - '23:00:00'
+    - 00:00:00
+    - 01:00:00
+    - 02:00:00
+    - 03:00:00
+  condition:
+  - condition: state
+    entity_id: group.kitchen_window_group
+    state: 'on'
+  action:
+  - service: script.notify_alexa_speakers_and_phones
+    data:
+      tts_message: Kitchen windows are left open. But it's almost bedtime time. Is that ok?
+      notify_tai: 'yes'
+      notify_ke: 'yes'
+  id: automation.zn_kc_notify_window_left_open_in_bedtime_kitchen
+- alias: ZN-KC Notify Window Left Open After Timeout-Kitchen
+  trigger:
+  - platform: template
+    value_template: '{{(now().timestamp() - states.group.kitchen_window_group.last_changed.timestamp()) > state_attr(''input_datetime.qianjie_windows_open_timeout'', ''timestamp'')}}
+
+      '
+  condition:
+  - condition: state
+    entity_id: group.kitchen_window_group
+    state: 'on'
+  action:
+  - service: script.notify_alexa_speakers_and_phones
+    data:
+      tts_message: Kitchen windows are left open for a while. Is that ok?
+      notify_tai: 'yes'
+      notify_ke: 'yes'
+  mode: single
+  id: automation.zn_kc_notify_window_left_open_after_timeout_kitchen
 input_select:
   kitchen_scene:
     name: Kitchen Scene
@@ -1814,7 +1982,7 @@ input_select:
 sensor:
 - platform: history_stats
   name: Kitchen Motion On Ratio For Last 4 Minutes
-  entity_id: group.kitchen_motion
+  entity_id: group.kitchen_motion_group
   state: 'on'
   type: ratio
   duration:
@@ -1822,7 +1990,7 @@ sensor:
   end: '{{ (now() | as_timestamp) | as_datetime | as_local }}'
 - platform: history_stats
   name: Kitchen Motion On Ratio For Last 8 Minutes
-  entity_id: group.kitchen_motion
+  entity_id: group.kitchen_motion_group
   state: 'on'
   type: ratio
   duration:
@@ -1946,35 +2114,35 @@ binary_sensor:
 light: []
 group:
   kitchen_occupancy_group:
-    name: Kitchen Occuapancy Group
+    name: Kitchen Occupancy Group
     entities:
     - input_select.kitchen_occupancy
-    - group.kitchen_motion
+    - group.kitchen_motion_group
     - binary_sensor.kitchen_occupancy_sensor_occupancy
     - binary_sensor.kitchen_worktop_motion_sensor_motion
     - binary_sensor.kitchen_dining_motion_sensor_motion
-  kitchen_motion:
-    name: Kitchen Motion
+  kitchen_motion_group:
+    name: Kitchen Motion Group
     entities:
     - binary_sensor.kitchen_occupancy_sensor_occupancy
     - binary_sensor.kitchen_worktop_motion_sensor_motion
     - binary_sensor.kitchen_dining_motion_sensor_motion
-  kitchen_lights:
-    name: Kitchen Lights
+  kitchen_light_group:
+    name: Kitchen Light Group
     entities:
     - switch.kitchen_floor_led
     - light.kitchen_ceiling_light
     - light.kitchen_dining_light
-  kitchen_windows:
-    name: Kitchen Windows
+  kitchen_window_group:
+    name: Kitchen Window Group
     entities:
     - binary_sensor.kitchen_window
-  kitchen_curtains:
-    name: Kitchen Curtains
+  kitchen_curtain_group:
+    name: Kitchen Curtain Group
     entities:
     - cover.kitchen_curtain
   kitchen_auto_gen_automations:
-    name: Kitchen Auto-gen Automations
+    name: Kitchen Auto Gen Automations
     entities:
     - input_boolean.curtain_control_when_left_kitchen
     - input_boolean.ceiling_light_control_in_hot_sunshine_kitchen
@@ -1996,9 +2164,15 @@ group:
     - automation.zh_kc_heating_manual_override_timeout_in_few_hours_kitchen
     - automation.zh_kc_valve_calibrate_temperature_using_external_sensor_kitchen
     - automation.zl_kc_applies_different_scenes_based_on_scene_selections_state_execution_kitchen
+    - automation.zlb_kc_wall_switch_single_left_press_toggle_ceiling_light_kitchen
+    - automation.zlb_kc_worktop_wall_switch_single_left_press_toggle_worktop_led_kitchen
     - automation.zlb_kc_wall_switch_double_press_leave_room_and_turn_off_everything_kitchen
     - automation.zoc_kc_occupancy_update_kitchen
     - automation.ztv_kc_reset_picture_mode_when_turning_on_tv_kitchen
+    - automation.zn_kc_notify_window_left_open_when_tai_is_leaving_zone_kitchen
+    - automation.zn_kc_notify_window_left_open_when_ke_is_leaving_zone_kitchen
+    - automation.zn_kc_notify_window_left_open_in_bedtime_kitchen
+    - automation.zn_kc_notify_window_left_open_after_timeout_kitchen
     - switch.0x04cf8cdf3c7ad647_channel_1
     - switch.0x04cf8cdf3c7ad647_channel_2
     - switch.0x04cf8cdf3c7ad647_channel_3

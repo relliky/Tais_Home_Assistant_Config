@@ -7,7 +7,7 @@ automation:
   id: automation.zl_0t_ceiling_lights_on_or_open_curtains_if_entering_to_room_ground_toilet
   trigger:
     entity_id:
-    - group.ground_toilet_motion
+    - group.ground_toilet_motion_group
     platform: state
     to: 'on'
   action:
@@ -24,8 +24,8 @@ automation:
       entity_id: sensor.met_office_cambridge_city_airport_temperature_3_hourly
       above: '18'
     - condition: time
-      after: '10:00:00'
-      before: '13:00:00'
+      after: 06:00:00
+      before: '16:00:00'
     - condition: template
       value_template: '{{ now().month > 4 and now().month < 9 }}'
     - condition: state
@@ -406,7 +406,7 @@ automation:
     entity_id: input_select.ground_toilet_occupancy
     state: Outside
   - condition: state
-    entity_id: group.ground_toilet_motion
+    entity_id: group.ground_toilet_motion_group
     state: 'off'
     for: 00:01:00
   action:
@@ -897,6 +897,20 @@ automation:
           - service: homeassistant.turn_on
             entity_id: scene.ground_toilet_dark_night_mode
           - service: script.do_nothing
+    - conditions:
+      - condition: state
+        entity_id: input_select.ground_toilet_scene
+        state: Sleep Mode
+      sequence:
+        alias: Sleep Mode
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+        - parallel:
+          - service: homeassistant.turn_on
+            entity_id: scene.ground_toilet_sleep_mode
     - conditions:
       - condition: state
         entity_id: input_select.ground_toilet_scene
@@ -1516,10 +1530,10 @@ automation:
   id: automation.zlb_0t_wall_switch_double_press_leave_room_and_turn_off_everything_ground_toilet
 - alias: ZOc-0T Occupancy Update-Ground Toilet
   trigger:
-  - entity_id: group.ground_toilet_motion
+  - entity_id: group.ground_toilet_motion_group
     platform: state
     to: 'on'
-  - entity_id: group.ground_toilet_motion
+  - entity_id: group.ground_toilet_motion_group
     platform: state
     to: 'off'
     for: 05:00:00
@@ -1529,7 +1543,7 @@ automation:
   - service: pyscript.room_occupancy_state_machine
     data:
       occupancy_entity_str: input_select.ground_toilet_occupancy
-      motion_str: group.ground_toilet_motion
+      motion_str: group.ground_toilet_motion_group
       motion_on_ratio_for_x_min_str: sensor.ground_toilet_motion_on_ratio_for_last_4_minutes
       motion_on_ratio_for_2x_min_str: sensor.ground_toilet_motion_on_ratio_for_last_8_minutes
       room_type: toilet
@@ -1552,7 +1566,7 @@ input_select:
 sensor:
 - platform: history_stats
   name: Ground Toilet Motion On Ratio For Last 4 Minutes
-  entity_id: group.ground_toilet_motion
+  entity_id: group.ground_toilet_motion_group
   state: 'on'
   type: ratio
   duration:
@@ -1560,7 +1574,7 @@ sensor:
   end: '{{ (now() | as_timestamp) | as_datetime | as_local }}'
 - platform: history_stats
   name: Ground Toilet Motion On Ratio For Last 8 Minutes
-  entity_id: group.ground_toilet_motion
+  entity_id: group.ground_toilet_motion_group
   state: 'on'
   type: ratio
   duration:
@@ -1650,27 +1664,27 @@ light:
   entities: light.0x000b57fffee8e6b4
 group:
   ground_toilet_occupancy_group:
-    name: Ground Toilet Occuapancy Group
+    name: Ground Toilet Occupancy Group
     entities:
     - input_select.ground_toilet_occupancy
-    - group.ground_toilet_motion
+    - group.ground_toilet_motion_group
     - binary_sensor.ground_toilet_motion_sensor_motion
-  ground_toilet_motion:
-    name: Ground Toilet Motion
+  ground_toilet_motion_group:
+    name: Ground Toilet Motion Group
     entities:
     - binary_sensor.ground_toilet_motion_sensor_motion
-  ground_toilet_lights:
-    name: Ground Toilet Lights
+  ground_toilet_light_group:
+    name: Ground Toilet Light Group
     entities:
     - light.ground_toilet_ceiling_light
-  ground_toilet_windows:
-    name: Ground Toilet Windows
+  ground_toilet_window_group:
+    name: Ground Toilet Window Group
     entities: []
-  ground_toilet_curtains:
-    name: Ground Toilet Curtains
+  ground_toilet_curtain_group:
+    name: Ground Toilet Curtain Group
     entities: []
   ground_toilet_auto_gen_automations:
-    name: Ground Toilet Auto-gen Automations
+    name: Ground Toilet Auto Gen Automations
     entities:
     - input_boolean.ceiling_light_control_when_bright_outdoor_ground_toilet
     - input_boolean.ceiling_light_control_when_dark_outdoor_ground_toilet

@@ -22,7 +22,7 @@ automation:
   id: automation.zl_st_ceiling_lights_on_or_open_curtains_if_entering_to_room_study
   trigger:
     entity_id:
-    - group.study_motion
+    - group.study_motion_group
     platform: state
     to: 'on'
   action:
@@ -39,8 +39,8 @@ automation:
       entity_id: sensor.met_office_cambridge_city_airport_temperature_3_hourly
       above: '18'
     - condition: time
-      after: '10:00:00'
-      before: '13:00:00'
+      after: 06:00:00
+      before: '16:00:00'
     - condition: template
       value_template: '{{ now().month > 4 and now().month < 9 }}'
     - condition: state
@@ -643,7 +643,7 @@ automation:
     entity_id: input_select.study_occupancy
     state: Outside
   - condition: state
-    entity_id: group.study_motion
+    entity_id: group.study_motion_group
     state: 'off'
     for: 00:01:00
   action:
@@ -1274,6 +1274,20 @@ automation:
           - service: homeassistant.turn_on
             entity_id: scene.study_dark_night_mode
           - service: script.do_nothing
+    - conditions:
+      - condition: state
+        entity_id: input_select.study_scene
+        state: Sleep Mode
+      sequence:
+        alias: Sleep Mode
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+        - parallel:
+          - service: homeassistant.turn_on
+            entity_id: scene.study_sleep_mode
     - conditions:
       - condition: state
         entity_id: input_select.study_scene
@@ -1956,10 +1970,10 @@ automation:
   id: automation.zlb_st_wall_switch_double_press_leave_room_and_turn_off_everything_study
 - alias: ZOc-ST Occupancy Update-Study
   trigger:
-  - entity_id: group.study_motion
+  - entity_id: group.study_motion_group
     platform: state
     to: 'on'
-  - entity_id: group.study_motion
+  - entity_id: group.study_motion_group
     platform: state
     to: 'off'
     for: 05:00:00
@@ -1969,7 +1983,7 @@ automation:
   - service: pyscript.room_occupancy_state_machine
     data:
       occupancy_entity_str: input_select.study_occupancy
-      motion_str: group.study_motion
+      motion_str: group.study_motion_group
       motion_on_ratio_for_x_min_str: sensor.study_motion_on_ratio_for_last_4_minutes
       motion_on_ratio_for_2x_min_str: sensor.study_motion_on_ratio_for_last_8_minutes
       room_type: common_area
@@ -2031,7 +2045,7 @@ input_select:
 sensor:
 - platform: history_stats
   name: Study Motion On Ratio For Last 4 Minutes
-  entity_id: group.study_motion
+  entity_id: group.study_motion_group
   state: 'on'
   type: ratio
   duration:
@@ -2039,7 +2053,7 @@ sensor:
   end: '{{ (now() | as_timestamp) | as_datetime | as_local }}'
 - platform: history_stats
   name: Study Motion On Ratio For Last 8 Minutes
-  entity_id: group.study_motion
+  entity_id: group.study_motion_group
   state: 'on'
   type: ratio
   duration:
@@ -2111,32 +2125,32 @@ binary_sensor: []
 light: []
 group:
   study_occupancy_group:
-    name: Study Occuapancy Group
+    name: Study Occupancy Group
     entities:
     - input_select.study_occupancy
-    - group.study_motion
+    - group.study_motion_group
     - binary_sensor.study_motion_sensor_motion
     - binary_sensor.kes_desk_motion_sensor_motion
-  study_motion:
-    name: Study Motion
+  study_motion_group:
+    name: Study Motion Group
     entities:
     - binary_sensor.study_motion_sensor_motion
     - binary_sensor.kes_desk_motion_sensor_motion
-  study_lights:
-    name: Study Lights
+  study_light_group:
+    name: Study Light Group
     entities:
     - switch.study_screen_led
     - switch.study_studio_lamp
     - light.study_ceiling_light
-  study_windows:
-    name: Study Windows
+  study_window_group:
+    name: Study Window Group
     entities: []
-  study_curtains:
-    name: Study Curtains
+  study_curtain_group:
+    name: Study Curtain Group
     entities:
     - cover.study_blind
   study_auto_gen_automations:
-    name: Study Auto-gen Automations
+    name: Study Auto Gen Automations
     entities:
     - input_boolean.curtain_control_when_left_study
     - input_boolean.ceiling_light_control_in_hot_sunshine_study
