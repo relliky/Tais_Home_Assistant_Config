@@ -1,0 +1,124 @@
+template:
+  - sensor:
+      - name: "Car's Ignition"
+        state: >
+          {% if is_state('sensor.kw16obs_ignition_state', '0') %}
+              lock
+          {% elif is_state('sensor.kw16obs_ignition_state', '1') %}
+              off
+          {% elif is_state('sensor.kw16obs_ignition_state', '2') %}
+              accessory
+          {% elif is_state('sensor.kw16obs_ignition_state', '4') %}
+              on
+          {% elif is_state('sensor.kw16obs_ignition_state', '5') %}
+              start
+          {% else %}    
+            {{states('sensor.kw16obs_ignition_state')}}
+          {% endif %}
+
+  - binary_sensor:
+      - name: "Car's Ignition"
+        state: >
+          {% if is_state('sensor.kw16obs_ignition_state', '0') %}
+              off
+          {% elif is_state('sensor.kw16obs_ignition_state', '1') %}
+              off
+          {% elif is_state('sensor.kw16obs_ignition_state', '2') %}
+              on
+          {% elif is_state('sensor.kw16obs_ignition_state', '4') %}
+              on
+          {% elif is_state('sensor.kw16obs_ignition_state', '5') %}
+              on
+          {% else %}    
+            {{states('sensor.kw16obs_ignition_state')}}
+          {% endif %}
+
+  - binary_sensor:
+      - name: "Car's window"
+        state: >
+          {% if is_state('binary_sensor.kw16obs_windows_closed', 'on') %}
+              off
+          {% elif is_state('binary_sensor.kw16obs_windows_closed', 'off') %}
+              on
+          {% else %}    
+            {{states('binary_sensor.kw16obs_windows_closed')}}
+          {% endif %}
+
+  - sensor:
+      - name: "Car's lock"
+        state: >
+          {% if is_state('sensor.kw16obs_lock', '0') %}
+              unlocked
+          {% elif is_state('sensor.kw16obs_lock', '1') %}
+              internal locked, normally in driving
+          {% elif is_state('sensor.kw16obs_lock', '2') %}
+              external locked
+          {% elif is_state('sensor.kw16obs_lock', '3') %}
+              selective unlocked
+          {% else %}    
+            {{states('sensor.kw16obs_lock')}}
+          {% endif %}
+
+  - binary_sensor:
+      - name: "Car's unlocked"
+        state: >
+          {% if is_state('sensor.kw16obs_lock', '0') %}
+              on
+          {% elif is_state('sensor.kw16obs_lock', '1') %}
+              on
+          {% elif is_state('sensor.kw16obs_lock', '2') %}
+              off
+          {% elif is_state('sensor.kw16obs_lock', '3') %}
+              on
+          {% else %}    
+            {{states('sensor.kw16obs_lock')}}
+          {% endif %}
+
+  - binary_sensor:
+      - name: "Car's left unlocked when ignition off"
+        state: >
+          {% if is_state('binary_sensor.car_s_ignition', 'off') and is_state('binary_sensor.car_s_unlocked', 'on') %}
+              on
+          {% else %}    
+              off
+          {% endif %}
+
+  - binary_sensor:
+      - name: "Car's left unlocked when windows is left open"
+        state: >
+          {% if is_state('binary_sensor.car_s_ignition', 'off') and is_state('binary_sensor.car_s_window', 'on') %}
+              on
+          {% else %}    
+              off
+          {% endif %}
+
+automation:
+  - alias: "N- Notify when car is off but left unlocked"
+    id: 4564563138145645
+    trigger:
+      - platform: state
+        entity_id:
+          - binary_sensor.car_s_left_unlocked_when_ignition_off
+        to: "on"
+        for: "00:02:00"
+    action:
+      - service: script.notify_alexa_speakers_and_phones
+        data:
+          tts_message: The car ignition is off but left unlocked. Is that ok?
+          notify_tai: "yes"
+          #notify_ke: "yes"
+
+  - alias: "N- Notify when car is off but windows are left open"
+    id: 45783259043298547
+    trigger:
+      - platform: state
+        entity_id:
+          - binary_sensor.car_s_left_unlocked_when_windows_is_left_open
+        to: "on"
+        for: "00:02:00"
+    action:
+      - service: script.notify_alexa_speakers_and_phones
+        data:
+          tts_message: The car ignition is off but windows are left open. Is that ok?
+          notify_tai: "yes"
+          #notify_ke: "yes"

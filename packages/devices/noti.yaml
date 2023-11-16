@@ -1,0 +1,181 @@
+#
+# - service: script.notify_alexa_speakers_and_phones
+#   data:
+#     tts_message: 'hello'
+#     notify_tai: yes
+#     notify_ke: yes
+#     notify_alvaro: yes
+#     alexa_speaker_list:
+#     - media_player.kitchen_echo
+#     - media_player.living_room_echo
+#
+
+script:
+  notify_alexa_speakers_and_phones:
+    fields:
+      tts_message:
+        example: "test"
+      alexa_speaker_list:
+        default: no
+        example: "- media_player.kitchen_echo"
+      notify_tai:
+        default: no
+        example: "yes"
+      notify_ke:
+        default: no
+        example: "yes"
+      notify_alvaro:
+        default: no
+        example: "yes"
+    sequence:
+      - parallel:
+          - if:
+              - "{{alexa_speaker_list != no and alexa_speaker_list != 'no'}}"
+            then:
+              - service: notify.alexa_media
+                data:
+                  message: "{{tts_message}}"
+                  target: "{{alexa_speaker_list}}"
+                  title: Home Assistant Message
+                  data:
+                    method: all
+                    type: announce
+          - if:
+              - "{{notify_tai == 'yes'}}"
+            then:
+              - service: notify.mobile_app_tais_iphone_13_pro_max
+                data:
+                  message: "{{tts_message}}"
+                  data:
+                    push:
+                      name: default
+                      critical: 1
+                      volume: 1
+          - if:
+              - "{{notify_ke == 'yes'}}"
+            then:
+              - service: notify.mobile_app_kes_iphone_14_pro_max
+                data:
+                  message: "{{tts_message}}"
+                  data:
+                    push:
+                      name: default
+                      critical: 1
+                      volume: 1
+          - if:
+              - "{{notify_alvaro == 'yes'}}"
+            then:
+              - service: notify.mobile_app_iphone_alvaro
+                data:
+                  message: "{{tts_message}}"
+                  data:
+                    push:
+                      name: default
+                      critical: 1
+                      volume: 1
+
+automation:
+  - alias: "N- Reminding Washing Machine Completed - Tai/Ke/Amazon Speaker"
+    id: "1679255860573"
+    trigger:
+      - platform: state
+        entity_id:
+          - binary_sensor.washing_machine_power
+        from: "on"
+        to: "off"
+        for:
+          hours: 0
+          minutes: 3
+          seconds: 0
+    condition: []
+    action:
+      - service: script.notify_alexa_speakers_and_phones
+        data:
+          tts_message: Washing machine cycle completed!
+          notify_tai: "yes"
+          notify_ke: "yes"
+          #notify_alvaro: "yes"
+          alexa_speaker_list:
+            - media_player.kitchen_echo
+          #  - media_player.living_room_echo
+          #  - media_player.master_room_echo
+          #  - media_player.master_toilet_echo
+    mode: single
+
+  - alias: "N- Reminder - Take folic acid"
+    id: "16794325560571"
+    trigger:
+      - platform: time
+        at: "09:50:00"
+    action:
+      - service: script.notify_alexa_speakers_and_phones
+        data:
+          tts_message: Take folic acid
+          #notify_tai: "yes"
+          notify_ke: "yes"
+          #alexa_speaker_list:
+          #  - media_player.master_room_echo
+          #  - media_player.master_toilet_echo
+    mode: single
+
+  - alias: "N- Alert - Hot water schedule is not working - Tai"
+    id: "16794321343213"
+    trigger:
+      - platform: time
+        at: "05:05:00"
+      - platform: time
+        at: "16:05:00"
+    action:
+      - condition: state
+        state: "off"
+        entity_id: switch.water_heater
+      - service: script.notify_alexa_speakers_and_phones
+        data:
+          tts_message: Hot water schedule is not working. Manually turning it on.
+          notify_tai: "yes"
+          #notify_ke: "yes"
+          #alexa_speaker_list:
+          #  - media_player.master_room_echo
+          #  - media_player.master_toilet_echo
+      - service: switch.turn_on
+        entity_id: switch.water_heater
+      - delay: "01:00:00"
+      - service: switch.turn_off
+        entity_id: switch.water_heater
+
+  - alias: "N- Reminding Bin Collection - Tai/Ke/Amazon Speaker"
+    id: bin_collect_reminder
+    description: ""
+    trigger:
+      - platform: calendar
+        event: start
+        offset: "-12:0:0"
+        entity_id: calendar.bins_schedule
+    condition: []
+    action:
+      - wait_for_trigger:
+          - platform: state
+            entity_id:
+              - group.corridor_motion_group
+              - group.master_room_motion_group
+              - group.master_toilet_motion_group
+              - group.living_room_motion_group
+              - group.kitchen_motion_group
+            to: "on"
+        timeout:
+          hours: 9
+          minutes: 0
+          seconds: 0
+          milliseconds: 0
+      - service: script.notify_alexa_speakers_and_phones
+        data:
+          tts_message: |
+            Tomorrow is {{state_attr('calendar.bins_schedule', 'message')}} date.
+          notify_tai: "yes"
+          notify_ke: "yes"
+          alexa_speaker_list:
+            - media_player.kitchen_echo
+            - media_player.living_room_echo
+            - media_player.master_room_echo
+            - media_player.master_toilet_echo
+    mode: single

@@ -23,6 +23,7 @@ automation:
   trigger:
     entity_id:
     - binary_sensor.living_room_entrance_motion_sensor_motion
+    - binary_sensor.living_room_sliding_door
     platform: state
     to: 'on'
   action:
@@ -101,7 +102,7 @@ automation:
                     entity_id: input_boolean.always_on_constant
                     state: 'on'
                   then:
-                    service: homeassistant.turn_on
+                    service: light.turn_on
                     entity_id:
                     - light.living_room_ceiling_light
             else:
@@ -135,7 +136,7 @@ automation:
                     entity_id: input_boolean.always_on_constant
                     state: 'on'
                   then:
-                    service: homeassistant.turn_off
+                    service: light.turn_off
                     entity_id:
                     - light.living_room_ceiling_light
           - if:
@@ -222,7 +223,7 @@ automation:
                 entity_id: input_boolean.always_on_constant
                 state: 'on'
               then:
-                service: homeassistant.turn_on
+                service: light.turn_on
                 entity_id:
                 - light.living_room_tv_led
                 - light.living_room_sofa_led
@@ -233,7 +234,7 @@ automation:
                 entity_id: input_boolean.always_on_constant
                 state: 'on'
               then:
-                service: homeassistant.turn_off
+                service: light.turn_off
                 entity_id:
                 - light.living_room_tv_led
                 - light.living_room_sofa_led
@@ -323,7 +324,7 @@ automation:
                       entity_id: input_boolean.always_on_constant
                       state: 'on'
                     then:
-                      service: homeassistant.turn_on
+                      service: light.turn_on
                       entity_id:
                       - light.living_room_ceiling_light
               else:
@@ -357,7 +358,7 @@ automation:
                       entity_id: input_boolean.always_on_constant
                       state: 'on'
                     then:
-                      service: homeassistant.turn_off
+                      service: light.turn_off
                       entity_id:
                       - light.living_room_ceiling_light
             - if:
@@ -444,7 +445,7 @@ automation:
                   entity_id: input_boolean.always_on_constant
                   state: 'on'
                 then:
-                  service: homeassistant.turn_on
+                  service: light.turn_on
                   entity_id:
                   - light.living_room_tv_led
                   - light.living_room_sofa_led
@@ -455,7 +456,7 @@ automation:
                   entity_id: input_boolean.always_on_constant
                   state: 'on'
                 then:
-                  service: homeassistant.turn_off
+                  service: light.turn_off
                   entity_id:
                   - light.living_room_tv_led
                   - light.living_room_sofa_led
@@ -540,7 +541,7 @@ automation:
                       entity_id: input_boolean.always_on_constant
                       state: 'on'
                     then:
-                      service: homeassistant.turn_on
+                      service: light.turn_on
                       entity_id:
                       - light.living_room_ceiling_light
               else:
@@ -574,7 +575,7 @@ automation:
                       entity_id: input_boolean.always_on_constant
                       state: 'on'
                     then:
-                      service: homeassistant.turn_off
+                      service: light.turn_off
                       entity_id:
                       - light.living_room_ceiling_light
             - if:
@@ -661,7 +662,7 @@ automation:
                   entity_id: input_boolean.always_on_constant
                   state: 'on'
                 then:
-                  service: homeassistant.turn_on
+                  service: light.turn_on
                   entity_id:
                   - light.living_room_tv_led
                   - light.living_room_sofa_led
@@ -672,7 +673,7 @@ automation:
                   entity_id: input_boolean.always_on_constant
                   state: 'on'
                 then:
-                  service: homeassistant.turn_off
+                  service: light.turn_off
                   entity_id:
                   - light.living_room_tv_led
                   - light.living_room_sofa_led
@@ -800,7 +801,7 @@ automation:
                 entity_id: input_boolean.always_on_constant
                 state: 'on'
               then:
-                service: homeassistant.turn_off
+                service: light.turn_off
                 entity_id:
                 - light.living_room_ceiling_light
         - alias: Turn light.living_room_floor_light_1 light.living_room_3_head_lamp_1 light.living_room_3_head_lamp_2 light.living_room_3_head_lamp_3 switch.living_room_floor_light_3 state=off
@@ -822,7 +823,7 @@ automation:
             entity_id: input_boolean.always_on_constant
             state: 'on'
           then:
-            service: homeassistant.turn_off
+            service: light.turn_off
             entity_id:
             - light.living_room_tv_led
             - light.living_room_sofa_led
@@ -1141,7 +1142,7 @@ automation:
                   entity_id: input_boolean.always_on_constant
                   state: 'on'
                 then:
-                  service: homeassistant.turn_on
+                  service: light.turn_on
                   entity_id:
                   - light.living_room_ceiling_light
           - alias: Turn light.living_room_tv_led light.living_room_sofa_led state=on
@@ -1150,7 +1151,7 @@ automation:
               entity_id: input_boolean.always_on_constant
               state: 'on'
             then:
-              service: homeassistant.turn_on
+              service: light.turn_on
               entity_id:
               - light.living_room_tv_led
               - light.living_room_sofa_led
@@ -1160,11 +1161,18 @@ automation:
               entity_id: input_boolean.always_on_constant
               state: 'on'
             then:
-              service: samsungtv_smart.select_picture_mode
-              data:
+              if:
+              - alias: Set TV brightness when it is on
+                condition: state
                 entity_id:
                 - media_player.living_room_tv
-                picture_mode: Standard
+                state: 'on'
+              then:
+                service: samsungtv_smart.select_picture_mode
+                data:
+                  entity_id:
+                  - media_player.living_room_tv
+                  picture_mode: Standard
     - conditions:
       - condition: state
         entity_id: input_select.living_room_scene
@@ -1177,7 +1185,7 @@ automation:
           state: 'on'
         then:
         - parallel:
-          - alias: Turn light.living_room_tv_led light.living_room_sofa_led light.living_room_floor_light_1 light.living_room_3_head_lamp_1 light.living_room_3_head_lamp_2 light.living_room_3_head_lamp_3 switch.living_room_floor_light_3 state=off
+          - alias: Turn light.living_room_floor_light_1 light.living_room_3_head_lamp_1 light.living_room_3_head_lamp_2 light.living_room_3_head_lamp_3 switch.living_room_floor_light_3 state=off
             if:
               condition: state
               entity_id: input_boolean.always_on_constant
@@ -1185,13 +1193,21 @@ automation:
             then:
               service: homeassistant.turn_off
               entity_id:
-              - light.living_room_tv_led
-              - light.living_room_sofa_led
               - light.living_room_floor_light_1
               - light.living_room_3_head_lamp_1
               - light.living_room_3_head_lamp_2
               - light.living_room_3_head_lamp_3
               - switch.living_room_floor_light_3
+          - alias: Turn light.living_room_tv_led light.living_room_sofa_led state=off
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              service: light.turn_off
+              entity_id:
+              - light.living_room_tv_led
+              - light.living_room_sofa_led
           - alias: Turn light.living_room_ceiling_light state=on
             if:
               condition: state
@@ -1233,7 +1249,7 @@ automation:
                   entity_id: input_boolean.always_on_constant
                   state: 'on'
                 then:
-                  service: homeassistant.turn_on
+                  service: light.turn_on
                   entity_id:
                   - light.living_room_ceiling_light
           - alias: Turn media_player.living_room_tv
@@ -1242,11 +1258,18 @@ automation:
               entity_id: input_boolean.always_on_constant
               state: 'on'
             then:
-              service: samsungtv_smart.select_picture_mode
-              data:
+              if:
+              - alias: Set TV brightness when it is on
+                condition: state
                 entity_id:
                 - media_player.living_room_tv
-                picture_mode: Standard
+                state: 'on'
+              then:
+                service: samsungtv_smart.select_picture_mode
+                data:
+                  entity_id:
+                  - media_player.living_room_tv
+                  picture_mode: Standard
     - conditions:
       - condition: state
         entity_id: input_select.living_room_scene
@@ -1289,7 +1312,7 @@ automation:
                   entity_id: input_boolean.always_on_constant
                   state: 'on'
                 then:
-                  service: homeassistant.turn_off
+                  service: light.turn_off
                   entity_id:
                   - light.living_room_ceiling_light
           - alias: Turn light.living_room_floor_light_1 light.living_room_3_head_lamp_1 light.living_room_3_head_lamp_2 light.living_room_3_head_lamp_3 switch.living_room_floor_light_3 state=on
@@ -1352,7 +1375,7 @@ automation:
               entity_id: input_boolean.always_on_constant
               state: 'on'
             then:
-              service: homeassistant.turn_on
+              service: light.turn_on
               entity_id:
               - light.living_room_tv_led
               - light.living_room_sofa_led
@@ -1362,11 +1385,18 @@ automation:
               entity_id: input_boolean.always_on_constant
               state: 'on'
             then:
-              service: samsungtv_smart.select_picture_mode
-              data:
+              if:
+              - alias: Set TV brightness when it is on
+                condition: state
                 entity_id:
                 - media_player.living_room_tv
-                picture_mode: Standard
+                state: 'on'
+              then:
+                service: samsungtv_smart.select_picture_mode
+                data:
+                  entity_id:
+                  - media_player.living_room_tv
+                  picture_mode: Standard
     - conditions:
       - condition: state
         entity_id: input_select.living_room_scene
@@ -1409,7 +1439,7 @@ automation:
                   entity_id: input_boolean.always_on_constant
                   state: 'on'
                 then:
-                  service: homeassistant.turn_off
+                  service: light.turn_off
                   entity_id:
                   - light.living_room_ceiling_light
           - alias: Turn light.living_room_floor_light_1 light.living_room_3_head_lamp_1 light.living_room_3_head_lamp_2 light.living_room_3_head_lamp_3 switch.living_room_floor_light_3 state=off
@@ -1431,7 +1461,7 @@ automation:
               entity_id: input_boolean.always_on_constant
               state: 'on'
             then:
-              service: homeassistant.turn_on
+              service: light.turn_on
               entity_id:
               - light.living_room_tv_led
               - light.living_room_sofa_led
@@ -1441,11 +1471,18 @@ automation:
               entity_id: input_boolean.always_on_constant
               state: 'on'
             then:
-              service: samsungtv_smart.select_picture_mode
-              data:
+              if:
+              - alias: Set TV brightness when it is on
+                condition: state
                 entity_id:
                 - media_player.living_room_tv
-                picture_mode: Natural
+                state: 'on'
+              then:
+                service: samsungtv_smart.select_picture_mode
+                data:
+                  entity_id:
+                  - media_player.living_room_tv
+                  picture_mode: Natural
     - conditions:
       - condition: state
         entity_id: input_select.living_room_scene
@@ -1487,11 +1524,18 @@ automation:
             entity_id: input_boolean.always_on_constant
             state: 'on'
           then:
-            service: samsungtv_smart.select_picture_mode
-            data:
+            if:
+            - alias: Set TV brightness when it is on
+              condition: state
               entity_id:
               - media_player.living_room_tv
-              picture_mode: Natural
+              state: 'on'
+            then:
+              service: samsungtv_smart.select_picture_mode
+              data:
+                entity_id:
+                - media_player.living_room_tv
+                picture_mode: Natural
     - conditions:
       - condition: state
         entity_id: input_select.living_room_scene
@@ -1512,11 +1556,18 @@ automation:
               entity_id: input_boolean.always_on_constant
               state: 'on'
             then:
-              service: samsungtv_smart.select_picture_mode
-              data:
+              if:
+              - alias: Set TV brightness when it is on
+                condition: state
                 entity_id:
                 - media_player.living_room_tv
-                picture_mode: Natural
+                state: 'on'
+              then:
+                service: samsungtv_smart.select_picture_mode
+                data:
+                  entity_id:
+                  - media_player.living_room_tv
+                  picture_mode: Natural
     - conditions:
       - condition: state
         entity_id: input_select.living_room_scene
@@ -1537,11 +1588,18 @@ automation:
               entity_id: input_boolean.always_on_constant
               state: 'on'
             then:
-              service: samsungtv_smart.select_picture_mode
-              data:
+              if:
+              - alias: Set TV brightness when it is on
+                condition: state
                 entity_id:
                 - media_player.living_room_tv
-                picture_mode: Movie
+                state: 'on'
+              then:
+                service: samsungtv_smart.select_picture_mode
+                data:
+                  entity_id:
+                  - media_player.living_room_tv
+                  picture_mode: Movie
     - conditions:
       - condition: state
         entity_id: input_select.living_room_scene
@@ -1598,7 +1656,7 @@ automation:
                   entity_id: input_boolean.always_on_constant
                   state: 'on'
                 then:
-                  service: homeassistant.turn_off
+                  service: light.turn_off
                   entity_id:
                   - light.living_room_ceiling_light
           - alias: Turn light.living_room_floor_light_1 light.living_room_3_head_lamp_1 light.living_room_3_head_lamp_2 light.living_room_3_head_lamp_3 switch.living_room_floor_light_3 state=off
@@ -1620,7 +1678,7 @@ automation:
               entity_id: input_boolean.always_on_constant
               state: 'on'
             then:
-              service: homeassistant.turn_off
+              service: light.turn_off
               entity_id:
               - light.living_room_tv_led
               - light.living_room_sofa_led
@@ -1683,7 +1741,7 @@ automation:
                       entity_id: input_boolean.always_on_constant
                       state: 'on'
                     then:
-                      service: homeassistant.turn_on
+                      service: light.turn_on
                       entity_id:
                       - light.living_room_ceiling_light
               else:
@@ -1717,7 +1775,7 @@ automation:
                       entity_id: input_boolean.always_on_constant
                       state: 'on'
                     then:
-                      service: homeassistant.turn_off
+                      service: light.turn_off
                       entity_id:
                       - light.living_room_ceiling_light
             - if:
@@ -1804,7 +1862,7 @@ automation:
                   entity_id: input_boolean.always_on_constant
                   state: 'on'
                 then:
-                  service: homeassistant.turn_on
+                  service: light.turn_on
                   entity_id:
                   - light.living_room_tv_led
                   - light.living_room_sofa_led
@@ -1815,7 +1873,7 @@ automation:
                   entity_id: input_boolean.always_on_constant
                   state: 'on'
                 then:
-                  service: homeassistant.turn_off
+                  service: light.turn_off
                   entity_id:
                   - light.living_room_tv_led
                   - light.living_room_sofa_led
@@ -1904,7 +1962,7 @@ automation:
                       entity_id: input_boolean.always_on_constant
                       state: 'on'
                     then:
-                      service: homeassistant.turn_on
+                      service: light.turn_on
                       entity_id:
                       - light.living_room_ceiling_light
               else:
@@ -1938,7 +1996,7 @@ automation:
                       entity_id: input_boolean.always_on_constant
                       state: 'on'
                     then:
-                      service: homeassistant.turn_off
+                      service: light.turn_off
                       entity_id:
                       - light.living_room_ceiling_light
             - if:
@@ -2025,7 +2083,7 @@ automation:
                   entity_id: input_boolean.always_on_constant
                   state: 'on'
                 then:
-                  service: homeassistant.turn_on
+                  service: light.turn_on
                   entity_id:
                   - light.living_room_tv_led
                   - light.living_room_sofa_led
@@ -2036,7 +2094,7 @@ automation:
                   entity_id: input_boolean.always_on_constant
                   state: 'on'
                 then:
-                  service: homeassistant.turn_off
+                  service: light.turn_off
                   entity_id:
                   - light.living_room_tv_led
                   - light.living_room_sofa_led
@@ -2125,7 +2183,7 @@ automation:
                       entity_id: input_boolean.always_on_constant
                       state: 'on'
                     then:
-                      service: homeassistant.turn_on
+                      service: light.turn_on
                       entity_id:
                       - light.living_room_ceiling_light
               else:
@@ -2159,7 +2217,7 @@ automation:
                       entity_id: input_boolean.always_on_constant
                       state: 'on'
                     then:
-                      service: homeassistant.turn_off
+                      service: light.turn_off
                       entity_id:
                       - light.living_room_ceiling_light
             - if:
@@ -2246,7 +2304,7 @@ automation:
                   entity_id: input_boolean.always_on_constant
                   state: 'on'
                 then:
-                  service: homeassistant.turn_on
+                  service: light.turn_on
                   entity_id:
                   - light.living_room_tv_led
                   - light.living_room_sofa_led
@@ -2257,7 +2315,7 @@ automation:
                   entity_id: input_boolean.always_on_constant
                   state: 'on'
                 then:
-                  service: homeassistant.turn_off
+                  service: light.turn_off
                   entity_id:
                   - light.living_room_tv_led
                   - light.living_room_sofa_led
@@ -2496,7 +2554,7 @@ automation:
                   entity_id: input_boolean.always_on_constant
                   state: 'on'
                 then:
-                  service: homeassistant.turn_off
+                  service: light.turn_off
                   entity_id:
                   - light.living_room_ceiling_light
           else:
@@ -2541,7 +2599,7 @@ automation:
                   entity_id: input_boolean.always_on_constant
                   state: 'on'
                 then:
-                  service: homeassistant.turn_on
+                  service: light.turn_on
                   entity_id:
                   - light.living_room_ceiling_light
   id: automation.zlb_lr_remote_button_triple_toggle_ceiling_lights_living_room
@@ -2573,7 +2631,7 @@ automation:
           entity_id: input_boolean.always_on_constant
           state: 'on'
         then:
-          service: homeassistant.turn_off
+          service: light.turn_off
           entity_id:
           - light.living_room_tv_led
           - light.living_room_sofa_led
@@ -2584,7 +2642,7 @@ automation:
           entity_id: input_boolean.always_on_constant
           state: 'on'
         then:
-          service: homeassistant.turn_on
+          service: light.turn_on
           entity_id:
           - light.living_room_tv_led
           - light.living_room_sofa_led
@@ -2648,11 +2706,18 @@ automation:
       entity_id: input_boolean.always_on_constant
       state: 'on'
     then:
-      service: samsungtv_smart.select_picture_mode
-      data:
+      if:
+      - alias: Set TV brightness when it is on
+        condition: state
         entity_id:
         - media_player.living_room_tv
-        picture_mode: Standard
+        state: 'on'
+      then:
+        service: samsungtv_smart.select_picture_mode
+        data:
+          entity_id:
+          - media_player.living_room_tv
+          picture_mode: Standard
   id: automation.ztv_lr_reset_picture_mode_when_turning_on_tv_living_room
 - alias: ZN-LR Notify Zigbee Offline Devices -Living Room
   trigger:
@@ -2663,7 +2728,7 @@ automation:
   action:
   - service: script.notify_alexa_speakers_and_phones
     data:
-      tts_message: 'LR gateway zigbee devices are offline. Restarting gateway. Offline device: switch.living_room_wall_switch'
+      tts_message: 'LR 0F gateway zigbee devices are offline. Restarting gateway. Offline device: switch.living_room_wall_switch'
       notify_tai: 'yes'
   - alias: Turn switch.living_room_gateway_power state=off
     if:
@@ -2686,10 +2751,14 @@ automation:
 - alias: ZN-LR Notify Wifi Offline Devices -Living Room
   trigger:
   - platform: state
-    entity_id: light.kitchen_worktop_led
+    entity_id: light.living_room_floor_light_3
     to: unavailable
     for: 00:03:00
-  action: []
+  action:
+  - service: script.notify_alexa_speakers_and_phones
+    data:
+      tts_message: 'LR 0F wifi devices are offline. You may want to manual restart 2.4Ghz Wifi. Offline device: light.living_room_floor_light_3'
+      notify_tai: 'yes'
   id: automation.zn_lr_notify_wifi_offline_devices_living_room
 - alias: ZN-LR Notify Window Left Open When Tai is Leaving Zone-Living Room
   trigger:
@@ -2832,7 +2901,7 @@ cover:
 template:
 - binary_sensor:
   - name: Living Room Heating Required
-    state: '{% set climate = "climate.living_room" %}{% if states(climate) == "unavailable" %}off{% else %} {{ ((state_attr(climate, "temperature")  > state_attr(climate, "current_temperature"))  and  (not states(climate, "off")) )  }}{% endif %}'
+    state: '{% set climate = "climate.living_room" %}{% if states(climate) == "unavailable" %}off{% else %} {{ ((state_attr(climate, "temperature")  > state_attr(climate, "current_temperature"))  and  (states(climate) != "off"))  }}{% endif %}'
 - sensor:
   - name: Living Room Temperature Sensor
     unit_of_measurement: "\xB0C"
