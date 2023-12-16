@@ -122,7 +122,8 @@ class RoomBase:
       self.xiaomi_buttons       += ["sensor." + self.room_entity + "_button"] 
       if self.num_of_xiaomi_button != 1:
         self.xiaomi_buttons[i]  += "_" + str(i+1)
-    self.wall_buttons            = ["sensor." + self.room_entity + "_wall_button"]
+    self.wall_buttons            = ["sensor." + self.room_entity + "_wall_button",
+                                    "sensor." + self.room_entity + "_wall_button_2",] # sometimes the entity is duplicated and need _2 postfix
     self.buttons                 = self.wall_buttons + self.xiaomi_buttons
     
   def get_wall_switches(self):
@@ -3330,9 +3331,6 @@ class Kitchen(RoomBase):
     # MCCGQ02HL
     #self.add_mac_device("0x158d00023e6015",       self.room_name + " Worktop",             "Aqara Wireless Switch")     
   
-  def get_remote_entities(self):  
-    super().get_remote_entities()    
-    self.wall_buttons            = ["sensor." + self.room_entity + "_wall_button_2"]
 
   def get_window_entities(self):
     super().get_window_entities()
