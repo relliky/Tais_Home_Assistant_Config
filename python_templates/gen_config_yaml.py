@@ -251,7 +251,7 @@ class RoomBase:
                       '{% if states(climate) == "unavailable" %}'               + \
                       'off'                                                     + \
                       '{% else %} '                                             + \
-                        '{{ ((state_attr(climate, "temperature")  > state_attr(climate, "current_temperature"))  and  (not states(climate, "off")) )  }}'  + \
+                        '{{ ((state_attr(climate, "temperature")  > state_attr(climate, "current_temperature"))  and  (states(climate) != "off"))  }}'  + \
                       '{% endif %}'                                           
                       
           }
@@ -668,7 +668,7 @@ class RoomBase:
       
       # Make icon a bit larger, similar to ios 16
       css_variable += ("ha-card > mushroom-card > mushroom-state-item > mushroom-shape-icon > ha-state-icon {\n"
-      "--mdc-icon-size: 0.7em;"
+      "--mdc-icon-size: 0.6em;"
       ";}\n")
 
       # Make icon inner white if on, outter dark if off
@@ -692,7 +692,7 @@ class RoomBase:
           "--shape-color:          " + self.getColor(color)            + ";\n"
           "}\n")
 
-      # Make brightness slider color same as the light color if it is in RGB, otherwise use ios_yellow
+      # Make light card brightness slider color same as the light color if it is in RGB, otherwise use ios_yellow
       if card_type == 'custom:mushroom-light-card':
           css_variable +=  "ha-card > mushroom-card > div > mushroom-light-brightness-control {"         + " \n" + \
             "--slider-color:           {% if state_attr(config.entity, 'color_mode') == 'color_temp' %}" + " \n" + \
@@ -2024,11 +2024,11 @@ class RoomBase:
             "notify_tai": "yes"
           }
         }
-        ] + [
+        ] + ([
           self.turn(gateway_power_switch, "off"),
           {"delay": "00:00:02"},
           self.turn(gateway_power_switch, "on")
-        ] if gateway_power_switch != 'N/A' else []
+        ] if gateway_power_switch != 'N/A' else [])
     }]  
   
   def gen_xiaomi_button_automations(self):
@@ -2299,19 +2299,37 @@ class RoomBase:
   # Create service call for turn on/off entities
   def turn(self, entity_list, state=None, light_brightness=None, tv_brightness=None, inc_unavail=True):
     assert state in ['on', 'off', 'toggle', None], "State has to be one of 'on', 'off', 'toggle', 'None', but it is " + state
+    #assert type(entity_list) is list , "entity_list has to be a list, but it is " + entity_list
 
+    is_light_list = True
+    if type(entity_list) is list:
+      for entity in entity_list :
+        is_light_list = True if entity.startswith('light.') else False
+    else:
+        is_light_list = True if entity_list.startswith('light.') else False
+
+        
     if light_brightness != None:
       action_service = {"service" : "light.turn_on",
                         "entity_id" : entity_list,
                         "data": {"brightness_pct": light_brightness}}
     elif tv_brightness != None:
-      action_service = {"service" : "samsungtv_smart.select_picture_mode",
-                        "data": { "entity_id" : entity_list,
-                                  "picture_mode": "Movie"    if tv_brightness in [1, '1'] else \
-                                                  "Natural"  if tv_brightness in [2, '2'] else \
-                                                  "Standard" if tv_brightness in [3, '3'] else \
-                                                  "Dynamic"}}
-    
+      action_service =    {
+                          "if": [
+                            {
+                              'alias': 'Set TV brightness when it is on',
+                              "condition": "state",
+                              "entity_id": entity_list,
+                              "state": "on"
+                            }
+                          ],
+                          "then":  {"service" : "samsungtv_smart.select_picture_mode",
+                                      "data": { "entity_id" : entity_list,
+                                                "picture_mode": "Movie"    if tv_brightness in [1, '1'] else \
+                                                                "Natural"  if tv_brightness in [2, '2'] else \
+                                                                "Standard" if tv_brightness in [3, '3'] else \
+                                                                "Dynamic"}}
+                        }
     elif entity_list == self.curtains:
       
       # Shutter blind
@@ -2345,31 +2363,36 @@ class RoomBase:
                          "data": {"hvac_mode": hvac_mode},
                          "entity_id": self.thermostat
                        }
-                       
+    #--------------------------------------------------------------------------                       
+    # No need to do this as long as giving adaptive light enough delay                   
+    #--------------------------------------------------------------------------                       
     # Turn on lamps and also reset to white if set to rgb/hs mode                       
-    elif entity_list == self.lamps and state == 'on':
-      action_service = self.setLightsToWhite(self.lamps)
+    #elif entity_list == self.lamps and state == 'on':
+    #  action_service = self.setLightsToWhite(self.lamps)
     
     elif entity_list == 'heating':
       action_service = self.convertToSingleService(
                        [self.turn(self.thermostat,          state),
                         self.turn(self.thermostat_schedule, state)]  )
 
+    #--------------------------------------------------------------------------                       
+    # This does not work very well as hue integeration lights are never unavailable, even without power                   
+    #--------------------------------------------------------------------------                       
     # If ceiling lights are offline, use wall switch for controls instead
-    elif entity_list == self.ceiling_lights and inc_unavail == True:
-      action_service =  {
-                          "if": [
-                            {
-                              'alias': 'any ceiling lights is unavailable, using wall switches to control instead',
-                              "condition": "state",
-                              "entity_id": entity_list,
-                              "state": "unavailable",
-                              "match": 'any'
-                            }
-                          ],
-                          "then": self.turn(self.wall_switches,  state),
-                          "else": self.turn(self.ceiling_lights, state, inc_unavail=False)
-                        }
+    #elif entity_list == self.ceiling_lights and inc_unavail == True:
+    #  action_service =  {
+    #                      "if": [
+    #                        {
+    #                          'alias': 'any ceiling lights is unavailable, using wall switches to control instead',
+    #                          "condition": "state",
+    #                          "entity_id": entity_list,
+    #                          "state": "unavailable",
+    #                          "match": 'any'
+    #                        }
+    #                      ],
+    #                      "then": self.turn(self.wall_switches,  state),
+    #                      "else": self.turn(self.ceiling_lights, state, inc_unavail=False)
+    #                    }
 
     elif entity_list == self.wall_switches and state == 'on':
       action_service = self.convertToSingleService(
@@ -2377,7 +2400,13 @@ class RoomBase:
                          {"delay": {"milliseconds": 200}},
                          {"service":"homeassistant.turn_on",  "entity_id": entity_list}],
                         alias='Everytime to turn on a wall switch, make sure to turn off it first to make sure the smart lights will be back on')
-                         
+    # Adaptive light only applies when lights are turned on by light.turn_on instead of homeassistant.turn_on
+    # that's not  true..... 
+    elif is_light_list and (state == 'on' or state == 'off'):
+      action_service = {"service":"light.turn_on"  if state == 'on'     else \
+                                  "light.turn_off" if state == 'off'    else None,
+                        "entity_id": entity_list}
+
     elif state == 'on' or state == 'off':
       action_service = {"service":"homeassistant.turn_on"  if state == 'on'     else \
                                   "homeassistant.turn_off" if state == 'off'    else None,
@@ -2452,7 +2481,8 @@ class RoomBase:
                             self.turn(self.leds, "on"),
                             self.turn(self.tvs, tv_brightness=3)]
       elif scene_name == 'Ceiling Light White':
-          scene_service += [self.turn(self.leds + self.lamps, "off"),
+          scene_service += [self.turn(self.lamps, "off"),
+                            self.turn(self.leds, "off"),
                             self.turn(self.ceiling_lights, "on"),
                             self.turn(self.tvs, tv_brightness=3)]   
       #elif scene_name == 'Ceiling Light White with Curtain Open':
@@ -2666,7 +2696,20 @@ class RoomBase:
     self.dashboard_default_root = 'Uninitliazed_dashboard_root'
     self.dashboard_view_name = 'Uninitliazed_dashboard_view_name'
     self.room_icon           = 'Uninitliazed_room_icon'
-    self.room_theme          = 'Mushroom Shadow'
+
+    import random
+
+    ios_themes = [
+    'ios-dark-mode-blue-red',
+    'ios-dark-mode-dark-blue',
+    'ios-dark-mode-dark-green',
+    'ios-dark-mode-light-blue',
+    'ios-dark-mode-light-green',
+    'ios-dark-mode-orange',
+    'ios-dark-mode-red'  
+    ]
+
+    self.room_theme          = ios_themes[random.randint(0,6)]
 
   def getRestricedAccess(self, user, inner_card):
     if user not in ['us', 'en_suite_room_user', 'guest_room_user']:
@@ -2704,7 +2747,8 @@ class RoomBase:
                             condition_state='on', 
                             condition_state_not=None, 
                             condition_states=None,
-                            tap_action='more-info'):
+                            tap_action='more-info',
+                            theme='ios'):
     
     self.dashboard_view_path = "/" + self.dashboard_root + "/" + self.room_entity
     
@@ -2723,16 +2767,16 @@ class RoomBase:
     template_card = {
       "type":       "custom:mushroom-template-card",
       "icon":       "{% set entity = '"+entity+"' %}\n" + icon,
-      "icon_color": "{% set entity = '"+entity+"' %}\n" + icon_color,
       "tap_action": tap_action_dict,
       "entity":     entity,
       "layout":     "horizontal",
       "fill_container": True,
-    } | ({"primary"  : primary  } if primary   !=None else {}) \
-      | ({"secondary": secondary} if secondary !=None else {}) 
+    } | ({"primary"   : primary                                         } if primary   != None      else {}) \
+      | ({"secondary" : secondary                                       } if secondary != None      else {}) \
+      | ({"icon_color": "{% set entity = '"+entity+"' %}\n" + icon_color} if theme     == 'default' else {}) 
 
     if condition_entity == None:
-      return template_card
+      condition_card = template_card
     else:
       condition_card = {}
 
@@ -2755,7 +2799,10 @@ class RoomBase:
         for state in condition_states:
           condition_card['states'] |= { state : template_card}
 
-      return condition_card
+    if theme == 'ios':
+      condition_card |= self.getCardMod(style='ios16_toggle',color=("{% set entity = '"+entity+"' %}\n" + icon_color))
+
+    return condition_card
 
 
   def getNavigationRoomCard (self):
@@ -3115,11 +3162,11 @@ class MasterRoom(RoomBase):
 
     self.bed_motion_sensors = [
       #"binary_sensor.master_room_bed_motion_sensor_motion",
+      #"binary_sensor.master_room_bed_pressure_sensor_1",
+      #"binary_sensor.master_room_bed_pressure_sensor_2",
       "binary_sensor.master_room_bed_pressure_sensor",
       "binary_sensor.master_room_occupancy_sensor_occupancy",
-      "binary_sensor.master_room_drawer_occupancy_sensor_occupancy",
-      "binary_sensor.master_room_bed_pressure_sensor_1",
-      "binary_sensor.master_room_bed_pressure_sensor_2"
+      "binary_sensor.master_room_drawer_occupancy_sensor_occupancy"
     ]
     
     self.all_motion_sensors = self.non_bed_motion_sensors + self.bed_motion_sensors
@@ -3142,8 +3189,18 @@ class MasterRoom(RoomBase):
   def get_cover_entities(self):
     super().get_cover_entities()
     # Cover entities
-    self.curtains               = [ "cover.master_room_blind",
-                                    "cover.master_room_curtain"] 
+    #"cover.master_room_blind" - too noisy
+    self.curtains               = [ "cover.master_room_curtain"] 
+
+  # Overwrite scene 'All off' to include turning off blinds
+  def callSceneService(self, scene_name):
+    scene_service = super().callSceneService(scene_name)
+
+    if scene_name == 'All Off':
+      scene_service = [scene_service, self.turn('cover.master_room_blind', "off")]        
+      return self.convertToSingleService(scene_service, alias=scene_name)  
+    else:
+      return scene_service
 
   def get_remote_entities(self):  
     super().get_remote_entities()
@@ -3155,13 +3212,13 @@ class MasterRoom(RoomBase):
       device_type          = 'Zigbee',
       offline_device       = 'switch.master_toilet_wall_switch',
       gateway_power_switch = 'switch.master_room_gateway_power',
-      tts_message          = self.automation_room_name + "gateway zigbee devices are offline - Restarting gateway -"
+      tts_message          = self.automation_room_name + "2F gateway zigbee devices are offline - Restarting gateway -"
       )
 
     self.add_offline_device_automations(
       device_type          = 'Wifi',
       offline_device       = 'cover.master_room_blind_1',
-      tts_message          = self.automation_room_name + "wifi devices are offline. You may want to manual restart 2.4Ghz Wifi."
+      tts_message          = self.automation_room_name + "2F wifi devices are offline. You may want to manual restart 2.4Ghz Wifi."
       )
 
   def gen_window_automations(self):
@@ -3173,7 +3230,7 @@ class MasterRoom(RoomBase):
     self.dashboard_default_root = 'master-room'
     self.dashboard_view_name    = 'master-room'
     self.room_icon              = 'mdi:bed-king-outline'
-    self.room_theme             = 'ios-dark-mode-dark-green'
+    #self.room_theme             = 'ios-dark-mode-dark-green'
 
 
 class MasterToilet(RoomBase):
@@ -3416,6 +3473,11 @@ class LivingRoom(RoomBase):
       "binary_sensor.living_room_occupancy_sensor_occupancy"
     ]
 
+    self.entrance_motion_sensors = [
+      "binary_sensor.living_room_entrance_motion_sensor_motion",
+      "binary_sensor.living_room_sliding_door"
+    ]
+
   def get_room_name_and_property(self):  
     super().get_room_name_and_property()
     self.room_type              = 'bedroom' # as we often fall into sleep in living room
@@ -3488,13 +3550,13 @@ class LivingRoom(RoomBase):
       device_type          = 'Zigbee',
       offline_device       = 'switch.living_room_wall_switch',
       gateway_power_switch = 'switch.living_room_gateway_power',
-      tts_message          = self.automation_room_name + "gateway zigbee devices are offline. Restarting gateway."
+      tts_message          = self.automation_room_name + "0F gateway zigbee devices are offline. Restarting gateway."
       )
 
     self.add_offline_device_automations(
       device_type          = 'Wifi',
       offline_device       = 'light.kitchen_worktop_led',
-      tts_message          = self.automation_room_name + "wifi devices are offline. You may want to manual restart 2.4Ghz Wifi."
+      tts_message          = self.automation_room_name + "0F wifi devices are offline. You may want to manual restart 2.4Ghz Wifi."
       )
 
   def gen_window_automations(self):
@@ -3814,13 +3876,13 @@ class Study(RoomBase):
       device_type          = 'Zigbee',
       offline_device       = 'switch.guest_room_wall_switch',
       gateway_power_switch = 'switch.study_gateway_power',
-      tts_message          = self.automation_room_name + "gateway zigbee devices are offline. Restarting gateway."
+      tts_message          = self.automation_room_name + "1F gateway zigbee devices are offline. Restarting gateway."
       )
 
     self.add_offline_device_automations(
       device_type          = 'Wifi',
       offline_device       = 'light.master_room_drawer_led',
-      tts_message          = self.automation_room_name + "wifi devices are offline. You may want to manual restart 2.4Ghz Wifi."
+      tts_message          = self.automation_room_name + "1F wifi devices are offline. You may want to manual restart 2.4Ghz Wifi."
       )
 
 
@@ -3993,18 +4055,40 @@ class System(RoomBase):
             "cards": [
               self.getTemplateCard(
                 icon       = "mdi:desktop-classic",
-                icon_color = "{% set entity = 'switch.gaming_pc' %} {% if   is_state(entity, 'on') %} amber {% endif %}",
+                icon_color = "{% if   is_state(entity, 'on') %} amber {% endif %}",
                 tap_entity = 'switch.gaming_pc',
                 tap_action = 'more-info'
               ),
+              #self.getTemplateCard(
+              #  icon       = "mdi:television-box",
+              #  icon_color = "{% if   is_state(entity, 'on') %} deep-orange {% endif %}",
+              #  tap_entity = 'binary_sensor.fire_tv_streaming_pc_contents',                
+              #  tap_action = 'more-info'
+              #),
               self.getTemplateCard(
-                icon       = "mdi:television-box",
-                icon_color = "{% set entity = 'binary_sensor.fire_tv_streaming_pc_contents' %} {% if   is_state(entity, 'on') %} deep-orange {% endif %}",
-                tap_entity = 'binary_sensor.fire_tv_streaming_pc_contents',                
+                icon       = "mdi:car",
+                icon_color = "{% if   is_state(entity, 'on') %} green {% endif %}",
+                tap_entity = 'binary_sensor.car_s_unlocked',
                 tap_action = 'more-info'
+              ),
+              self.getTemplateCard(
+                icon       = "mdi:home-floor-l",
+                icon_color = "red",
+                condition_state  = 'on',
+                condition_entity = 'switch.downstairs_heating'
+              ),
+              self.getTemplateCard(
+                icon       = "mdi:home-floor-1",
+                icon_color = "red",
+                condition_state  = 'on',
+                condition_entity = 'switch.upstairs_heating'
+              ),
+              self.getTemplateCard(
+                icon       = "mdi:water-boiler",
+                icon_color = "red",
+                condition_state  = 'on',
+                condition_entity = 'switch.water_heater'
               )
-
-
               #{
               #  "type": "custom:mushroom-entity-card",
               #  "entity": "switch.gaming_pc",
@@ -4086,7 +4170,7 @@ class Dashboard(RoomBase):
 
     room_nav_grid_cards = self.getLayoutWrapperCardList(self.room_nav_cards)
 
-    self.addView(viewPath='home', cards=room_nav_grid_cards)
+    self.addView(viewPath='home', theme='ios-dark-mode-light-blue', cards=room_nav_grid_cards)
 
   def addAllRoomView(self):
       for room in self.rooms:
