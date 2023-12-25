@@ -1257,6 +1257,34 @@ automation:
     data:
       option: Outside
   id: automation.zlb_st_wall_switch_double_press_leave_room_and_turn_off_everything_study
+- alias: ZL-ST Turns On Sleep Mode In The Night-Study
+  trigger:
+  - platform: time
+    at: '23:00:00'
+  action:
+  - alias: Turn switch.adaptive_lighting_sleep_mode_study state=on
+    if:
+      condition: state
+      entity_id: input_boolean.always_on_constant
+      state: 'on'
+    then:
+      service: homeassistant.turn_on
+      entity_id: switch.adaptive_lighting_sleep_mode_study
+  id: automation.zl_st_turns_on_sleep_mode_in_the_night_study
+- alias: ZL-ST Turns Off Sleep Mode In The Morning-Study
+  trigger:
+  - platform: time
+    at: 06:30:00
+  action:
+  - alias: Turn switch.adaptive_lighting_sleep_mode_study state=off
+    if:
+      condition: state
+      entity_id: input_boolean.always_on_constant
+      state: 'on'
+    then:
+      service: homeassistant.turn_off
+      entity_id: switch.adaptive_lighting_sleep_mode_study
+  id: automation.zl_st_turns_off_sleep_mode_in_the_morning_study
 - alias: ZOc-ST Occupancy Update-Study
   trigger:
   - entity_id: group.study_motion_group
@@ -1399,23 +1427,44 @@ cover:
 - platform: group
   name: Study Blind
   entities: cover.0x00158d00070b2f26_motor
-- platform: group
-  name: Study Blind
-  entities: cover.0x00158d00070b2f26_motor
 template:
 - binary_sensor:
   - name: Study Heating Required
     state: '{% set climate = "climate.study" %}{% if states(climate) == "unavailable" %}off{% else %} {{ ((state_attr(climate, "temperature")  > state_attr(climate, "current_temperature"))  and  (states(climate) != "off"))  }}{% endif %}'
 - sensor:
-  - name: Study Blind Curtain Battery
-    unit_of_measurement: '%'
-    state: '{{states.sensor["0x00158d00070b2f26_battery"].state}}'
+  - name: Study Temperature Sensor
+    unit_of_measurement: "\xB0C"
+    state: '{{states.sensor["a4c138cfc701_temperature"].state | float | round(1)}}'
 - sensor:
   - name: Study Blind Curtain Battery
     unit_of_measurement: '%'
     state: '{{states.sensor["0x00158d00070b2f26_battery"].state}}'
 binary_sensor: []
 light: []
+adaptive_lighting:
+- name: Study
+  lights:
+  - light.study_ceiling_light
+  prefer_rgb_color: false
+  transition: 45
+  initial_transition: 1
+  interval: 90
+  min_brightness: 50
+  max_brightness: 100
+  min_color_temp: 2700
+  max_color_temp: 4000
+  sleep_brightness: 20
+  sleep_color_temp: 2200
+  take_over_control: true
+  detect_non_ha_changes: false
+  only_once: false
+  adapt_only_on_bare_turn_on: true
+  separate_turn_on_commands: true
+  send_split_delay: 500
+  adapt_delay: 0.5
+  intercept: true
+  multi_light_intercept: true
+  include_config_in_attributes: false
 group:
   study_occupancy_group:
     name: Study Occupancy Group
@@ -1469,6 +1518,8 @@ group:
     - automation.zh_st_valve_calibrate_temperature_using_external_sensor_study
     - automation.zl_st_applies_different_scenes_based_on_scene_selections_state_execution_study
     - automation.zlb_st_wall_switch_double_press_leave_room_and_turn_off_everything_study
+    - automation.zl_st_turns_on_sleep_mode_in_the_night_study
+    - automation.zl_st_turns_off_sleep_mode_in_the_morning_study
     - automation.zoc_st_occupancy_update_study
     - automation.zn_st_notify_zigbee_offline_devices_study
     - automation.zn_st_notify_wifi_offline_devices_study

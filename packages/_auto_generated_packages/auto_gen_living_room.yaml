@@ -1666,6 +1666,34 @@ automation:
     data:
       option: Outside
   id: automation.zlb_lr_wall_switch_double_press_leave_room_and_turn_off_everything_living_room
+- alias: ZL-LR Turns On Sleep Mode In The Night-Living Room
+  trigger:
+  - platform: time
+    at: '23:00:00'
+  action:
+  - alias: Turn switch.adaptive_lighting_sleep_mode_living_room state=on
+    if:
+      condition: state
+      entity_id: input_boolean.always_on_constant
+      state: 'on'
+    then:
+      service: homeassistant.turn_on
+      entity_id: switch.adaptive_lighting_sleep_mode_living_room
+  id: automation.zl_lr_turns_on_sleep_mode_in_the_night_living_room
+- alias: ZL-LR Turns Off Sleep Mode In The Morning-Living Room
+  trigger:
+  - platform: time
+    at: 06:30:00
+  action:
+  - alias: Turn switch.adaptive_lighting_sleep_mode_living_room state=off
+    if:
+      condition: state
+      entity_id: input_boolean.always_on_constant
+      state: 'on'
+    then:
+      service: homeassistant.turn_off
+      entity_id: switch.adaptive_lighting_sleep_mode_living_room
+  id: automation.zl_lr_turns_off_sleep_mode_in_the_morning_living_room
 - alias: ZOc-LR Occupancy Update-Living Room
   trigger:
   - entity_id: group.living_room_motion_group
@@ -1901,9 +1929,20 @@ template:
     unit_of_measurement: "\xB0C"
     state: '{% if   states(''sensor.living_room_temperature_sensor_1'') != ''unavailable'' and states(''sensor.living_room_temperature_sensor_2'') == ''unavailable'' %}{{states(''sensor.living_room_temperature_sensor_1'')}}{% elif states(''sensor.living_room_temperature_sensor_1'') == ''unavailable'' and states(''sensor.living_room_temperature_sensor_2'') != ''unavailable'' %}{{states(''sensor.living_room_temperature_sensor_2'')}}{% else %}{% set sensor_1 = states(''sensor.living_room_temperature_sensor_1'') | float | round(1) %}{% set sensor_2 = states(''sensor.living_room_temperature_sensor_2'') | float | round(1) %}{% if sensor_1 < 1.0 or sensor_2 < 1.0 or (sensor_1 + sensor_2) < 1.0 %}22.0{% else %}{{ ((sensor_1 + sensor_2) / 2) | round(1) }}{% endif %}{% endif %}'
 - sensor:
+  - name: Living Room Entrance Motion Sensor Light
+    unit_of_measurement: lx
+    state: '{{states.sensor["0x00158d0003140ea8_illuminance"].state}}'
+- sensor:
+  - name: Living Room Entrance Motion Sensor Battery
+    unit_of_measurement: '%'
+    state: '{{states.sensor["0x00158d0003140ea8_battery"].state}}'
+- sensor:
   - name: Living Room Occupancy Sensor Light
     unit_of_measurement: lx
     state: '{{states.sensor["dced8308e951_illuminance"].state}}'
+- binary_sensor:
+  - name: Living Room Sofa Pressure Sensor
+    state: '{% set state = states.binary_sensor["0x54ef441000792d1d_contact"].state %} {% if state == "on"%} off {% elif state == "off"%} on {% else%} {{state}} {% endif %}'
 - sensor:
   - name: Living Room Temperature Sensor 1
     unit_of_measurement: "\xB0C"
@@ -1926,17 +1965,6 @@ template:
 - sensor:
   - name: Living Room Light Sensor
     state: '{{states.sensor["0x04cf8cdf3c7b560f_illuminance"].state}}'
-- binary_sensor:
-  - name: Living Room Sofa Pressure Sensor
-    state: '{% set state = states.binary_sensor["0x54ef441000792d1d_contact"].state %} {% if state == "on"%} off {% elif state == "off"%} on {% else%} {{state}} {% endif %}'
-- sensor:
-  - name: Living Room Entrance Motion Sensor Light
-    unit_of_measurement: lx
-    state: '{{states.sensor["0x00158d0003140ea8_illuminance"].state}}'
-- sensor:
-  - name: Living Room Entrance Motion Sensor Battery
-    unit_of_measurement: '%'
-    state: '{{states.sensor["0x00158d0003140ea8_battery"].state}}'
 - sensor:
   - name: Living Room Button
     state: '{{states.sensor["0x00158d000424f995_action"].state}}'
@@ -1958,11 +1986,11 @@ template:
     state: '{{states.sensor["0x00158d00054d83df_battery"].state}}'
 binary_sensor:
 - platform: group
-  name: Living Room Occupancy Sensor Occupancy
-  entities: binary_sensor.dced8308e951_occupancy
-- platform: group
   name: Living Room Entrance Motion Sensor Motion
   entities: binary_sensor.0x00158d0003140ea8_motion
+- platform: group
+  name: Living Room Occupancy Sensor Occupancy
+  entities: binary_sensor.dced8308e951_occupancy
 - platform: group
   name: Living Room Window
   entities: binary_sensor.e4aaec80beca_contact
@@ -1979,6 +2007,34 @@ light:
 - platform: group
   name: Boiler Room Light
   entities: light.28d127202ef6_light
+adaptive_lighting:
+- name: Living Room
+  lights:
+  - light.living_room_ceiling_light
+  - light.living_room_floor_light_1
+  - light.living_room_3_head_lamp_1
+  - light.living_room_3_head_lamp_2
+  - light.living_room_3_head_lamp_3
+  prefer_rgb_color: false
+  transition: 45
+  initial_transition: 1
+  interval: 90
+  min_brightness: 50
+  max_brightness: 100
+  min_color_temp: 2700
+  max_color_temp: 4000
+  sleep_brightness: 20
+  sleep_color_temp: 2200
+  take_over_control: true
+  detect_non_ha_changes: false
+  only_once: false
+  adapt_only_on_bare_turn_on: true
+  separate_turn_on_commands: true
+  send_split_delay: 500
+  adapt_delay: 0.5
+  intercept: true
+  multi_light_intercept: true
+  include_config_in_attributes: false
 group:
   living_room_occupancy_group:
     name: Living Room Occupancy Group
@@ -2050,6 +2106,8 @@ group:
     - automation.zlb_lr_remote_button_triple_toggle_ceiling_lights_living_room
     - automation.zlb_lr_remote_button_long_toggle_leds_living_room
     - automation.zlb_lr_wall_switch_double_press_leave_room_and_turn_off_everything_living_room
+    - automation.zl_lr_turns_on_sleep_mode_in_the_night_living_room
+    - automation.zl_lr_turns_off_sleep_mode_in_the_morning_living_room
     - automation.zoc_lr_occupancy_update_living_room
     - automation.ztv_lr_reset_picture_mode_when_turning_on_tv_living_room
     - automation.zn_lr_notify_zigbee_offline_devices_living_room
@@ -2058,3 +2116,4 @@ group:
     - automation.zn_lr_notify_window_left_open_when_ke_is_leaving_zone_living_room
     - automation.zn_lr_notify_window_left_open_in_bedtime_living_room
     - switch.0x00158d0008d8ead8_switch
+    - switch.0x00158d0008d8ead8_wireless

@@ -999,6 +999,34 @@ automation:
     data:
       option: Outside
   id: automation.zlb_gt_wall_switch_double_press_leave_room_and_turn_off_everything_guest_toilet
+- alias: ZL-GT Turns On Sleep Mode In The Night-Guest Toilet
+  trigger:
+  - platform: time
+    at: '23:00:00'
+  action:
+  - alias: Turn switch.adaptive_lighting_sleep_mode_guest_toilet state=on
+    if:
+      condition: state
+      entity_id: input_boolean.always_on_constant
+      state: 'on'
+    then:
+      service: homeassistant.turn_on
+      entity_id: switch.adaptive_lighting_sleep_mode_guest_toilet
+  id: automation.zl_gt_turns_on_sleep_mode_in_the_night_guest_toilet
+- alias: ZL-GT Turns Off Sleep Mode In The Morning-Guest Toilet
+  trigger:
+  - platform: time
+    at: 06:30:00
+  action:
+  - alias: Turn switch.adaptive_lighting_sleep_mode_guest_toilet state=off
+    if:
+      condition: state
+      entity_id: input_boolean.always_on_constant
+      state: 'on'
+    then:
+      service: homeassistant.turn_off
+      entity_id: switch.adaptive_lighting_sleep_mode_guest_toilet
+  id: automation.zl_gt_turns_off_sleep_mode_in_the_morning_guest_toilet
 - alias: ZOc-GT Occupancy Update-Guest Toilet
   trigger:
   - entity_id: group.guest_toilet_motion_group
@@ -1109,6 +1137,30 @@ template:
     state: '{{states.sensor["a4c1387a7b78_temperature"].state | float | round(1)}}'
 binary_sensor: []
 light: []
+adaptive_lighting:
+- name: Guest Toilet
+  lights:
+  - light.guest_toilet_ceiling_light
+  prefer_rgb_color: false
+  transition: 45
+  initial_transition: 1
+  interval: 90
+  min_brightness: 50
+  max_brightness: 100
+  min_color_temp: 2700
+  max_color_temp: 4000
+  sleep_brightness: 20
+  sleep_color_temp: 2200
+  take_over_control: true
+  detect_non_ha_changes: false
+  only_once: false
+  adapt_only_on_bare_turn_on: true
+  separate_turn_on_commands: true
+  send_split_delay: 500
+  adapt_delay: 0.5
+  intercept: true
+  multi_light_intercept: true
+  include_config_in_attributes: false
 group:
   guest_toilet_occupancy_group:
     name: Guest Toilet Occupancy Group
@@ -1149,6 +1201,8 @@ group:
     - automation.zl_gt_applies_different_scenes_based_on_scene_selections_state_execution_guest_toilet
     - automation.zlb_gt_wall_switch_single_left_press_toggle_ceiling_light_guest_toilet
     - automation.zlb_gt_wall_switch_double_press_leave_room_and_turn_off_everything_guest_toilet
+    - automation.zl_gt_turns_on_sleep_mode_in_the_night_guest_toilet
+    - automation.zl_gt_turns_off_sleep_mode_in_the_morning_guest_toilet
     - automation.zoc_gt_occupancy_update_guest_toilet
     - switch.guest_toilet_wall_switch_left
     - switch.guest_toilet_wall_switch_right

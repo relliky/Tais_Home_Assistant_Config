@@ -42,17 +42,17 @@ template:
           {{        (states.media_player.master_room_fire_tv.state == 'paused') 
             and (   (states.media_player.master_room_fire_tv.attributes.source == 'tv.parsec.client') 
                  or (states.media_player.master_room_fire_tv.attributes.source == 'com.limelight'   )   )}}
-                 
+
       - name: "Living Room Fire TV Streaming PC Contents"
         state: >
           {{        (states.media_player.living_room_fire_tv.state == 'paused') 
             and (   (states.media_player.living_room_fire_tv.attributes.source == 'tv.parsec.client') 
                  or (states.media_player.living_room_fire_tv.attributes.source == 'com.limelight'   )   )}}
-      
+
       # Kitchen Fire TV is constantly offline. Use Kitchen TV to replace instead
-      - name: "Kitchen Fire TV Streaming PC Contents"
-        state: >
-          {{        (states.media_player.kitchen_tv.state == 'on') }}
+      #- name: "Kitchen Fire TV Streaming PC Contents"
+      #  state: >
+      #    {{        (states.media_player.kitchen_tv.state == 'on') }}
 
       - name: "Portable Fire TV Streaming PC Contents"
         state: >
@@ -188,47 +188,55 @@ script:
               Amazon Fire TV stick
             {% endif %}
 
-
-  gaming_pc_timer_reset_and_restart:
-    alias: Gaming PC Timer Reset And Restart
-    sequence:
-      - service: timer.cancel
-        entity_id: timer.gaming_pc_shutdown_timer
-      - service: timer.start
-        entity_id: timer.gaming_pc_shutdown_timer
-
 automation:
-  - alias: PC- Start the Gaming PC Timer When it is turned on
-    id: automation.start_the_gaming_pc_timer_when_it_is_turned_on
+  - alias: N- Notify Master Room TV Should Be Lower When People in Guest Room
+    id: automation.notify_master_room_tv_should_be_lower_when_people_in_guest_room
     trigger:
       - platform: state
-        entity_id: switch.gaming_pc
+        entity_id:
+          - group.guest_room_motion_group
+        for: "00:03:00"
         from: "off"
         to: "on"
     action:
-      - service: script.gaming_pc_timer_reset_and_restart
-
-  - alias: PC- Turn Off Gaming PC By The Timeout
-    id: automation.turn_off_gaming_pc_by_the_timeout
-    trigger:
-      - platform: event
-        event_type: timer.finished
-        event_data:
-          entity_id: timer.gaming_pc_shutdown_timer
-    action:
-    - choose:
-      # IF PC is streaming, reset the timer
-      - conditions:
-          condition: state
-          entity_id: binary_sensor.fire_tv_streaming_pc_contents
-          state: 'on'
-        sequence:
-        # reset timer and restart
-        - service: script.gaming_pc_timer_reset_and_restart
-      # ELSE turn off PC
-      default:
-      - service: switch.turn_off
-        entity_id: switch.gaming_pc
+    - service: script.do_nothing
+    
+    - parallel:
+      - sequence:
+        - condition: state
+          entity_id: media_player.master_room_tv
+          state: "on"
+        - condition: numeric_state
+          entity_id: media_player.master_room_tv
+          attribute: volume_level
+          above: 0.05
+        - service: script.notify_alexa_speakers_and_phones
+          data:
+            tts_message: >-
+              Guest room have people stay. You may want to turn down TV volume below
+              15. 
+            notify_tai: "yes"
+            alexa_speaker_list:
+              - media_player.master_room_echo
+      - sequence:      
+        - condition: state
+          entity_id: media_player.living_room_tv
+          state: "on"
+        - condition: numeric_state
+          entity_id: media_player.living_room_sonos
+          attribute: volume_level
+          above: 0.10
+        - service: script.notify_alexa_speakers_and_phones
+          data:
+            tts_message: >-
+              Guest room have people stay. You may want to turn down TV volume below
+              10.
+            notify_tai: "yes"
+            alexa_speaker_list:
+              - media_player.living_room_echo
+          
+            
+    mode: single
 
   - alias: PC- Kill Moonlight Parsec Active Session When No Fire TV Streaming Them For Some Time
     id: automation.kill_moonlight_parsec_active_session_when_no_fire_TV_streaming_them_for_some_time
@@ -241,47 +249,28 @@ automation:
     action:
       - condition: state
         entity_id: switch.gaming_pc
-        state: 'on'
+        state: "on"
       - service: script.kill_moonlight_parsec_active_session
-
-  - alias: PC- Extend PC Timer When Fire TV Streaming State Changes
-    id: automation.pc_extend_pc_timer_when_fire_tv_streaming_state_changes
-    trigger:
-      - platform: state
-        entity_id: binary_sensor.fire_tv_streaming_pc_contents
-    action:
-      - condition: state
-        entity_id: switch.gaming_pc
-        state: 'on'
-      - service: script.gaming_pc_timer_reset_and_restart
-
 
   - alias: "N-PC- Notify PC has been on for a while - Tai"
     id: automation.n_pc_has_been_on_for_a_while
     trigger:
       - platform: time_pattern
         hours: "2"
+      - platform: state
+        entity_id: switch.gaming_pc
+        for: "02:00:00"
     action:
       - condition: state
         state: "on"
         entity_id: switch.gaming_pc
-        for: "03:00:00"
+        for: "02:00:00"
       - service: script.notify_alexa_speakers_and_phones
         data:
-          tts_message: PC has been turned on for more than 3 hours. Is that expected?
+          tts_message: PC has been turned on for more than 2 hours. Is that expected?
           notify_tai: "yes"
-          #notify_ke: "yes"
-          #alexa_speaker_list:
-          #  - media_player.master_room_echo
 
-#  - alias: PC- Restart Old Laptop Nightly
-#    id: automation.restart_old_laptop_nightly
-#    trigger:
-#      - platform: time
-#        at: "03:30:00"
-#    action:
-#      - service: switch.turn_on
-#        entity_id: switch.old_laptop
-#      - delay: "00:00:30"
-#      - service: script.reboot_old_laptop
+
+
+
 

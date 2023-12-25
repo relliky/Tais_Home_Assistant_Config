@@ -185,6 +185,34 @@ automation:
     data:
       option: Outside
   id: automation.zlb_cr_wall_switch_double_press_leave_room_and_turn_off_everything_corridor
+- alias: ZL-CR Turns On Sleep Mode In The Night-Corridor
+  trigger:
+  - platform: time
+    at: '23:00:00'
+  action:
+  - alias: Turn switch.adaptive_lighting_sleep_mode_corridor state=on
+    if:
+      condition: state
+      entity_id: input_boolean.always_on_constant
+      state: 'on'
+    then:
+      service: homeassistant.turn_on
+      entity_id: switch.adaptive_lighting_sleep_mode_corridor
+  id: automation.zl_cr_turns_on_sleep_mode_in_the_night_corridor
+- alias: ZL-CR Turns Off Sleep Mode In The Morning-Corridor
+  trigger:
+  - platform: time
+    at: 06:30:00
+  action:
+  - alias: Turn switch.adaptive_lighting_sleep_mode_corridor state=off
+    if:
+      condition: state
+      entity_id: input_boolean.always_on_constant
+      state: 'on'
+    then:
+      service: homeassistant.turn_off
+      entity_id: switch.adaptive_lighting_sleep_mode_corridor
+  id: automation.zl_cr_turns_off_sleep_mode_in_the_morning_corridor
 - alias: ZOc-CR Occupancy Update-Corridor
   trigger:
   - entity_id: group.corridor_motion_group
@@ -325,6 +353,30 @@ light:
 - platform: group
   name: Ground Corridor BLE Light
   entities: light.50ec50df9323_light
+adaptive_lighting:
+- name: Corridor
+  lights:
+  - light.corridor_ceiling_light
+  prefer_rgb_color: false
+  transition: 45
+  initial_transition: 1
+  interval: 90
+  min_brightness: 50
+  max_brightness: 100
+  min_color_temp: 2700
+  max_color_temp: 4000
+  sleep_brightness: 20
+  sleep_color_temp: 2200
+  take_over_control: true
+  detect_non_ha_changes: false
+  only_once: false
+  adapt_only_on_bare_turn_on: true
+  separate_turn_on_commands: true
+  send_split_delay: 500
+  adapt_delay: 0.5
+  intercept: true
+  multi_light_intercept: true
+  include_config_in_attributes: false
 group:
   corridor_occupancy_group:
     name: Corridor Occupancy Group
@@ -366,8 +418,14 @@ group:
     - automation.zh_cr_heating_manual_override_corridor
     - automation.zh_cr_heating_manual_override_timeout_in_few_hours_corridor
     - automation.zlb_cr_wall_switch_double_press_leave_room_and_turn_off_everything_corridor
+    - automation.zl_cr_turns_on_sleep_mode_in_the_night_corridor
+    - automation.zl_cr_turns_off_sleep_mode_in_the_morning_corridor
     - automation.zoc_cr_occupancy_update_corridor
     - switch.0x00158d00048783e5_channel_1
     - switch.0x00158d00048783e5_channel_2
     - switch.0x00158d0005210fcf_channel_1
     - switch.0x00158d0005210fcf_channel_2
+    - switch.0x00158d00048783e5_wireless_1
+    - switch.0x00158d00048783e5_wireless_2
+    - switch.0x00158d0005210fcf_wireless_1
+    - switch.0x00158d0005210fcf_wireless_2

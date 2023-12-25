@@ -860,6 +860,34 @@ automation:
     data:
       option: Outside
   id: automation.zlb_0t_wall_switch_double_press_leave_room_and_turn_off_everything_ground_toilet
+- alias: ZL-0T Turns On Sleep Mode In The Night-Ground Toilet
+  trigger:
+  - platform: time
+    at: '23:00:00'
+  action:
+  - alias: Turn switch.adaptive_lighting_sleep_mode_ground_toilet state=on
+    if:
+      condition: state
+      entity_id: input_boolean.always_on_constant
+      state: 'on'
+    then:
+      service: homeassistant.turn_on
+      entity_id: switch.adaptive_lighting_sleep_mode_ground_toilet
+  id: automation.zl_0t_turns_on_sleep_mode_in_the_night_ground_toilet
+- alias: ZL-0T Turns Off Sleep Mode In The Morning-Ground Toilet
+  trigger:
+  - platform: time
+    at: 06:30:00
+  action:
+  - alias: Turn switch.adaptive_lighting_sleep_mode_ground_toilet state=off
+    if:
+      condition: state
+      entity_id: input_boolean.always_on_constant
+      state: 'on'
+    then:
+      service: homeassistant.turn_off
+      entity_id: switch.adaptive_lighting_sleep_mode_ground_toilet
+  id: automation.zl_0t_turns_off_sleep_mode_in_the_morning_ground_toilet
 - alias: ZOc-0T Occupancy Update-Ground Toilet
   trigger:
   - entity_id: group.ground_toilet_motion_group
@@ -994,6 +1022,30 @@ light:
 - platform: group
   name: Ground Toilet Ceiling Light Spotlight 2
   entities: light.0x000b57fffee8e6b4
+adaptive_lighting:
+- name: Ground Toilet
+  lights:
+  - light.ground_toilet_ceiling_light
+  prefer_rgb_color: false
+  transition: 45
+  initial_transition: 1
+  interval: 90
+  min_brightness: 50
+  max_brightness: 100
+  min_color_temp: 2700
+  max_color_temp: 4000
+  sleep_brightness: 20
+  sleep_color_temp: 2200
+  take_over_control: true
+  detect_non_ha_changes: false
+  only_once: false
+  adapt_only_on_bare_turn_on: true
+  separate_turn_on_commands: true
+  send_split_delay: 500
+  adapt_delay: 0.5
+  intercept: true
+  multi_light_intercept: true
+  include_config_in_attributes: false
 group:
   ground_toilet_occupancy_group:
     name: Ground Toilet Occupancy Group
@@ -1031,6 +1083,10 @@ group:
     - automation.zl_0t_applies_different_scenes_based_on_scene_selections_state_execution_ground_toilet
     - automation.zlb_0t_wall_switch_single_press_toggle_ceiling_light_ground_toilet
     - automation.zlb_0t_wall_switch_double_press_leave_room_and_turn_off_everything_ground_toilet
+    - automation.zl_0t_turns_on_sleep_mode_in_the_night_ground_toilet
+    - automation.zl_0t_turns_off_sleep_mode_in_the_morning_ground_toilet
     - automation.zoc_0t_occupancy_update_ground_toilet
     - switch.0x00158d0005435643_channel_1
     - switch.0x00158d0005435643_channel_2
+    - switch.0x00158d0005435643_wireless_1
+    - switch.0x00158d0005435643_wireless_2

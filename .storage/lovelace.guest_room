@@ -6,299 +6,456 @@
     "config": {
       "views": [
         {
-          "theme": "ios-light-mode-dark-green",
+          "theme": "ios-dark-mode-dark-green",
           "title": "Guest Room",
+          "path": "guest_room",
           "subview": true,
           "badges": [],
           "cards": [
             {
+              "square": false,
+              "columns": 2,
               "type": "grid",
               "cards": [
                 {
-                  "type": "vertical-stack",
-                  "cards": [
-                    {
-                      "type": "horizontal-stack",
-                      "cards": [
-                        {
-                          "type": "button",
-                          "tap_action": {
-                            "action": "navigate",
-                            "navigation_path": "/lovelace/home"
-                          },
-                          "entity": "input_boolean.placeholder",
-                          "icon": "mdi:keyboard-return",
-                          "name": "Home",
-                          "icon_height": "80px"
-                        }
-                      ]
-                    },
-                    {
-                      "type": "button",
-                      "tap_action": {
-                        "action": "toggle"
-                      },
-                      "entity": "input_boolean.guest_room_guests_use_this_room",
-                      "name": "Guests Use This Room",
-                      "icon": "mdi:sleep"
-                    }
-                  ]
-                },
-                {
-                  "type": "custom:thermostat-card",
-                  "entity": "climate.guest_room",
-                  "title": "Thermostat"
-                }
-              ],
-              "columns": 2
-            },
-            {
-              "type": "grid",
-              "cards": [
-                {
-                  "type": "light",
-                  "entity": "light.guest_room_ceiling_light",
-                  "name": "Ceiling Light",
-                  "icon": "mdi:ceiling-light"
-                },
-                {
-                  "type": "light",
-                  "entity": "light.guest_room_lamp",
-                  "name": "Lamp",
-                  "icon": "hass:lamp"
-                },
-                {
-                  "show_name": true,
-                  "show_icon": true,
-                  "type": "button",
-                  "tap_action": {
+                  "type": "custom:mushroom-template-card",
+                  "entity": "input_boolean.placeholder",
+                  "icon": "mdi:keyboard-return",
+                  "icon_color": "yellow",
+                  "primary": "HOME",
+                  "secondary": "",
+                  "layout": "vertical",
+                  "hold_action": {
                     "action": "toggle"
                   },
-                  "entity": "input_boolean.guest_room_heating_override",
-                  "name": "Heating Override",
-                  "icon": "mdi:heating-coil"
-                },
-                {
-                  "hours_to_show": 24,
-                  "graph": "line",
-                  "type": "sensor",
-                  "entity": "sensor.guest_room_temperature_sensor",
-                  "name": "Temperature",
-                  "detail": 1
-                },
-                {
-                  "features": [
-                    {
-                      "type": "cover-open-close"
+                  "tap_action": {
+                    "action": "navigate",
+                    "navigation_path": "/lovelace/home"
+                  },
+                  "card_mod": {
+                    "style": {
+                      "mushroom-state-info$": ".primary {\n  font-size: 16px !important;\n  position: relative;\n  top: 0px;\n  left: 0px;\n  overflow: visible !important;\n  white-space:  \n}\n",
+                      "mushroom-shape-icon$": ".shape {\n  position: relative;\n  left: 0px;\n  top: 0px;\n}\n",
+                      ".": ":host {\n  --mush-icon-size: 80px;\n}\n"
                     }
-                  ],
-                  "type": "tile",
-                  "name": "Curtain",
-                  "entity": "cover.guest_room_curtain",
-                  "icon": "mdi:curtains-closed",
-                  "vertical": true
+                  }
+                },
+                {
+                  "type": "custom:mushroom-select-card",
+                  "fill_container": true,
+                  "tap_action": {
+                    "action": "more-info"
+                  },
+                  "icon": "",
+                  "secondary_info": "none",
+                  "name": " Scene",
+                  "entity": "input_select.guest_room_scene"
                 }
               ]
             },
             {
-              "type": "custom:restriction-card",
-              "restrictions": {
-                "hide": {
-                  "exemptions": [
+              "square": false,
+              "columns": 2,
+              "type": "grid",
+              "cards": [
+                {
+                  "type": "custom:mushroom-climate-card",
+                  "show_temperature_control": true,
+                  "collapsible_controls": false,
+                  "name": "Raditor",
+                  "icon": "",
+                  "entity": "climate.guest_room"
+                },
+                {
+                  "type": "custom:mushroom-light-card",
+                  "fill_container": true,
+                  "use_light_color": false,
+                  "show_brightness_control": true,
+                  "show_color_control": false,
+                  "show_color_temp_control": true,
+                  "collapsible_controls": false,
+                  "name": " Lamp 1",
+                  "icon": "mdi:lamp",
+                  "entity": "light.guest_room_lamp_1",
+                  "card_mod": {
+                    "style": ":host {\n--ha-card-background:    {% if (states(config.entity) in ['on']) and (states('sun.sun') != 'below_horizon')%} rgba(245, 245, 245, 0.9)  {% else  %} rgba(10, 10, 10, 0.4)  {% endif %};\n--primary-text-color:    {% if (states(config.entity) in ['on']) and (states('sun.sun') != 'below_horizon')%} black                                            {% else  %} white                                           {% endif %};\n--secondary-text-color : {% if (states(config.entity) in ['on']) and (states('sun.sun') != 'below_horizon')%} rgba(100, 100, 100, 1){% else  %} rgba(220, 220, 220, 1) {% endif %};\n;}\nha-card > mushroom-card > mushroom-state-item > mushroom-shape-icon > ha-state-icon {\n--mdc-icon-size: 0.6em;;}\nha-card > mushroom-card > mushroom-state-item > mushroom-shape-icon { \n--icon-color-disabled:   rgba(253,204,0,1);\n--shape-color-disabled:  rgba(10, 10, 10, 0.4);\n--icon-color:            white;\n--shape-color:            {% if state_attr(config.entity, 'color_mode') == 'color_temp' %} \nrgba(253,204,0,1) \n{% else  %} \n   rgb{{state_attr(config.entity, 'rgb_color')}} \n{% endif%};\n}\nha-card > mushroom-card > div > mushroom-light-brightness-control { \n--slider-color:           {% if state_attr(config.entity, 'color_mode') == 'color_temp' %} \nrgba(253,204,0,1) \n{% else  %} \n   rgb{{state_attr(config.entity, 'rgb_color')}} \n{% endif%};\n--slider-bg-color:        {% if state_attr(config.entity, 'color_mode') == 'color_temp' %} \n{{ 'rgba(253,204,0,1)' | regex_replace(',([\\d\\.])+\\)$', ',0.2)') }} \n{% else  %} \n   rgba{{(state_attr(config.entity, 'rgb_color')|string)[0:-1]}}, 0.2) \n{% endif%};\n}\nha-card > mushroom-card > div > mushroom-button:nth-child(2) {  --bg-color: {% if  (states(config.entity) in ['on']) and (states('sun.sun') != 'below_horizon') %} rgba(245, 245, 245, 0.9) {% else %} rgba(var(--rgb-primary-text-color), 0.05) {% endif %};}\nha-card > mushroom-card > div > mushroom-button:nth-child(3) {  --bg-color: {% if  (states(config.entity) in ['on']) and (states('sun.sun') != 'below_horizon') %} rgba(245, 245, 245, 0.9) {% else %} rgba(var(--rgb-primary-text-color), 0.05) {% endif %};}\n"
+                  }
+                },
+                {
+                  "type": "custom:mushroom-light-card",
+                  "fill_container": true,
+                  "use_light_color": false,
+                  "show_brightness_control": true,
+                  "show_color_control": false,
+                  "show_color_temp_control": true,
+                  "collapsible_controls": false,
+                  "name": " Lamp 2",
+                  "icon": "mdi:lamp",
+                  "entity": "light.guest_room_lamp_2",
+                  "card_mod": {
+                    "style": ":host {\n--ha-card-background:    {% if (states(config.entity) in ['on']) and (states('sun.sun') != 'below_horizon')%} rgba(245, 245, 245, 0.9)  {% else  %} rgba(10, 10, 10, 0.4)  {% endif %};\n--primary-text-color:    {% if (states(config.entity) in ['on']) and (states('sun.sun') != 'below_horizon')%} black                                            {% else  %} white                                           {% endif %};\n--secondary-text-color : {% if (states(config.entity) in ['on']) and (states('sun.sun') != 'below_horizon')%} rgba(100, 100, 100, 1){% else  %} rgba(220, 220, 220, 1) {% endif %};\n;}\nha-card > mushroom-card > mushroom-state-item > mushroom-shape-icon > ha-state-icon {\n--mdc-icon-size: 0.6em;;}\nha-card > mushroom-card > mushroom-state-item > mushroom-shape-icon { \n--icon-color-disabled:   rgba(253,204,0,1);\n--shape-color-disabled:  rgba(10, 10, 10, 0.4);\n--icon-color:            white;\n--shape-color:            {% if state_attr(config.entity, 'color_mode') == 'color_temp' %} \nrgba(253,204,0,1) \n{% else  %} \n   rgb{{state_attr(config.entity, 'rgb_color')}} \n{% endif%};\n}\nha-card > mushroom-card > div > mushroom-light-brightness-control { \n--slider-color:           {% if state_attr(config.entity, 'color_mode') == 'color_temp' %} \nrgba(253,204,0,1) \n{% else  %} \n   rgb{{state_attr(config.entity, 'rgb_color')}} \n{% endif%};\n--slider-bg-color:        {% if state_attr(config.entity, 'color_mode') == 'color_temp' %} \n{{ 'rgba(253,204,0,1)' | regex_replace(',([\\d\\.])+\\)$', ',0.2)') }} \n{% else  %} \n   rgba{{(state_attr(config.entity, 'rgb_color')|string)[0:-1]}}, 0.2) \n{% endif%};\n}\nha-card > mushroom-card > div > mushroom-button:nth-child(2) {  --bg-color: {% if  (states(config.entity) in ['on']) and (states('sun.sun') != 'below_horizon') %} rgba(245, 245, 245, 0.9) {% else %} rgba(var(--rgb-primary-text-color), 0.05) {% endif %};}\nha-card > mushroom-card > div > mushroom-button:nth-child(3) {  --bg-color: {% if  (states(config.entity) in ['on']) and (states('sun.sun') != 'below_horizon') %} rgba(245, 245, 245, 0.9) {% else %} rgba(var(--rgb-primary-text-color), 0.05) {% endif %};}\n"
+                  }
+                },
+                {
+                  "type": "custom:mushroom-light-card",
+                  "fill_container": true,
+                  "use_light_color": false,
+                  "show_brightness_control": true,
+                  "show_color_control": false,
+                  "show_color_temp_control": true,
+                  "collapsible_controls": false,
+                  "name": " Ceiling Light",
+                  "icon": "mdi:ceiling-light",
+                  "entity": "light.guest_room_ceiling_light",
+                  "card_mod": {
+                    "style": ":host {\n--ha-card-background:    {% if (states(config.entity) in ['on']) and (states('sun.sun') != 'below_horizon')%} rgba(245, 245, 245, 0.9)  {% else  %} rgba(10, 10, 10, 0.4)  {% endif %};\n--primary-text-color:    {% if (states(config.entity) in ['on']) and (states('sun.sun') != 'below_horizon')%} black                                            {% else  %} white                                           {% endif %};\n--secondary-text-color : {% if (states(config.entity) in ['on']) and (states('sun.sun') != 'below_horizon')%} rgba(100, 100, 100, 1){% else  %} rgba(220, 220, 220, 1) {% endif %};\n;}\nha-card > mushroom-card > mushroom-state-item > mushroom-shape-icon > ha-state-icon {\n--mdc-icon-size: 0.6em;;}\nha-card > mushroom-card > mushroom-state-item > mushroom-shape-icon { \n--icon-color-disabled:   rgba(253,204,0,1);\n--shape-color-disabled:  rgba(10, 10, 10, 0.4);\n--icon-color:            white;\n--shape-color:            {% if state_attr(config.entity, 'color_mode') == 'color_temp' %} \nrgba(253,204,0,1) \n{% else  %} \n   rgb{{state_attr(config.entity, 'rgb_color')}} \n{% endif%};\n}\nha-card > mushroom-card > div > mushroom-light-brightness-control { \n--slider-color:           {% if state_attr(config.entity, 'color_mode') == 'color_temp' %} \nrgba(253,204,0,1) \n{% else  %} \n   rgb{{state_attr(config.entity, 'rgb_color')}} \n{% endif%};\n--slider-bg-color:        {% if state_attr(config.entity, 'color_mode') == 'color_temp' %} \n{{ 'rgba(253,204,0,1)' | regex_replace(',([\\d\\.])+\\)$', ',0.2)') }} \n{% else  %} \n   rgba{{(state_attr(config.entity, 'rgb_color')|string)[0:-1]}}, 0.2) \n{% endif%};\n}\nha-card > mushroom-card > div > mushroom-button:nth-child(2) {  --bg-color: {% if  (states(config.entity) in ['on']) and (states('sun.sun') != 'below_horizon') %} rgba(245, 245, 245, 0.9) {% else %} rgba(var(--rgb-primary-text-color), 0.05) {% endif %};}\nha-card > mushroom-card > div > mushroom-button:nth-child(3) {  --bg-color: {% if  (states(config.entity) in ['on']) and (states('sun.sun') != 'below_horizon') %} rgba(245, 245, 245, 0.9) {% else %} rgba(var(--rgb-primary-text-color), 0.05) {% endif %};}\n"
+                  }
+                },
+                {
+                  "type": "custom:mushroom-cover-card",
+                  "fill_container": true,
+                  "tap_action": {
+                    "action": "toggle"
+                  },
+                  "double_tap_action": {
+                    "action": "more-info"
+                  },
+                  "hold_action": {
+                    "action": "more-info"
+                  },
+                  "show_position_control": true,
+                  "show_buttons_control": true,
+                  "name": " Curtain",
+                  "icon": "",
+                  "entity": "cover.guest_room_curtain"
+                },
+                {
+                  "type": "custom:mushroom-entity-card",
+                  "fill_container": true,
+                  "tap_action": {
+                    "action": "toggle"
+                  },
+                  "name": "Heating Override",
+                  "icon": "mdi:heating-coil",
+                  "entity": "input_boolean.guest_room_heating_override"
+                },
+                {
+                  "type": "custom:vertical-stack-in-card",
+                  "cards": [
                     {
-                      "user": "72e8e305715145febff1ba701fd78954"
+                      "type": "custom:mushroom-template-card",
+                      "entity": "sensor.guest_room_temperature_sensor",
+                      "primary": "Temperature",
+                      "secondary": "{{ states('sensor.guest_room_temperature_sensor') | round(0) }}°C\n",
+                      "icon": "mdi:thermometer",
+                      "icon_color": "{% set value = states('sensor.guest_room_temperature_sensor') | int %}\n{% if value < 18 %}\n  blue\n{% elif value < 28 %}\n  light-green\n{% elif value < 40 %}\n  red\n{% else %}\n  green\n{% endif %}",
+                      "tap_action": {
+                        "action": "more-info"
+                      },
+                      "card_mod": {
+                        "style": ":host { --ha-card-background:rgba(245, 245, 245, 0);}\n"
+                      }
                     },
                     {
-                      "user": "60652445f3d14a8f822054569404b643"
-                    },
-                    {
-                      "user": "317c743e4c8348b8a70d671db917dbe8"
+                      "type": "custom:layout-card",
+                      "layout_type": "masonry",
+                      "layout": {
+                        "width": 150,
+                        "max_cols": 1,
+                        "height": "auto",
+                        "padding": "0px",
+                        "card_margin": "var(--masonry-view-card-margin, -10px 8px 15px)"
+                      },
+                      "cards": [
+                        {
+                          "type": "custom:mini-graph-card",
+                          "tap_action": {
+                            "action": "more-info"
+                          },
+                          "entities": [
+                            {
+                              "entity": "sensor.guest_room_temperature_sensor",
+                              "name": "Temperature"
+                            }
+                          ],
+                          "color_thresholds": [
+                            {
+                              "value": -10,
+                              "color": "#0000ff"
+                            },
+                            {
+                              "value": 18,
+                              "color": "#0000ff"
+                            },
+                            {
+                              "value": 18.1,
+                              "color": "#00FF00"
+                            },
+                            {
+                              "value": 27,
+                              "color": "#00FF00"
+                            },
+                            {
+                              "value": 27.1,
+                              "color": "#FF0000"
+                            },
+                            {
+                              "value": 40,
+                              "color": "#FF0000"
+                            }
+                          ],
+                          "hours_to_show": 24,
+                          "line_width": 3,
+                          "animate": true,
+                          "show": {
+                            "name": false,
+                            "icon": false,
+                            "state": false,
+                            "legend": false,
+                            "fill": "fade"
+                          },
+                          "card_mod": {
+                            "style": "ha-card {\n  background: none;\n  box-shadow: none;\n  --ha-card-border-width: 0;\n}"
+                          }
+                        }
+                      ]
                     }
                   ]
                 }
-              },
-              "exemptions": [
-                {
-                  "user": "72e8e305715145febff1ba701fd78954"
-                },
-                {
-                  "user": "60652445f3d14a8f822054569404b643"
-                },
-                {
-                  "user": "317c743e4c8348b8a70d671db917dbe8"
-                }
-              ],
-              "duration": 60,
-              "max_retries": 10,
-              "max_retries_delay": 600,
-              "card": {
-                "type": "custom:group-card",
-                "card": {
-                  "type": "entities",
-                  "title": "Occupancy"
-                },
-                "group": "group.guest_room_occupancy_group"
-              }
+              ]
             },
             {
               "type": "custom:scheduler-card",
               "include": [
                 "climate.guest_room"
               ],
-              "exclude": []
-            },
-            {
-              "type": "entities",
-              "entities": [
-                {
-                  "entity": "switch.guest_room_wall_switch"
-                }
-              ],
-              "title": "Wall Switches"
+              "exclude": [],
+              "title": true,
+              "discover_existing": true,
+              "time_step": 30
             },
             {
               "type": "custom:group-card",
               "card": {
                 "type": "entities",
-                "title": "Automations"
+                "title": "Occupancy"
+              },
+              "group": "group.guest_room_occupancy_group"
+            },
+            {
+              "type": "custom:group-card",
+              "card": {
+                "type": "entities",
+                "title": "Automation Control"
               },
               "group": "group.guest_room_auto_gen_automations"
             }
           ]
         },
         {
-          "theme": "ios-dark-mode-orange",
+          "theme": "ios-dark-mode-light-green",
           "title": "Guest Toilet",
-          "path": "guest-toilet",
-          "icon": "mdi:shower",
+          "path": "guest_toilet",
           "subview": true,
           "badges": [],
           "cards": [
             {
+              "square": false,
+              "columns": 2,
               "type": "grid",
               "cards": [
                 {
-                  "type": "button",
+                  "type": "custom:mushroom-template-card",
+                  "entity": "input_boolean.placeholder",
+                  "icon": "mdi:keyboard-return",
+                  "icon_color": "yellow",
+                  "primary": "HOME",
+                  "secondary": "",
+                  "layout": "vertical",
+                  "hold_action": {
+                    "action": "toggle"
+                  },
                   "tap_action": {
                     "action": "navigate",
                     "navigation_path": "/lovelace/home"
                   },
-                  "entity": "input_boolean.placeholder",
-                  "icon": "mdi:keyboard-return",
-                  "name": "Home",
-                  "icon_height": "80px"
+                  "card_mod": {
+                    "style": {
+                      "mushroom-state-info$": ".primary {\n  font-size: 16px !important;\n  position: relative;\n  top: 0px;\n  left: 0px;\n  overflow: visible !important;\n  white-space:  \n}\n",
+                      "mushroom-shape-icon$": ".shape {\n  position: relative;\n  left: 0px;\n  top: 0px;\n}\n",
+                      ".": ":host {\n  --mush-icon-size: 80px;\n}\n"
+                    }
+                  }
                 },
                 {
-                  "type": "custom:thermostat-card",
-                  "entity": "climate.guest_toilet",
-                  "title": "Thermostat"
-                }
-              ],
-              "columns": 2
-            },
-            {
-              "type": "grid",
-              "cards": [
-                {
-                  "type": "light",
-                  "entity": "light.guest_toilet_ceiling_light",
-                  "name": "Ceiling Light",
-                  "icon": "mdi:wall-sconce-round"
-                },
-                {
-                  "type": "button",
+                  "type": "custom:mushroom-select-card",
+                  "fill_container": true,
                   "tap_action": {
-                    "action": "toggle"
+                    "action": "more-info"
                   },
-                  "entity": "switch.guest_toilet_floor_led",
-                  "name": "Floor LED",
-                  "show_state": false,
-                  "icon": "hass:led-strip-variant"
-                },
-                {
-                  "show_name": true,
-                  "show_icon": true,
-                  "type": "button",
-                  "tap_action": {
-                    "action": "toggle"
-                  },
-                  "entity": "input_boolean.guest_toilet_heating_override",
-                  "name": "Heating Override",
-                  "icon": "mdi:heating-coil"
-                },
-                {
-                  "type": "sensor",
-                  "entity": "sensor.guest_toilet_temperature_sensor",
-                  "graph": "line",
-                  "name": "Temperature"
+                  "icon": "",
+                  "secondary_info": "none",
+                  "name": " Scene",
+                  "entity": "input_select.guest_toilet_scene"
                 }
               ]
             },
             {
-              "type": "custom:restriction-card",
-              "restrictions": {
-                "hide": {
-                  "exemptions": [
+              "square": false,
+              "columns": 2,
+              "type": "grid",
+              "cards": [
+                {
+                  "type": "custom:mushroom-climate-card",
+                  "show_temperature_control": true,
+                  "collapsible_controls": false,
+                  "name": "Raditor",
+                  "icon": "",
+                  "entity": "climate.guest_toilet"
+                },
+                {
+                  "type": "custom:mushroom-entity-card",
+                  "fill_container": true,
+                  "tap_action": {
+                    "action": "toggle"
+                  },
+                  "name": " Floor Led",
+                  "icon": "mdi:led-strip",
+                  "entity": "switch.guest_toilet_floor_led"
+                },
+                {
+                  "type": "custom:mushroom-light-card",
+                  "fill_container": true,
+                  "use_light_color": false,
+                  "show_brightness_control": true,
+                  "show_color_control": false,
+                  "show_color_temp_control": true,
+                  "collapsible_controls": false,
+                  "name": " Ceiling Light",
+                  "icon": "mdi:wall-sconce-round",
+                  "entity": "light.guest_toilet_ceiling_light",
+                  "card_mod": {
+                    "style": ":host {\n--ha-card-background:    {% if (states(config.entity) in ['on']) and (states('sun.sun') != 'below_horizon')%} rgba(245, 245, 245, 0.9)  {% else  %} rgba(10, 10, 10, 0.4)  {% endif %};\n--primary-text-color:    {% if (states(config.entity) in ['on']) and (states('sun.sun') != 'below_horizon')%} black                                            {% else  %} white                                           {% endif %};\n--secondary-text-color : {% if (states(config.entity) in ['on']) and (states('sun.sun') != 'below_horizon')%} rgba(100, 100, 100, 1){% else  %} rgba(220, 220, 220, 1) {% endif %};\n;}\nha-card > mushroom-card > mushroom-state-item > mushroom-shape-icon > ha-state-icon {\n--mdc-icon-size: 0.6em;;}\nha-card > mushroom-card > mushroom-state-item > mushroom-shape-icon { \n--icon-color-disabled:   rgba(253,204,0,1);\n--shape-color-disabled:  rgba(10, 10, 10, 0.4);\n--icon-color:            white;\n--shape-color:            {% if state_attr(config.entity, 'color_mode') == 'color_temp' %} \nrgba(253,204,0,1) \n{% else  %} \n   rgb{{state_attr(config.entity, 'rgb_color')}} \n{% endif%};\n}\nha-card > mushroom-card > div > mushroom-light-brightness-control { \n--slider-color:           {% if state_attr(config.entity, 'color_mode') == 'color_temp' %} \nrgba(253,204,0,1) \n{% else  %} \n   rgb{{state_attr(config.entity, 'rgb_color')}} \n{% endif%};\n--slider-bg-color:        {% if state_attr(config.entity, 'color_mode') == 'color_temp' %} \n{{ 'rgba(253,204,0,1)' | regex_replace(',([\\d\\.])+\\)$', ',0.2)') }} \n{% else  %} \n   rgba{{(state_attr(config.entity, 'rgb_color')|string)[0:-1]}}, 0.2) \n{% endif%};\n}\nha-card > mushroom-card > div > mushroom-button:nth-child(2) {  --bg-color: {% if  (states(config.entity) in ['on']) and (states('sun.sun') != 'below_horizon') %} rgba(245, 245, 245, 0.9) {% else %} rgba(var(--rgb-primary-text-color), 0.05) {% endif %};}\nha-card > mushroom-card > div > mushroom-button:nth-child(3) {  --bg-color: {% if  (states(config.entity) in ['on']) and (states('sun.sun') != 'below_horizon') %} rgba(245, 245, 245, 0.9) {% else %} rgba(var(--rgb-primary-text-color), 0.05) {% endif %};}\n"
+                  }
+                },
+                {
+                  "type": "custom:mushroom-entity-card",
+                  "fill_container": true,
+                  "tap_action": {
+                    "action": "toggle"
+                  },
+                  "name": "Heating Override",
+                  "icon": "mdi:heating-coil",
+                  "entity": "input_boolean.guest_toilet_heating_override"
+                },
+                {
+                  "type": "custom:vertical-stack-in-card",
+                  "cards": [
                     {
-                      "user": "72e8e305715145febff1ba701fd78954"
+                      "type": "custom:mushroom-template-card",
+                      "entity": "sensor.guest_toilet_temperature_sensor",
+                      "primary": "Temperature",
+                      "secondary": "{{ states('sensor.guest_toilet_temperature_sensor') | round(0) }}°C\n",
+                      "icon": "mdi:thermometer",
+                      "icon_color": "{% set value = states('sensor.guest_toilet_temperature_sensor') | int %}\n{% if value < 18 %}\n  blue\n{% elif value < 28 %}\n  light-green\n{% elif value < 40 %}\n  red\n{% else %}\n  green\n{% endif %}",
+                      "tap_action": {
+                        "action": "more-info"
+                      },
+                      "card_mod": {
+                        "style": ":host { --ha-card-background:rgba(245, 245, 245, 0);}\n"
+                      }
                     },
                     {
-                      "user": "60652445f3d14a8f822054569404b643"
-                    },
-                    {
-                      "user": "317c743e4c8348b8a70d671db917dbe8"
+                      "type": "custom:layout-card",
+                      "layout_type": "masonry",
+                      "layout": {
+                        "width": 150,
+                        "max_cols": 1,
+                        "height": "auto",
+                        "padding": "0px",
+                        "card_margin": "var(--masonry-view-card-margin, -10px 8px 15px)"
+                      },
+                      "cards": [
+                        {
+                          "type": "custom:mini-graph-card",
+                          "tap_action": {
+                            "action": "more-info"
+                          },
+                          "entities": [
+                            {
+                              "entity": "sensor.guest_toilet_temperature_sensor",
+                              "name": "Temperature"
+                            }
+                          ],
+                          "color_thresholds": [
+                            {
+                              "value": -10,
+                              "color": "#0000ff"
+                            },
+                            {
+                              "value": 18,
+                              "color": "#0000ff"
+                            },
+                            {
+                              "value": 18.1,
+                              "color": "#00FF00"
+                            },
+                            {
+                              "value": 27,
+                              "color": "#00FF00"
+                            },
+                            {
+                              "value": 27.1,
+                              "color": "#FF0000"
+                            },
+                            {
+                              "value": 40,
+                              "color": "#FF0000"
+                            }
+                          ],
+                          "hours_to_show": 24,
+                          "line_width": 3,
+                          "animate": true,
+                          "show": {
+                            "name": false,
+                            "icon": false,
+                            "state": false,
+                            "legend": false,
+                            "fill": "fade"
+                          },
+                          "card_mod": {
+                            "style": "ha-card {\n  background: none;\n  box-shadow: none;\n  --ha-card-border-width: 0;\n}"
+                          }
+                        }
+                      ]
                     }
                   ]
                 }
-              },
-              "exemptions": [
-                {
-                  "user": "72e8e305715145febff1ba701fd78954"
-                },
-                {
-                  "user": "60652445f3d14a8f822054569404b643"
-                },
-                {
-                  "user": "317c743e4c8348b8a70d671db917dbe8"
-                }
-              ],
-              "duration": 60,
-              "max_retries": 10,
-              "max_retries_delay": 600,
-              "card": {
-                "type": "custom:group-card",
-                "card": {
-                  "type": "entities",
-                  "title": "Occupancy"
-                },
-                "group": "group.guest_toilet_occupancy_group"
-              }
+              ]
             },
             {
               "type": "custom:scheduler-card",
               "include": [
                 "climate.guest_toilet"
               ],
-              "exclude": []
-            },
-            {
-              "type": "entities",
-              "entities": [
-                {
-                  "entity": "switch.guest_toilet_wall_switch_left"
-                },
-                {
-                  "entity": "switch.guest_toilet_wall_switch_right",
-                  "name": "Guest Toilet Wall Switch right (LED)"
-                }
-              ],
-              "title": "Wall Switches"
+              "exclude": [],
+              "title": true,
+              "discover_existing": true,
+              "time_step": 30
             },
             {
               "type": "custom:group-card",
               "card": {
                 "type": "entities",
-                "title": "Automations"
+                "title": "Occupancy"
+              },
+              "group": "group.guest_toilet_occupancy_group"
+            },
+            {
+              "type": "custom:group-card",
+              "card": {
+                "type": "entities",
+                "title": "Automation Control"
               },
               "group": "group.guest_toilet_auto_gen_automations"
             }
