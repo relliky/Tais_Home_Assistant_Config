@@ -75,7 +75,7 @@ template:
           {% endif %}
 
   - binary_sensor:
-      - name: "Car's left unlocked when ignition off"
+      - name: "Car's left unlocked when ignition is off"
         state: >
           {% if is_state('binary_sensor.car_s_ignition', 'off') and is_state('binary_sensor.car_s_unlocked', 'on') %}
               on
@@ -84,7 +84,7 @@ template:
           {% endif %}
 
   - binary_sensor:
-      - name: "Car's left unlocked when windows is left open"
+      - name: "Car's window left open when ignition is off"
         state: >
           {% if is_state('binary_sensor.car_s_ignition', 'off') and is_state('binary_sensor.car_s_window', 'on') %}
               on
@@ -98,15 +98,16 @@ automation:
     trigger:
       - platform: state
         entity_id:
-          - binary_sensor.car_s_left_unlocked_when_ignition_off
+          - binary_sensor.car_s_left_unlocked_when_ignition_is_off
         to: "on"
         for: "00:02:00"
       - minutes: /5
         platform: time_pattern
     action:
       - condition: state
-        state: 'on'
-        entity_id: binary_sensor.car_s_left_unlocked_when_ignition_off
+        state: "on"
+        entity_id: binary_sensor.car_s_left_unlocked_when_ignition_is_off
+        for: "00:02:00"
       - service: script.notify_alexa_speakers_and_phones
         data:
           tts_message: The car ignition is off but left unlocked. Is that ok
@@ -121,15 +122,16 @@ automation:
     trigger:
       - platform: state
         entity_id:
-          - binary_sensor.car_s_left_unlocked_when_windows_is_left_open
+          - binary_sensor.car_s_window_left_open_when_ignition_is_off
         to: "on"
         for: "00:02:00"
       - minutes: /5
         platform: time_pattern
     action:
       - condition: state
-        state: 'on'
-        entity_id: binary_sensor.car_s_left_unlocked_when_windows_is_left_open
+        state: "on"
+        entity_id: binary_sensor.car_s_window_left_open_when_ignition_is_off
+        for: "00:02:00"
       - service: script.notify_alexa_speakers_and_phones
         data:
           tts_message: The car ignition is off but windows are left open. Is that ok?

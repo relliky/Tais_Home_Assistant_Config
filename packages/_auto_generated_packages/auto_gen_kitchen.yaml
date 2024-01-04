@@ -461,24 +461,14 @@ automation:
           entity_id: input_boolean.always_on_constant
           state: 'on'
         then:
-        - alias: Turn climate.kitchen state=on
-          if:
-            condition: state
-            entity_id: input_boolean.always_on_constant
-            state: 'on'
-          then:
-            service: climate.set_hvac_mode
-            data:
-              hvac_mode: heat
-            entity_id: climate.kitchen
-        - alias: Turn switch.schedule_kitchen_temperature state=on
+        - alias: Turn switch.kitchen_hot_water state=on
           if:
             condition: state
             entity_id: input_boolean.always_on_constant
             state: 'on'
           then:
             service: homeassistant.turn_on
-            entity_id: switch.schedule_kitchen_temperature
+            entity_id: switch.kitchen_hot_water
 - alias: ZH-KC Heating Schedule Off If People Left the Room-Kitchen
   id: automation.zh_kc_heating_schedule_off_if_people_left_the_room_kitchen
   trigger:
@@ -506,24 +496,14 @@ automation:
         entity_id: input_boolean.always_on_constant
         state: 'on'
       then:
-      - alias: Turn climate.kitchen state=off
-        if:
-          condition: state
-          entity_id: input_boolean.always_on_constant
-          state: 'on'
-        then:
-          service: climate.set_hvac_mode
-          data:
-            hvac_mode: 'off'
-          entity_id: climate.kitchen
-      - alias: Turn switch.schedule_kitchen_temperature state=off
+      - alias: Turn switch.kitchen_hot_water state=off
         if:
           condition: state
           entity_id: input_boolean.always_on_constant
           state: 'on'
         then:
           service: homeassistant.turn_off
-          entity_id: switch.schedule_kitchen_temperature
+          entity_id: switch.kitchen_hot_water
 - alias: ZH-KC Heating Manual Override-Kitchen
   mode: restart
   trigger:
@@ -1548,6 +1528,15 @@ input_boolean:
     name: Curtain Control When Dark Outdoor Kitchen
 switch:
 - platform: group
+  name: Kitchen Extractor Wall Switch 1
+  entities: switch.0x00158d0005210fa9_channel_1
+- platform: group
+  name: Kitchen Extractor Wall Switch 2
+  entities: switch.0x00158d0005210fa9_channel_2
+- platform: group
+  name: Kitchen Extractor
+  entities: switch.0x00158d0005210fa9_channel_2
+- platform: group
   name: Kitchen Wall Switch 1
   entities: switch.0x04cf8cdf3c7ad647_channel_1
 - platform: group
@@ -1565,15 +1554,6 @@ switch:
 - platform: group
   name: Kitchen Hot Water
   entities: switch.560a_measure_mss310_main_channel
-- platform: group
-  name: Kitchen Extractor Wall Switch 1
-  entities: switch.0x00158d0005210fa9_channel_1
-- platform: group
-  name: Kitchen Extractor Wall Switch 2
-  entities: switch.0x00158d0005210fa9_channel_2
-- platform: group
-  name: Kitchen Extractor
-  entities: switch.0x00158d0005210fa9_channel_2
 cover:
 - platform: group
   name: Kitchen Curtain
@@ -1586,6 +1566,9 @@ template:
   - name: Kitchen Temperature Sensor
     unit_of_measurement: "\xB0C"
     state: '{{states.sensor["a4c1380e91a7_temperature"].state | float | round(1)}}'
+- sensor:
+  - name: Kitchen Extractor Wall Button
+    state: '{{states.sensor["0x00158d0005210fa9_action"].state}}'
 - sensor:
   - name: Kitchen Wall Button
     state: '{{states.sensor["0x04cf8cdf3c7ad647_action"].state}}'
@@ -1612,9 +1595,6 @@ template:
   - name: Kitchen Worktop Motion Sensor Battery
     unit_of_measurement: '%'
     state: '{{states.sensor["0x00158d0004660308_battery"].state}}'
-- sensor:
-  - name: Kitchen Extractor Wall Button
-    state: '{{states.sensor["0x00158d0005210fa9_action"].state}}'
 binary_sensor:
 - platform: group
   name: Kitchen Occupancy Sensor Occupancy
@@ -1630,13 +1610,23 @@ binary_sensor:
   entities: binary_sensor.e4aaec4500e4_contact
 light:
 - platform: group
+  name: Kitchen Ceiling Light
+  entities: light.kitchen_ceiling_light_hue
+- platform: group
+  name: Kitchen Dining Light
+  entities: light.kitchen_dining_light_yeelight
+- platform: group
   name: Kitchen TV LED
   entities: light.kitchen_tv_led_magic_home
+- platform: group
+  name: Kitchen Worktop LED
+  entities: light.34053207483fda906b54
 adaptive_lighting:
 - name: Kitchen
   lights:
   - light.kitchen_ceiling_light
   - light.kitchen_dining_light
+  - light.kitchen_worktop_led
   prefer_rgb_color: false
   transition: 45
   initial_transition: 1
@@ -1721,13 +1711,13 @@ group:
     - automation.zn_kc_notify_window_left_open_when_ke_is_leaving_zone_kitchen
     - automation.zn_kc_notify_window_left_open_in_bedtime_kitchen
     - automation.zn_kc_notify_window_left_open_after_timeout_kitchen
+    - switch.0x00158d0005210fa9_channel_1
+    - switch.0x00158d0005210fa9_channel_2
     - switch.0x04cf8cdf3c7ad647_channel_1
     - switch.0x04cf8cdf3c7ad647_channel_2
     - switch.0x04cf8cdf3c7ad647_channel_3
-    - switch.0x00158d0005210fa9_channel_1
-    - switch.0x00158d0005210fa9_channel_2
+    - switch.0x00158d0005210fa9_wireless_1
+    - switch.0x00158d0005210fa9_wireless_2
     - switch.0x04cf8cdf3c7ad647_wireless_1
     - switch.0x04cf8cdf3c7ad647_wireless_2
     - switch.0x04cf8cdf3c7ad647_wireless_3
-    - switch.0x00158d0005210fa9_wireless_1
-    - switch.0x00158d0005210fa9_wireless_2

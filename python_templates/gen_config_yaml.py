@@ -2530,7 +2530,9 @@ class RoomBase:
     elif entity_list == 'heating':
       action_service = self.convertToSingleService(
                        [self.turn(self.thermostat,          state),
-                        self.turn(self.thermostat_schedule, state)]  )
+                        self.turn(self.thermostat_schedule, state)] + \
+                        [] if self.room_entity != 'kitchen' else \
+                        [self.turn('switch.kitchen_hot_water', state)])
 
     #--------------------------------------------------------------------------                       
     # This does not work very well as hue integeration lights are never unavailable, even without power                   
@@ -3256,22 +3258,27 @@ class MasterRoom(RoomBase):
 
   def get_entity_declarations(self):
     super().get_entity_declarations()    
-    self.add_mac_device("582d343b6a27",             self.room_name,                          'Temperature Sesnor', "Mijia2 Temperature Sensor", postfix='new_1')
-    self.add_mac_device("a4c138ecdbba",             self.room_name,                          'Temperature Sesnor', "Mijia2 Temperature Sensor", postfix='new_2')
-    self.add_mac_device('0x54ef441000792d09',       self.room_name + ' Bed',                 'Pressure Sensor',    'Aqara Pressure Sensor')    
-    self.add_mac_device('e4aaec755efa',             self.room_name + ' Bed',                 'Pressure Sensor 4',  'Mijia2 Pressure Sensor',  postfix='1')    
-    self.add_mac_device('e4aaec755f4b',             self.room_name + ' Bed',                 'Pressure Sensor 4',  'Mijia2 Pressure Sensor',  postfix='2')    
-    self.add_mac_device("dced830908fb",             self.room_name,                          'Motion Sensor',      "Ziqing Occupancy Sensor")
-    self.add_mac_device("0x00158d0005228ba8",       self.room_name + " TV",                  'Motion Sensor',      "Aqara Motion and Illuminance Sensor")
-    self.add_mac_device('50ec50df3056',             self.room_name + " Bed Ceiling Light",   'Light',              'Mijia BLE Lights')
+    self.add_mac_device("582d343b6a27",                      self.room_name,                          'Temperature Sesnor', "Mijia2 Temperature Sensor", postfix='new_1')
+    self.add_mac_device("a4c138ecdbba",                      self.room_name,                          'Temperature Sesnor', "Mijia2 Temperature Sensor", postfix='new_2')
+  # self.add_mac_device('0x54ef441000792d09',                self.room_name + ' Bed',                 'Pressure Sensor',    'Aqara Pressure Sensor')    
+  # self.add_mac_device('e4aaec755efa',                      self.room_name + ' Bed',                 'Pressure Sensor 4',  'Mijia2 Pressure Sensor',  postfix='1')    
+  # self.add_mac_device('e4aaec755f4b',                      self.room_name + ' Bed',                 'Pressure Sensor 4',  'Mijia2 Pressure Sensor',  postfix='2')    
+    self.add_mac_device("dced830908fb",                      self.room_name,                          'Motion Sensor',      "Ziqing Occupancy Sensor")
+    self.add_mac_device("0x00158d0005228ba8",                self.room_name + " TV",                  'Motion Sensor',      "Aqara Motion and Illuminance Sensor")
+    self.add_mac_device('50ec50df3056',                      self.room_name + " Bed Ceiling Light",   'Light',              'Mijia BLE Lights')
     self.add_mac_device("master_room_drawer_ceiling_light_xiaomi",self.room_name + " Drawer Ceiling Light",'Light',"Generic Lights")
-    self.add_mac_device("0x04cf8cdf3c73a19b",       self.room_name + " Curtain",             'Curtain',            "Aqara B1 curtain motor")
-    self.add_mac_device('18c23c24681a',             self.room_name,                          'Button',             'MiJia Wireless Switch 2', postfix='1')
-    self.add_mac_device('18c23c25960b',             self.room_name,                          'Button',             'MiJia Wireless Switch 2', postfix='2')
-    self.add_mac_device("0x04cf8cdf3c7ad638",       self.room_name,                          'Wall Switch',        "Aqara D1 Wall Switch (With Neutral, Triple Rocker)", flex_switch=[2,3])
-    self.add_mac_device('1001e49ec4_1',             self.room_name + ' Dressing Table Light','Switch',             'Generic Switches')
-    self.add_mac_device("1001e4a0a0_1",             self.room_name + ' Gateway Power',       'Switch',             "Generic Switches")
-
+    self.add_mac_device("hue_color_lamp_5",                  self.room_name + " Lamp 1",              'Light',              "Generic Lights")
+    self.add_mac_device("hue_color_lamp_6",                  self.room_name + " Lamp 2",              'Light',              "Generic Lights")
+    self.add_mac_device("master_room_bed_led_magic_home",    self.room_name + " Bed LED",             'Light',              "Generic Lights")
+    self.add_mac_device("master_room_tv_led_magic_home",     self.room_name + " TV LED",              'Light',              "Generic Lights")
+    self.add_mac_device("master_room_drawer_led_magic_home", self.room_name + " Drawer LED",          'Light',              "Generic Lights")
+    self.add_mac_device("0x04cf8cdf3c73a19b",                self.room_name + " Curtain",             'Curtain',            "Aqara B1 curtain motor")
+    self.add_mac_device('18c23c24681a',                      self.room_name,                          'Button',             'MiJia Wireless Switch 2', postfix='1')
+    self.add_mac_device('18c23c25960b',                      self.room_name,                          'Button',             'MiJia Wireless Switch 2', postfix='2')
+    self.add_mac_device("0x04cf8cdf3c7ad638",                self.room_name,                          'Wall Switch',        "Aqara D1 Wall Switch (With Neutral, Triple Rocker)", flex_switch=[2,3])
+    self.add_mac_device('1001e49ec4_1',                      self.room_name + ' Dressing Table Light','Switch',             'Generic Switches')
+    self.add_mac_device("1001e4a0a0_1",                      self.room_name + ' Gateway Power',       'Switch',             "Generic Switches")
+        
     # New unused button
     #self.add_mac_device('18c23c25a26c',              self.room_name,                           'Button',             'MiJia Wireless Switch 2', postfix='3')
 
@@ -3323,9 +3330,9 @@ class MasterRoom(RoomBase):
       #"binary_sensor.master_room_bed_motion_sensor_motion",
       #"binary_sensor.master_room_bed_pressure_sensor_1",
       #"binary_sensor.master_room_bed_pressure_sensor_2",
-      "binary_sensor.master_room_bed_pressure_sensor",
+      #"binary_sensor.master_room_bed_pressure_sensor",
       "binary_sensor.master_room_occupancy_sensor_occupancy",
-      "binary_sensor.master_room_drawer_occupancy_sensor_occupancy"
+      #"binary_sensor.master_room_drawer_occupancy_sensor_occupancy"
     ]
     
     self.all_motion_sensors = self.non_bed_motion_sensors + self.bed_motion_sensors
@@ -3412,14 +3419,15 @@ class MasterToilet(RoomBase):
 
   def get_entity_declarations(self):
     super().get_entity_declarations()
-    self.add_mac_device('0x00158d00047d69be',      self.room_name,                            'Wall Switch',        'Aqara D1 Wall Switch (With Neutral, Single Rocker)')
-    self.add_mac_device("a4c1381d6ddb",            self.room_name,                            'Temperature Sensor', "Mijia2 Temperature Sensor")
-    self.add_mac_device('e4aaec80bc19',            self.room_name + ' Door',                  'Door Sensor',        'Mijia2 Contact')
-    self.add_mac_device('0x00158d00057b2b4c',      self.room_name + ' Basin',                 'Motion Sensor',      'Aqara Motion and Illuminance Sensor', integration='Z2M')
-    self.add_mac_device('0x00158d000460247b',      self.room_name + ' Dressing Room',         'Motion Sensor',      'Aqara Motion and Illuminance Sensor', integration='Z2M')
-    self.add_mac_device('0x00158d00054750ca',      self.room_name + ' Shower',                'Motion Sensor',      'Aqara Motion and Illuminance Sensor', integration='Z2M')
-    self.add_mac_device('mss210_cebd_outlet',      self.room_name + ' Floor LED',             'Switch',             'Generic Switches')
-    self.add_mac_device('0x04cf8cdf3c7cc9c4',      self.room_name + ' Mirror Sensor',         'Light Sensor',       'Xiaomi Light Detection Sensor To Mirror Sensor')
+    self.add_mac_device('0x00158d00047d69be',               self.room_name,                     'Wall Switch',        'Aqara D1 Wall Switch (With Neutral, Single Rocker)')
+    self.add_mac_device("a4c1381d6ddb",                     self.room_name,                     'Temperature Sensor', "Mijia2 Temperature Sensor")
+    self.add_mac_device('e4aaec80bc19',                     self.room_name + ' Door',           'Door Sensor',        'Mijia2 Contact')
+    self.add_mac_device('0x00158d00057b2b4c',               self.room_name + ' Basin',          'Motion Sensor',      'Aqara Motion and Illuminance Sensor', integration='Z2M')
+    self.add_mac_device('0x00158d000460247b',               self.room_name + ' Dressing Room',  'Motion Sensor',      'Aqara Motion and Illuminance Sensor', integration='Z2M')
+    self.add_mac_device('0x00158d00054750ca',               self.room_name + ' Shower',         'Motion Sensor',      'Aqara Motion and Illuminance Sensor', integration='Z2M')
+    self.add_mac_device('mss210_cebd_outlet',               self.room_name + ' Floor LED',      'Switch',             'Generic Switches')
+    self.add_mac_device('0x04cf8cdf3c7cc9c4',               self.room_name + ' Mirror Sensor',  'Light Sensor',       'Xiaomi Light Detection Sensor To Mirror Sensor')
+    self.add_mac_device("master_toilet_ceiling_light_hue",  self.room_name + " Ceiling Light",  'Light',              "Generic Lights")
 
     #self.add_mac_device('0x00158d000171756e',      self.room_name + ' Floor LED',             'Switch',             'Mi Power Plug ZigBee')
     # Dressing Room
@@ -3490,6 +3498,7 @@ class Kitchen(RoomBase):
     super().get_entity_declarations()
     self.add_mac_device("a4c1380e91a7",                               self.room_name,                   'Temperature Sensor', "Mijia2 Temperature Sensor")     
     self.add_mac_device("curtain_e521",                               self.room_name + " Curtain",      'Curtain',            "Generic Curtains")     
+    self.add_mac_device('0x00158d0005210fa9',                         self.room_name + ' Extractor',    'Wall Switch',        'Aqara D1 Wall Switch (With Neutral, Double Rocker)', switch_rename_dir={2: 'Kitchen Extractor'})
     self.add_mac_device('0x04cf8cdf3c7ad647',                         self.room_name,                   'Wall Switch',        'Aqara D1 Wall Switch (With Neutral, Triple Rocker)', flex_switch=[2], switch_rename_dir={3: 'Kitchen Floor LED'})
     self.add_mac_device("dced8308f596",                               self.room_name,                   'Motion Sensor',      "Ziqing Occupancy Sensor")
     self.add_mac_device('mss210_c944_outlet',                         self.room_name + ' Plate Warmer', 'Switch',             'Generic Switches')
@@ -3498,9 +3507,11 @@ class Kitchen(RoomBase):
     #self.add_mac_device('560a_measure_mss310_power_w_main_channel',   'Rice Cooker Power',              'Power',              'Generic Power Measurement Switch', power_on_threshold=4)
     self.add_mac_device('0x00158d00057acaac',                         self.room_name + ' Dining',       'Motion Sensor',      'Aqara Motion and Illuminance Sensor')
     self.add_mac_device('0x00158d0004660308',                         self.room_name + ' Worktop',      'Motion Sensor',      'Aqara Motion and Illuminance Sensor')
-    self.add_mac_device('0x00158d0005210fa9',                         self.room_name + ' Extractor',    'Wall Switch',        'Aqara D1 Wall Switch (With Neutral, Double Rocker)', switch_rename_dir={2: 'Kitchen Extractor'})
     self.add_mac_device("e4aaec4500e4",                               self.room_name + " Window",       'Window',             "Mijia2 Contact") # belong_to_group=self.windows)
+    self.add_mac_device("kitchen_ceiling_light_hue",                  self.room_name + " Ceiling Light",'Light',              "Generic Lights")
+    self.add_mac_device("kitchen_dining_light_yeelight",              self.room_name + " Dining Light", 'Light',              "Generic Lights")
     self.add_mac_device("kitchen_tv_led_magic_home",                  self.room_name + " TV LED",       'Light',              "Generic Lights")
+    self.add_mac_device("34053207483fda906b54",                       self.room_name + " Worktop LED",  'Light',              "Generic Lights")
 
 
 
@@ -3522,7 +3533,7 @@ class Kitchen(RoomBase):
     self.lights                  = self.leds + self.lamps + self.ceiling_lights
 
     # Adaptive lighting
-    self.adaptive_lighting_list[0]["lights"] += self.ceiling_lights # + ["light.kitchen_tv_led"]
+    self.adaptive_lighting_list[0]["lights"] += self.ceiling_lights + ["light.kitchen_worktop_led"]
 
   def get_cover_entities(self):
     super().get_cover_entities()
@@ -3636,7 +3647,7 @@ class LivingRoom(RoomBase):
     self.cfg_group_auto         = True       
     self.cfg_motion_light       = True
     self.cfg_remote_light       = True
-    self.cfg_scene_color_lamp  = True
+    self.cfg_scene_color_lamp   = True
     self.cfg_temp_control       = True
     self.cfg_temp_calibration   = True
     self.cfg_tv                 = True
@@ -3668,27 +3679,29 @@ class LivingRoom(RoomBase):
                                         sensor_2='sensor.living_room_temperature_sensor_2', 
                                         name='Living Room Temperature Sensor')
 
-#    self.add_mac_device("living_room_ceiling_light_yeelight", self.room_name + ' Ceiling Light', 'Light',              "Yeelight Ceiling Light")
     self.add_mac_device('0x00158d0003140ea8',                 self.room_name + ' Entrance',      'Motion Sensor',      'Aqara Motion and Illuminance Sensor')
     self.add_mac_device("dced8308e951",                       self.room_name,                    'Motion Sensor',      "Ziqing Occupancy Sensor")
-    self.add_mac_device('0x54ef441000792d1d',                 self.room_name + ' Sofa',          'Pressure Sensor 1',  'Aqara Pressure Sensor')    
+  # self.add_mac_device('0x54ef441000792d1d',                 self.room_name + ' Sofa',          'Pressure Sensor 1',  'Aqara Pressure Sensor')    
     self.add_mac_device("2ab7",                               self.room_name,                    'Temperature Sensor', "Mijia2 Temperature Clock",  postfix='1', integration='Passive BLE Monitor')
     self.add_mac_device("a4c13864aca3",                       self.room_name,                    'Temperature Sensor', "Mijia2 Temperature Sensor", postfix='2')
     self.add_mac_device('0x00158d0008d8ead8',                 self.room_name,                    'Wall Switch',        'Aqara D1 Wall Switch (With Neutral, Single Rocker)', flex_switch=True)
     self.add_mac_device("0x54ef441000452fd8",                 self.room_name + ' Curtain',       'Curtain',            "Aqara B1 curtain motor",    postfix='1')
     self.add_mac_device("0x54ef4410001f409c",                 self.room_name + ' Curtain',       'Curtain',            "Aqara B1 curtain motor",    postfix='2')
     self.add_mac_device('0x04cf8cdf3c7b560f',                 self.room_name,                    'Light Sensor',       'Xiaomi Light Detection Sensor')
-    #self.add_mac_device('mss210_ef0f_outlet',                self.room_name + ' Floor Light 3', 'Switch',             'Generic Switches')
-    self.add_mac_device('ef0f_29831979_mss210_main_channel',  self.room_name + ' Floor Light 3', 'Switch',             'Generic Switches')
     self.add_mac_device('0x00158d000424f995',                 self.room_name,                    'Button',             'MiJia Wireless Switch')
     self.add_mac_device("1001e49906_1",                       self.room_name + ' Gateway Power', 'Switch',             "Generic Switches")
     self.add_mac_device("e4aaec80beca",                       self.room_name + " Window",        'Window',             "Mijia2 Contact") 
     self.add_mac_device("e4aaec80bedb",                       self.room_name + " Sliding Door",  'Door',               "Mijia2 Contact") 
     self.add_mac_device('0x00158d000451f90b',                 'Tais Desk',                       'Motion Sensor',      'Aqara Motion and Illuminance Sensor')
-    #self.add_mac_device('mss210_b3bd_outlet',                'Tais Desk Screen LED',            'Switch',             'Generic Switches')
     self.add_mac_device('1001e49dd9_1',                       'Tais Desk Screen LED',            'Switch',             'Generic Switches')
     self.add_mac_device('0x00158d00054d83df',                 'Boiler Room',                     'Motion Sensor',      'Aqara Motion and Illuminance Sensor')
     self.add_mac_device('28d127202ef6',                       'Boiler Room Light',               'Motion Sensor',      'Mijia BLE Lights')
+    self.add_mac_device("living_room_ceiling_light_yeelight",  self.room_name + ' Ceiling Light','Light',              "Generic Lights")
+    self.add_mac_device("hue_color_lamp_1",                    self.room_name + " Floor Light 1",'Light',              "Generic Lights")
+    self.add_mac_device("hue_color_lamp_2",                    self.room_name + " 3 Head Lamp 1",'Light',              "Generic Lights")
+    self.add_mac_device("hue_color_lamp_3",                    self.room_name + " 3 Head Lamp 2",'Light',              "Generic Lights")
+    self.add_mac_device("hue_color_lamp_4",                    self.room_name + " 3 Head Lamp 3",'Light',              "Generic Lights")
+    self.add_mac_device('ef0f_29831979_mss210_main_channel',   self.room_name + ' Floor Light 3','Switch',             'Generic Switches')
 
 
 
@@ -3717,7 +3730,8 @@ class LivingRoom(RoomBase):
                                             [ "light.living_room_floor_light_1", 
                                               "light.living_room_3_head_lamp_1",
                                               "light.living_room_3_head_lamp_2",
-                                              "light.living_room_3_head_lamp_3"] 
+                                              "light.living_room_3_head_lamp_3",
+                                              "light.boiler_room_light"] 
 
   def get_cover_entities(self):
     super().get_cover_entities()
@@ -3818,14 +3832,17 @@ class EnSuiteRoom(RoomBase):
 
   def get_entity_declarations(self):
     super().get_entity_declarations()
-    self.add_mac_device('0x00158d000403d6c0', self.room_name,               'Button',             'MiJia Wireless Switch')
-    self.add_mac_device('0x00158d00047d69e6', self.room_name,               'Wall Switch',        'Aqara D1 Wall Switch (With Neutral, Single Rocker)')
-    self.add_mac_device("dced8308f496",       self.room_name,               'Motion Sensor',      "Ziqing Occupancy Sensor")
-    self.add_mac_device('0x00158d00057b37be', self.room_name + ' Entrance', 'Motion Sensor',      'Aqara Motion and Illuminance Sensor')
-    self.add_mac_device('0x00158d000423319f', self.room_name + ' Floor',    'Motion Sensor',      'Aqara Motion and Illuminance Sensor')
-    self.add_mac_device('54ef44e559c6',       self.room_name + ' Bed',      'Motion Sensor',      'Mijia2 Motion Sensor')
-    self.add_mac_device("a4c138b0eb53",       self.room_name,               'Temperature Sensor', "Mijia2 Temperature Sensor")
-    self.add_mac_device("curtain_d29a",       self.room_name + " Curtain",  'Curtain',            "Generic Curtains")     
+    self.add_mac_device('0x00158d000403d6c0',              self.room_name,                    'Button',              'MiJia Wireless Switch')
+    self.add_mac_device('0x00158d00047d69e6',              self.room_name,                    'Wall Switch',         'Aqara D1 Wall Switch (With Neutral, Single Rocker)')
+    self.add_mac_device("dced8308f496",                    self.room_name,                    'Motion Sensor',       "Ziqing Occupancy Sensor")
+    self.add_mac_device('0x00158d00057b37be',              self.room_name + ' Entrance',      'Motion Sensor',       'Aqara Motion and Illuminance Sensor')
+    self.add_mac_device('0x00158d000423319f',              self.room_name + ' Floor',         'Motion Sensor',       'Aqara Motion and Illuminance Sensor')
+    self.add_mac_device('54ef44e559c6',                    self.room_name + ' Bed',           'Motion Sensor',       'Mijia2 Motion Sensor')
+    self.add_mac_device("a4c138b0eb53",                    self.room_name,                    'Temperature Sensor',  "Mijia2 Temperature Sensor")
+    self.add_mac_device("curtain_d29a",                    self.room_name + " Curtain",       'Curtain',             "Generic Curtains")     
+    self.add_mac_device("e27w_1_hue",                      self.room_name + " Lamp 1",        'Light',               "Generic Lights")
+    self.add_mac_device("e27w_2_hue",                      self.room_name + " Lamp 2",        'Light',               "Generic Lights")
+    self.add_mac_device("en_suite_room_ceiling_light_hue", self.room_name + " Ceiling Light", 'Light',               "Generic Lights")
 
 
   def get_tv_entities(self):
@@ -4002,8 +4019,9 @@ class GuestToilet(RoomBase):
 
   def get_entity_declarations(self):
     super().get_entity_declarations()
-    self.add_mac_device("a4c1387a7b78",       self.room_name,     'Temperature Sensor', "Mijia2 Temperature Sensor")
-    self.add_mac_device('0x00158d000487851a', self.room_name,     'Wall Switch',        'Aqara D1 Wall Switch (With Neutral, Double Rocker)', integration='Z2M')
+    self.add_mac_device("a4c1387a7b78",                   self.room_name,                    'Temperature Sensor', "Mijia2 Temperature Sensor")
+    self.add_mac_device('0x00158d000487851a',             self.room_name,                    'Wall Switch',        'Aqara D1 Wall Switch (With Neutral, Double Rocker)', integration='Z2M')
+    self.add_mac_device("guest_toilet_ceiling_light_hue", self.room_name + " Ceiling Light", 'Light',              "Generic Lights")
 
 
 #('0x00158d00052b35f7', 'Guest Toilet',               'Aqara Motion and Illuminance Sensor')
@@ -4192,12 +4210,13 @@ class GroundToilet(RoomBase):
 
   def get_entity_declarations(self):
     super().get_entity_declarations()
-    self.add_mac_device("a4c1387c09bd",        self.room_name,                                  'Temperature Sensor', "Mijia2 Temperature Sensor")
-    self.add_mac_device('0x00158d0004667569',  self.room_name,                                  'Motion Sensor',      'Aqara Motion and Illuminance Sensor')
-    self.add_mac_device("0x00158d0005435643",  self.room_name,                                  'Wall Switch',        "Aqara D1 Wall Switch (With Neutral, Double Rocker)")
-    self.add_mac_device('0x00158d00053fdaa8',  self.room_name + ' Door',                        'Door',               'Aqara Door & Window Sensor')
-    self.add_mac_device("0x90fd9ffffe8e24b6",  self.room_name + " Ceiling Light Spotlight 1",   'Light',              "TRADFRI LED Bulb GU10 400 Lumen, Dimmable, White spectrum", integration='Z2M')
-    self.add_mac_device("0x000b57fffee8e6b4",  self.room_name + " Ceiling Light Spotlight 2",   'Light',              "TRADFRI LED Bulb GU10 400 Lumen, Dimmable, White spectrum", integration='Z2M')
+    self.add_mac_device("a4c1387c09bd",                    self.room_name,                                'Temperature Sensor', "Mijia2 Temperature Sensor")
+    self.add_mac_device('0x00158d0004667569',              self.room_name,                                'Motion Sensor',      'Aqara Motion and Illuminance Sensor')
+    self.add_mac_device("0x00158d0005435643",              self.room_name,                                'Wall Switch',        "Aqara D1 Wall Switch (With Neutral, Double Rocker)")
+    self.add_mac_device('0x00158d00053fdaa8',              self.room_name + ' Door',                      'Door',               'Aqara Door & Window Sensor')
+  # self.add_mac_device("0x90fd9ffffe8e24b6",              self.room_name + " Ceiling Light Spotlight 1", 'Light',              "TRADFRI LED Bulb GU10 400 Lumen, Dimmable, White spectrum", integration='Z2M')
+  # self.add_mac_device("0x000b57fffee8e6b4",              self.room_name + " Ceiling Light Spotlight 2", 'Light',              "TRADFRI LED Bulb GU10 400 Lumen, Dimmable, White spectrum", integration='Z2M')
+    self.add_mac_device("ground_toilet_ceiling_light_z2m", self.room_name + " Ceiling Light",             'Light',              "Generic Lights")
 
   def get_light_entities(self):
     super().get_light_entities()
