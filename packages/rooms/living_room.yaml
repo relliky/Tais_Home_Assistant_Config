@@ -253,7 +253,7 @@ automation:
     action:
       - service: light.turn_on
         entity_id: light.boiler_room_light
-        
+
   - alias: L-LR Living Room Boiler Room Lights Off If No Person For 2 Min
     id: fjdakls85432tjkgfreda98yt4tnkjge
     description: ""
@@ -273,9 +273,41 @@ automation:
     action:
       - service: light.turn_off
         entity_id: light.boiler_room_light
-  
-  
 
+  - alias: L-LR Living Room Open Curtain When Sliding Door is Opened
+    description: ""
+    trigger:
+      - platform: state
+        entity_id:
+          - binary_sensor.living_room_sliding_door
+        from: "off"
+        to: "on"
+    action:
+      - delay:
+          hours: 0
+          minutes: 0
+          seconds: 0
+          milliseconds: 500
+      - service: cover.open_cover
+        target:
+          entity_id: cover.living_room_curtain_2
+      - delay:
+          hours: 0
+          minutes: 0
+          seconds: 0
+          milliseconds: 500
+      - service: cover.open_cover
+        target:
+          entity_id: cover.living_room_curtain_2
+      - delay:
+          hours: 0
+          minutes: 0
+          seconds: 0
+          milliseconds: 500
+      - service: cover.open_cover
+        target:
+          entity_id: cover.living_room_curtain_2
+    mode: single
 
   # Tais Desk
   # Lighting Automation based on motion sensors
@@ -294,7 +326,7 @@ automation:
         to: "on"
     action:
       - service: light.turn_on
-        entity_id: 
+        entity_id:
           #- light.tais_desk_lamps
           - light.living_room_3_head_lamp_1
           - light.living_room_3_head_lamp_2
@@ -327,7 +359,6 @@ automation:
     action:
       - service: switch.turn_off
         entity_id: switch.tais_desk_screen_led
-
 
   ###############################################
   # Heating/TV Automation based on motion sensors
@@ -572,6 +603,122 @@ automation:
   #            entity_id: automation.living_room_lights_on_if_people_present
   #    mode: restart
 
+  - alias: S-LR Living Room Sonos Night Mode Turns On When Guest Room Have People Or In the Night
+    id: fjdslfjdsjvdsljflsjdlfdsmldlsjklfdsjk
+    trigger:
+      - at: "21:30:05"
+        platform: time
+      - platform: state
+        entity_id:
+          - group.guest_room_motion_group
+      - platform: state
+        entity_id:
+          - input_select.guest_room_occupancy
+          - input_select.study_occupancy          
+    action:
+      - condition: state
+        entity_id: switch.living_room_sonos_night_sound
+        state: "off"
+      - alias: Guest Room Have People Or In the Night
+        condition: or
+        conditions:
+          - condition: time
+            after: "21:30:00"
+            before: "09:00:00"
+          - condition: state
+            entity_id: input_select.guest_room_occupancy
+            state:
+              - Just Entered
+              - Stayed Inside
+              - In Sleep
+          - condition: state
+            entity_id: input_select.study_occupancy
+            state:
+              - Just Entered
+              - Stayed Inside
+              - In Sleep
+      # Sonos Night Mode
+      - service: switch.turn_on
+        entity_id:
+          - switch.living_room_sonos_speech_enhancement
+          - switch.living_room_sonos_night_sound
+      # Turn up volume
+      - repeat:
+          count: 8
+          sequence:
+            - service: media_player.volume_up
+              entity_id: media_player.living_room_sonos
+
+  - alias: S-LR Living Room Sonos Night Mode Off When Guest Room Have No People and in the Daytime
+    id: fjdlksjlbjhfadoignlwfdsjiofndlsakjfldask
+    trigger:
+      - at: "09:00:05"
+        platform: time
+      - platform: state
+        entity_id:
+          - group.guest_room_motion_group
+      - platform: state
+        entity_id:
+          - input_select.guest_room_occupancy
+          - input_select.study_occupancy          
+    action:
+      - condition: state
+        entity_id: switch.living_room_sonos_night_sound
+        state: "on"
+      - alias: When Guest Room Have No People and in the Daytime
+        condition: and
+        conditions:
+          - condition: time
+            after: "09:00:00"
+            before: "21:30:00"
+          - condition: state
+            entity_id: input_select.guest_room_occupancy
+            state: Outside
+          - condition: state
+            entity_id: input_select.study_occupancy
+            state: Outside
+      # Turn down volume
+      - repeat:
+          count: 8
+          sequence:
+            - service: media_player.volume_down
+              entity_id: media_player.living_room_sonos
+      # Sonos Night Mode
+      - service: switch.turn_off
+        entity_id:
+          - switch.living_room_sonos_speech_enhancement
+          - switch.living_room_sonos_night_sound
+
+  - alias: S-LR Living Room Sonos Volume Has Limit When Night Mode is On
+    id: fldjslafdibn2ro328392uoirjkewfenw
+    trigger:
+      - platform: state
+        entity_id:
+          - media_player.living_room_sonos
+        attribute: volume_level
+    condition:
+      - condition: state
+        entity_id: switch.living_room_sonos_night_sound
+        state: "on"
+    action:
+      - if:
+          - condition: numeric_state
+            entity_id: media_player.living_room_sonos
+            attribute: volume_level
+            above: 0.40
+        then:
+          - service: media_player.volume_set
+            data:
+              volume_level: 0.40
+            target:
+              entity_id: media_player.living_room_sonos
+          - service: script.notify_alexa_speakers_and_phones
+            data:
+              tts_message: Night mode is on due to people in guest room. Limit maximum volume allowed. 有人呆在客房或书房，音量被限制到40以免吵到客房的人。
+              alexa_speaker_list:
+                - media_player.living_room_echo
+    mode: single
+
   #################################################################
   # Sonos Speakers Grouping/Ungrouping Based On Motion Sensor
   #################################################################
@@ -637,37 +784,6 @@ automation:
       - service: script.pause_sonos_if_sole_speaker_group
         data:
           target_player: media_player.living_room_sonos
-
-  - alias: S-LR Living Room Sonos Night Mode On In the Night
-    trigger:
-      - at: "21:00:00"
-        platform: time
-    action:
-      - service: switch.turn_on
-        entity_id:
-          - switch.sonos_living_room_sonos_speech_enhancement
-          - switch.sonos_living_room_sonos_night_sound
-      # Turn up volume by 10
-      - service: media_player.volume_up
-        entity_id: media_player.living_room_sonos
-      - service: media_player.volume_up
-        entity_id: media_player.living_room_sonos
-
-  - alias: S-LR Living Room Sonos Night Mode Off In the Morning
-    trigger:
-      - at: "09:00:00"
-        platform: time
-    action:
-      # Turn down volume by 10
-      - service: media_player.volume_down
-        entity_id: media_player.living_room_sonos
-      - service: media_player.volume_down
-        entity_id: media_player.living_room_sonos
-      - service: switch.turn_off
-        entity_id:
-          - switch.sonos_living_room_sonos_speech_enhancement
-          - switch.sonos_living_room_sonos_night_sound
-
 #################################################################
 # TV auto turn-off based on motion sensors
 #################################################################

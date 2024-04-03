@@ -140,7 +140,7 @@ automation:
               then:
                 service: cover.set_cover_position
                 data:
-                  position: 0
+                  position: 100
                 entity_id:
                 - cover.study_blind
             else:
@@ -254,7 +254,7 @@ automation:
                 then:
                   service: cover.set_cover_position
                   data:
-                    position: 0
+                    position: 100
                   entity_id:
                   - cover.study_blind
               else:
@@ -363,7 +363,7 @@ automation:
                 then:
                   service: cover.set_cover_position
                   data:
-                    position: 0
+                    position: 100
                   entity_id:
                   - cover.study_blind
               else:
@@ -417,7 +417,7 @@ automation:
         then:
           service: cover.set_cover_position
           data:
-            position: 0
+            position: 100
           entity_id:
           - cover.study_blind
       else:
@@ -467,6 +467,7 @@ automation:
             service: homeassistant.turn_off
             entity_id:
             - switch.study_screen_led
+        - service: script.do_nothing
 - alias: ZL-ST Disable Entering Lights-on Automation If any People are in the Room-Study
   trigger:
   - platform: state
@@ -891,6 +892,7 @@ automation:
               service: homeassistant.turn_off
               entity_id:
               - switch.study_screen_led
+          - service: script.do_nothing
     - conditions:
       - condition: state
         entity_id: input_select.study_scene
@@ -989,7 +991,7 @@ automation:
                 then:
                   service: cover.set_cover_position
                   data:
-                    position: 0
+                    position: 100
                   entity_id:
                   - cover.study_blind
               else:
@@ -1102,7 +1104,7 @@ automation:
                 then:
                   service: cover.set_cover_position
                   data:
-                    position: 0
+                    position: 100
                   entity_id:
                   - cover.study_blind
               else:
@@ -1215,7 +1217,7 @@ automation:
                 then:
                   service: cover.set_cover_position
                   data:
-                    position: 0
+                    position: 100
                   entity_id:
                   - cover.study_blind
               else:
@@ -1231,6 +1233,26 @@ automation:
                   entity_id:
                   - cover.study_blind
   id: automation.zl_st_applies_different_scenes_based_on_scene_selections_state_execution_study
+- alias: ZLB-ST Remote Button-Single-Toggle Blind-Study
+  trigger:
+  - platform: state
+    entity_id:
+    - sensor.study_button
+    to:
+    - single
+    - '1'
+  mode: single
+  action:
+    alias: Turn cover.study_blind state=toggle
+    if:
+      condition: state
+      entity_id: input_boolean.always_on_constant
+      state: 'on'
+    then:
+      service: cover.toggle
+      entity_id:
+      - cover.study_blind
+  id: automation.zlb_st_remote_button_single_toggle_blind_study
 - alias: ZLB-ST Wall Switch - Double Press - Leave Room and Turn Off Everything-Study
   trigger:
   - platform: state
@@ -1257,35 +1279,8 @@ automation:
     data:
       option: Outside
   id: automation.zlb_st_wall_switch_double_press_leave_room_and_turn_off_everything_study
-- alias: ZL-ST Turns On Sleep Mode In The Night-Study
-  trigger:
-  - platform: time
-    at: '23:00:00'
-  action:
-  - alias: Turn switch.adaptive_lighting_sleep_mode_study state=on
-    if:
-      condition: state
-      entity_id: input_boolean.always_on_constant
-      state: 'on'
-    then:
-      service: homeassistant.turn_on
-      entity_id: switch.adaptive_lighting_sleep_mode_study
-  id: automation.zl_st_turns_on_sleep_mode_in_the_night_study
-- alias: ZL-ST Turns Off Sleep Mode In The Morning-Study
-  trigger:
-  - platform: time
-    at: 06:30:00
-  action:
-  - alias: Turn switch.adaptive_lighting_sleep_mode_study state=off
-    if:
-      condition: state
-      entity_id: input_boolean.always_on_constant
-      state: 'on'
-    then:
-      service: homeassistant.turn_off
-      entity_id: switch.adaptive_lighting_sleep_mode_study
-  id: automation.zl_st_turns_off_sleep_mode_in_the_morning_study
 - alias: ZOc-ST Occupancy Update-Study
+  id: automation.zoc_st_occupancy_update_study
   trigger:
   - entity_id: group.study_motion_group
     platform: state
@@ -1297,14 +1292,14 @@ automation:
   - minutes: /5
     platform: time_pattern
   action:
-  - service: pyscript.room_occupancy_state_machine
+    service: pyscript.room_occupancy_state_machine
     data:
       occupancy_entity_str: input_select.study_occupancy
       motion_str: group.study_motion_group
       motion_on_ratio_for_x_min_str: sensor.study_motion_on_ratio_for_last_4_minutes
       motion_on_ratio_for_2x_min_str: sensor.study_motion_on_ratio_for_last_8_minutes
       room_type: common_area
-  id: automation.zoc_st_occupancy_update_study
+      sleep_time: input_boolean.master_room_sleep_time
 - alias: ZN-ST Notify Zigbee Offline Devices -Study
   trigger:
   - platform: state
@@ -1381,6 +1376,9 @@ sensor:
     minutes: '8'
   end: '{{ (now() | as_timestamp) | as_datetime | as_local }}'
 input_boolean:
+  master_room_sleep_time:
+    name: Master Room Sleep Time
+    initial: 'off'
   study_heating_override:
     name: Study Heating Override
     initial: 'off'
@@ -1418,11 +1416,8 @@ switch:
   name: Study Studio Lamp 1
   entities: switch.mss210_b083_outlet
 - platform: group
-  name: Study Studio Lamp 2
-  entities: switch.mss210_ce70_outlet
-- platform: group
   name: Study Gateway Power
-  entities: switch.1001e49ade_1
+  entities: switch.sonoff_1001e49ade_1
 cover:
 - platform: group
   name: Study Blind
@@ -1439,7 +1434,24 @@ template:
   - name: Study Blind Curtain Battery
     unit_of_measurement: '%'
     state: '{{states.sensor["0x00158d00070b2f26_battery"].state}}'
-binary_sensor: []
+- sensor:
+  - name: Study Button
+    state: '{{states.sensor["18c23c282711_action"].state}}'
+- sensor:
+  - name: Study Desk Motion Sensor Light
+    unit_of_measurement: lx
+    state: '{{states.sensor["18c23c26ea40_illuminance"].state}}'
+- sensor:
+  - name: Study Desk Motion Sensor Battery
+    unit_of_measurement: '%'
+    state: '{{states.sensor["18c23c26ea40_battery"].state}}'
+- binary_sensor:
+  - name: Feeding Bottle Warmer
+    state: '{% if (states.sensor["0x00158d000171756e_power"].state) | float | round(1) > 30 %} on {% else %} off {% endif %}'
+binary_sensor:
+- platform: group
+  name: Study Desk Motion Sensor Motion
+  entities: binary_sensor.18c23c26ea40_motion
 light: []
 adaptive_lighting:
 - name: Study
@@ -1456,10 +1468,11 @@ adaptive_lighting:
   sleep_brightness: 20
   sleep_color_temp: 2200
   take_over_control: true
+  autoreset_control_seconds: 86400
   detect_non_ha_changes: false
   only_once: false
   adapt_only_on_bare_turn_on: true
-  separate_turn_on_commands: true
+  separate_turn_on_commands: false
   send_split_delay: 500
   adapt_delay: 0.5
   intercept: true
@@ -1472,12 +1485,13 @@ group:
     - input_select.study_occupancy
     - group.study_motion_group
     - binary_sensor.study_motion_sensor_motion
-    - binary_sensor.kes_desk_motion_sensor_motion
+    - binary_sensor.study_desk_motion_sensor_motion
+    - automation.zoc_st_occupancy_update_study
   study_motion_group:
     name: Study Motion Group
     entities:
     - binary_sensor.study_motion_sensor_motion
-    - binary_sensor.kes_desk_motion_sensor_motion
+    - binary_sensor.study_desk_motion_sensor_motion
   study_light_group:
     name: Study Light Group
     entities:
@@ -1517,10 +1531,10 @@ group:
     - automation.zh_st_heating_manual_override_timeout_in_few_hours_study
     - automation.zh_st_valve_calibrate_temperature_using_external_sensor_study
     - automation.zl_st_applies_different_scenes_based_on_scene_selections_state_execution_study
+    - automation.zlb_st_remote_button_single_toggle_blind_study
     - automation.zlb_st_wall_switch_double_press_leave_room_and_turn_off_everything_study
-    - automation.zl_st_turns_on_sleep_mode_in_the_night_study
-    - automation.zl_st_turns_off_sleep_mode_in_the_morning_study
     - automation.zoc_st_occupancy_update_study
     - automation.zn_st_notify_zigbee_offline_devices_study
     - automation.zn_st_notify_wifi_offline_devices_study
     - switch.study_wall_switch
+    - switch.adaptive_lighting_sleep_mode_study

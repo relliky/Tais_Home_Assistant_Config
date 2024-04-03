@@ -1,15 +1,17 @@
 automation:
-  - alias: T-KC Kitchen Vacuum Starts At 4am
-    description: ""
-    trigger:
-      - at: 04:00:00
-        platform: time
-    condition:
-    action:
-      - service: vacuum.start
-        entity_id: vacuum.xiaomi_vacuum_cleaner
+  #  - alias: T-KC Kitchen Vacuum Starts At 4am
+  #    id: 3r2u9fjefkjdisofjoidsaklds
+  #    description: ""
+  #    trigger:
+  #      - at: 04:00:00
+  #        platform: time
+  #    condition:
+  #    action:
+  #      - service: vacuum.start
+  #        entity_id: vacuum.xiaomi_vacuum_cleaner
 
   - alias: VN-KC Remember to Refill Kitchen Vacuum Water when Going to Kitchen
+    id: nvdiasojfoewnfdjsaf
     mode: single
     trigger:
       - platform: state
@@ -23,8 +25,10 @@ automation:
     action:
       - service: script.notify_alexa_speakers_and_phones
         data:
-          tts_message: Clean Water in the Vacuum Robot Dock Has Run Out
+          tts_message: Clean Water in the Vacuum Robot Dock Has Run Out. 扫地机器人清水用完了，记得加清水。
           notify_tai: "yes"
+          notify_ke_ba_ba: "yes"
+          notify_ke_ma_ma: "yes"
           notify_ke: "yes"
           #notify_alvaro: "yes"
           alexa_speaker_list:
@@ -33,6 +37,7 @@ automation:
       - delay: "04:00:00"
 
   - alias: V-KC Ask X1 To Return To Dock If Stuck
+    id: 3902jgfrngfd89bvfdsjkfdjiafuew
     description: ""
     trigger:
       - platform: time_pattern
@@ -62,6 +67,39 @@ automation:
         target:
           entity_id: vacuum.x1
     mode: single
+
+  - alias: VB-KC Kitchen Vacuum Toggle by Pressing The Rightmost 2 Buttons
+    id: 3492849032uriojewjfreau8fef
+    mode: single
+    trigger:
+      - platform: state
+        entity_id:
+          - sensor.kitchen_wall_button
+        to: button_both_23_single
+    condition: []
+    action:
+      - if:
+          - condition: state
+            entity_id: vacuum.x1
+            state: cleaning
+        then:
+          - service: vacuum.stop
+            target:
+              entity_id: vacuum.x1
+          - delay: "00:00:01"
+          - service: vacuum.return_to_base
+            target:
+              entity_id: vacuum.x1
+        else:
+          # Clean Kitchen
+          - service: vacuum.send_command
+            target:
+              entity_id: vacuum.x1
+            data:
+              command: spot_area
+              params:
+                rooms: 0
+                cleanings: 1
 #script:
 #  kitchen_window_left_open_critical_notification:
 #    alias: Kitchen Window Left Open Critical Notification

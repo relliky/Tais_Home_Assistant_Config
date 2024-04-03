@@ -40,7 +40,8 @@ def room_occupancy_state_machine(occupancy_entity_str,
                                  motion_str,                                 
                                  motion_on_ratio_for_x_min_str,
                                  motion_on_ratio_for_2x_min_str,
-                                 room_type):
+                                 room_type,
+                                 sleep_time):
     
     #percentage_for_largely_def = 0.4
     #percentage_for_fully_def   = 0.8
@@ -50,13 +51,13 @@ def room_occupancy_state_machine(occupancy_entity_str,
     motion                     = state.get(motion_str)
     motion_state_lasts_for     = get_sec_of_cur_state(motion_str)
     motion_off_for             = motion_state_lasts_for if motion == 'off' else 0
-    motion_on_ratio_for_x_min  = float(state.get(motion_on_ratio_for_x_min_str))
-    motion_on_ratio_for_2x_min = float(state.get(motion_on_ratio_for_2x_min_str))
+    motion_on_ratio_for_x_min  = float(state.get(motion_on_ratio_for_x_min_str))/100
+    motion_on_ratio_for_2x_min = float(state.get(motion_on_ratio_for_2x_min_str))/100
     motion_off_ratio_for_x_min = 1 - motion_on_ratio_for_x_min
     motion_off_ratio_for_2x_min= 1 - motion_on_ratio_for_2x_min
     nxt_state                  = ''
     stay_inside_for            = get_sec_of_cur_state(occupancy_entity_str) if cur_state == 'Stayed Inside' else 0
-    now_is_sleep_time          = now_is_before(9,30,0) or now_is_after(21,0,0)
+    now_is_sleep_time          = state.get(sleep_time) == 'on'
     normal_timeout             = 1 if room_type == 'landing' else 5 # other rooms timeout at 5 minutes 
     
     # Outside -> xxx
@@ -101,7 +102,7 @@ def room_occupancy_state_machine(occupancy_entity_str,
         #     People is inside the room for an hour in the night time 
         #     would assume they are in bed and ready for sleep
         if room_type == 'bedroom' and \
-           stay_inside_for > 60*60 and \
+           stay_inside_for > 30*60 and \
            now_is_sleep_time:
             nxt_state = "In Sleep"
                     
@@ -137,6 +138,10 @@ def room_occupancy_state_machine(occupancy_entity_str,
     state.set(occupancy_entity_str, nxt_state)
 
     # Log I/O
+    
+    #log.info("==========================================================================================================================================================================================")    
+    #log.info("motion_str: "                   + str(motion_str             ))    
+    #log.info("room_type                   :" + str(room_type              ))    
     #log.info("cur_state                   :" + str(cur_state              ))    
     #log.info("motion                      :" + str(motion                 ))    
     #log.info("motion_state_lasts_for      :" + str(motion_state_lasts_for ))    

@@ -4,6 +4,7 @@
 #############################################################################
 automation:
 - alias: ZOc-WH Occupancy Update-Whole Home
+  id: automation.zoc_wh_occupancy_update_whole_home
   trigger:
   - entity_id: group.whole_home_motion_group
     platform: state
@@ -15,14 +16,14 @@ automation:
   - minutes: /5
     platform: time_pattern
   action:
-  - service: pyscript.room_occupancy_state_machine
+    service: pyscript.room_occupancy_state_machine
     data:
       occupancy_entity_str: input_select.whole_home_occupancy
       motion_str: group.whole_home_motion_group
       motion_on_ratio_for_x_min_str: sensor.whole_home_motion_on_ratio_for_last_4_minutes
       motion_on_ratio_for_2x_min_str: sensor.whole_home_motion_on_ratio_for_last_8_minutes
       room_type: common_area
-  id: automation.zoc_wh_occupancy_update_whole_home
+      sleep_time: input_boolean.master_room_sleep_time
 input_select:
   whole_home_occupancy:
     name: Whole Home Occupancy
@@ -49,6 +50,9 @@ sensor:
     minutes: '8'
   end: '{{ (now() | as_timestamp) | as_datetime | as_local }}'
 input_boolean:
+  master_room_sleep_time:
+    name: Master Room Sleep Time
+    initial: 'off'
   curtain_control_when_left_whole_home:
     name: Curtain Control When Left Whole Home
     initial: 'off'
@@ -109,6 +113,7 @@ group:
     - group.en_suite_toilet_motion_group
     - group.guest_room_motion_group
     - group.guest_toilet_motion_group
+    - automation.zoc_wh_occupancy_update_whole_home
   whole_home_motion_group:
     name: Whole Home Motion Group
     entities:

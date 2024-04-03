@@ -451,6 +451,24 @@ automation:
             service: light.turn_off
             entity_id:
             - light.en_suite_room_bed_led
+        - alias: Turn media_player.portable_tv
+          if:
+            condition: state
+            entity_id: input_boolean.always_on_constant
+            state: 'on'
+          then:
+            if:
+            - alias: Set TV brightness when it is on
+              condition: state
+              entity_id:
+              - media_player.portable_tv
+              state: 'on'
+            then:
+              service: samsungtv_smart.select_picture_mode
+              data:
+                entity_id:
+                - media_player.portable_tv
+                picture_mode: Standard
 - alias: ZL-ER Disable Entering Lights-on Automation If any People are in the Room-En-suite Room
   trigger:
   - platform: state
@@ -469,20 +487,25 @@ automation:
 - alias: ZL-ER LED On for 3 Min if Walking In the Dark-En-suite Room
   mode: restart
   trigger:
-  - entity_id: binary_sensor.en_suite_room_floor_motion_sensor_motion
+  - entity_id:
+    - binary_sensor.en_suite_room_floor_1_motion_sensor_motion
+    - binary_sensor.en_suite_room_floor_2_motion_sensor_motion
     platform: state
     to: 'on'
   condition:
   - condition: state
     entity_id: input_select.indoor_brightness
     state: dark
-  - entity_id:
-    - light.en_suite_room_bed_led
-    - light.en_suite_room_ceiling_light
-    - light.en_suite_room_lamp_1
-    - light.en_suite_room_lamp_2
-    condition: state
-    state: 'off'
+  - condition: not
+    conditions:
+    - condition: state
+      entity_id:
+      - light.en_suite_room_bed_led
+      - light.en_suite_room_ceiling_light
+      - light.en_suite_room_lamp_1
+      - light.en_suite_room_lamp_2
+      state: 'on'
+      match: any
   action:
   - alias: Turn light.en_suite_room_bed_led state=on light_brightness=40
     if:
@@ -498,17 +521,23 @@ automation:
   - alias: Wait for floor sensors to go off for 1 min to turn off LED. Stop waiting if it has wait for 1 hour.
     wait_for_trigger:
       platform: state
-      entity_id: binary_sensor.en_suite_room_floor_motion_sensor_motion
+      entity_id:
+      - binary_sensor.en_suite_room_floor_1_motion_sensor_motion
+      - binary_sensor.en_suite_room_floor_2_motion_sensor_motion
       to: 'off'
       for: 00:01:00
     timeout: 01:00:00
   - alias: ' Testing if other lights are manually turned on after the LED was on'
-    entity_id:
-    - light.en_suite_room_ceiling_light
-    - light.en_suite_room_lamp_1
-    - light.en_suite_room_lamp_2
-    condition: state
-    state: 'off'
+    condition: not
+    conditions:
+    - condition: state
+      entity_id:
+      - light.en_suite_room_bed_led
+      - light.en_suite_room_ceiling_light
+      - light.en_suite_room_lamp_1
+      - light.en_suite_room_lamp_2
+      state: 'on'
+      match: any
   - alias: Turn light.en_suite_room_bed_led state=off
     if:
       condition: state
@@ -1107,6 +1136,24 @@ automation:
               service: light.turn_off
               entity_id:
               - light.en_suite_room_bed_led
+          - alias: Turn media_player.portable_tv
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              if:
+              - alias: Set TV brightness when it is on
+                condition: state
+                entity_id:
+                - media_player.portable_tv
+                state: 'on'
+              then:
+                service: samsungtv_smart.select_picture_mode
+                data:
+                  entity_id:
+                  - media_player.portable_tv
+                  picture_mode: Standard
     - conditions:
       - condition: state
         entity_id: input_select.en_suite_room_scene
@@ -1571,6 +1618,243 @@ automation:
           entity_id:
           - light.en_suite_room_bed_led
   id: automation.zlb_er_remote_button_long_toggle_leds_en_suite_room
+- alias: ZLB-ER Six Key Button Control-En-suite Room
+  trigger:
+  - platform: state
+    entity_id:
+    - sensor.0x04cf8cdf3c797717_0x04cf8cdf3c797717_action
+    - sensor.0x04cf8cdf3c7976f8_0x04cf8cdf3c7976f8_action
+    id: button_1_single
+    to: button_1_single
+  - platform: state
+    entity_id:
+    - sensor.0x04cf8cdf3c797717_0x04cf8cdf3c797717_action
+    - sensor.0x04cf8cdf3c7976f8_0x04cf8cdf3c7976f8_action
+    id: button_2_single
+    to: button_2_single
+  - platform: state
+    entity_id:
+    - sensor.0x04cf8cdf3c797717_0x04cf8cdf3c797717_action
+    - sensor.0x04cf8cdf3c7976f8_0x04cf8cdf3c7976f8_action
+    id: button_3_single
+    to: button_3_single
+  - platform: state
+    entity_id:
+    - sensor.0x04cf8cdf3c797717_0x04cf8cdf3c797717_action
+    - sensor.0x04cf8cdf3c7976f8_0x04cf8cdf3c7976f8_action
+    id: button_4_single
+    to: button_4_single
+  - platform: state
+    entity_id:
+    - sensor.0x04cf8cdf3c797717_0x04cf8cdf3c797717_action
+    - sensor.0x04cf8cdf3c7976f8_0x04cf8cdf3c7976f8_action
+    id: button_5_single
+    to: button_5_single
+  - platform: state
+    entity_id:
+    - sensor.0x04cf8cdf3c797717_0x04cf8cdf3c797717_action
+    - sensor.0x04cf8cdf3c7976f8_0x04cf8cdf3c7976f8_action
+    id: button_6_single
+    to: button_6_single
+  mode: parallel
+  action:
+  - choose:
+    - conditions:
+      - condition: trigger
+        id:
+        - button_1_single
+      sequence:
+      - alias: Turn switch.adaptive_lighting_sleep_mode_en_suite_room state=toggle
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+          if:
+          - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
+            condition: state
+            entity_id: switch.adaptive_lighting_sleep_mode_en_suite_room
+            state: 'on'
+            match: any
+          then:
+            alias: Turn switch.adaptive_lighting_sleep_mode_en_suite_room state=off
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              service: homeassistant.turn_off
+              entity_id: switch.adaptive_lighting_sleep_mode_en_suite_room
+          else:
+            alias: Turn switch.adaptive_lighting_sleep_mode_en_suite_room state=on
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              service: homeassistant.turn_on
+              entity_id: switch.adaptive_lighting_sleep_mode_en_suite_room
+    - conditions:
+      - condition: trigger
+        id:
+        - button_2_single
+      sequence:
+      - alias: Turn cover.en_suite_room_curtain state=toggle
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+          service: cover.toggle
+          entity_id:
+          - cover.en_suite_room_curtain
+    - conditions:
+      - condition: trigger
+        id:
+        - button_3_single
+      sequence:
+      - alias: Turn light.en_suite_room_lamp_1 state=toggle
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+          if:
+          - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
+            condition: state
+            entity_id: light.en_suite_room_lamp_1
+            state: 'on'
+            match: any
+          then:
+            alias: Turn light.en_suite_room_lamp_1 state=off
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              service: light.turn_off
+              entity_id: light.en_suite_room_lamp_1
+          else:
+            alias: Turn light.en_suite_room_lamp_1 state=on
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              service: light.turn_on
+              entity_id: light.en_suite_room_lamp_1
+    - conditions:
+      - condition: trigger
+        id:
+        - button_4_single
+      sequence:
+      - alias: Turn light.en_suite_room_lamp_2 state=toggle
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+          if:
+          - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
+            condition: state
+            entity_id: light.en_suite_room_lamp_2
+            state: 'on'
+            match: any
+          then:
+            alias: Turn light.en_suite_room_lamp_2 state=off
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              service: light.turn_off
+              entity_id: light.en_suite_room_lamp_2
+          else:
+            alias: Turn light.en_suite_room_lamp_2 state=on
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              service: light.turn_on
+              entity_id: light.en_suite_room_lamp_2
+    - conditions:
+      - condition: trigger
+        id:
+        - button_5_single
+      sequence:
+      - alias: Turn light.en_suite_room_ceiling_light state=toggle
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+          if:
+          - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
+            condition: state
+            entity_id:
+            - light.en_suite_room_ceiling_light
+            state: 'on'
+            match: any
+          then:
+            alias: Turn light.en_suite_room_ceiling_light state=off
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              service: light.turn_off
+              entity_id:
+              - light.en_suite_room_ceiling_light
+          else:
+            alias: Turn light.en_suite_room_ceiling_light state=on
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              service: light.turn_on
+              entity_id:
+              - light.en_suite_room_ceiling_light
+    - conditions:
+      - condition: trigger
+        id:
+        - button_6_single
+      sequence:
+      - alias: Turn light.en_suite_room_bed_led state=toggle
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+          if:
+          - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
+            condition: state
+            entity_id:
+            - light.en_suite_room_bed_led
+            state: 'on'
+            match: any
+          then:
+            alias: Turn light.en_suite_room_bed_led state=off
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              service: light.turn_off
+              entity_id:
+              - light.en_suite_room_bed_led
+          else:
+            alias: Turn light.en_suite_room_bed_led state=on
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              service: light.turn_on
+              entity_id:
+              - light.en_suite_room_bed_led
+  id: automation.zlb_er_six_key_button_control_en_suite_room
 - alias: ZLB-ER Wall Switch - Single Press - Toggle Ceiling Light-En-suite Room
   trigger:
   - platform: state
@@ -1648,6 +1932,7 @@ automation:
       option: Outside
   id: automation.zlb_er_wall_switch_double_press_leave_room_and_turn_off_everything_en_suite_room
 - alias: ZOc-ER Occupancy Update-En-suite Room
+  id: automation.zoc_er_occupancy_update_en_suite_room
   trigger:
   - entity_id: group.en_suite_room_motion_group
     platform: state
@@ -1659,14 +1944,14 @@ automation:
   - minutes: /5
     platform: time_pattern
   action:
-  - service: pyscript.room_occupancy_state_machine
+    service: pyscript.room_occupancy_state_machine
     data:
       occupancy_entity_str: input_select.en_suite_room_occupancy
       motion_str: group.en_suite_room_motion_group
       motion_on_ratio_for_x_min_str: sensor.en_suite_room_motion_on_ratio_for_last_4_minutes
       motion_on_ratio_for_2x_min_str: sensor.en_suite_room_motion_on_ratio_for_last_8_minutes
       room_type: bedroom
-  id: automation.zoc_er_occupancy_update_en_suite_room
+      sleep_time: input_boolean.en_suite_room_sleep_time
 - alias: ZTV-ER Reset Picture Mode When Turning on TV-En-suite Room
   trigger:
   - platform: state
@@ -1729,6 +2014,9 @@ sensor:
     minutes: '8'
   end: '{{ (now() | as_timestamp) | as_datetime | as_local }}'
 input_boolean:
+  en_suite_room_sleep_time:
+    name: En Suite Room Sleep Time
+    initial: 'off'
   en_suite_room_heating_override:
     name: En Suite Room Heating Override
     initial: 'off'
@@ -1774,6 +2062,9 @@ template:
   - name: En-suite Room Button
     state: '{{states.sensor["0x00158d000403d6c0_action"].state}}'
 - sensor:
+  - name: En-suite Room Six Key Button 1 Button
+    state: '{{states.sensor["0x04cf8cdf3c797717_0x04cf8cdf3c797717_action"].state}}'
+- sensor:
   - name: En-suite Room Wall Button
     state: '{{states.sensor["0x00158d00047d69e6_action"].state}}'
 - sensor:
@@ -1789,21 +2080,29 @@ template:
     unit_of_measurement: '%'
     state: '{{states.sensor["0x00158d00057b37be_battery"].state}}'
 - sensor:
-  - name: En-suite Room Floor Motion Sensor Light
+  - name: En-suite Room Floor 1 Motion Sensor Light
     unit_of_measurement: lx
     state: '{{states.sensor["0x00158d000423319f_illuminance"].state}}'
 - sensor:
-  - name: En-suite Room Floor Motion Sensor Battery
+  - name: En-suite Room Floor 1 Motion Sensor Battery
     unit_of_measurement: '%'
     state: '{{states.sensor["0x00158d000423319f_battery"].state}}'
 - sensor:
+  - name: En-suite Room Floor 2 Motion Sensor Light
+    unit_of_measurement: lx
+    state: '{{states.sensor["54ef44e58108_illuminance"].state}}'
+- sensor:
+  - name: En-suite Room Floor 2 Motion Sensor Battery
+    unit_of_measurement: '%'
+    state: '{{states.sensor["54ef44e58108_battery"].state}}'
+- sensor:
   - name: En-suite Room Bed Motion Sensor Light
     unit_of_measurement: lx
-    state: '{{states.sensor["54ef44e559c6_illuminance"].state}}'
+    state: '{{states.sensor["54ef44e58345_illuminance"].state}}'
 - sensor:
   - name: En-suite Room Bed Motion Sensor Battery
     unit_of_measurement: '%'
-    state: '{{states.sensor["54ef44e559c6_battery"].state}}'
+    state: '{{states.sensor["54ef44e58345_battery"].state}}'
 - sensor:
   - name: En-suite Room Temperature Sensor
     unit_of_measurement: "\xB0C"
@@ -1816,12 +2115,51 @@ binary_sensor:
   name: En-suite Room Entrance Motion Sensor Motion
   entities: binary_sensor.0x00158d00057b37be_motion
 - platform: group
-  name: En-suite Room Floor Motion Sensor Motion
+  name: En-suite Room Floor 1 Motion Sensor Motion
   entities: binary_sensor.0x00158d000423319f_motion
 - platform: group
+  name: En-suite Room Floor 2 Motion Sensor Motion
+  entities: binary_sensor.54ef44e58108_motion
+- platform: group
   name: En-suite Room Bed Motion Sensor Motion
-  entities: binary_sensor.54ef44e559c6_motion
-light: []
+  entities: binary_sensor.54ef44e58345_motion
+light:
+- platform: group
+  name: En-suite Room Lamp 1
+  entities: light.e27w_1_hue
+- platform: group
+  name: En-suite Room Lamp 2
+  entities: light.e27w_2_hue
+- platform: group
+  name: En-suite Room Ceiling Light
+  entities: light.en_suite_room_ceiling_light_hue
+adaptive_lighting:
+- name: En-suite Room
+  lights:
+  - light.en_suite_room_lamp_1
+  - light.en_suite_room_lamp_2
+  - light.en_suite_room_ceiling_light
+  prefer_rgb_color: false
+  transition: 45
+  initial_transition: 1
+  interval: 90
+  min_brightness: 50
+  max_brightness: 100
+  min_color_temp: 2700
+  max_color_temp: 4000
+  sleep_brightness: 20
+  sleep_color_temp: 2200
+  take_over_control: true
+  autoreset_control_seconds: 86400
+  detect_non_ha_changes: false
+  only_once: false
+  adapt_only_on_bare_turn_on: true
+  separate_turn_on_commands: false
+  send_split_delay: 500
+  adapt_delay: 0.5
+  intercept: true
+  multi_light_intercept: true
+  include_config_in_attributes: false
 group:
   en_suite_room_occupancy_group:
     name: En Suite Room Occupancy Group
@@ -1830,14 +2168,17 @@ group:
     - group.en_suite_room_motion_group
     - binary_sensor.en_suite_room_bed_motion_sensor_motion
     - binary_sensor.en_suite_room_entrance_motion_sensor_motion
-    - binary_sensor.en_suite_room_floor_motion_sensor_motion
+    - binary_sensor.en_suite_room_floor_1_motion_sensor_motion
+    - binary_sensor.en_suite_room_floor_2_motion_sensor_motion
     - binary_sensor.en_suite_room_occupancy_sensor_occupancy
+    - automation.zoc_er_occupancy_update_en_suite_room
   en_suite_room_motion_group:
     name: En Suite Room Motion Group
     entities:
     - binary_sensor.en_suite_room_bed_motion_sensor_motion
     - binary_sensor.en_suite_room_entrance_motion_sensor_motion
-    - binary_sensor.en_suite_room_floor_motion_sensor_motion
+    - binary_sensor.en_suite_room_floor_1_motion_sensor_motion
+    - binary_sensor.en_suite_room_floor_2_motion_sensor_motion
     - binary_sensor.en_suite_room_occupancy_sensor_occupancy
   en_suite_room_light_group:
     name: En Suite Room Light Group
@@ -1883,8 +2224,11 @@ group:
     - automation.zlb_er_remote_button_double_toggle_lamps_en_suite_room
     - automation.zlb_er_remote_button_triple_toggle_ceiling_lights_en_suite_room
     - automation.zlb_er_remote_button_long_toggle_leds_en_suite_room
+    - automation.zlb_er_six_key_button_control_en_suite_room
     - automation.zlb_er_wall_switch_single_press_toggle_ceiling_light_en_suite_room
     - automation.zlb_er_wall_switch_double_press_leave_room_and_turn_off_everything_en_suite_room
     - automation.zoc_er_occupancy_update_en_suite_room
     - automation.ztv_er_reset_picture_mode_when_turning_on_tv_en_suite_room
     - switch.0x00158d00047d69e6_switch
+    - switch.0x00158d00047d69e6_wireless
+    - switch.adaptive_lighting_sleep_mode_en_suite_room

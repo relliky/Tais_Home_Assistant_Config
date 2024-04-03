@@ -9,13 +9,19 @@ import os
 import json
 import copy
 import argparse
+#from translate import Translator
+#global translator 
+#translator = Translator(to_lang="zh")
 
 ##################################################################
 #  Room Yaml Configurations
 ##################################################################
 
 class RoomBase:
-  def __init__ (self, dashboard_type=None):
+  def __init__ (self, dashboard_type=None, dashboard_language='English'):
+    
+    #self.translation = translator.translate("This is a pen.")
+    #print (self.translation)
 
     # Create Empty JSON Database
     self.reset_json_environment()
@@ -53,6 +59,8 @@ class RoomBase:
 
     # Get dashboard settings
     self.dashboard_type = dashboard_type
+    #self.dashboard_language = dashboard_language
+    #print (self.dashboard_language) 
     self.getDashboardSettings()
     self.dashboard_root = self.dashboard_default_root if dashboard_type == 'default' else \
                           'dashboard-tablet'          if dashboard_type == 'tablet'  else \
@@ -97,6 +105,7 @@ class RoomBase:
 
   def get_room_name_and_property(self):  
     self.room_entity          = self.getIDFromName(self.room_name)
+    self.room_navi_path       = self.room_entity.replace("_", "-")
     self.automation_room_name = self.room_short_name + " " 
 
     self.room_type =  'bedroom'       if (('_room' in self.room_entity) and ('living_room' != self.room_entity)) else \
@@ -109,13 +118,22 @@ class RoomBase:
     self.motion_group    = "group." + self.room_entity + "_motion_group"
     self.occupancy_group = "group." + self.room_entity + "_occupancy_group"
 
+
     # Motion sensor entities
     self.bed_motion_sensors      =  ["binary_sensor." + self.room_entity + "_bed_motion_sensor_motion"] if self.room_type == 'bedroom' else []
     self.non_bed_motion_sensors  =  []
     self.all_motion_sensors      =  ["uninitialized_all_motion_sensors"]
     self.entrance_motion_sensors =  ["binary_sensor." + self.room_entity + "_entrance_motion_sensor_motion"] if self.room_type == 'bedroom' else \
                                     [self.motion_group]
-    self.room_occupancy          = "input_select."  + self.room_entity + "_occupancy"               
+
+    self.room_occupancy          = "input_select."  + self.room_entity + "_occupancy"         
+    #self.force_stay_inside       = 'input_boolean.' + self.room_entity + '_force_stay_insde'
+    self.sleep_time              =  'input_boolean.master_room_sleep_time' if self.room_type != 'bedroom' else \
+                                    'input_boolean.' + self.room_entity + '_sleep_time' 
+    self.automation_occupancy = { "alias":"ZOc-" + self.automation_room_name + "Occupancy Update" + "-" + self.room_name}
+    self.automation_occupancy['id'] = self.getIDFromAlias(self.automation_occupancy['alias'])
+
+
     self.occupancy_state_duration= 4 # Minutes
     self.occupancy_on_x_min_ratio_sensor  = "unitialized_ratio_sensor"
     self.occupancy_on_2x_min_ratio_sensor = "unitialized_ratio_sensor"
@@ -131,7 +149,11 @@ class RoomBase:
     self.wall_buttons            = ["sensor." + self.room_entity + "_wall_button",
                                     "sensor." + self.room_entity + "_wall_button_2",] # sometimes the entity is duplicated and need _2 postfix
     self.buttons                 = self.wall_buttons + self.xiaomi_buttons
-    
+    self.curtain_buttons         = []
+    self.six_key_buttons         = []
+    self.four_key_buttons         = []
+
+
   def get_wall_switches(self):
     self.wall_switches          = []
     self.decouple_wall_switches = []
@@ -173,11 +195,12 @@ class RoomBase:
             #"sunrise_offset": None,
             #"sunset_time": None,
             #"sunset_offset": None,
-            "take_over_control": True,
+            "take_over_control": True, # Does not work, after update brightness manually on lovelace, it still applies adaptive lighting at each interval
+            "autoreset_control_seconds": 86400,
             "detect_non_ha_changes": False,
             "only_once": False,
             "adapt_only_on_bare_turn_on": True,
-            "separate_turn_on_commands": True,
+            "separate_turn_on_commands": False, # Only setting it False will make "take_over_control" work. But adaptive on color transition may fail, such as living room lamps.
             "send_split_delay": 500, 
             "adapt_delay": 0.5,
             "intercept": True,
@@ -410,7 +433,7 @@ class RoomBase:
       if entity_type in ['binary_sensor', 'switch', 'input_boolean']:
         card_type = 'custom:mushroom-' + 'entity'       + '-card'
       elif entity_type in ['group']:
-        card_type = 'custom:group-card'
+        card_type = 'custom:auto-entities'
       elif entity_type in ['sensor']:
         card_type = 'sensor'
       elif entity_type in ['input_select']:
@@ -425,11 +448,16 @@ class RoomBase:
       # Remove room name from entity name to get card name
       # "Ceiling Light" = Remove "Living Room" from "Living Room Ceiling Light" 
       card_name = re.sub(self.room_name, "", entity_name)
+      #if self.chinese == True:
+ 
 
     #if entity_name_translation != None:
     #  entity_name_translation = 
 
     card_name = '' if card_name is None else card_name
+    #if self.dashboard_language is 'Chinese':
+    #  card_name = translator.translate(card_name)
+    #  print (card_name)     
     card_icon = '' if card_icon is None else card_icon
 
     # light
@@ -499,14 +527,14 @@ class RoomBase:
         "entity": entity
       }
     # group card
-    elif card_type == 'custom:group-card':
+    elif card_type == 'custom:auto-entities':
       card = {
         "type": card_type,
         "card":{
           "type": "entities",
           "title": card_name
         },
-        "group": entity
+        "filter": {"include": [{"group": entity}]}
       }
 
     # sensor
@@ -827,7 +855,7 @@ class RoomBase:
     name_postfix   = ' ' + postfix if postfix != None else ''
 
     # 0 padding mac address to 64-bit for Zigbee device
-    if mac.startswith('0x'):
+    if re.match("^0x[A-Fa-f0-9]*$", mac):
       mac_in_decimal = int(mac, 16) # convert hexadecimal to decimal
       mac = "0x{:0>16x}".format(mac_in_decimal) # format hexadecimal with 0 padding to 16 characters (64-bit)
     
@@ -861,15 +889,16 @@ class RoomBase:
                          "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n")
 
       # Wall Switches Per Each Physical Wall Switch
-      for i in range(1,key_num+1):
+      for index in range(1,key_num+1):
         
         if integration == 'Xiaomi Gateway 3':
           # single switch is with different postfix
-          i = '' if key_num == 1 else i
+          i = '' if key_num == 1 else index
           alias_switch_name          = name + " Wall Switch " + str(i) + name_postfix
           raw_switch_entity          = "switch." + mac + ('_switch' if key_num == 1 else '_channel_' + str(i))
           raw_decouple_switch_entity = "switch." + mac + '_wireless' + ('' if key_num == 1 else  '_' + str(i))          
         elif integration == 'Z2M':
+          i = index
           # Hack Z2M renamed devices to standard name
           postfix = ''          if key_num == 1            else \
                     '_left'     if i == 1                  else \
@@ -895,13 +924,13 @@ class RoomBase:
           }        
         ]
 
+        #print (alias_switch_name + "      "  + str(index))
         # Rename switches based on switch rename
-        if switch_rename_dir is not None and i in switch_rename_dir:
-          #print (switch_rename_dir[i])
+        if switch_rename_dir is not None and index in switch_rename_dir:
           self.switch_list += [
             {
               "platform": "group",
-              "name": switch_rename_dir[i],
+              "name": switch_rename_dir[index],
               "entities": raw_switch_entity,
               "configured": True 
             }        
@@ -984,17 +1013,26 @@ class RoomBase:
     # Aqara Wireless Switch,   WXKG11LM  ZigbeeID: ["lumi.sensor_switch.aq2"]
     # MiJia Wireless Switch,   WXKG01LM  ZigbeeID: ["lumi.sensor_switch"]
     # MiJia Wireless Switch 2, ble XMWXKG01LM
+    # Aqara Opple switch 3 bands, WXCJKG13LM, ZigbeeID: ["lumi.remote.b686opcn01"]
     ###################################################################################################
     elif((model == "Aqara Wireless Switch") or \
          (model == "MiJia Wireless Switch") or \
+         (model == "Aqara Opple switch 3 bands") or \
          (model == "MiJia Wireless Switch 2")): 
+
+      if model == "Aqara Opple switch 3 bands" and integration == 'Z2M':
+        mac = mac + "_" + mac
+        mac_postfix = '_action'
+      else:
+        mac_postfix = '_button_action' if integration == 'Z2M' else \
+                      '_action'
 
       self.template_list += [
         {
           "sensor": [
             {
               "name": name + " Button" + name_postfix,
-              "state": '{{states.sensor["' + mac + '_action"].state}}'
+              "state": '{{states.sensor["' + mac + mac_postfix + '"].state}}'
             }
           ],
           "configured": True 
@@ -1026,7 +1064,7 @@ class RoomBase:
           "binary_sensor": [
             {
               "name": name + name_postfix,
-              "state": '{{states.sensor["' + mac + '_illuminance"].state |int > 2000 }}'
+              "state": '{{states.sensor["' + mac + '_illuminance"].state |int > 500 }}'
             }
           ],
           "configured": True 
@@ -1038,12 +1076,12 @@ class RoomBase:
     #
     # Aqara Motion and Illuminance Sensor, RTCGQ11LM ZigbeeID: ["lumi.sensor_motion.aq2"]
     # MiJia Human Body Movement Sensor, RTCGQ01LM
-    # Mijia2 Motion Sensor,   RTCGQ02LM
+    # Mijia Motion Sensor 2,   RTCGQ02LM
     # Ziqing Occupancy Sensor, Mesh model: "mesh IZQ-24"
     ###################################################################################################
     elif((model == "Aqara Motion and Illuminance Sensor"                                           ) or \
          (model == "MiJia Human Body Movement Sensor"                                              ) or \
-         (model == "Mijia2 Motion Sensor"                    and integration == 'Xiaomi Gateway 3')): 
+         (model == "Mijia Motion Sensor 2"                    and integration == 'Xiaomi Gateway 3')): 
       
       motion_entity_postfix = '_occupancy' if integration == 'Z2M' else \
                               '_motion'  # if integration == 'Xiaomi Gateway 3'
@@ -1106,6 +1144,22 @@ class RoomBase:
               "state": '{{states.sensor["' + mac + '_illuminance"].state}}'
             }
           ],
+          "configured": True 
+        }        
+      ]
+
+
+
+    ###################################################################################################
+    # Generic Binary Sensor
+    ###################################################################################################
+    elif(model == "Generic Binary Sensor"):
+
+      self.binary_sensor_list += [
+        {
+          "platform": "group",
+          "name": name + name_postfix,
+          "entities": "binary_sensor." + mac,
           "configured": True 
         }        
       ]
@@ -1330,6 +1384,18 @@ class RoomBase:
       }
     
       self.input_boolean_dict |= {
+        #self.getPostfix(self.force_stay_inside) : {
+        #  "name" :  self.getName(self.force_stay_inside),
+        #  "initial": "off",
+        #  "configured": self.cfg_occupancy
+        #},
+
+        self.getPostfix(self.sleep_time) : {
+          "name" :  self.getName(self.sleep_time),
+          "initial": "off",
+          "configured": self.cfg_occupancy
+        },
+
         self.getPostfix(self.room_heating_override) : {
           "name" :  self.getName(self.room_heating_override),
           "initial": "off",
@@ -1437,7 +1503,7 @@ class RoomBase:
         self.group_dict |= {
           self.getPostfix(self.occupancy_group) : {
             "name": self.getName(self.occupancy_group), 
-            "entities": [self.room_occupancy, self.motion_group] + self.all_motion_sensors 
+            "entities": [self.room_occupancy, self.motion_group] + self.all_motion_sensors + [self.automation_occupancy['id']]
           }  
         }
       
@@ -1520,6 +1586,7 @@ class RoomBase:
     self.gen_motion_light_automations()
     self.gen_temp_control_automations()
     self.gen_xiaomi_button_automations()
+    self.gen_curtain_button_automations()
     self.gen_wall_button_single_automations()
     self.gen_wall_button_double_automations()
     self.gen_adaptive_lighting_automations()
@@ -1568,6 +1635,11 @@ class RoomBase:
     # added wall switch control
     self.automation_entity_list += self.wall_switches
     self.automation_entity_list += self.decouple_wall_switches
+    #self.automation_entity_list += [self.force_stay_inside]
+    
+    # added adaptive light control
+    if self.cfg_adaptive_lighting == True:
+      self.automation_entity_list += ["switch.adaptive_lighting_sleep_mode_" + self.room_entity]
 
     if self.cfg_group_auto:
       self.group_dict |= {
@@ -1580,6 +1652,8 @@ class RoomBase:
     self.entity_declarations |= {
       "group":  self.group_dict
     }
+
+
 
   def populate_entities_into_database(self):
       self.entity_declarations |= {
@@ -1702,16 +1776,18 @@ class RoomBase:
             "state": "dark"
           },
           {
-            "entity_id":self.leds + self.ceiling_lights + self.lamps if self.room_entity != 'guest_room' else \
-                        self.leds + self.ceiling_lights,
-            "condition": "state",
-            "state": "off"
+            "condition": "not",
+            "conditions": [{
+                "condition": "state",
+                "entity_id": self.leds + self.ceiling_lights + self.lamps if self.room_entity != 'guest_room' else \
+                             self.leds + self.ceiling_lights,
+                "state": "on",
+                "match": "any"}]
           }
         ],
         "action": [
           self.callSceneService("Dark Night Mode") if self.room_entity == 'master_room' else self.turn(self.leds, 'on', light_brightness=40),
           #self.turn(self.leds, 'on', light_brightness=40),
-          
           {
             "alias": "Wait for floor sensors to go off for 1 min to turn off LED. Stop waiting if it has wait for 1 hour.",
             "wait_for_trigger": 
@@ -1722,13 +1798,16 @@ class RoomBase:
               },
             "timeout": "01:00:00"
           },
-          { 
+          {
             "alias": " Testing if other lights are manually turned on after the LED was on",  
-            "entity_id": self.ceiling_lights + self.lamps if self.room_entity != 'guest_room' else \
-                         self.ceiling_lights,
-            "condition": "state",
-            "state": "off"
-          },
+            "condition": "not",
+            "conditions": [{
+                "condition": "state",
+                "entity_id": self.leds + self.ceiling_lights + self.lamps if self.room_entity != 'guest_room' else \
+                             self.leds + self.ceiling_lights,
+                "state": "on",
+                "match": "any"}]
+          },          
           self.turn(self.leds, 'off') 
         ]
       }
@@ -2067,10 +2146,10 @@ class RoomBase:
     if self.cfg_led_only_scene:
       cond_seq += [self.setNewSceneFromOldScene(nxt_scene="LED White")]
     if self.cfg_custom_scene:
-      cond_seq+= [self.setNewSceneFromOldScene(nxt_scene="Sleep Mode")]
+      cond_seq += [self.setNewSceneFromOldScene(nxt_scene="Sleep Mode")]
     if self.cfg_custom_scene:
       #cond_seq += [self.setNewSceneFromOldScene(nxt_scene="Night Mode")] 
-      cond_seq+= [self.setNewSceneFromOldScene(nxt_scene="Dark Night Mode")]
+      cond_seq += [self.setNewSceneFromOldScene(nxt_scene="Dark Night Mode")]
       
     cond_seq += [self.setNewSceneFromOldScene(nxt_scene="All Off")] 
       
@@ -2103,6 +2182,23 @@ class RoomBase:
         ] if gateway_power_switch != 'N/A' else [])
     }]  
   
+
+  def gen_curtain_button_automations(self):
+    self.automations += [{
+        "alias" : "ZLB-" + self.automation_room_name + "Remote Button-Single-Toggle Blind" + "-" + self.room_name,
+        "configured": (len(self.curtain_buttons) > 0),
+        "trigger": [
+          {
+            "platform": "state",
+            "entity_id": self.curtain_buttons,
+            "to": ["single", "1"]
+          }
+        ],
+        "mode":"single", 
+        "action": self.turn(self.curtains, 'toggle')
+    }]
+
+
   def gen_xiaomi_button_automations(self):
     self.automations += [{
         "alias" : "ZLB-" + self.automation_room_name + "Remote Button - Single - Applies Different Scenes (State Machine)" + "-" + self.room_name,
@@ -2221,6 +2317,56 @@ class RoomBase:
     ]
 
 
+    self.automations += [{
+        "alias" : "ZLB-" + self.automation_room_name + "Six Key Button Control" + "-" + self.room_name,
+        "configured": len(self.six_key_buttons) > 0,
+        "trigger": [
+          {"platform": "state",  "entity_id": self.six_key_buttons,  "id": 'button_1_single',  "to": 'button_1_single'},
+          {"platform": "state",  "entity_id": self.six_key_buttons,  "id": 'button_2_single',  "to": 'button_2_single'},
+          {"platform": "state",  "entity_id": self.six_key_buttons,  "id": 'button_3_single',  "to": 'button_3_single'},
+          {"platform": "state",  "entity_id": self.six_key_buttons,  "id": 'button_4_single',  "to": 'button_4_single'},
+          {"platform": "state",  "entity_id": self.six_key_buttons,  "id": 'button_5_single',  "to": 'button_5_single'},
+          {"platform": "state",  "entity_id": self.six_key_buttons,  "id": 'button_6_single',  "to": 'button_6_single'}
+        ],
+        "mode":"parallel", 
+        "action": [
+          {
+            "choose": [
+              { "conditions": [{"condition": "trigger","id": ["button_1_single"]}], "sequence": [self.turn('switch.adaptive_lighting_sleep_mode_' + self.room_entity, 'toggle')]},
+              { "conditions": [{"condition": "trigger","id": ["button_2_single"]}], "sequence": [self.turn(self.curtains,      'toggle')]},
+              { "conditions": [{"condition": "trigger","id": ["button_3_single"]}], "sequence": [self.turn(self.lamps[0],      'toggle')]} if len(self.six_key_buttons) > 0 else [],
+              { "conditions": [{"condition": "trigger","id": ["button_4_single"]}], "sequence": [self.turn(self.lamps[1],      'toggle')]} if len(self.six_key_buttons) > 0 else [],
+              { "conditions": [{"condition": "trigger","id": ["button_5_single"]}], "sequence": [self.turn(self.ceiling_lights,'toggle')]},
+              { "conditions": [{"condition": "trigger","id": ["button_6_single"]}], "sequence": [self.turn(self.leds,          'toggle')]}
+            ]
+          }   
+        ]
+    }]
+
+
+    self.automations += [{
+        "alias" : "ZLB-" + self.automation_room_name + "Four Key Button Control" + "-" + self.room_name,
+        "configured": len(self.four_key_buttons) > 0,
+        "trigger": [
+          {"platform": "state",  "entity_id": self.four_key_buttons,  "id": 'on',                "to": 'on'},
+          {"platform": "state",  "entity_id": self.four_key_buttons,  "id": 'off',               "to": 'off'},
+          {"platform": "state",  "entity_id": self.four_key_buttons,  "id": 'arrow_left_click',  "to": 'arrow_left_click'},
+          {"platform": "state",  "entity_id": self.four_key_buttons,  "id": 'arrow_right_click', "to": 'arrow_right_click'}
+        ],
+        "mode":"parallel", 
+        "action": [
+          {
+            "choose": [
+              { "conditions": [{"condition": "trigger","id": ['on'               ]}], "sequence": [self.turn(self.curtains,      'toggle')]},
+              { "conditions": [{"condition": "trigger","id": ["off"              ]}], "sequence": [self.turn('switch.adaptive_lighting_sleep_mode_' + self.room_entity, 'toggle')]},
+              { "conditions": [{"condition": "trigger","id": ['arrow_left_click' ]}], "sequence": [self.turn(self.lamps[0],      'toggle')]} if len(self.four_key_buttons) > 0 else [],
+              { "conditions": [{"condition": "trigger","id": ['arrow_right_click']}], "sequence": [self.turn(self.lamps[1],      'toggle')]} if len(self.four_key_buttons) > 0 else [],
+            ]
+          }   
+        ]
+    }]
+
+
   # Exceptions that will be written per room - most of them because the wall button have multiple keys and multiple lights
   # [TODO] Ground Corridor - double - turn off everything apart from en-suite room/toilet 
   # [TODO] First Corridor - double - turn off everything apart from en-suite room/toilet 
@@ -2311,33 +2457,36 @@ class RoomBase:
       }
     ]
   def gen_adaptive_lighting_automations(self):
-    self.automations += [
-      {
-        "alias":"ZL-" + self.automation_room_name + "Turns On Sleep Mode In The Night" + "-" + self.room_name,
-        "configured": self.cfg_adaptive_lighting,
-        "trigger": [
-          {
-            "platform": "time",
-            "at": self.start_of_sleep_time
-          }
-        ],
-        "action": [self.turn('switch.adaptive_lighting_sleep_mode_' + self.room_entity, 'on')]
-      }
-    ]
-
-    self.automations += [
-      {
-        "alias":"ZL-" + self.automation_room_name + "Turns Off Sleep Mode In The Morning" + "-" + self.room_name,
-        "configured": self.cfg_adaptive_lighting,
-        "trigger": [
-          {
-            "platform": "time",
-            "at": self.end_of_sleep_time
-          }
-        ],
-        "action": [self.turn('switch.adaptive_lighting_sleep_mode_' + self.room_entity, 'off')]
-      }
-    ]
+    pass
+  # Use scheduler card instead
+  
+  #  self.automations += [
+  #    {
+  #      "alias":"ZL-" + self.automation_room_name + "Turns On Sleep Mode In The Night" + "-" + self.room_name,
+  #      "configured": self.cfg_adaptive_lighting,
+  #      "trigger": [
+  #        {
+  #          "platform": "time",
+  #          "at": self.start_of_sleep_time
+  #        }
+  #      ],
+  #      "action": [self.turn('switch.adaptive_lighting_sleep_mode_' + self.room_entity, 'on')]
+  #    }
+  #  ]
+  #
+  #  self.automations += [
+  #    {
+  #      "alias":"ZL-" + self.automation_room_name + "Turns Off Sleep Mode In The Morning" + "-" + self.room_name,
+  #      "configured": self.cfg_adaptive_lighting,
+  #      "trigger": [
+  #        {
+  #          "platform": "time",
+  #          "at": self.end_of_sleep_time
+  #        }
+  #      ],
+  #      "action": [self.turn('switch.adaptive_lighting_sleep_mode_' + self.room_entity, 'off')]
+  #    }
+  #  ]
 
 
   def gen_mirror_light_automations(self):
@@ -2396,9 +2545,7 @@ class RoomBase:
 
   def gen_occupancy_automations(self):
     
-    #print ("[OC] " + self.room_name + " occupancy_on_x_min_ratio_sensor is " + self.occupancy_on_x_min_ratio_sensor)
-    
-    self.automations += [
+    self.automations += [self.automation_occupancy | 
       {
         "alias":"ZOc-" + self.automation_room_name + "Occupancy Update" + "-" + self.room_name,
         "configured": self.cfg_occupancy,
@@ -2419,19 +2566,75 @@ class RoomBase:
             "platform": "time_pattern"
           }
         ],
-        "action": [
-          {
-            "service" : "pyscript.room_occupancy_state_machine",
-            "data":{"occupancy_entity_str":           self.room_occupancy,
-                    "motion_str":                     self.motion_group,                                 
-                    "motion_on_ratio_for_x_min_str":  self.occupancy_on_x_min_ratio_sensor,
-                    "motion_on_ratio_for_2x_min_str": self.occupancy_on_2x_min_ratio_sensor,
-                    "room_type":                      self.room_type 
-                    },
-          }
-        ]
+        "action": {
+            #"if": [{
+            #    "condition": "state",
+            #    "entity_id": self.force_stay_inside,
+            #    "state": "on"
+            #    }], 
+            #"then": {"service": "script.do_nothing"},
+            #"else": {
+                      "service" : "pyscript.room_occupancy_state_machine",
+                      "data":{"occupancy_entity_str":           self.room_occupancy,
+                              "motion_str":                     self.motion_group,                                 
+                              "motion_on_ratio_for_x_min_str":  self.occupancy_on_x_min_ratio_sensor,
+                              "motion_on_ratio_for_2x_min_str": self.occupancy_on_2x_min_ratio_sensor,
+                              "room_type":                      self.room_type,
+                              "sleep_time":                     self.sleep_time
+                              }
+            #        }
+            }
       }
     ]
+    
+#    self.automations += [{
+#        "alias":"ZoC-N-" + self.automation_room_name + "History Stat Reload On Timeout" + "-" + self.room_name,
+#        "configured": self.cfg_occupancy,
+#        "trigger": [
+#          {
+#            "minutes": "/5",
+#            "platform": "time_pattern"
+#          }
+#        ],
+#        "action": [
+#          {
+#            "condition": "and",
+#            "conditions": [
+#              {
+#                "condition": "state",
+#                "entity_id": self.motion_group,
+#                "for": {
+#                  "hours": 0,
+#                  "minutes": 6,
+#                  "seconds": 0
+#                }
+#              },
+#              {
+#                "condition": "not",
+#                "conditions": [
+#                  {
+#                    "condition": "numeric_state",
+#                    "entity_id": self.occupancy_on_x_min_ratio_sensor,
+#                    "above": 0,
+#                    "below": 100
+#                  }
+#                ]
+#              }
+#            ]
+#          },
+#          {
+#            "service": "history_stats.reload"
+#          },
+#          {
+#            "service": "script.notify_alexa_speakers_and_phones",
+#            "data": {
+#              "tts_message": self.room_entity + " timed out, reload history stat.",
+#              "notify_tai": "yes"
+#            }
+#          }
+#        ]
+#      }]
+
 
   # Generate automation ID/entity_name based on alias name
   def getIDFromName(self, name):
@@ -2492,18 +2695,25 @@ class RoomBase:
       # Shutter blind
       if self.aqara_shutter_blind == True and state in ['on', 'off']:
         if state == 'on': 
-          # Set to 0 position to open the shutter, blind full down
-          action_service = {"service": "cover.set_cover_position",
-                            "data":    {"position": 0},
-                            "entity_id": self.curtains}
+          if self.room_entity == 'study':
+            # open full blind for study
+            action_service = {"service": "cover.set_cover_position",
+                              "data":    {"position": 100},
+                              "entity_id": self.curtains}
+          else:
+            # open shutter for master toilet
+            # Set to 0 position to open the shutter, blind full down
+            action_service = {"service": "cover.set_cover_position",
+                              "data":    {"position": 0},
+                              "entity_id": self.curtains}
         elif state == 'off':
           # Set to 2 position to close the shutter, blind full down
           action_service = {"service": "cover.set_cover_position",
                             "data":    {"position": 2},
                             "entity_id": self.curtains}
         else:
-          pass
-      
+          action_service = {"service":   "cover.toggle",
+                            "entity_id": entity_list}      
       # Normal blind or curtains
       else:
         action_service = {"service":  "cover.open_cover"       if state == 'on'     else \
@@ -2531,8 +2741,8 @@ class RoomBase:
       action_service = self.convertToSingleService(
                        [self.turn(self.thermostat,          state),
                         self.turn(self.thermostat_schedule, state)] + \
-                        [] if self.room_entity != 'kitchen' else \
-                        [self.turn('switch.kitchen_hot_water', state)])
+                        ([] if self.room_entity != 'kitchen' else \
+                        [self.turn('switch.kitchen_hot_water', state)]))
 
     #--------------------------------------------------------------------------                       
     # This does not work very well as hue integeration lights are never unavailable, even without power                   
@@ -2684,7 +2894,9 @@ class RoomBase:
       elif scene_name == 'All Off':
           scene_service += [self.turn(self.ceiling_lights, "off"),
                             self.turn(self.lamps, "off"),
-                            self.turn(self.leds, "off")]
+                            self.turn(self.leds, "off"),
+                            self.turn(self.tvs, tv_brightness=3)] # reset TV brightness for bright room in the day time
+                                                                  # considering turn it to 1 for night
       elif scene_name in ['Lights on in hot sunshine',
                           'Lights on when bright outdoor',
                           'Lights on when dark outdoor']:
@@ -2742,7 +2954,7 @@ class RoomBase:
       self.cur_scene = cur_scene
     
     #if self.room_name == "Living Room":
-    #  print ("INFO: This is in " + self.room_name + ". nxt_scene=" + nxt_scene + ", cur_scene=" + str(cur_scene) + ".")
+    #  print ("INFO: This is in " + self.room_name + ". nxt_scene=" + nxt_scene + ", cur_scene=" + str(cur_scene) + ", self.cur_scene=" + str(self.cur_scene) +".")
     
     if self.cur_scene == 'unintialized_cur_scene':
       exit ("ERROR: self.cur_scene is unintialized. This is in " + self.room_name + ". nxt_scene=" + nxt_scene + ", cur_scene=" + str(cur_scene) + ".")
@@ -2852,7 +3064,7 @@ class RoomBase:
 
 
   def getDashboardSettings(self):
-    self.dashboard_default_root = 'Uninitliazed_dashboard_root'
+    self.dashboard_default_root = '/Uninitliazed_dashboard_root'
     self.dashboard_view_name = 'Uninitliazed_dashboard_view_name'
     self.room_icon           = 'Uninitliazed_room_icon'
 
@@ -2907,9 +3119,9 @@ class RoomBase:
                             condition_state_not=None, 
                             condition_states=None,
                             tap_action='more-info',
-                            theme='ios'):
+                            theme='default'):
     
-    self.dashboard_view_path = "/" + self.dashboard_root + "/" + self.room_entity
+    self.dashboard_view_path = "/" + self.dashboard_root + "/" + self.room_navi_path
     
     tap_action_dict = {}
     entity =  tap_entity                  if tap_entity       != None else \
@@ -2959,7 +3171,8 @@ class RoomBase:
           condition_card['states'] |= { state : template_card}
 
     if theme == 'ios':
-      condition_card |= self.getCardMod(style='ios16_toggle',color=("{% set entity = '"+entity+"' %}\n" + icon_color))
+      #condition_card |= self.getCardMod(style='ios16_toggle',color=("{% set entity = '"+entity+"' %}\n" + icon_color))
+      condition_card |= self.getCardMod(color=("{% set entity = '"+entity+"' %}\n" + icon_color))
 
     return condition_card
 
@@ -3083,7 +3296,7 @@ class RoomBase:
     
     #if self.room_name == 'Guest Room':
     #  print (self.main_card_list)
-    self.addView(title=self.room_name, theme=self.room_theme, viewPath=self.room_entity, cards=all_cards)
+    self.addView(title=self.room_name, theme=self.room_theme, viewPath=self.room_navi_path, cards=all_cards)
     return self.views
 
 
@@ -3238,7 +3451,7 @@ class MasterRoom(RoomBase):
     super().get_room_config()
     self.room_name             = 'Master Room'    
     self.room_short_name       = 'MR'
-    self.num_of_xiaomi_button  = 2
+    self.num_of_xiaomi_button  = 3
     self.num_of_lamps          = 2
     # Enables
     self.cfg_scene              = True            
@@ -3275,16 +3488,19 @@ class MasterRoom(RoomBase):
     self.add_mac_device("0x04cf8cdf3c73a19b",                self.room_name + " Curtain",             'Curtain',            "Aqara B1 curtain motor")
     self.add_mac_device('18c23c24681a',                      self.room_name,                          'Button',             'MiJia Wireless Switch 2', postfix='1')
     self.add_mac_device('18c23c25960b',                      self.room_name,                          'Button',             'MiJia Wireless Switch 2', postfix='2')
+    self.add_mac_device('18c23c25a26c',                      self.room_name,                          'Button',             'MiJia Wireless Switch 2', postfix='3')
     self.add_mac_device("0x04cf8cdf3c7ad638",                self.room_name,                          'Wall Switch',        "Aqara D1 Wall Switch (With Neutral, Triple Rocker)", flex_switch=[2,3])
-    self.add_mac_device('1001e49ec4_1',                      self.room_name + ' Dressing Table Light','Switch',             'Generic Switches')
-    self.add_mac_device("1001e4a0a0_1",                      self.room_name + ' Gateway Power',       'Switch',             "Generic Switches")
-        
+    self.add_mac_device('sonoff_1001e49ec4_1',               self.room_name + ' Dressing Table Light','Switch',             'Generic Switches')
+    self.add_mac_device("sonoff_1001e4a0a0_1",               self.room_name + ' Gateway Power',       'Switch',             "Generic Switches")
+
+    self.add_mac_device('e0798dba988e',                      self.room_name + ' Bed',                 'Motion Sensor',      'Mijia Motion Sensor 2')
+
     # New unused button
     #self.add_mac_device('18c23c25a26c',              self.room_name,                           'Button',             'MiJia Wireless Switch 2', postfix='3')
 
     #self.add_mac_device('50ec50df0a79',       'Master Room Ceiling Light Bulb 2',  'Light',              'Mijia BLE Lights')
 
-    #self.add_mac_device("54ef44e58958",             self.room_name + " Bed",                 'Motion Sensor',      "Mijia2 Motion Sensor")
+    #self.add_mac_device("54ef44e58958",             self.room_name + " Bed",                 'Motion Sensor',      "Mijia Motion Sensor 2")
     #self.add_mac_device("lumi_hagl04_a19b_curtain", self.room_name + " Curtain",            'Curtain',            "Generic Curtains")
     #self.add_mac_device('mss210_d3bd_outlet',       self.room_name + ' Dressing Table Light', 'Switch',             'Generic Switches')
 
@@ -3327,7 +3543,7 @@ class MasterRoom(RoomBase):
     ]
 
     self.bed_motion_sensors = [
-      #"binary_sensor.master_room_bed_motion_sensor_motion",
+      "binary_sensor.master_room_bed_motion_sensor_motion",
       #"binary_sensor.master_room_bed_pressure_sensor_1",
       #"binary_sensor.master_room_bed_pressure_sensor_2",
       #"binary_sensor.master_room_bed_pressure_sensor",
@@ -3353,7 +3569,8 @@ class MasterRoom(RoomBase):
     self.lights                  = self.ceiling_lights + self.lamps + self.leds + self.other_lights
     
     # Adaptive lighting
-    self.adaptive_lighting_list[0]["lights"] += self.ceiling_lights + self.lamps
+    if self.cfg_adaptive_lighting:
+      self.adaptive_lighting_list[0]["lights"] += self.ceiling_lights + self.lamps
 
   def get_cover_entities(self):
     super().get_cover_entities()
@@ -3375,6 +3592,10 @@ class MasterRoom(RoomBase):
     super().get_remote_entities()
     self.wall_buttons            = ["sensor." + self.room_entity + "_entrance_wall_button"]
     self.buttons                 = self.wall_buttons + self.xiaomi_buttons
+    # button states do not work well (not responsive) with template sensor renaming
+    self.four_key_buttons        = ['sensor.0x842e14fffe60b64a_action']
+
+
 
   def gen_room_specific_automations(self):
     self.add_offline_device_automations(
@@ -3428,12 +3649,20 @@ class MasterToilet(RoomBase):
     self.add_mac_device('mss210_cebd_outlet',               self.room_name + ' Floor LED',      'Switch',             'Generic Switches')
     self.add_mac_device('0x04cf8cdf3c7cc9c4',               self.room_name + ' Mirror Sensor',  'Light Sensor',       'Xiaomi Light Detection Sensor To Mirror Sensor')
     self.add_mac_device("master_toilet_ceiling_light_hue",  self.room_name + " Ceiling Light",  'Light',              "Generic Lights")
+    #self.add_mac_device('0x00158d000424f98c',               self.room_name + ' Blind',          'Button',             'MiJia Wireless Switch', integration='Z2M')
+
 
     #self.add_mac_device('0x00158d000171756e',      self.room_name + ' Floor LED',             'Switch',             'Mi Power Plug ZigBee')
     # Dressing Room
     self.add_mac_device("0x00158d00042d4092",      self.room_name + " Dressing Room",         'Wall Switch',        "Aqara D1 Wall Switch (With Neutral, Single Rocker)")
     self.add_mac_device("28d1272057d5",            self.room_name + " Dressing Room Light",   'Light',              "Mijia BLE Lights")
     self.add_mac_device("0x00158d00070b2f2a",      self.room_name + " Dressing Room Blind",   'Blind',              "Aqara roller shade motor")
+
+  def get_remote_entities(self):  
+    super().get_remote_entities()
+    # N.B. Xiaomi zigbee button rename using template does not sample very well
+    # Use manual rename on the native entity itself
+    self.curtain_buttons = ["sensor.master_toilet_blind_button_action"]
 
   def get_motion_sensor_entities(self):
     super().get_motion_sensor_entities()
@@ -3449,8 +3678,8 @@ class MasterToilet(RoomBase):
     self.lights                  = self.leds + self.lamps + self.ceiling_lights
 
     # Adaptive lighting
-    self.adaptive_lighting_list[0]["lights"] += self.ceiling_lights + ["light.master_toilet_dressing_room_light"]
-
+    if self.cfg_adaptive_lighting:
+      self.adaptive_lighting_list[0]["lights"] += self.ceiling_lights + ["light.master_toilet_dressing_room_light"]
 
   def get_mirror_sensor_entities(self):
     super().get_mirror_sensor_entities()
@@ -3488,7 +3717,7 @@ class Kitchen(RoomBase):
   def get_motion_sensor_entities(self):
     super().get_motion_sensor_entities()
     self.all_motion_sensors = [
-      "binary_sensor.kitchen_occupancy_sensor_occupancy",
+      #"binary_sensor.kitchen_occupancy_sensor_occupancy",
       "binary_sensor.kitchen_worktop_motion_sensor_motion",
       "binary_sensor.kitchen_dining_motion_sensor_motion"
     ]
@@ -3500,7 +3729,6 @@ class Kitchen(RoomBase):
     self.add_mac_device("curtain_e521",                               self.room_name + " Curtain",      'Curtain',            "Generic Curtains")     
     self.add_mac_device('0x00158d0005210fa9',                         self.room_name + ' Extractor',    'Wall Switch',        'Aqara D1 Wall Switch (With Neutral, Double Rocker)', switch_rename_dir={2: 'Kitchen Extractor'})
     self.add_mac_device('0x04cf8cdf3c7ad647',                         self.room_name,                   'Wall Switch',        'Aqara D1 Wall Switch (With Neutral, Triple Rocker)', flex_switch=[2], switch_rename_dir={3: 'Kitchen Floor LED'})
-    self.add_mac_device("dced8308f596",                               self.room_name,                   'Motion Sensor',      "Ziqing Occupancy Sensor")
     self.add_mac_device('mss210_c944_outlet',                         self.room_name + ' Plate Warmer', 'Switch',             'Generic Switches')
     self.add_mac_device('560a_measure_mss310_main_channel',           self.room_name + ' Hot Water',    'Switch',             'Generic Switches')
     self.add_mac_device('52b1_measure_mss310_power_w_main_channel',   'Washing Machine Power',          'Power',              'Generic Power Measurement Switch', power_on_threshold=4)
@@ -3512,7 +3740,7 @@ class Kitchen(RoomBase):
     self.add_mac_device("kitchen_dining_light_yeelight",              self.room_name + " Dining Light", 'Light',              "Generic Lights")
     self.add_mac_device("kitchen_tv_led_magic_home",                  self.room_name + " TV LED",       'Light',              "Generic Lights")
     self.add_mac_device("34053207483fda906b54",                       self.room_name + " Worktop LED",  'Light',              "Generic Lights")
-
+    self.add_mac_device("18c23c2caa33_water_leak",                    self.room_name + " Water Sensor", 'Binary Sensor',      "Generic Binary Sensor")
 
 
     # MCCGQ02HL
@@ -3652,6 +3880,7 @@ class LivingRoom(RoomBase):
     self.cfg_temp_calibration   = True
     self.cfg_tv                 = True
     self.cfg_adaptive_lighting  = True
+    self.cfg_led_only_scene     = True
 
   def get_motion_sensor_entities(self):
     super().get_motion_sensor_entities()
@@ -3675,25 +3904,25 @@ class LivingRoom(RoomBase):
   def get_entity_declarations(self):
     super().get_entity_declarations()
 
-    self.add_average_temperature_sensor(sensor_1='sensor.living_room_temperature_sensor_1', 
-                                        sensor_2='sensor.living_room_temperature_sensor_2', 
-                                        name='Living Room Temperature Sensor')
+    #self.add_average_temperature_sensor(sensor_1='sensor.living_room_temperature_sensor_1', 
+    #                                    sensor_2='sensor.living_room_temperature_sensor_2', 
+    #                                    name='Living Room Temperature Sensor')
 
     self.add_mac_device('0x00158d0003140ea8',                 self.room_name + ' Entrance',      'Motion Sensor',      'Aqara Motion and Illuminance Sensor')
     self.add_mac_device("dced8308e951",                       self.room_name,                    'Motion Sensor',      "Ziqing Occupancy Sensor")
   # self.add_mac_device('0x54ef441000792d1d',                 self.room_name + ' Sofa',          'Pressure Sensor 1',  'Aqara Pressure Sensor')    
-    self.add_mac_device("2ab7",                               self.room_name,                    'Temperature Sensor', "Mijia2 Temperature Clock",  postfix='1', integration='Passive BLE Monitor')
-    self.add_mac_device("a4c13864aca3",                       self.room_name,                    'Temperature Sensor', "Mijia2 Temperature Sensor", postfix='2')
+    #self.add_mac_device("2ab7",                               self.room_name,                    'Temperature Sensor', "Mijia2 Temperature Clock",  postfix='1', integration='Passive BLE Monitor')
+    self.add_mac_device("a4c13864aca3",                       self.room_name,                    'Temperature Sensor', "Mijia2 Temperature Sensor")
     self.add_mac_device('0x00158d0008d8ead8',                 self.room_name,                    'Wall Switch',        'Aqara D1 Wall Switch (With Neutral, Single Rocker)', flex_switch=True)
     self.add_mac_device("0x54ef441000452fd8",                 self.room_name + ' Curtain',       'Curtain',            "Aqara B1 curtain motor",    postfix='1')
     self.add_mac_device("0x54ef4410001f409c",                 self.room_name + ' Curtain',       'Curtain',            "Aqara B1 curtain motor",    postfix='2')
     self.add_mac_device('0x04cf8cdf3c7b560f',                 self.room_name,                    'Light Sensor',       'Xiaomi Light Detection Sensor')
     self.add_mac_device('0x00158d000424f995',                 self.room_name,                    'Button',             'MiJia Wireless Switch')
-    self.add_mac_device("1001e49906_1",                       self.room_name + ' Gateway Power', 'Switch',             "Generic Switches")
+    self.add_mac_device("sonoff_1001e49906_1",                self.room_name + ' Gateway Power', 'Switch',             "Generic Switches")
     self.add_mac_device("e4aaec80beca",                       self.room_name + " Window",        'Window',             "Mijia2 Contact") 
     self.add_mac_device("e4aaec80bedb",                       self.room_name + " Sliding Door",  'Door',               "Mijia2 Contact") 
     self.add_mac_device('0x00158d000451f90b',                 'Tais Desk',                       'Motion Sensor',      'Aqara Motion and Illuminance Sensor')
-    self.add_mac_device('1001e49dd9_1',                       'Tais Desk Screen LED',            'Switch',             'Generic Switches')
+    self.add_mac_device('sonoff_1001e49dd9_1',                'Tais Desk Screen LED',            'Switch',             'Generic Switches')
     self.add_mac_device('0x00158d00054d83df',                 'Boiler Room',                     'Motion Sensor',      'Aqara Motion and Illuminance Sensor')
     self.add_mac_device('28d127202ef6',                       'Boiler Room Light',               'Motion Sensor',      'Mijia BLE Lights')
     self.add_mac_device("living_room_ceiling_light_yeelight",  self.room_name + ' Ceiling Light','Light',              "Generic Lights")
@@ -3716,13 +3945,13 @@ class LivingRoom(RoomBase):
 
   def get_light_entities(self):
     super().get_light_entities()
-    self.leds                    = ["light.living_room_tv_led", 
-                                    "light.living_room_sofa_led"] 
+    self.leds                    = [#"light.living_room_tv_led", 
+                                    #"light.living_room_sofa_led",
+                                    "switch.living_room_floor_light_3"] 
     self.lamps                   = ["light.living_room_floor_light_1", 
                                     "light.living_room_3_head_lamp_1",
                                     "light.living_room_3_head_lamp_2",
-                                    "light.living_room_3_head_lamp_3",
-                                    "switch.living_room_floor_light_3"] 
+                                    "light.living_room_3_head_lamp_3"] 
     self.lights                  = self.leds + self.lamps + self.ceiling_lights
 
     # Adaptive lighting
@@ -3795,7 +4024,7 @@ class Garden(RoomBase):
     
   def get_entity_declarations(self):
     super().get_entity_declarations()
-    self.add_mac_device('54ef44e34c16',           self.room_name + ' Bike Shed',      'Motion Sensor', 'Mijia2 Motion Sensor')
+    self.add_mac_device('54ef44e34c16',           self.room_name + ' Bike Shed',      'Motion Sensor', 'Mijia Motion Sensor 2')
     self.add_mac_device('0x00158d000548b8a5',     self.room_name + ' Sliding Door',   'Motion Sensor', 'Aqara Motion and Illuminance Sensor')
     self.add_mac_device('0x00158d000522e00e',     self.room_name,                     'Wall Switch',   'Aqara D1 Wall Switch (With Neutral, Double Rocker)', switch_rename_dir={2: 'Garden Ceiling Light'})
     self.add_mac_device('mss425e_5df5_outlet_1',  self.room_name + ' Spotlight 1',    'Switch',        'Generic Switches')
@@ -3832,16 +4061,19 @@ class EnSuiteRoom(RoomBase):
 
   def get_entity_declarations(self):
     super().get_entity_declarations()
-    self.add_mac_device('0x00158d000403d6c0',              self.room_name,                    'Button',              'MiJia Wireless Switch')
-    self.add_mac_device('0x00158d00047d69e6',              self.room_name,                    'Wall Switch',         'Aqara D1 Wall Switch (With Neutral, Single Rocker)')
-    self.add_mac_device("dced8308f496",                    self.room_name,                    'Motion Sensor',       "Ziqing Occupancy Sensor")
-    self.add_mac_device('0x00158d00057b37be',              self.room_name + ' Entrance',      'Motion Sensor',       'Aqara Motion and Illuminance Sensor')
-    self.add_mac_device('0x00158d000423319f',              self.room_name + ' Floor',         'Motion Sensor',       'Aqara Motion and Illuminance Sensor')
-    self.add_mac_device('54ef44e559c6',                    self.room_name + ' Bed',           'Motion Sensor',       'Mijia2 Motion Sensor')
-    self.add_mac_device("a4c138b0eb53",                    self.room_name,                    'Temperature Sensor',  "Mijia2 Temperature Sensor")
-    self.add_mac_device("curtain_d29a",                    self.room_name + " Curtain",       'Curtain',             "Generic Curtains")     
-    self.add_mac_device("e27w_1_hue",                      self.room_name + " Lamp 1",        'Light',               "Generic Lights")
-    self.add_mac_device("e27w_2_hue",                      self.room_name + " Lamp 2",        'Light',               "Generic Lights")
+    self.add_mac_device('0x00158d000403d6c0',              self.room_name,                       'Button',              'MiJia Wireless Switch')
+    self.add_mac_device("0x04cf8cdf3c797717",              self.room_name + " Six Key Button 1", 'Button',              "Aqara Opple switch 3 bands", integration='Z2M')
+    self.add_mac_device('0x00158d00047d69e6',              self.room_name,                       'Wall Switch',         'Aqara D1 Wall Switch (With Neutral, Single Rocker)')
+    self.add_mac_device("dced8308f496",                    self.room_name,                       'Motion Sensor',       "Ziqing Occupancy Sensor")
+    self.add_mac_device('0x00158d00057b37be',              self.room_name + ' Entrance',         'Motion Sensor',       'Aqara Motion and Illuminance Sensor')
+    self.add_mac_device('0x00158d000423319f',              self.room_name + ' Floor 1',          'Motion Sensor',       'Aqara Motion and Illuminance Sensor')
+    self.add_mac_device('54ef44e58108',                    self.room_name + ' Floor 2',          'Motion Sensor',       'Mijia Motion Sensor 2')
+    #self.add_mac_device('54ef44e559c6',                    self.room_name + ' Bed',              'Motion Sensor',       'Mijia Motion Sensor 2')
+    self.add_mac_device('54ef44e58345',                    self.room_name + ' Bed',              'Motion Sensor',       'Mijia Motion Sensor 2')
+    self.add_mac_device("a4c138b0eb53",                    self.room_name,                       'Temperature Sensor',  "Mijia2 Temperature Sensor")
+    self.add_mac_device("curtain_d29a",                    self.room_name + " Curtain",          'Curtain',             "Generic Curtains")     
+    self.add_mac_device("e27w_1_hue",                      self.room_name + " Lamp 1",           'Light',               "Generic Lights")
+    self.add_mac_device("e27w_2_hue",                      self.room_name + " Lamp 2",           'Light',               "Generic Lights")
     self.add_mac_device("en_suite_room_ceiling_light_hue", self.room_name + " Ceiling Light", 'Light',               "Generic Lights")
 
 
@@ -3856,11 +4088,19 @@ class EnSuiteRoom(RoomBase):
     self.all_motion_sensors = [
       "binary_sensor.en_suite_room_bed_motion_sensor_motion",
       "binary_sensor.en_suite_room_entrance_motion_sensor_motion",
-      "binary_sensor.en_suite_room_floor_motion_sensor_motion",
+      'binary_sensor.en_suite_room_floor_1_motion_sensor_motion',
+      'binary_sensor.en_suite_room_floor_2_motion_sensor_motion',
       "binary_sensor.en_suite_room_occupancy_sensor_occupancy"
     ]
     
-    self.non_bed_motion_sensors = 'binary_sensor.en_suite_room_floor_motion_sensor_motion'
+    self.non_bed_motion_sensors = ['binary_sensor.en_suite_room_floor_1_motion_sensor_motion',
+                                   'binary_sensor.en_suite_room_floor_2_motion_sensor_motion']
+
+  def get_remote_entities(self):  
+    super().get_remote_entities()
+    # button states do not work well (not responsive) with template sensor renaming
+    self.six_key_buttons = ['sensor.0x04cf8cdf3c797717_0x04cf8cdf3c797717_action',
+                            'sensor.0x04cf8cdf3c7976f8_0x04cf8cdf3c7976f8_action']
 
   def get_light_entities(self):
     super().get_light_entities()
@@ -3933,8 +4173,8 @@ class GuestRoom(RoomBase):
     self.cfg_scene              = True            
     self.cfg_occupancy          = True        
     self.cfg_group_auto         = True       
-    self.cfg_motion_light       = True
-    self.cfg_remote_light       = True
+    #self.cfg_motion_light       = True
+    #self.cfg_remote_light       = True
     self.cfg_temp_control       = True
     self.cfg_temp_calibration   = True
     self.cfg_custom_scene       = False
@@ -3950,10 +4190,13 @@ class GuestRoom(RoomBase):
     self.add_mac_device("28d12735ea1e",       self.room_name + " Ceiling Light", 'Light',              "Mijia BLE Lights")
     self.add_mac_device("hue_ambiance_lamp_2",self.room_name + " Lamp 1",        'Light',              "Generic Lights")
     self.add_mac_device("hue_ambiance_lamp_3",self.room_name + " Lamp 2",        'Light',              "Generic Lights")
-    self.add_mac_device('18c23c27fc55',       self.room_name + ' Entrance',      'Motion Sensor',      'Mijia2 Motion Sensor')
-    self.add_mac_device("dced8309090d",       self.room_name,                    'Motion Sensor',      "Ziqing Occupancy Sensor")
-    self.add_mac_device('18c23c25a26c',       self.room_name,                    'Button',             'MiJia Wireless Switch 2', postfix='1')
-    self.add_mac_device('18c23c246426',       self.room_name,                    'Button',             'MiJia Wireless Switch 2', postfix='2')
+    self.add_mac_device('18c23c27fc55',       self.room_name + ' Entrance',      'Motion Sensor',      'Mijia Motion Sensor 2')
+    self.add_mac_device("dced8308f596",       self.room_name,                    'Motion Sensor',      "Ziqing Occupancy Sensor")    
+    self.add_mac_device('e0798dba9ae1',       self.room_name + ' Bed',           'Motion Sensor',      'Mijia Motion Sensor 2')
+    # This Ziqing Occupancy Sensor is Out of Order
+    #self.add_mac_device("dced8309090d",       self.room_name,                    'Motion Sensor',      "Ziqing Occupancy Sensor")
+    #self.add_mac_device('18c23c25a26c',       self.room_name,                    'Button',             'MiJia Wireless Switch 2', postfix='1')
+    #self.add_mac_device('18c23c246426',       self.room_name,                    'Button',             'MiJia Wireless Switch 2', postfix='2')
     self.add_mac_device("curtain_1050",       self.room_name + " Curtain",       'Curtain',            "Generic Curtains")     
 
   def get_cover_entities(self):
@@ -3966,6 +4209,7 @@ class GuestRoom(RoomBase):
     super().get_motion_sensor_entities()
     self.all_motion_sensors = [
       "binary_sensor.guest_room_entrance_motion_sensor_motion",
+      "binary_sensor.guest_room_bed_motion_sensor_motion",
       "binary_sensor.guest_room_occupancy_sensor_occupancy"
     ]
 
@@ -4022,7 +4266,8 @@ class GuestToilet(RoomBase):
     self.add_mac_device("a4c1387a7b78",                   self.room_name,                    'Temperature Sensor', "Mijia2 Temperature Sensor")
     self.add_mac_device('0x00158d000487851a',             self.room_name,                    'Wall Switch',        'Aqara D1 Wall Switch (With Neutral, Double Rocker)', integration='Z2M')
     self.add_mac_device("guest_toilet_ceiling_light_hue", self.room_name + " Ceiling Light", 'Light',              "Generic Lights")
-
+    self.add_mac_device('0x00158d0008d94c10',             self.room_name + ' Extractor',     'Wall Switch',        'Aqara D1 Wall Switch (With Neutral, Single Rocker)', switch_rename_dir={1: 'Guest Toilet Extractor'})
+    
 
 #('0x00158d00052b35f7', 'Guest Toilet',               'Aqara Motion and Illuminance Sensor')
 #('0x00158d00053e96ae', 'Guest Toilet',               'Aqara Door & Window Sensor')
@@ -4072,19 +4317,27 @@ class Study(RoomBase):
     self.lights                  = self.leds + self.lamps + self.ceiling_lights
 
     # Adaptive lighting
-    self.adaptive_lighting_list[0]["lights"] += self.ceiling_lights 
+    if self.cfg_adaptive_lighting:
+      self.adaptive_lighting_list[0]["lights"] += self.ceiling_lights 
 
   def get_motion_sensor_entities(self):
     super().get_motion_sensor_entities()
     self.all_motion_sensors = [
       "binary_sensor.study_motion_sensor_motion",
-      "binary_sensor.kes_desk_motion_sensor_motion"
+      "binary_sensor.study_desk_motion_sensor_motion"
     ]
 
   def get_cover_entities(self):
     super().get_cover_entities()
     # Cover entities
     self.curtains               = [ "cover.study_blind"] 
+
+  def get_remote_entities(self):  
+    super().get_remote_entities()
+    # N.B. Xiaomi zigbee button rename using template does not sample very well
+    # Use manual rename on the native entity itself
+    self.curtain_buttons = ["sensor.study_button"]
+
 
   def getDashboardSettings(self):
     super().getDashboardSettings()
@@ -4095,12 +4348,17 @@ class Study(RoomBase):
 
   def get_entity_declarations(self):
     super().get_entity_declarations()
-    self.add_mac_device("a4c138cfc701",       self.room_name,                     'Temperature Sensor', "Mijia2 Temperature Sensor")
-    self.add_mac_device('0x00158d00045245be', self.room_name,                     'Wall Switch',        'Aqara D1 Wall Switch (With Neutral, Single Rocker)', integration='Z2M', flex_switch=True)
-    self.add_mac_device("0x00158d00070b2f26", self.room_name + ' Blind',          'Curtain',            "Aqara roller shade motor")
-    self.add_mac_device("mss210_b083_outlet", self.room_name + ' Studio Lamp 1',   'Switch',            "Generic Switches")
-    self.add_mac_device("mss210_ce70_outlet", self.room_name + ' Studio Lamp 2',   'Switch',            "Generic Switches")
-    self.add_mac_device("1001e49ade_1",       self.room_name + ' Gateway Power',   'Switch',            "Generic Switches")
+    self.add_mac_device("a4c138cfc701",               self.room_name,                     'Temperature Sensor', "Mijia2 Temperature Sensor")
+    self.add_mac_device('0x00158d00045245be',         self.room_name,                     'Wall Switch',        'Aqara D1 Wall Switch (With Neutral, Single Rocker)', integration='Z2M', flex_switch=True)
+    self.add_mac_device("0x00158d00070b2f26",         self.room_name + ' Blind',          'Curtain',            "Aqara roller shade motor")
+    self.add_mac_device("mss210_b083_outlet",         self.room_name + ' Studio Lamp 1',  'Switch',             "Generic Switches")
+    self.add_mac_device('18c23c282711',               self.room_name,                     'Button',             'MiJia Wireless Switch 2')
+    self.add_mac_device('18c23c26ea40',               self.room_name + ' Desk',           'Motion Sensor',      'Mijia Motion Sensor 2')
+    self.add_mac_device('0x00158d000171756e_power',   'Feeding Bottle Warmer',            'Power',              'Generic Power Measurement Switch', power_on_threshold=30)
+
+    # This Meross switch is Out-of-Order
+    #self.add_mac_device("mss210_ce70_outlet", self.room_name + ' Studio Lamp 2',   'Switch',            "Generic Switches")
+    self.add_mac_device("sonoff_1001e49ade_1",       self.room_name + ' Gateway Power',   'Switch',            "Generic Switches")
 
 #('0x00158d00054a6eb9', 'Study',                      'Aqara Motion and Illuminance Sensor')
     #self.add_mac_device("mss210_c519_outlet", self.room_name + ' Screen LED',      'Switch',      "Generic Switches")
@@ -4292,7 +4550,7 @@ class System(RoomBase):
             "secondary": "{{states('sensor.processor_use_percent')}}% | {{states('sensor.load_1m')}} | {{(states('sensor.memory_use') | float/1000) | round(1) }}GB ",
             "tap_action": {
               "action": "navigate",
-              "navigation_path": "/lovelace-system/system\\"
+              "navigation_path": "/lovelace-system/system"
             }
           },
           self.getCardModColor("transparent") | {
@@ -4382,28 +4640,28 @@ class System(RoomBase):
 
 
 class Dashboard(RoomBase):
-  def __init__ (self, format=None, dashboard_type=None):
+  def __init__ (self, format=None, dashboard_type=None, dashboard_language=None):
     print ("-------------------------------------")
     print ("** Generating Overall Lovelace Configs. **")
-    self.format         = 'yaml'   if format         == None else format
-    self.dashboard_type = 'mobile' if dashboard_type == None else dashboard_type
+    self.format             = 'yaml'   if format         == None else format
+    self.dashboard_type     = 'mobile' if dashboard_type == None else dashboard_type
     self.room_nav_cards = []
     self.dashboard = {}
     self.views = []
     self.rooms = [ 
-              LivingRoom(      dashboard_type=dashboard_type),
-              Kitchen(         dashboard_type=dashboard_type),
-              MasterRoom(      dashboard_type=dashboard_type),
-              MasterToilet(    dashboard_type=dashboard_type),
-              Study(           dashboard_type=dashboard_type),
-              System(          dashboard_type=dashboard_type),
-              GroundToilet(    dashboard_type=dashboard_type),
-              Corridor(        dashboard_type=dashboard_type),
-              Garden(          dashboard_type=dashboard_type),
-              EnSuiteRoom(     dashboard_type=dashboard_type),
-              EnSuiteToilet(   dashboard_type=dashboard_type),
-              GuestRoom(       dashboard_type=dashboard_type),
-              GuestToilet(     dashboard_type=dashboard_type)]
+              LivingRoom(      dashboard_type=dashboard_type, dashboard_language=dashboard_language),
+              Kitchen(         dashboard_type=dashboard_type, dashboard_language=dashboard_language),
+              MasterRoom(      dashboard_type=dashboard_type, dashboard_language=dashboard_language),
+              MasterToilet(    dashboard_type=dashboard_type, dashboard_language=dashboard_language),
+              Study(           dashboard_type=dashboard_type, dashboard_language=dashboard_language),
+              System(          dashboard_type=dashboard_type, dashboard_language=dashboard_language),
+              GroundToilet(    dashboard_type=dashboard_type, dashboard_language=dashboard_language),
+              Corridor(        dashboard_type=dashboard_type, dashboard_language=dashboard_language),
+              Garden(          dashboard_type=dashboard_type, dashboard_language=dashboard_language),
+              EnSuiteRoom(     dashboard_type=dashboard_type, dashboard_language=dashboard_language),
+              EnSuiteToilet(   dashboard_type=dashboard_type, dashboard_language=dashboard_language),
+              GuestRoom(       dashboard_type=dashboard_type, dashboard_language=dashboard_language),
+              GuestToilet(     dashboard_type=dashboard_type, dashboard_language=dashboard_language)]
     self.addNavigationView()
     self.addAllRoomView()
     self.getDashbaord()
@@ -4416,7 +4674,7 @@ class Dashboard(RoomBase):
 
     room_nav_grid_cards = self.getLayoutWrapperCardList(self.room_nav_cards)
 
-    self.addView(viewPath='home', theme='ios-dark-mode-light-blue', cards=room_nav_grid_cards)
+    self.addView(viewPath='home', theme='Mushroom Shadow', cards=room_nav_grid_cards)
 
   def addAllRoomView(self):
       for room in self.rooms:
@@ -4551,6 +4809,8 @@ parser.add_argument('-dm', '-dmobile', dest ='render_dashboard_mobile', default=
                     action ='store_true', help ='Render mobile dashboard. Default to false as it takes extra time and lovelace are not updated often')
 parser.add_argument('-dt', '-dtablet', dest ='render_dashboard_tablet', default=False, 
                     action ='store_true', help ='Render tablet dashboard. Default to false as it takes extra time and lovelace are not updated often')
+parser.add_argument('-lc', '-language-chinese', dest='dashboard_language_chinese', default=False,
+                    action ='store_true', help ='Render dashboard in Chinese. Default to false as it takes extra time and lovelace are not updated often')
 
 args = parser.parse_args()
 
@@ -4563,8 +4823,8 @@ if args.render_auto_config :
             GuestToilet(),
             Garden(),
             Corridor(),
-           #EnSuiteToilet(),
-           #EnSuiteRoom(),
+            EnSuiteToilet(),
+            EnSuiteRoom(),
             GroundToilet(),
             MasterRoom(),
             MasterToilet(),
@@ -4588,10 +4848,13 @@ dashboard_type = 'tablet' if args.render_dashboard_tablet is True else \
                  'mobile' if args.render_dashboard_mobile is True else \
                  'default'
 
+dashboard_language = 'Chinese' if args.dashboard_language_chinese is True else \
+                     'English' 
+
 if args.render_dashboard_yaml:
-  dashboard = Dashboard(format='yaml', dashboard_type=dashboard_type)
+  dashboard = Dashboard(format='yaml', dashboard_type=dashboard_type, dashboard_language=dashboard_language)
 elif args.render_dashboard_json:
-  dashboard = Dashboard(format='json', dashboard_type=dashboard_type)
+  dashboard = Dashboard(format='json', dashboard_type=dashboard_type, dashboard_language=dashboard_language)
 
 
 # All Zigbee devices mac-name mapping
@@ -4627,8 +4890,8 @@ elif args.render_dashboard_json:
 
 
 print ("Done.")
-
-
+##translation = translator.translate("This is a pen.")
+#print (translation)
 
 
 

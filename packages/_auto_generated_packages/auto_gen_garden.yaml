@@ -260,6 +260,7 @@ automation:
             - switch.garden_ceiling_light
         - service: script.do_nothing
         - service: script.do_nothing
+        - service: script.do_nothing
 - alias: ZL-GD Disable Entering Lights-on Automation If any People are in the Room-Garden
   trigger:
   - platform: state
@@ -467,6 +468,7 @@ automation:
               - switch.garden_ceiling_light
           - service: script.do_nothing
           - service: script.do_nothing
+          - service: script.do_nothing
     - conditions:
       - condition: state
         entity_id: input_select.garden_scene
@@ -652,6 +654,7 @@ automation:
                 service: script.do_nothing
   id: automation.zl_gd_applies_different_scenes_based_on_scene_selections_state_execution_garden
 - alias: ZOc-GD Occupancy Update-Garden
+  id: automation.zoc_gd_occupancy_update_garden
   trigger:
   - entity_id: group.garden_motion_group
     platform: state
@@ -663,14 +666,14 @@ automation:
   - minutes: /5
     platform: time_pattern
   action:
-  - service: pyscript.room_occupancy_state_machine
+    service: pyscript.room_occupancy_state_machine
     data:
       occupancy_entity_str: input_select.garden_occupancy
       motion_str: group.garden_motion_group
       motion_on_ratio_for_x_min_str: sensor.garden_motion_on_ratio_for_last_4_minutes
       motion_on_ratio_for_2x_min_str: sensor.garden_motion_on_ratio_for_last_8_minutes
       room_type: landing
-  id: automation.zoc_gd_occupancy_update_garden
+      sleep_time: input_boolean.master_room_sleep_time
 input_select:
   garden_scene:
     name: Garden Scene
@@ -704,6 +707,9 @@ sensor:
     minutes: '8'
   end: '{{ (now() | as_timestamp) | as_datetime | as_local }}'
 input_boolean:
+  master_room_sleep_time:
+    name: Master Room Sleep Time
+    initial: 'off'
   curtain_control_when_left_garden:
     name: Curtain Control When Left Garden
     initial: 'off'
@@ -792,6 +798,7 @@ group:
     - group.garden_motion_group
     - binary_sensor.garden_sliding_door_motion_sensor_motion
     - binary_sensor.garden_bike_shed_motion_sensor_motion
+    - automation.zoc_gd_occupancy_update_garden
   garden_motion_group:
     name: Garden Motion Group
     entities:

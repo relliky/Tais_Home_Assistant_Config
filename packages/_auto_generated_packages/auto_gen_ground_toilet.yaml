@@ -260,6 +260,7 @@ automation:
             - light.ground_toilet_ceiling_light
         - service: script.do_nothing
         - service: script.do_nothing
+        - service: script.do_nothing
 - alias: ZL-0T Disable Entering Lights-on Automation If any People are in the Room-Ground Toilet
   trigger:
   - platform: state
@@ -600,6 +601,7 @@ automation:
               - light.ground_toilet_ceiling_light
           - service: script.do_nothing
           - service: script.do_nothing
+          - service: script.do_nothing
     - conditions:
       - condition: state
         entity_id: input_select.ground_toilet_scene
@@ -860,35 +862,8 @@ automation:
     data:
       option: Outside
   id: automation.zlb_0t_wall_switch_double_press_leave_room_and_turn_off_everything_ground_toilet
-- alias: ZL-0T Turns On Sleep Mode In The Night-Ground Toilet
-  trigger:
-  - platform: time
-    at: '23:00:00'
-  action:
-  - alias: Turn switch.adaptive_lighting_sleep_mode_ground_toilet state=on
-    if:
-      condition: state
-      entity_id: input_boolean.always_on_constant
-      state: 'on'
-    then:
-      service: homeassistant.turn_on
-      entity_id: switch.adaptive_lighting_sleep_mode_ground_toilet
-  id: automation.zl_0t_turns_on_sleep_mode_in_the_night_ground_toilet
-- alias: ZL-0T Turns Off Sleep Mode In The Morning-Ground Toilet
-  trigger:
-  - platform: time
-    at: 06:30:00
-  action:
-  - alias: Turn switch.adaptive_lighting_sleep_mode_ground_toilet state=off
-    if:
-      condition: state
-      entity_id: input_boolean.always_on_constant
-      state: 'on'
-    then:
-      service: homeassistant.turn_off
-      entity_id: switch.adaptive_lighting_sleep_mode_ground_toilet
-  id: automation.zl_0t_turns_off_sleep_mode_in_the_morning_ground_toilet
 - alias: ZOc-0T Occupancy Update-Ground Toilet
+  id: automation.zoc_0t_occupancy_update_ground_toilet
   trigger:
   - entity_id: group.ground_toilet_motion_group
     platform: state
@@ -900,14 +875,14 @@ automation:
   - minutes: /5
     platform: time_pattern
   action:
-  - service: pyscript.room_occupancy_state_machine
+    service: pyscript.room_occupancy_state_machine
     data:
       occupancy_entity_str: input_select.ground_toilet_occupancy
       motion_str: group.ground_toilet_motion_group
       motion_on_ratio_for_x_min_str: sensor.ground_toilet_motion_on_ratio_for_last_4_minutes
       motion_on_ratio_for_2x_min_str: sensor.ground_toilet_motion_on_ratio_for_last_8_minutes
       room_type: toilet
-  id: automation.zoc_0t_occupancy_update_ground_toilet
+      sleep_time: input_boolean.master_room_sleep_time
 input_select:
   ground_toilet_scene:
     name: Ground Toilet Scene
@@ -941,6 +916,9 @@ sensor:
     minutes: '8'
   end: '{{ (now() | as_timestamp) | as_datetime | as_local }}'
 input_boolean:
+  master_room_sleep_time:
+    name: Master Room Sleep Time
+    initial: 'off'
   ground_toilet_heating_override:
     name: Ground Toilet Heating Override
     initial: 'off'
@@ -1034,10 +1012,11 @@ adaptive_lighting:
   sleep_brightness: 20
   sleep_color_temp: 2200
   take_over_control: true
+  autoreset_control_seconds: 86400
   detect_non_ha_changes: false
   only_once: false
   adapt_only_on_bare_turn_on: true
-  separate_turn_on_commands: true
+  separate_turn_on_commands: false
   send_split_delay: 500
   adapt_delay: 0.5
   intercept: true
@@ -1050,6 +1029,7 @@ group:
     - input_select.ground_toilet_occupancy
     - group.ground_toilet_motion_group
     - binary_sensor.ground_toilet_motion_sensor_motion
+    - automation.zoc_0t_occupancy_update_ground_toilet
   ground_toilet_motion_group:
     name: Ground Toilet Motion Group
     entities:
@@ -1080,10 +1060,9 @@ group:
     - automation.zl_0t_applies_different_scenes_based_on_scene_selections_state_execution_ground_toilet
     - automation.zlb_0t_wall_switch_single_press_toggle_ceiling_light_ground_toilet
     - automation.zlb_0t_wall_switch_double_press_leave_room_and_turn_off_everything_ground_toilet
-    - automation.zl_0t_turns_on_sleep_mode_in_the_night_ground_toilet
-    - automation.zl_0t_turns_off_sleep_mode_in_the_morning_ground_toilet
     - automation.zoc_0t_occupancy_update_ground_toilet
     - switch.0x00158d0005435643_channel_1
     - switch.0x00158d0005435643_channel_2
     - switch.0x00158d0005435643_wireless_1
     - switch.0x00158d0005435643_wireless_2
+    - switch.adaptive_lighting_sleep_mode_ground_toilet

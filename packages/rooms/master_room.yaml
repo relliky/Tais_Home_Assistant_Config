@@ -962,40 +962,113 @@ automation tv:
         input_select_tv_picture_mode: input_select.master_room_tv_picture_mode
         tv_entity: media_player.master_room_tv
         automation_tv_pic_on_ha: automation.master_room_tv_picture_mode
-#################################################################
-# Sonos Speakers Grouping/Ungrouping Based On Motion Sensor
-#################################################################
-  - alias: S-MR Master Room Sonos Night Mode On In the Night
+  #################################################################
+  # Sonos Speakers Grouping/Ungrouping Based On Motion Sensor
+  #################################################################
+  - alias: S-MR Master Room Sonos Night Mode Turns On When Guest Room Have People Or In the Night
+    id: 32958gfkjlsdkjwfdsfs
     trigger:
-      - at: "21:00:00"
+      - at: "21:30:05"
         platform: time
+      - platform: state
+        entity_id:
+          - group.guest_room_motion_group
+      - platform: state
+        entity_id:
+          - input_select.guest_room_occupancy
     action:
+      - condition: state
+        entity_id: switch.master_room_sonos_night_sound
+        state: "off"
+      - alias: Guest Room Have People Or In the Night
+        condition: or
+        conditions:
+          - condition: time
+            after: "21:30:00"
+            before: "09:00:00"
+          - condition: state
+            entity_id: input_select.guest_room_occupancy
+            state:
+              - Just Entered
+              - Stayed Inside
+              - In Sleep
+      # Sonos Night Mode
       - service: switch.turn_on
         entity_id:
-          - switch.sonos_master_room_sonos_speech_enhancement
-          - switch.sonos_master_room_sonos_night_sound
-      # Turn up volume by 10
-      - service: media_player.volume_up
-        entity_id: media_player.master_room_sonos
-      - service: media_player.volume_up
-        entity_id: media_player.master_room_sonos
+          - switch.master_room_sonos_speech_enhancement
+          - switch.master_room_sonos_night_sound
+      # Turn up volume
+      - repeat:
+          count: 8
+          sequence:
+            - service: media_player.volume_up
+              entity_id: media_player.master_room_sonos
 
-  - alias: S-LR Living Room Sonos Night Mode Off In the Morning
+  - alias: S-MR Master Room Sonos Night Mode Off When Guest Room Have No People and in the Daytime
+    id: 4532809gjdsjgje20920fjed
     trigger:
-      - at: "09:00:00"
+      - at: "09:00:05"
         platform: time
+      - platform: state
+        entity_id:
+          - group.guest_room_motion_group
+      - platform: state
+        entity_id:
+          - input_select.guest_room_occupancy
     action:
+      - condition: state
+        entity_id: switch.master_room_sonos_night_sound
+        state: "on"
+      - alias: When Guest Room Have No People and in the Daytime
+        condition: and
+        conditions:
+          - condition: time
+            after: "09:00:00"
+            before: "21:30:00"
+          - condition: state
+            entity_id: input_select.guest_room_occupancy
+            state: Outside
       # Turn down volume by 10
-      - service: media_player.volume_down
-        entity_id: media_player.master_room_sonos
-      - service: media_player.volume_down
-        entity_id: media_player.master_room_sonos
+      - repeat:
+          count: 8
+          sequence:
+            - service: media_player.volume_down
+              entity_id: media_player.master_room_sonos
+      # Sonos Night Mode
       - service: switch.turn_off
         entity_id:
-          - switch.sonos_master_room_sonos_speech_enhancement
-          - switch.sonos_master_room_sonos_night_sound
+          - switch.master_room_sonos_speech_enhancement
+          - switch.master_room_sonos_night_sound
 
-
+  - alias: S-MR Master Room Sonos Volume Has Limit When Night Mode is On
+    id: 4532809gfdsajklfdjsgivewjioafmkwaslkm
+    trigger:
+      - platform: state
+        entity_id:
+          - media_player.master_room_sonos
+        attribute: volume_level
+    condition:
+      - condition: state
+        entity_id: switch.master_room_sonos_night_sound
+        state: "on"
+    action:
+      - if:
+          - condition: numeric_state
+            entity_id: media_player.master_room_sonos
+            attribute: volume_level
+            above: 0.55
+        then:
+          - service: media_player.volume_set
+            data:
+              volume_level: 0.55
+            target:
+              entity_id: media_player.master_room_sonos
+          - service: script.notify_alexa_speakers_and_phones
+            data:
+              tts_message: Night mode is on due to people in guest room. Limit maximum volume allowed. 有人呆在客房，音量被限制到55以免吵到客房的人。
+              alexa_speaker_list:
+                - media_player.master_room_echo
+    mode: single
 # automation sonos:
 #   - alias: S-MR-M Master Room Group Its Speaker If People Present
 #     trigger:

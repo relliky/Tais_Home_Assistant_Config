@@ -41,9 +41,31 @@ script:
                     method: all
                     type: announce
           - if:
+              - "{{notify_kes_dad == 'yes'}}"
+            then:
+              - service: notify.mobile_app_ke_ba_ba_shou_ji
+                data:
+                  message: "{{tts_message}}"
+                  data:
+                    push:
+                      name: default
+                      critical: 1
+                      volume: 1
+          - if:
+              - "{{notify_kes_mom == 'yes'}}"
+            then:
+              - service: notify.mobile_app_ke_ma_ma_shou_ji
+                data:
+                  message: "{{tts_message}}"
+                  data:
+                    push:
+                      name: default
+                      critical: 1
+                      volume: 1
+          - if:
               - "{{notify_tai == 'yes'}}"
             then:
-              - service: notify.mobile_app_tais_iphone_13_pro_max
+              - service: notify.mobile_app_tais_iphone_14_pro_max
                 data:
                   message: "{{tts_message}}"
                   data:
@@ -91,11 +113,35 @@ automation:
     action:
       - service: script.notify_alexa_speakers_and_phones
         data:
-          tts_message: Washing machine cycle completed!
+          tts_message: 洗衣机里的衣服洗好了。Washing machine cycle completed!
           notify_tai: "yes"
+          notify_kes_dad: "yes"
+          notify_kes_mom: "yes"
           notify_ke: "yes"
           alexa_speaker_list:
             - media_player.kitchen_echo
+    mode: single
+
+  - alias: "N- Reminding Turn Off Feeding Bottle Warmer - Tai/Ke/Amazon Speaker"
+    id: "fdasjklfdjkslafjkldsakgvbnkfdanbklfd"
+    trigger:
+      - platform: state
+        entity_id:
+          - binary_sensor.feeding_bottle_warmer
+        from: "off"
+        to: "on"
+        for:
+          hours: 0
+          minutes: 20
+          seconds: 0
+    action:
+      - service: script.notify_alexa_speakers_and_phones
+        data:
+          tts_message: 暖奶器已经工作了20分钟。
+          notify_tai: "yes"
+          #notify_kes_dad: "yes"
+          #notify_kes_mom: "yes"
+          #notify_ke: "yes"
     mode: single
 
   - alias: "N- Alert - Ring Doorbell Baterry Low"
@@ -110,8 +156,10 @@ automation:
     action:
       - service: script.notify_alexa_speakers_and_phones
         data:
-          tts_message: Ring Doorbell Baterry Low! Please charge it.
+          tts_message: 门铃电量低于20%。Ring Doorbell Baterry Low! Please charge it.
           notify_tai: "yes"
+          notify_kes_dad: "yes"
+          notify_kes_mom: "yes"
           notify_ke: "yes"
           #alexa_speaker_list:
           #  - media_player.master_room_echo
@@ -130,6 +178,24 @@ automation:
           notify_ke: "yes"
           #alexa_speaker_list:
           #  - media_player.master_room_echo
+    mode: single
+
+  - alias: "N- Doorbell - Tai/Ke's family"
+    id: "fdasjfkldaslfjdlsajfkldsakljfdklsjflkdjk43298432980483902"
+    trigger:
+      - platform: state
+        entity_id:
+          - binary_sensor.front_door_ding
+        from: "off"
+        to: "on"
+    action:
+      - service: script.notify_alexa_speakers_and_phones
+        data:
+          tts_message: 有人按门铃。Someone rang the doorbell.
+          notify_tai: "yes"
+          notify_kes_dad: "yes"
+          notify_kes_mom: "yes"
+          notify_ke: "yes"
     mode: single
 
   - alias: "N- Alert - Hot water schedule is not working - Tai"
@@ -183,8 +249,10 @@ automation:
       - service: script.notify_alexa_speakers_and_phones
         data:
           tts_message: |
-            Tomorrow is {{state_attr('calendar.bins_schedule', 'message')}} date.
+            明天是{% if state_attr('calendar.bins_schedule', 'message') == 'Blue Bin Collection' %}蓝色可回收垃圾桶回收日 {% else %} 黑色不可回收垃圾桶回收日{% endif %}。Tomorrow is {{state_attr('calendar.bins_schedule', 'message')}} date.
           notify_tai: "yes"
+          notify_kes_dad: "yes"
+          notify_kes_mom: "yes"
           notify_ke: "yes"
           alexa_speaker_list:
             - media_player.kitchen_echo

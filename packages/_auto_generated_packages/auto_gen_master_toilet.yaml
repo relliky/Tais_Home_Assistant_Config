@@ -396,6 +396,7 @@ automation:
             service: homeassistant.turn_off
             entity_id:
             - switch.master_toilet_floor_led
+        - service: script.do_nothing
 - alias: ZL-MT Disable Entering Lights-on Automation If any People are in the Room-Master Toilet
   trigger:
   - platform: state
@@ -778,6 +779,7 @@ automation:
               service: homeassistant.turn_off
               entity_id:
               - switch.master_toilet_floor_led
+          - service: script.do_nothing
     - conditions:
       - condition: state
         entity_id: input_select.master_toilet_scene
@@ -1070,6 +1072,26 @@ automation:
                   entity_id:
                   - cover.master_toilet_dressing_room_blind
   id: automation.zl_mt_applies_different_scenes_based_on_scene_selections_state_execution_master_toilet
+- alias: ZLB-MT Remote Button-Single-Toggle Blind-Master Toilet
+  trigger:
+  - platform: state
+    entity_id:
+    - sensor.master_toilet_blind_button_action
+    to:
+    - single
+    - '1'
+  mode: single
+  action:
+    alias: Turn cover.master_toilet_dressing_room_blind state=toggle
+    if:
+      condition: state
+      entity_id: input_boolean.always_on_constant
+      state: 'on'
+    then:
+      service: cover.toggle
+      entity_id:
+      - cover.master_toilet_dressing_room_blind
+  id: automation.zlb_mt_remote_button_single_toggle_blind_master_toilet
 - alias: ZLB-MT Wall Switch - Single Press - Toggle Ceiling Light-Master Toilet
   trigger:
   - platform: state
@@ -1146,34 +1168,6 @@ automation:
     data:
       option: Outside
   id: automation.zlb_mt_wall_switch_double_press_leave_room_and_turn_off_everything_master_toilet
-- alias: ZL-MT Turns On Sleep Mode In The Night-Master Toilet
-  trigger:
-  - platform: time
-    at: '23:00:00'
-  action:
-  - alias: Turn switch.adaptive_lighting_sleep_mode_master_toilet state=on
-    if:
-      condition: state
-      entity_id: input_boolean.always_on_constant
-      state: 'on'
-    then:
-      service: homeassistant.turn_on
-      entity_id: switch.adaptive_lighting_sleep_mode_master_toilet
-  id: automation.zl_mt_turns_on_sleep_mode_in_the_night_master_toilet
-- alias: ZL-MT Turns Off Sleep Mode In The Morning-Master Toilet
-  trigger:
-  - platform: time
-    at: 06:30:00
-  action:
-  - alias: Turn switch.adaptive_lighting_sleep_mode_master_toilet state=off
-    if:
-      condition: state
-      entity_id: input_boolean.always_on_constant
-      state: 'on'
-    then:
-      service: homeassistant.turn_off
-      entity_id: switch.adaptive_lighting_sleep_mode_master_toilet
-  id: automation.zl_mt_turns_off_sleep_mode_in_the_morning_master_toilet
 - alias: ZLM-MT Mirror Sensor On Turns On Ceiling Light With Cool Temperature-Master Toilet
   trigger:
   - platform: state
@@ -1211,6 +1205,7 @@ automation:
       entity_id: switch.adaptive_lighting_adapt_brightness_master_toilet
   id: automation.zlm_mt_mirror_sensor_off_turns_ceiling_light_with_adaptive_lighting_unless_it_s_off_master_toilet
 - alias: ZOc-MT Occupancy Update-Master Toilet
+  id: automation.zoc_mt_occupancy_update_master_toilet
   trigger:
   - entity_id: group.master_toilet_motion_group
     platform: state
@@ -1222,14 +1217,14 @@ automation:
   - minutes: /5
     platform: time_pattern
   action:
-  - service: pyscript.room_occupancy_state_machine
+    service: pyscript.room_occupancy_state_machine
     data:
       occupancy_entity_str: input_select.master_toilet_occupancy
       motion_str: group.master_toilet_motion_group
       motion_on_ratio_for_x_min_str: sensor.master_toilet_motion_on_ratio_for_last_4_minutes
       motion_on_ratio_for_2x_min_str: sensor.master_toilet_motion_on_ratio_for_last_8_minutes
       room_type: toilet
-  id: automation.zoc_mt_occupancy_update_master_toilet
+      sleep_time: input_boolean.master_room_sleep_time
 input_select:
   master_toilet_scene:
     name: Master Toilet Scene
@@ -1264,6 +1259,9 @@ sensor:
     minutes: '8'
   end: '{{ (now() | as_timestamp) | as_datetime | as_local }}'
 input_boolean:
+  master_room_sleep_time:
+    name: Master Room Sleep Time
+    initial: 'off'
   master_toilet_heating_override:
     name: Master Toilet Heating Override
     initial: 'off'
@@ -1347,7 +1345,7 @@ template:
     state: '{{states.sensor["0x00158d00054750ca_battery"].state}}'
 - binary_sensor:
   - name: Master Toilet Mirror Sensor
-    state: '{{states.sensor["0x04cf8cdf3c7cc9c4_illuminance"].state |int > 2000 }}'
+    state: '{{states.sensor["0x04cf8cdf3c7cc9c4_illuminance"].state |int > 500 }}'
 - sensor:
   - name: Master Toilet Dressing Room Wall Button
     state: '{{states.sensor["0x00158d00042d4092_action"].state}}'
@@ -1391,10 +1389,11 @@ adaptive_lighting:
   sleep_brightness: 20
   sleep_color_temp: 2200
   take_over_control: true
+  autoreset_control_seconds: 86400
   detect_non_ha_changes: false
   only_once: false
   adapt_only_on_bare_turn_on: true
-  separate_turn_on_commands: true
+  separate_turn_on_commands: false
   send_split_delay: 500
   adapt_delay: 0.5
   intercept: true
@@ -1408,6 +1407,7 @@ group:
     - group.master_toilet_motion_group
     - binary_sensor.master_toilet_basin_motion_sensor_motion
     - binary_sensor.master_toilet_shower_motion_sensor_motion
+    - automation.zoc_mt_occupancy_update_master_toilet
   master_toilet_motion_group:
     name: Master Toilet Motion Group
     entities:
@@ -1447,10 +1447,9 @@ group:
     - automation.zh_mt_heating_manual_override_timeout_in_few_hours_master_toilet
     - automation.zh_mt_valve_calibrate_temperature_using_external_sensor_master_toilet
     - automation.zl_mt_applies_different_scenes_based_on_scene_selections_state_execution_master_toilet
+    - automation.zlb_mt_remote_button_single_toggle_blind_master_toilet
     - automation.zlb_mt_wall_switch_single_press_toggle_ceiling_light_master_toilet
     - automation.zlb_mt_wall_switch_double_press_leave_room_and_turn_off_everything_master_toilet
-    - automation.zl_mt_turns_on_sleep_mode_in_the_night_master_toilet
-    - automation.zl_mt_turns_off_sleep_mode_in_the_morning_master_toilet
     - automation.zlm_mt_mirror_sensor_on_turns_on_ceiling_light_with_cool_temperature_master_toilet
     - automation.zlm_mt_mirror_sensor_off_turns_ceiling_light_with_adaptive_lighting_unless_it_s_off_master_toilet
     - automation.zoc_mt_occupancy_update_master_toilet
@@ -1458,3 +1457,4 @@ group:
     - switch.0x00158d00042d4092_switch
     - switch.0x00158d00047d69be_wireless
     - switch.0x00158d00042d4092_wireless
+    - switch.adaptive_lighting_sleep_mode_master_toilet

@@ -417,6 +417,24 @@ automation:
             entity_id:
             - switch.kitchen_floor_led
             - light.kitchen_tv_led
+        - alias: Turn media_player.kitchen_tv
+          if:
+            condition: state
+            entity_id: input_boolean.always_on_constant
+            state: 'on'
+          then:
+            if:
+            - alias: Set TV brightness when it is on
+              condition: state
+              entity_id:
+              - media_player.kitchen_tv
+              state: 'on'
+            then:
+              service: samsungtv_smart.select_picture_mode
+              data:
+                entity_id:
+                - media_player.kitchen_tv
+                picture_mode: Standard
 - alias: ZL-KC Disable Entering Lights-on Automation If any People are in the Room-Kitchen
   trigger:
   - platform: state
@@ -461,6 +479,24 @@ automation:
           entity_id: input_boolean.always_on_constant
           state: 'on'
         then:
+        - alias: Turn climate.kitchen state=on
+          if:
+            condition: state
+            entity_id: input_boolean.always_on_constant
+            state: 'on'
+          then:
+            service: climate.set_hvac_mode
+            data:
+              hvac_mode: heat
+            entity_id: climate.kitchen
+        - alias: Turn switch.schedule_kitchen_temperature state=on
+          if:
+            condition: state
+            entity_id: input_boolean.always_on_constant
+            state: 'on'
+          then:
+            service: homeassistant.turn_on
+            entity_id: switch.schedule_kitchen_temperature
         - alias: Turn switch.kitchen_hot_water state=on
           if:
             condition: state
@@ -496,6 +532,24 @@ automation:
         entity_id: input_boolean.always_on_constant
         state: 'on'
       then:
+      - alias: Turn climate.kitchen state=off
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+          service: climate.set_hvac_mode
+          data:
+            hvac_mode: 'off'
+          entity_id: climate.kitchen
+      - alias: Turn switch.schedule_kitchen_temperature state=off
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+          service: homeassistant.turn_off
+          entity_id: switch.schedule_kitchen_temperature
       - alias: Turn switch.kitchen_hot_water state=off
         if:
           condition: state
@@ -912,6 +966,24 @@ automation:
               entity_id:
               - switch.kitchen_floor_led
               - light.kitchen_tv_led
+          - alias: Turn media_player.kitchen_tv
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              if:
+              - alias: Set TV brightness when it is on
+                condition: state
+                entity_id:
+                - media_player.kitchen_tv
+                state: 'on'
+              then:
+                service: samsungtv_smart.select_picture_mode
+                data:
+                  entity_id:
+                  - media_player.kitchen_tv
+                  picture_mode: Standard
     - conditions:
       - condition: state
         entity_id: input_select.kitchen_scene
@@ -1314,35 +1386,8 @@ automation:
     data:
       option: Outside
   id: automation.zlb_kc_wall_switch_double_press_leave_room_and_turn_off_everything_kitchen
-- alias: ZL-KC Turns On Sleep Mode In The Night-Kitchen
-  trigger:
-  - platform: time
-    at: '23:00:00'
-  action:
-  - alias: Turn switch.adaptive_lighting_sleep_mode_kitchen state=on
-    if:
-      condition: state
-      entity_id: input_boolean.always_on_constant
-      state: 'on'
-    then:
-      service: homeassistant.turn_on
-      entity_id: switch.adaptive_lighting_sleep_mode_kitchen
-  id: automation.zl_kc_turns_on_sleep_mode_in_the_night_kitchen
-- alias: ZL-KC Turns Off Sleep Mode In The Morning-Kitchen
-  trigger:
-  - platform: time
-    at: 06:30:00
-  action:
-  - alias: Turn switch.adaptive_lighting_sleep_mode_kitchen state=off
-    if:
-      condition: state
-      entity_id: input_boolean.always_on_constant
-      state: 'on'
-    then:
-      service: homeassistant.turn_off
-      entity_id: switch.adaptive_lighting_sleep_mode_kitchen
-  id: automation.zl_kc_turns_off_sleep_mode_in_the_morning_kitchen
 - alias: ZOc-KC Occupancy Update-Kitchen
+  id: automation.zoc_kc_occupancy_update_kitchen
   trigger:
   - entity_id: group.kitchen_motion_group
     platform: state
@@ -1354,14 +1399,14 @@ automation:
   - minutes: /5
     platform: time_pattern
   action:
-  - service: pyscript.room_occupancy_state_machine
+    service: pyscript.room_occupancy_state_machine
     data:
       occupancy_entity_str: input_select.kitchen_occupancy
       motion_str: group.kitchen_motion_group
       motion_on_ratio_for_x_min_str: sensor.kitchen_motion_on_ratio_for_last_4_minutes
       motion_on_ratio_for_2x_min_str: sensor.kitchen_motion_on_ratio_for_last_8_minutes
       room_type: common_area
-  id: automation.zoc_kc_occupancy_update_kitchen
+      sleep_time: input_boolean.master_room_sleep_time
 - alias: ZTV-KC Reset Picture Mode When Turning on TV-Kitchen
   trigger:
   - platform: state
@@ -1494,6 +1539,9 @@ sensor:
     minutes: '8'
   end: '{{ (now() | as_timestamp) | as_datetime | as_local }}'
 input_boolean:
+  master_room_sleep_time:
+    name: Master Room Sleep Time
+    initial: 'off'
   kitchen_heating_override:
     name: Kitchen Heating Override
     initial: 'off'
@@ -1572,10 +1620,6 @@ template:
 - sensor:
   - name: Kitchen Wall Button
     state: '{{states.sensor["0x04cf8cdf3c7ad647_action"].state}}'
-- sensor:
-  - name: Kitchen Occupancy Sensor Light
-    unit_of_measurement: lx
-    state: '{{states.sensor["dced8308f596_illuminance"].state}}'
 - binary_sensor:
   - name: Washing Machine Power
     state: '{% if (states.sensor["52b1_measure_mss310_power_w_main_channel"].state) | float | round(1) > 4 %} on {% else %} off {% endif %}'
@@ -1597,9 +1641,6 @@ template:
     state: '{{states.sensor["0x00158d0004660308_battery"].state}}'
 binary_sensor:
 - platform: group
-  name: Kitchen Occupancy Sensor Occupancy
-  entities: binary_sensor.dced8308f596_occupancy
-- platform: group
   name: Kitchen Dining Motion Sensor Motion
   entities: binary_sensor.0x00158d00057acaac_motion
 - platform: group
@@ -1608,6 +1649,9 @@ binary_sensor:
 - platform: group
   name: Kitchen Window
   entities: binary_sensor.e4aaec4500e4_contact
+- platform: group
+  name: Kitchen Water Sensor
+  entities: binary_sensor.18c23c2caa33_water_leak
 light:
 - platform: group
   name: Kitchen Ceiling Light
@@ -1638,10 +1682,11 @@ adaptive_lighting:
   sleep_brightness: 20
   sleep_color_temp: 2200
   take_over_control: true
+  autoreset_control_seconds: 86400
   detect_non_ha_changes: false
   only_once: false
   adapt_only_on_bare_turn_on: true
-  separate_turn_on_commands: true
+  separate_turn_on_commands: false
   send_split_delay: 500
   adapt_delay: 0.5
   intercept: true
@@ -1653,13 +1698,12 @@ group:
     entities:
     - input_select.kitchen_occupancy
     - group.kitchen_motion_group
-    - binary_sensor.kitchen_occupancy_sensor_occupancy
     - binary_sensor.kitchen_worktop_motion_sensor_motion
     - binary_sensor.kitchen_dining_motion_sensor_motion
+    - automation.zoc_kc_occupancy_update_kitchen
   kitchen_motion_group:
     name: Kitchen Motion Group
     entities:
-    - binary_sensor.kitchen_occupancy_sensor_occupancy
     - binary_sensor.kitchen_worktop_motion_sensor_motion
     - binary_sensor.kitchen_dining_motion_sensor_motion
   kitchen_light_group:
@@ -1703,8 +1747,6 @@ group:
     - automation.zlb_kc_wall_switch_single_left_press_toggle_ceiling_light_kitchen
     - automation.zlb_kc_worktop_wall_switch_single_left_press_toggle_worktop_led_kitchen
     - automation.zlb_kc_wall_switch_double_press_leave_room_and_turn_off_everything_kitchen
-    - automation.zl_kc_turns_on_sleep_mode_in_the_night_kitchen
-    - automation.zl_kc_turns_off_sleep_mode_in_the_morning_kitchen
     - automation.zoc_kc_occupancy_update_kitchen
     - automation.ztv_kc_reset_picture_mode_when_turning_on_tv_kitchen
     - automation.zn_kc_notify_window_left_open_when_tai_is_leaving_zone_kitchen
@@ -1721,3 +1763,4 @@ group:
     - switch.0x04cf8cdf3c7ad647_wireless_1
     - switch.0x04cf8cdf3c7ad647_wireless_2
     - switch.0x04cf8cdf3c7ad647_wireless_3
+    - switch.adaptive_lighting_sleep_mode_kitchen

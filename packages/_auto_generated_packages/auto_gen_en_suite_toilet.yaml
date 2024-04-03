@@ -260,6 +260,7 @@ automation:
             - light.en_suite_toilet_ceiling_light
         - service: script.do_nothing
         - service: script.do_nothing
+        - service: script.do_nothing
 - alias: ZL-ET Disable Entering Lights-on Automation If any People are in the Room-En-suite Toilet
   trigger:
   - platform: state
@@ -593,6 +594,7 @@ automation:
               - light.en_suite_toilet_ceiling_light
           - service: script.do_nothing
           - service: script.do_nothing
+          - service: script.do_nothing
     - conditions:
       - condition: state
         entity_id: input_select.en_suite_toilet_scene
@@ -854,6 +856,7 @@ automation:
       option: Outside
   id: automation.zlb_et_wall_switch_double_press_leave_room_and_turn_off_everything_en_suite_toilet
 - alias: ZOc-ET Occupancy Update-En-suite Toilet
+  id: automation.zoc_et_occupancy_update_en_suite_toilet
   trigger:
   - entity_id: group.en_suite_toilet_motion_group
     platform: state
@@ -865,14 +868,14 @@ automation:
   - minutes: /5
     platform: time_pattern
   action:
-  - service: pyscript.room_occupancy_state_machine
+    service: pyscript.room_occupancy_state_machine
     data:
       occupancy_entity_str: input_select.en_suite_toilet_occupancy
       motion_str: group.en_suite_toilet_motion_group
       motion_on_ratio_for_x_min_str: sensor.en_suite_toilet_motion_on_ratio_for_last_4_minutes
       motion_on_ratio_for_2x_min_str: sensor.en_suite_toilet_motion_on_ratio_for_last_8_minutes
       room_type: toilet
-  id: automation.zoc_et_occupancy_update_en_suite_toilet
+      sleep_time: input_boolean.master_room_sleep_time
 input_select:
   en_suite_toilet_scene:
     name: En Suite Toilet Scene
@@ -906,6 +909,9 @@ sensor:
     minutes: '8'
   end: '{{ (now() | as_timestamp) | as_datetime | as_local }}'
 input_boolean:
+  master_room_sleep_time:
+    name: Master Room Sleep Time
+    initial: 'off'
   en_suite_toilet_heating_override:
     name: En Suite Toilet Heating Override
     initial: 'off'
@@ -974,6 +980,31 @@ binary_sensor:
   name: En-suite Toilet Motion Sensor Motion
   entities: binary_sensor.0x00158d000572839f_motion
 light: []
+adaptive_lighting:
+- name: En-suite Toilet
+  lights:
+  - light.en_suite_toilet_ceiling_light
+  prefer_rgb_color: false
+  transition: 45
+  initial_transition: 1
+  interval: 90
+  min_brightness: 50
+  max_brightness: 100
+  min_color_temp: 2700
+  max_color_temp: 4000
+  sleep_brightness: 20
+  sleep_color_temp: 2200
+  take_over_control: true
+  autoreset_control_seconds: 86400
+  detect_non_ha_changes: false
+  only_once: false
+  adapt_only_on_bare_turn_on: true
+  separate_turn_on_commands: false
+  send_split_delay: 500
+  adapt_delay: 0.5
+  intercept: true
+  multi_light_intercept: true
+  include_config_in_attributes: false
 group:
   en_suite_toilet_occupancy_group:
     name: En Suite Toilet Occupancy Group
@@ -981,6 +1012,7 @@ group:
     - input_select.en_suite_toilet_occupancy
     - group.en_suite_toilet_motion_group
     - binary_sensor.en_suite_toilet_motion_sensor_motion
+    - automation.zoc_et_occupancy_update_en_suite_toilet
   en_suite_toilet_motion_group:
     name: En Suite Toilet Motion Group
     entities:
@@ -1012,3 +1044,5 @@ group:
     - automation.zlb_et_wall_switch_double_press_leave_room_and_turn_off_everything_en_suite_toilet
     - automation.zoc_et_occupancy_update_en_suite_toilet
     - switch.0x00158d000522d90c_switch
+    - switch.0x00158d000522d90c_wireless
+    - switch.adaptive_lighting_sleep_mode_en_suite_toilet

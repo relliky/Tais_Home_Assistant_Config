@@ -316,6 +316,7 @@ automation:
             service: homeassistant.turn_off
             entity_id:
             - switch.guest_toilet_floor_led
+        - service: script.do_nothing
 - alias: ZL-GT Disable Entering Lights-on Automation If any People are in the Room-Guest Toilet
   trigger:
   - platform: state
@@ -698,6 +699,7 @@ automation:
               service: homeassistant.turn_off
               entity_id:
               - switch.guest_toilet_floor_led
+          - service: script.do_nothing
     - conditions:
       - condition: state
         entity_id: input_select.guest_toilet_scene
@@ -999,35 +1001,8 @@ automation:
     data:
       option: Outside
   id: automation.zlb_gt_wall_switch_double_press_leave_room_and_turn_off_everything_guest_toilet
-- alias: ZL-GT Turns On Sleep Mode In The Night-Guest Toilet
-  trigger:
-  - platform: time
-    at: '23:00:00'
-  action:
-  - alias: Turn switch.adaptive_lighting_sleep_mode_guest_toilet state=on
-    if:
-      condition: state
-      entity_id: input_boolean.always_on_constant
-      state: 'on'
-    then:
-      service: homeassistant.turn_on
-      entity_id: switch.adaptive_lighting_sleep_mode_guest_toilet
-  id: automation.zl_gt_turns_on_sleep_mode_in_the_night_guest_toilet
-- alias: ZL-GT Turns Off Sleep Mode In The Morning-Guest Toilet
-  trigger:
-  - platform: time
-    at: 06:30:00
-  action:
-  - alias: Turn switch.adaptive_lighting_sleep_mode_guest_toilet state=off
-    if:
-      condition: state
-      entity_id: input_boolean.always_on_constant
-      state: 'on'
-    then:
-      service: homeassistant.turn_off
-      entity_id: switch.adaptive_lighting_sleep_mode_guest_toilet
-  id: automation.zl_gt_turns_off_sleep_mode_in_the_morning_guest_toilet
 - alias: ZOc-GT Occupancy Update-Guest Toilet
+  id: automation.zoc_gt_occupancy_update_guest_toilet
   trigger:
   - entity_id: group.guest_toilet_motion_group
     platform: state
@@ -1039,14 +1014,14 @@ automation:
   - minutes: /5
     platform: time_pattern
   action:
-  - service: pyscript.room_occupancy_state_machine
+    service: pyscript.room_occupancy_state_machine
     data:
       occupancy_entity_str: input_select.guest_toilet_occupancy
       motion_str: group.guest_toilet_motion_group
       motion_on_ratio_for_x_min_str: sensor.guest_toilet_motion_on_ratio_for_last_4_minutes
       motion_on_ratio_for_2x_min_str: sensor.guest_toilet_motion_on_ratio_for_last_8_minutes
       room_type: toilet
-  id: automation.zoc_gt_occupancy_update_guest_toilet
+      sleep_time: input_boolean.master_room_sleep_time
 input_select:
   guest_toilet_scene:
     name: Guest Toilet Scene
@@ -1081,6 +1056,9 @@ sensor:
     minutes: '8'
   end: '{{ (now() | as_timestamp) | as_datetime | as_local }}'
 input_boolean:
+  master_room_sleep_time:
+    name: Master Room Sleep Time
+    initial: 'off'
   guest_toilet_heating_override:
     name: Guest Toilet Heating Override
     initial: 'off'
@@ -1126,6 +1104,12 @@ switch:
 - platform: group
   name: Guest Toilet Wall Switch 2
   entities: switch.guest_toilet_wall_switch_right
+- platform: group
+  name: 'Guest Toilet Extractor Wall Switch '
+  entities: switch.0x00158d0008d94c10_switch
+- platform: group
+  name: Guest Toilet Extractor
+  entities: switch.0x00158d0008d94c10_switch
 cover: []
 template:
 - binary_sensor:
@@ -1135,6 +1119,9 @@ template:
   - name: Guest Toilet Temperature Sensor
     unit_of_measurement: "\xB0C"
     state: '{{states.sensor["a4c1387a7b78_temperature"].state | float | round(1)}}'
+- sensor:
+  - name: Guest Toilet Extractor Wall Button
+    state: '{{states.sensor["0x00158d0008d94c10_action"].state}}'
 binary_sensor: []
 light:
 - platform: group
@@ -1155,10 +1142,11 @@ adaptive_lighting:
   sleep_brightness: 20
   sleep_color_temp: 2200
   take_over_control: true
+  autoreset_control_seconds: 86400
   detect_non_ha_changes: false
   only_once: false
   adapt_only_on_bare_turn_on: true
-  separate_turn_on_commands: true
+  separate_turn_on_commands: false
   send_split_delay: 500
   adapt_delay: 0.5
   intercept: true
@@ -1171,6 +1159,7 @@ group:
     - input_select.guest_toilet_occupancy
     - group.guest_toilet_motion_group
     - binary_sensor.guest_toilet_motion_sensor_motion
+    - automation.zoc_gt_occupancy_update_guest_toilet
   guest_toilet_motion_group:
     name: Guest Toilet Motion Group
     entities:
@@ -1204,8 +1193,9 @@ group:
     - automation.zl_gt_applies_different_scenes_based_on_scene_selections_state_execution_guest_toilet
     - automation.zlb_gt_wall_switch_single_left_press_toggle_ceiling_light_guest_toilet
     - automation.zlb_gt_wall_switch_double_press_leave_room_and_turn_off_everything_guest_toilet
-    - automation.zl_gt_turns_on_sleep_mode_in_the_night_guest_toilet
-    - automation.zl_gt_turns_off_sleep_mode_in_the_morning_guest_toilet
     - automation.zoc_gt_occupancy_update_guest_toilet
     - switch.guest_toilet_wall_switch_left
     - switch.guest_toilet_wall_switch_right
+    - switch.0x00158d0008d94c10_switch
+    - switch.0x00158d0008d94c10_wireless
+    - switch.adaptive_lighting_sleep_mode_guest_toilet

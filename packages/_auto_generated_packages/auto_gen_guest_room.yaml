@@ -18,405 +18,6 @@ automation:
       service: homeassistant.turn_on
       entity_id: switch.0x00158d00047b69d2_switch
   id: automation.zlb_gr_flex_wall_switch_on_postion_1_automatically_turn_on_the_wall_switch_back_when_turned_off_guest_room
-- alias: ZL-GR Ceiling Lights On Or Open Curtains If Entering to Room-Guest Room
-  id: automation.zl_gr_ceiling_lights_on_or_open_curtains_if_entering_to_room_guest_room
-  trigger:
-    entity_id:
-    - binary_sensor.guest_room_entrance_motion_sensor_motion
-    platform: state
-    to: 'on'
-  action:
-  - service: automation.turn_off
-    entity_id: automation.zl_gr_ceiling_lights_on_or_open_curtains_if_entering_to_room_guest_room
-    data:
-      stop_actions: false
-  - service: script.call_room_scene
-    data:
-      room_scene_select: input_select.guest_room_scene
-      scene: Idle
-  - if:
-    - condition: numeric_state
-      entity_id: sensor.met_office_cambridge_city_airport_temperature_3_hourly
-      above: '18'
-    - condition: time
-      after: 06:00:00
-      before: '16:00:00'
-    - condition: template
-      value_template: '{{ now().month > 4 and now().month < 9 }}'
-    - condition: state
-      entity_id: input_boolean.always_on_constant
-      state: 'on'
-    then:
-      alias: Lights on in hot sunshine
-      if:
-        condition: state
-        entity_id: input_boolean.always_on_constant
-        state: 'on'
-      then:
-      - parallel:
-        - parallel:
-          - if:
-              condition: state
-              entity_id: input_boolean.ceiling_light_control_in_hot_sunshine_guest_room
-              state: 'on'
-            then:
-              alias: Turn light.guest_room_ceiling_light state=on
-              if:
-                condition: state
-                entity_id: input_boolean.always_on_constant
-                state: 'on'
-              then:
-                service: light.turn_on
-                entity_id:
-                - light.guest_room_ceiling_light
-            else:
-              alias: Turn light.guest_room_ceiling_light state=off
-              if:
-                condition: state
-                entity_id: input_boolean.always_on_constant
-                state: 'on'
-              then:
-                service: light.turn_off
-                entity_id:
-                - light.guest_room_ceiling_light
-          - if:
-              condition: state
-              entity_id: input_boolean.lamp_control_in_hot_sunshine_guest_room
-              state: 'on'
-            then:
-              alias: Turn light.guest_room_lamp_1 light.guest_room_lamp_2 state=on
-              if:
-                condition: state
-                entity_id: input_boolean.always_on_constant
-                state: 'on'
-              then:
-                service: light.turn_on
-                entity_id:
-                - light.guest_room_lamp_1
-                - light.guest_room_lamp_2
-            else:
-              alias: Turn light.guest_room_lamp_1 light.guest_room_lamp_2 state=off
-              if:
-                condition: state
-                entity_id: input_boolean.always_on_constant
-                state: 'on'
-              then:
-                service: light.turn_off
-                entity_id:
-                - light.guest_room_lamp_1
-                - light.guest_room_lamp_2
-          - if:
-              condition: state
-              entity_id: input_boolean.led_control_in_hot_sunshine_guest_room
-              state: 'on'
-            then:
-              service: script.do_nothing
-            else:
-              service: script.do_nothing
-          - if:
-              condition: state
-              entity_id: input_boolean.curtain_control_in_hot_sunshine_guest_room
-              state: 'on'
-            then:
-              alias: Turn cover.guest_room_curtain state=on
-              if:
-                condition: state
-                entity_id: input_boolean.always_on_constant
-                state: 'on'
-              then:
-                service: cover.open_cover
-                entity_id:
-                - cover.guest_room_curtain
-            else:
-              alias: Turn cover.guest_room_curtain state=off
-              if:
-                condition: state
-                entity_id: input_boolean.always_on_constant
-                state: 'on'
-              then:
-                service: cover.close_cover
-                entity_id:
-                - cover.guest_room_curtain
-    else:
-      if:
-      - condition: state
-        entity_id: sun.sun
-        state: above_horizon
-      then:
-        alias: Lights on when bright outdoor
-        if:
-          condition: state
-          entity_id: input_boolean.always_on_constant
-          state: 'on'
-        then:
-        - parallel:
-          - parallel:
-            - if:
-                condition: state
-                entity_id: input_boolean.ceiling_light_control_when_bright_outdoor_guest_room
-                state: 'on'
-              then:
-                alias: Turn light.guest_room_ceiling_light state=on
-                if:
-                  condition: state
-                  entity_id: input_boolean.always_on_constant
-                  state: 'on'
-                then:
-                  service: light.turn_on
-                  entity_id:
-                  - light.guest_room_ceiling_light
-              else:
-                alias: Turn light.guest_room_ceiling_light state=off
-                if:
-                  condition: state
-                  entity_id: input_boolean.always_on_constant
-                  state: 'on'
-                then:
-                  service: light.turn_off
-                  entity_id:
-                  - light.guest_room_ceiling_light
-            - if:
-                condition: state
-                entity_id: input_boolean.lamp_control_when_bright_outdoor_guest_room
-                state: 'on'
-              then:
-                alias: Turn light.guest_room_lamp_1 light.guest_room_lamp_2 state=on
-                if:
-                  condition: state
-                  entity_id: input_boolean.always_on_constant
-                  state: 'on'
-                then:
-                  service: light.turn_on
-                  entity_id:
-                  - light.guest_room_lamp_1
-                  - light.guest_room_lamp_2
-              else:
-                alias: Turn light.guest_room_lamp_1 light.guest_room_lamp_2 state=off
-                if:
-                  condition: state
-                  entity_id: input_boolean.always_on_constant
-                  state: 'on'
-                then:
-                  service: light.turn_off
-                  entity_id:
-                  - light.guest_room_lamp_1
-                  - light.guest_room_lamp_2
-            - if:
-                condition: state
-                entity_id: input_boolean.led_control_when_bright_outdoor_guest_room
-                state: 'on'
-              then:
-                service: script.do_nothing
-              else:
-                service: script.do_nothing
-            - if:
-                condition: state
-                entity_id: input_boolean.curtain_control_when_bright_outdoor_guest_room
-                state: 'on'
-              then:
-                alias: Turn cover.guest_room_curtain state=on
-                if:
-                  condition: state
-                  entity_id: input_boolean.always_on_constant
-                  state: 'on'
-                then:
-                  service: cover.open_cover
-                  entity_id:
-                  - cover.guest_room_curtain
-              else:
-                alias: Turn cover.guest_room_curtain state=off
-                if:
-                  condition: state
-                  entity_id: input_boolean.always_on_constant
-                  state: 'on'
-                then:
-                  service: cover.close_cover
-                  entity_id:
-                  - cover.guest_room_curtain
-      else:
-        alias: Lights on when dark outdoor
-        if:
-          condition: state
-          entity_id: input_boolean.always_on_constant
-          state: 'on'
-        then:
-        - parallel:
-          - parallel:
-            - if:
-                condition: state
-                entity_id: input_boolean.ceiling_light_control_when_dark_outdoor_guest_room
-                state: 'on'
-              then:
-                alias: Turn light.guest_room_ceiling_light state=on
-                if:
-                  condition: state
-                  entity_id: input_boolean.always_on_constant
-                  state: 'on'
-                then:
-                  service: light.turn_on
-                  entity_id:
-                  - light.guest_room_ceiling_light
-              else:
-                alias: Turn light.guest_room_ceiling_light state=off
-                if:
-                  condition: state
-                  entity_id: input_boolean.always_on_constant
-                  state: 'on'
-                then:
-                  service: light.turn_off
-                  entity_id:
-                  - light.guest_room_ceiling_light
-            - if:
-                condition: state
-                entity_id: input_boolean.lamp_control_when_dark_outdoor_guest_room
-                state: 'on'
-              then:
-                alias: Turn light.guest_room_lamp_1 light.guest_room_lamp_2 state=on
-                if:
-                  condition: state
-                  entity_id: input_boolean.always_on_constant
-                  state: 'on'
-                then:
-                  service: light.turn_on
-                  entity_id:
-                  - light.guest_room_lamp_1
-                  - light.guest_room_lamp_2
-              else:
-                alias: Turn light.guest_room_lamp_1 light.guest_room_lamp_2 state=off
-                if:
-                  condition: state
-                  entity_id: input_boolean.always_on_constant
-                  state: 'on'
-                then:
-                  service: light.turn_off
-                  entity_id:
-                  - light.guest_room_lamp_1
-                  - light.guest_room_lamp_2
-            - if:
-                condition: state
-                entity_id: input_boolean.led_control_when_dark_outdoor_guest_room
-                state: 'on'
-              then:
-                service: script.do_nothing
-              else:
-                service: script.do_nothing
-            - if:
-                condition: state
-                entity_id: input_boolean.curtain_control_when_dark_outdoor_guest_room
-                state: 'on'
-              then:
-                alias: Turn cover.guest_room_curtain state=on
-                if:
-                  condition: state
-                  entity_id: input_boolean.always_on_constant
-                  state: 'on'
-                then:
-                  service: cover.open_cover
-                  entity_id:
-                  - cover.guest_room_curtain
-              else:
-                alias: Turn cover.guest_room_curtain state=off
-                if:
-                  condition: state
-                  entity_id: input_boolean.always_on_constant
-                  state: 'on'
-                then:
-                  service: cover.close_cover
-                  entity_id:
-                  - cover.guest_room_curtain
-- alias: ZL-GR Lights Off If No Person-Guest Room
-  id: automation.zl_gr_lights_off_if_no_person_guest_room
-  trigger:
-  - platform: state
-    entity_id: input_select.guest_room_occupancy
-    to: Outside
-  - minutes: /5
-    platform: time_pattern
-  condition:
-  - condition: state
-    entity_id: input_select.guest_room_occupancy
-    state: Outside
-  - condition: state
-    entity_id: group.guest_room_motion_group
-    state: 'off'
-    for: 00:01:00
-  action:
-    parallel:
-    - alias: Turn automation.zl_gr_ceiling_lights_on_or_open_curtains_if_entering_to_room_guest_room state=on
-      if:
-        condition: state
-        entity_id: input_boolean.always_on_constant
-        state: 'on'
-      then:
-        service: homeassistant.turn_on
-        entity_id: automation.zl_gr_ceiling_lights_on_or_open_curtains_if_entering_to_room_guest_room
-    - if:
-        condition: state
-        entity_id: input_boolean.curtain_control_when_left_guest_room
-        state: 'on'
-      then:
-        alias: Turn cover.guest_room_curtain state=on
-        if:
-          condition: state
-          entity_id: input_boolean.always_on_constant
-          state: 'on'
-        then:
-          service: cover.open_cover
-          entity_id:
-          - cover.guest_room_curtain
-      else:
-        alias: Turn cover.guest_room_curtain state=off
-        if:
-          condition: state
-          entity_id: input_boolean.always_on_constant
-          state: 'on'
-        then:
-          service: cover.close_cover
-          entity_id:
-          - cover.guest_room_curtain
-    - service: script.do_nothing
-    - alias: All Off
-      if:
-        condition: state
-        entity_id: input_boolean.always_on_constant
-        state: 'on'
-      then:
-      - parallel:
-        - alias: Turn light.guest_room_ceiling_light state=off
-          if:
-            condition: state
-            entity_id: input_boolean.always_on_constant
-            state: 'on'
-          then:
-            service: light.turn_off
-            entity_id:
-            - light.guest_room_ceiling_light
-        - alias: Turn light.guest_room_lamp_1 light.guest_room_lamp_2 state=off
-          if:
-            condition: state
-            entity_id: input_boolean.always_on_constant
-            state: 'on'
-          then:
-            service: light.turn_off
-            entity_id:
-            - light.guest_room_lamp_1
-            - light.guest_room_lamp_2
-        - service: script.do_nothing
-- alias: ZL-GR Disable Entering Lights-on Automation If any People are in the Room-Guest Room
-  trigger:
-  - platform: state
-    entity_id: input_select.guest_room_occupancy
-    to:
-    - Just Entered
-    - In Sleep
-    - Stayed Inside
-  action:
-  - delay: 00:00:10
-  - service: automation.turn_off
-    entity_id: automation.zl_gr_ceiling_lights_on_or_open_curtains_if_entering_to_room_guest_room
-    data:
-      stop_actions: 'false'
-  id: automation.zl_gr_disable_entering_lights_on_automation_if_any_people_are_in_the_room_guest_room
 - alias: ZH-GR Heating Schedule On If Staying In the Room-Guest Room
   id: automation.zh_gr_heating_schedule_on_if_staying_in_the_room_guest_room
   trigger:
@@ -550,51 +151,6 @@ automation:
       tado_valve_entity: climate.guest_room
       external_temperature_sensor_entity: sensor.guest_room_temperature_sensor
   id: automation.zh_gr_valve_calibrate_temperature_using_external_sensor_guest_room
-- alias: ZLB-GR Remote Button - Single - Applies Different Scenes (State Machine)-Guest Room
-  trigger:
-  - platform: state
-    entity_id:
-    - sensor.guest_room_button_1
-    - sensor.guest_room_button_2
-    to:
-    - single
-    - '1'
-  mode: queued
-  action:
-  - choose:
-    - conditions:
-        condition: state
-        entity_id: input_select.guest_room_scene
-        state: All Off
-      sequence:
-        service: script.call_room_scene
-        data:
-          room_scene_select: input_select.guest_room_scene
-          scene: All White
-    - conditions:
-        condition: state
-        entity_id: input_select.guest_room_scene
-        state: All White
-      sequence:
-        service: script.call_room_scene
-        data:
-          room_scene_select: input_select.guest_room_scene
-          scene: Lamp LED White
-    - conditions:
-        condition: state
-        entity_id: input_select.guest_room_scene
-        state: Lamp LED White
-      sequence:
-        service: script.call_room_scene
-        data:
-          room_scene_select: input_select.guest_room_scene
-          scene: All Off
-    default:
-      service: script.call_room_scene
-      data:
-        room_scene_select: input_select.guest_room_scene
-        scene: All White
-  id: automation.zlb_gr_remote_button_single_applies_different_scenes_state_machine_guest_room
 - alias: ZL-GR Applies Different Scenes Based on Scene Selections (State Execution)-Guest Room
   trigger:
   - platform: state
@@ -835,6 +391,7 @@ automation:
               entity_id:
               - light.guest_room_lamp_1
               - light.guest_room_lamp_2
+          - service: script.do_nothing
           - service: script.do_nothing
     - conditions:
       - condition: state
@@ -1122,162 +679,8 @@ automation:
                   entity_id:
                   - cover.guest_room_curtain
   id: automation.zl_gr_applies_different_scenes_based_on_scene_selections_state_execution_guest_room
-- alias: ZLB-GR Remote Button - Double - Toggle Lamps-Guest Room
-  trigger:
-  - platform: state
-    entity_id:
-    - sensor.guest_room_button_1
-    - sensor.guest_room_button_2
-    to:
-    - double
-    - '2'
-  action:
-  - alias: Turn light.guest_room_lamp_1 light.guest_room_lamp_2 state=toggle
-    if:
-      condition: state
-      entity_id: input_boolean.always_on_constant
-      state: 'on'
-    then:
-      if:
-      - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
-        condition: state
-        entity_id:
-        - light.guest_room_lamp_1
-        - light.guest_room_lamp_2
-        state: 'on'
-        match: any
-      then:
-        alias: Turn light.guest_room_lamp_1 light.guest_room_lamp_2 state=off
-        if:
-          condition: state
-          entity_id: input_boolean.always_on_constant
-          state: 'on'
-        then:
-          service: light.turn_off
-          entity_id:
-          - light.guest_room_lamp_1
-          - light.guest_room_lamp_2
-      else:
-        alias: Turn light.guest_room_lamp_1 light.guest_room_lamp_2 state=on
-        if:
-          condition: state
-          entity_id: input_boolean.always_on_constant
-          state: 'on'
-        then:
-          service: light.turn_on
-          entity_id:
-          - light.guest_room_lamp_1
-          - light.guest_room_lamp_2
-  id: automation.zlb_gr_remote_button_double_toggle_lamps_guest_room
-- alias: ZLB-GR Remote Button - Triple - Toggle Ceiling Lights-Guest Room
-  trigger:
-  - platform: state
-    entity_id:
-    - sensor.guest_room_button_1
-    - sensor.guest_room_button_2
-    to:
-    - triple
-    - '3'
-  action:
-  - alias: Turn light.guest_room_ceiling_light state=toggle
-    if:
-      condition: state
-      entity_id: input_boolean.always_on_constant
-      state: 'on'
-    then:
-      if:
-      - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
-        condition: state
-        entity_id:
-        - light.guest_room_ceiling_light
-        state: 'on'
-        match: any
-      then:
-        alias: Turn light.guest_room_ceiling_light state=off
-        if:
-          condition: state
-          entity_id: input_boolean.always_on_constant
-          state: 'on'
-        then:
-          service: light.turn_off
-          entity_id:
-          - light.guest_room_ceiling_light
-      else:
-        alias: Turn light.guest_room_ceiling_light state=on
-        if:
-          condition: state
-          entity_id: input_boolean.always_on_constant
-          state: 'on'
-        then:
-          service: light.turn_on
-          entity_id:
-          - light.guest_room_ceiling_light
-  id: automation.zlb_gr_remote_button_triple_toggle_ceiling_lights_guest_room
-- alias: ZLB-GR Remote Button - Long - Toggle LEDs-Guest Room
-  trigger:
-  - platform: state
-    entity_id:
-    - sensor.guest_room_button_1
-    - sensor.guest_room_button_2
-    to: hold
-  action:
-  - service: script.do_nothing
-  id: automation.zlb_gr_remote_button_long_toggle_leds_guest_room
-- alias: ZLB-GR Wall Switch - Double Press - Leave Room and Turn Off Everything-Guest Room
-  trigger:
-  - platform: state
-    entity_id:
-    - sensor.guest_room_wall_button
-    - sensor.guest_room_wall_button_2
-    to:
-    - '2'
-    - double
-    - double_left
-    - double_right
-    - double_center
-    - button_1_double
-    - button_2_double
-    - button_3_double
-  action:
-  - service: automation.trigger
-    entity_id:
-    - automation.zl_gr_lights_off_if_no_person_guest_room
-    - automation.zh_gr_heating_schedule_off_if_people_left_the_room_guest_room
-  - service: input_select.select_option
-    target:
-      entity_id: input_select.guest_room_occupancy
-    data:
-      option: Outside
-  id: automation.zlb_gr_wall_switch_double_press_leave_room_and_turn_off_everything_guest_room
-- alias: ZL-GR Turns On Sleep Mode In The Night-Guest Room
-  trigger:
-  - platform: time
-    at: '23:00:00'
-  action:
-  - alias: Turn switch.adaptive_lighting_sleep_mode_guest_room state=on
-    if:
-      condition: state
-      entity_id: input_boolean.always_on_constant
-      state: 'on'
-    then:
-      service: homeassistant.turn_on
-      entity_id: switch.adaptive_lighting_sleep_mode_guest_room
-  id: automation.zl_gr_turns_on_sleep_mode_in_the_night_guest_room
-- alias: ZL-GR Turns Off Sleep Mode In The Morning-Guest Room
-  trigger:
-  - platform: time
-    at: 06:30:00
-  action:
-  - alias: Turn switch.adaptive_lighting_sleep_mode_guest_room state=off
-    if:
-      condition: state
-      entity_id: input_boolean.always_on_constant
-      state: 'on'
-    then:
-      service: homeassistant.turn_off
-      entity_id: switch.adaptive_lighting_sleep_mode_guest_room
-  id: automation.zl_gr_turns_off_sleep_mode_in_the_morning_guest_room
 - alias: ZOc-GR Occupancy Update-Guest Room
+  id: automation.zoc_gr_occupancy_update_guest_room
   trigger:
   - entity_id: group.guest_room_motion_group
     platform: state
@@ -1289,14 +692,14 @@ automation:
   - minutes: /5
     platform: time_pattern
   action:
-  - service: pyscript.room_occupancy_state_machine
+    service: pyscript.room_occupancy_state_machine
     data:
       occupancy_entity_str: input_select.guest_room_occupancy
       motion_str: group.guest_room_motion_group
       motion_on_ratio_for_x_min_str: sensor.guest_room_motion_on_ratio_for_last_4_minutes
       motion_on_ratio_for_2x_min_str: sensor.guest_room_motion_on_ratio_for_last_8_minutes
       room_type: bedroom
-  id: automation.zoc_gr_occupancy_update_guest_room
+      sleep_time: input_boolean.guest_room_sleep_time
 input_select:
   guest_room_scene:
     name: Guest Room Scene
@@ -1331,6 +734,9 @@ sensor:
     minutes: '8'
   end: '{{ (now() | as_timestamp) | as_datetime | as_local }}'
 input_boolean:
+  guest_room_sleep_time:
+    name: Guest Room Sleep Time
+    initial: 'off'
   guest_room_heating_override:
     name: Guest Room Heating Override
     initial: 'off'
@@ -1393,20 +799,25 @@ template:
 - sensor:
   - name: Guest Room Occupancy Sensor Light
     unit_of_measurement: lx
-    state: '{{states.sensor["dced8309090d_illuminance"].state}}'
+    state: '{{states.sensor["dced8308f596_illuminance"].state}}'
 - sensor:
-  - name: Guest Room Button 1
-    state: '{{states.sensor["18c23c25a26c_action"].state}}'
+  - name: Guest Room Bed Motion Sensor Light
+    unit_of_measurement: lx
+    state: '{{states.sensor["e0798dba9ae1_illuminance"].state}}'
 - sensor:
-  - name: Guest Room Button 2
-    state: '{{states.sensor["18c23c246426_action"].state}}'
+  - name: Guest Room Bed Motion Sensor Battery
+    unit_of_measurement: '%'
+    state: '{{states.sensor["e0798dba9ae1_battery"].state}}'
 binary_sensor:
 - platform: group
   name: Guest Room Entrance Motion Sensor Motion
   entities: binary_sensor.18c23c27fc55_motion
 - platform: group
   name: Guest Room Occupancy Sensor Occupancy
-  entities: binary_sensor.dced8309090d_occupancy
+  entities: binary_sensor.dced8308f596_occupancy
+- platform: group
+  name: Guest Room Bed Motion Sensor Motion
+  entities: binary_sensor.e0798dba9ae1_motion
 light:
 - platform: group
   name: Guest Room Ceiling Light
@@ -1434,10 +845,11 @@ adaptive_lighting:
   sleep_brightness: 20
   sleep_color_temp: 2200
   take_over_control: true
+  autoreset_control_seconds: 86400
   detect_non_ha_changes: false
   only_once: false
   adapt_only_on_bare_turn_on: true
-  separate_turn_on_commands: true
+  separate_turn_on_commands: false
   send_split_delay: 500
   adapt_delay: 0.5
   intercept: true
@@ -1450,11 +862,14 @@ group:
     - input_select.guest_room_occupancy
     - group.guest_room_motion_group
     - binary_sensor.guest_room_entrance_motion_sensor_motion
+    - binary_sensor.guest_room_bed_motion_sensor_motion
     - binary_sensor.guest_room_occupancy_sensor_occupancy
+    - automation.zoc_gr_occupancy_update_guest_room
   guest_room_motion_group:
     name: Guest Room Motion Group
     entities:
     - binary_sensor.guest_room_entrance_motion_sensor_motion
+    - binary_sensor.guest_room_bed_motion_sensor_motion
     - binary_sensor.guest_room_occupancy_sensor_occupancy
   guest_room_light_group:
     name: Guest Room Light Group
@@ -1483,22 +898,13 @@ group:
     - input_boolean.lamp_control_when_dark_outdoor_guest_room
     - input_boolean.curtain_control_when_dark_outdoor_guest_room
     - automation.zlb_gr_flex_wall_switch_on_postion_1_automatically_turn_on_the_wall_switch_back_when_turned_off_guest_room
-    - automation.zl_gr_ceiling_lights_on_or_open_curtains_if_entering_to_room_guest_room
-    - automation.zl_gr_lights_off_if_no_person_guest_room
-    - automation.zl_gr_disable_entering_lights_on_automation_if_any_people_are_in_the_room_guest_room
     - automation.zh_gr_heating_schedule_on_if_staying_in_the_room_guest_room
     - automation.zh_gr_heating_schedule_off_if_people_left_the_room_guest_room
     - automation.zh_gr_heating_manual_override_guest_room
     - automation.zh_gr_heating_manual_override_timeout_in_few_hours_guest_room
     - automation.zh_gr_valve_calibrate_temperature_using_external_sensor_guest_room
-    - automation.zlb_gr_remote_button_single_applies_different_scenes_state_machine_guest_room
     - automation.zl_gr_applies_different_scenes_based_on_scene_selections_state_execution_guest_room
-    - automation.zlb_gr_remote_button_double_toggle_lamps_guest_room
-    - automation.zlb_gr_remote_button_triple_toggle_ceiling_lights_guest_room
-    - automation.zlb_gr_remote_button_long_toggle_leds_guest_room
-    - automation.zlb_gr_wall_switch_double_press_leave_room_and_turn_off_everything_guest_room
-    - automation.zl_gr_turns_on_sleep_mode_in_the_night_guest_room
-    - automation.zl_gr_turns_off_sleep_mode_in_the_morning_guest_room
     - automation.zoc_gr_occupancy_update_guest_room
     - switch.0x00158d00047b69d2_switch
     - switch.0x00158d00047b69d2_wireless
+    - switch.adaptive_lighting_sleep_mode_guest_room

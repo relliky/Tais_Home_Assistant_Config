@@ -508,6 +508,24 @@ automation:
               - light.master_room_drawer_led
               - light.master_room_tv_led
               - light.master_room_bed_led
+          - alias: Turn media_player.master_room_tv
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              if:
+              - alias: Set TV brightness when it is on
+                condition: state
+                entity_id:
+                - media_player.master_room_tv
+                state: 'on'
+              then:
+                service: samsungtv_smart.select_picture_mode
+                data:
+                  entity_id:
+                  - media_player.master_room_tv
+                  picture_mode: Standard
       - alias: Turn cover.master_room_blind state=off
         if:
           condition: state
@@ -547,16 +565,19 @@ automation:
   - condition: state
     entity_id: input_select.indoor_brightness
     state: dark
-  - entity_id:
-    - light.master_room_drawer_led
-    - light.master_room_tv_led
-    - light.master_room_bed_led
-    - light.master_room_bed_ceiling_light
-    - light.master_room_drawer_ceiling_light
-    - light.master_room_lamp_1
-    - light.master_room_lamp_2
-    condition: state
-    state: 'off'
+  - condition: not
+    conditions:
+    - condition: state
+      entity_id:
+      - light.master_room_drawer_led
+      - light.master_room_tv_led
+      - light.master_room_bed_led
+      - light.master_room_bed_ceiling_light
+      - light.master_room_drawer_ceiling_light
+      - light.master_room_lamp_1
+      - light.master_room_lamp_2
+      state: 'on'
+      match: any
   action:
   - alias: Dark Night Mode
     if:
@@ -599,13 +620,19 @@ automation:
       for: 00:01:00
     timeout: 01:00:00
   - alias: ' Testing if other lights are manually turned on after the LED was on'
-    entity_id:
-    - light.master_room_bed_ceiling_light
-    - light.master_room_drawer_ceiling_light
-    - light.master_room_lamp_1
-    - light.master_room_lamp_2
-    condition: state
-    state: 'off'
+    condition: not
+    conditions:
+    - condition: state
+      entity_id:
+      - light.master_room_drawer_led
+      - light.master_room_tv_led
+      - light.master_room_bed_led
+      - light.master_room_bed_ceiling_light
+      - light.master_room_drawer_ceiling_light
+      - light.master_room_lamp_1
+      - light.master_room_lamp_2
+      state: 'on'
+      match: any
   - alias: Turn light.master_room_drawer_led light.master_room_tv_led light.master_room_bed_led state=off
     if:
       condition: state
@@ -757,6 +784,7 @@ automation:
     entity_id:
     - sensor.master_room_button_1
     - sensor.master_room_button_2
+    - sensor.master_room_button_3
     to:
     - single
     - '1'
@@ -1252,6 +1280,24 @@ automation:
                 - light.master_room_drawer_led
                 - light.master_room_tv_led
                 - light.master_room_bed_led
+            - alias: Turn media_player.master_room_tv
+              if:
+                condition: state
+                entity_id: input_boolean.always_on_constant
+                state: 'on'
+              then:
+                if:
+                - alias: Set TV brightness when it is on
+                  condition: state
+                  entity_id:
+                  - media_player.master_room_tv
+                  state: 'on'
+                then:
+                  service: samsungtv_smart.select_picture_mode
+                  data:
+                    entity_id:
+                    - media_player.master_room_tv
+                    picture_mode: Standard
         - alias: Turn cover.master_room_blind state=off
           if:
             condition: state
@@ -1618,6 +1664,7 @@ automation:
     entity_id:
     - sensor.master_room_button_1
     - sensor.master_room_button_2
+    - sensor.master_room_button_3
     to:
     - double
     - '2'
@@ -1665,6 +1712,7 @@ automation:
     entity_id:
     - sensor.master_room_button_1
     - sensor.master_room_button_2
+    - sensor.master_room_button_3
     to:
     - triple
     - '3'
@@ -1712,6 +1760,7 @@ automation:
     entity_id:
     - sensor.master_room_button_1
     - sensor.master_room_button_2
+    - sensor.master_room_button_3
     to: hold
   action:
   - alias: Turn light.master_room_drawer_led light.master_room_tv_led light.master_room_bed_led state=toggle
@@ -1754,6 +1803,151 @@ automation:
           - light.master_room_tv_led
           - light.master_room_bed_led
   id: automation.zlb_mr_remote_button_long_toggle_leds_master_room
+- alias: ZLB-MR Four Key Button Control-Master Room
+  trigger:
+  - platform: state
+    entity_id:
+    - sensor.0x842e14fffe60b64a_action
+    id: 'on'
+    to: 'on'
+  - platform: state
+    entity_id:
+    - sensor.0x842e14fffe60b64a_action
+    id: 'off'
+    to: 'off'
+  - platform: state
+    entity_id:
+    - sensor.0x842e14fffe60b64a_action
+    id: arrow_left_click
+    to: arrow_left_click
+  - platform: state
+    entity_id:
+    - sensor.0x842e14fffe60b64a_action
+    id: arrow_right_click
+    to: arrow_right_click
+  mode: parallel
+  action:
+  - choose:
+    - conditions:
+      - condition: trigger
+        id:
+        - 'on'
+      sequence:
+      - alias: Turn cover.master_room_curtain state=toggle
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+          service: cover.toggle
+          entity_id:
+          - cover.master_room_curtain
+    - conditions:
+      - condition: trigger
+        id:
+        - 'off'
+      sequence:
+      - alias: Turn switch.adaptive_lighting_sleep_mode_master_room state=toggle
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+          if:
+          - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
+            condition: state
+            entity_id: switch.adaptive_lighting_sleep_mode_master_room
+            state: 'on'
+            match: any
+          then:
+            alias: Turn switch.adaptive_lighting_sleep_mode_master_room state=off
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              service: homeassistant.turn_off
+              entity_id: switch.adaptive_lighting_sleep_mode_master_room
+          else:
+            alias: Turn switch.adaptive_lighting_sleep_mode_master_room state=on
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              service: homeassistant.turn_on
+              entity_id: switch.adaptive_lighting_sleep_mode_master_room
+    - conditions:
+      - condition: trigger
+        id:
+        - arrow_left_click
+      sequence:
+      - alias: Turn light.master_room_lamp_1 state=toggle
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+          if:
+          - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
+            condition: state
+            entity_id: light.master_room_lamp_1
+            state: 'on'
+            match: any
+          then:
+            alias: Turn light.master_room_lamp_1 state=off
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              service: light.turn_off
+              entity_id: light.master_room_lamp_1
+          else:
+            alias: Turn light.master_room_lamp_1 state=on
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              service: light.turn_on
+              entity_id: light.master_room_lamp_1
+    - conditions:
+      - condition: trigger
+        id:
+        - arrow_right_click
+      sequence:
+      - alias: Turn light.master_room_lamp_2 state=toggle
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+          if:
+          - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
+            condition: state
+            entity_id: light.master_room_lamp_2
+            state: 'on'
+            match: any
+          then:
+            alias: Turn light.master_room_lamp_2 state=off
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              service: light.turn_off
+              entity_id: light.master_room_lamp_2
+          else:
+            alias: Turn light.master_room_lamp_2 state=on
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              service: light.turn_on
+              entity_id: light.master_room_lamp_2
+  id: automation.zlb_mr_four_key_button_control_master_room
 - alias: ZLB-MR Wall Switch - Double Press - Leave Room and Turn Off Everything-Master Room
   trigger:
   - platform: state
@@ -1779,35 +1973,8 @@ automation:
     data:
       option: Outside
   id: automation.zlb_mr_wall_switch_double_press_leave_room_and_turn_off_everything_master_room
-- alias: ZL-MR Turns On Sleep Mode In The Night-Master Room
-  trigger:
-  - platform: time
-    at: '23:00:00'
-  action:
-  - alias: Turn switch.adaptive_lighting_sleep_mode_master_room state=on
-    if:
-      condition: state
-      entity_id: input_boolean.always_on_constant
-      state: 'on'
-    then:
-      service: homeassistant.turn_on
-      entity_id: switch.adaptive_lighting_sleep_mode_master_room
-  id: automation.zl_mr_turns_on_sleep_mode_in_the_night_master_room
-- alias: ZL-MR Turns Off Sleep Mode In The Morning-Master Room
-  trigger:
-  - platform: time
-    at: 06:30:00
-  action:
-  - alias: Turn switch.adaptive_lighting_sleep_mode_master_room state=off
-    if:
-      condition: state
-      entity_id: input_boolean.always_on_constant
-      state: 'on'
-    then:
-      service: homeassistant.turn_off
-      entity_id: switch.adaptive_lighting_sleep_mode_master_room
-  id: automation.zl_mr_turns_off_sleep_mode_in_the_morning_master_room
 - alias: ZOc-MR Occupancy Update-Master Room
+  id: automation.zoc_mr_occupancy_update_master_room
   trigger:
   - entity_id: group.master_room_motion_group
     platform: state
@@ -1819,14 +1986,14 @@ automation:
   - minutes: /5
     platform: time_pattern
   action:
-  - service: pyscript.room_occupancy_state_machine
+    service: pyscript.room_occupancy_state_machine
     data:
       occupancy_entity_str: input_select.master_room_occupancy
       motion_str: group.master_room_motion_group
       motion_on_ratio_for_x_min_str: sensor.master_room_motion_on_ratio_for_last_4_minutes
       motion_on_ratio_for_2x_min_str: sensor.master_room_motion_on_ratio_for_last_8_minutes
       room_type: bedroom
-  id: automation.zoc_mr_occupancy_update_master_room
+      sleep_time: input_boolean.master_room_sleep_time
 - alias: ZTV-MR Reset Picture Mode When Turning on TV-Master Room
   trigger:
   - platform: state
@@ -1966,6 +2133,9 @@ sensor:
     minutes: '8'
   end: '{{ (now() | as_timestamp) | as_datetime | as_local }}'
 input_boolean:
+  master_room_sleep_time:
+    name: Master Room Sleep Time
+    initial: 'off'
   master_room_heating_override:
     name: Master Room Heating Override
     initial: 'off'
@@ -2007,10 +2177,10 @@ switch:
   entities: switch.0x04cf8cdf3c7ad638_channel_3
 - platform: group
   name: Master Room Dressing Table Light
-  entities: switch.1001e49ec4_1
+  entities: switch.sonoff_1001e49ec4_1
 - platform: group
   name: Master Room Gateway Power
-  entities: switch.1001e4a0a0_1
+  entities: switch.sonoff_1001e4a0a0_1
 cover:
 - platform: group
   name: Master Room Curtain
@@ -2050,8 +2220,19 @@ template:
   - name: Master Room Button 2
     state: '{{states.sensor["18c23c25960b_action"].state}}'
 - sensor:
+  - name: Master Room Button 3
+    state: '{{states.sensor["18c23c25a26c_action"].state}}'
+- sensor:
   - name: Master Room Wall Button
     state: '{{states.sensor["0x04cf8cdf3c7ad638_action"].state}}'
+- sensor:
+  - name: Master Room Bed Motion Sensor Light
+    unit_of_measurement: lx
+    state: '{{states.sensor["e0798dba988e_illuminance"].state}}'
+- sensor:
+  - name: Master Room Bed Motion Sensor Battery
+    unit_of_measurement: '%'
+    state: '{{states.sensor["e0798dba988e_battery"].state}}'
 - sensor:
   - name: Master Room Temperature Sensor
     unit_of_measurement: "\xB0C"
@@ -2063,6 +2244,9 @@ binary_sensor:
 - platform: group
   name: Master Room TV Motion Sensor Motion
   entities: binary_sensor.0x00158d0005228ba8_motion
+- platform: group
+  name: Master Room Bed Motion Sensor Motion
+  entities: binary_sensor.e0798dba988e_motion
 light:
 - platform: group
   name: Master Room Bed Ceiling Light
@@ -2103,10 +2287,11 @@ adaptive_lighting:
   sleep_brightness: 20
   sleep_color_temp: 2200
   take_over_control: true
+  autoreset_control_seconds: 86400
   detect_non_ha_changes: false
   only_once: false
   adapt_only_on_bare_turn_on: true
-  separate_turn_on_commands: true
+  separate_turn_on_commands: false
   send_split_delay: 500
   adapt_delay: 0.5
   intercept: true
@@ -2124,7 +2309,9 @@ group:
     - binary_sensor.master_room_tv_motion_sensor_motion
     - binary_sensor.master_room_drawer_motion_sensor_motion
     - binary_sensor.master_toilet_dressing_room_motion_sensor_motion
+    - binary_sensor.master_room_bed_motion_sensor_motion
     - binary_sensor.master_room_occupancy_sensor_occupancy
+    - automation.zoc_mr_occupancy_update_master_room
   master_room_motion_group:
     name: Master Room Motion Group
     entities:
@@ -2134,6 +2321,7 @@ group:
     - binary_sensor.master_room_tv_motion_sensor_motion
     - binary_sensor.master_room_drawer_motion_sensor_motion
     - binary_sensor.master_toilet_dressing_room_motion_sensor_motion
+    - binary_sensor.master_room_bed_motion_sensor_motion
     - binary_sensor.master_room_occupancy_sensor_occupancy
   master_room_light_group:
     name: Master Room Light Group
@@ -2187,9 +2375,8 @@ group:
     - automation.zlb_mr_remote_button_double_toggle_lamps_master_room
     - automation.zlb_mr_remote_button_triple_toggle_ceiling_lights_master_room
     - automation.zlb_mr_remote_button_long_toggle_leds_master_room
+    - automation.zlb_mr_four_key_button_control_master_room
     - automation.zlb_mr_wall_switch_double_press_leave_room_and_turn_off_everything_master_room
-    - automation.zl_mr_turns_on_sleep_mode_in_the_night_master_room
-    - automation.zl_mr_turns_off_sleep_mode_in_the_morning_master_room
     - automation.zoc_mr_occupancy_update_master_room
     - automation.ztv_mr_reset_picture_mode_when_turning_on_tv_master_room
     - automation.zn_mr_notify_zigbee_offline_devices_master_room
@@ -2202,3 +2389,4 @@ group:
     - switch.0x04cf8cdf3c7ad638_wireless_1
     - switch.0x04cf8cdf3c7ad638_wireless_2
     - switch.0x04cf8cdf3c7ad638_wireless_3
+    - switch.adaptive_lighting_sleep_mode_master_room

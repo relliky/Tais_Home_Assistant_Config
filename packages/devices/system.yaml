@@ -15,19 +15,20 @@ sensor:
   #  name: Public IP
 
   # System resource
-  - platform: systemmonitor
-    resources:
-      - type: disk_use
-        arg: /
-      - type: memory_use
-      - type: memory_free
-      - type: swap_use
-      - type: swap_free
-      - type: load_1m
-      - type: load_5m
-      - type: load_15m
-      - type: processor_use
-      - type: processor_temperature
+#  - platform: systemmonitor
+#    resources:
+#      - type: disk_use
+#        arg: /
+#      - type: memory_use
+#      - type: memory_use_percent
+#      - type: memory_free
+#      - type: swap_use
+#      - type: swap_free
+#      - type: load_1m
+#      - type: load_5m
+#      - type: load_15m
+#      - type: processor_use
+#      - type: processor_temperature
 
   # Time
   - platform: time_date
@@ -116,14 +117,14 @@ template:
       - name: "DS920 Memory Used"
         unit_of_measurement: "GB"
         state: >
-          {{ (states('sensor.ds920_memory_usage_real')|int * 12 /100) | round(1)  }}
+          {{ (states('sensor.ds920_memory_usage_real')|int * 20 /100) | round(1)  }}
 
 # Remote Acccess via HTTPS
 http:
   ssl_certificate: /ssl/fullchain.pem
   ssl_key: /ssl/privkey.pem
   ip_ban_enabled: true
-  login_attempts_threshold: 50
+  login_attempts_threshold: 20
   use_x_frame_options: false
   
 # Main DDNS - DuckDNS (if auto-renew fails, needs to renew every 3 months)
@@ -162,18 +163,18 @@ proxmoxve:
           - 101
           - 102
 
-binary_sensor:
-  - platform: ping
-    host: 192.168.1.20
-    name: Kes Work Laptop
-
-  - platform: ping
-    host: google.co.uk
-    name: Ping Google
-
-  - platform: ping
-    host: relliky.duckdns.org
-    name: Ping My DuckDNS
+#binary_sensor:
+#  - platform: ping
+#    host: 192.168.1.20
+#    name: Kes Work Laptop
+#
+#  - platform: ping
+#    host: google.co.uk
+#    name: Ping Google
+#
+#  - platform: ping
+#    host: relliky.duckdns.org
+#    name: Ping My DuckDNS
 
 
 #  - platform: ping
@@ -193,11 +194,6 @@ input_datetime:
 #
 ###############################################
 script:
-  hassio_restart:
-    alias: Restart Home Assistant
-    sequence:
-      - service: homeassistant.restart
-
   do_nothing:
     alias: Do nothing
     sequence:
@@ -230,11 +226,21 @@ automation:
       - at: 04:00:00
         platform: time
     action:
-      # Generate report
-      - service: watchman.report
-      # Restart hubs in other rooms
-      - delay: "00:01:00"
+      # restart Z2M to reduce the chance of experiencing pairing devices accidentally
+      - service: hassio.addon_restart
+        data:
+          addon: 45df7312_zigbee2mqtt 
+      # Restart HA          
       - service: homeassistant.restart
+      # Generate report
+      #- service: watchman.report
+      # Restart hubs in other rooms
+      
+      # Stop VS Code to save memory
+      #- service: hassio.addon_stop
+      #  data:
+      #    addon: a0d7b954_vscode
+      #- delay: "00:01:00"
 
   # - Starts Log Enable and set timeout
   - alias: Enable/Disable Logging By The State of The Log Enable and Set Timeout for 48 Hours
