@@ -1,14 +1,18 @@
+#!/usr/bin/env python3
+
 #####################################################################
 # This script won't update En-suite Room/Toilet configurations
 # It is intentional to stop breaking automations in tenant room. 
 #####################################################################
 
+from HA_Composite_Card_Lib.src.main import HA_Composite_Card_Lib 
 import re
 import yaml
 import os
 import json
 import copy
 import argparse
+#from HA_Composite_Card_Lib import HA_Composite_Card_Lib as self.hccl
 #from translate import Translator
 #global translator 
 #translator = Translator(to_lang="zh")
@@ -19,10 +23,11 @@ import argparse
 
 class RoomBase:
   def __init__ (self, dashboard_type=None, dashboard_language='English'):
-    
+    #cc = self.hccl()
     #self.translation = translator.translate("This is a pen.")
     #print (self.translation)
 
+    self.hccl = HA_Composite_Card_Lib()
     # Create Empty JSON Database
     self.reset_json_environment()
     
@@ -174,8 +179,11 @@ class RoomBase:
     self.light_group             =  'group.' + self.room_entity + '_light_group'
 
     # Adaptive Light settings
+    self.al_sleep_mode       = 'switch.adaptive_lighting_sleep_mode_'       + self.room_entity
+    self.al_adapt_brightness = 'switch.adaptive_lighting_adapt_brightness_' + self.room_entity
+
     if self.cfg_adaptive_lighting == True:
-      self.adaptive_lighting_list += \
+      self.al_light_list += \
         [
           {
             "configured": True,
@@ -372,7 +380,7 @@ class RoomBase:
     self.header_card_list       = []
     self.main_card_list         = []
     self.tail_card_list         = []    
-    self.adaptive_lighting_list = []
+    self.al_light_list = []
 
   def get_occupancy_ratio_sensor_config(self, x_minutes_multiple_str):
     x_minutes_multiple =  1 if x_minutes_multiple_str == '1x' else \
@@ -404,435 +412,11 @@ class RoomBase:
       }
     return ratio_sensor_config
 
-
-  # for lovelace single entity:
-  # entity
-  # entity_name
-  # entity_name_translation
-  # card name -> can be inferred from entity name -> can be inferred from entity
-  # card type -> can be inferred from entity type
-  # card icon -> can be inferred from device icon if added
-  # card icon color 
-  # double tab action
-  def getEntityCard(self, entity, entity_name=None, entity_name_translation=None, 
-                          card_name=None, card_type=None,card_icon=None,card_icon_color=None,double_tab_action=None,simple=None,
-                          secondary_info=None):
-    card = {}     
-    
-    # Set up card_type based on entity_type
-    if card_type is None:
-
-      # remove entity name to get entity type
-      # "light" = Remove ".living_room_ceiling_light" from "light.living_room_ceiling_light"
-      entity_type = re.sub("\.(\w+)$", "", entity)
-
-      if entity_type in ['light', 'cover', 'climate']:
-        card_type = 'custom:mushroom-' + entity_type    + '-card'
-      elif entity_type in ['media_player']:
-        card_type = 'custom:mushroom-' + 'media-player' + '-card'
-      if entity_type in ['binary_sensor', 'switch', 'input_boolean']:
-        card_type = 'custom:mushroom-' + 'entity'       + '-card'
-      elif entity_type in ['group']:
-        card_type = 'custom:auto-entities'
-      elif entity_type in ['sensor']:
-        card_type = 'sensor'
-      elif entity_type in ['input_select']:
-        card_type = 'custom:mushroom-select-card'
-      elif entity_type in ['input_number', 'number']:
-        card_type = 'custom:mushroom-number-card'
-
-    if entity_name is None:
-      entity_name = self.getName(entity)
-
-    if card_name is None:
-      # Remove room name from entity name to get card name
-      # "Ceiling Light" = Remove "Living Room" from "Living Room Ceiling Light" 
-      card_name = re.sub(self.room_name, "", entity_name)
-      #if self.chinese == True:
- 
-
-    #if entity_name_translation != None:
-    #  entity_name_translation = 
-
-    card_name = '' if card_name is None else card_name
-    #if self.dashboard_language is 'Chinese':
-    #  card_name = translator.translate(card_name)
-    #  print (card_name)     
-    card_icon = '' if card_icon is None else card_icon
-
-    # light
-    if card_type == 'custom:mushroom-light-card':
-      card = {
-        "type": card_type,
-        "fill_container": True,
-        "use_light_color": False,
-        "show_brightness_control": True,
-        "show_color_control": False,
-        "show_color_temp_control": True,
-        "collapsible_controls": False,
-        "name": card_name,
-        "icon": card_icon,
-        "entity": entity
-      } | self.getCardMod('ios16_toggle', card_type=card_type, color='ios_yellow')
-    
-    # cover
-    elif card_type == 'custom:mushroom-cover-card':
-      card = {
-        "type": card_type,
-        "fill_container": True,
-        "tap_action":{
-          "action": "toggle"
-        },
-        "double_tap_action":{
-          "action": "more-info"
-        },
-        "hold_action":{
-          "action": "more-info"
-        },                
-        "show_position_control": True,
-        "show_buttons_control": True,
-        "name": card_name,
-        "icon": card_icon,
-        "entity": entity
-      }
-
-    # climate
-    elif card_type == 'custom:mushroom-climate-card':
-      card = {
-        "type": card_type,
-        "show_temperature_control": True,
-        "collapsible_controls": False,
-        "name": card_name,
-        "icon": card_icon,
-        "entity": entity
-      }
-
-    # media_player card
-    # tap - toggle/navigate/more-info
-    elif card_type == 'custom:mushroom-media-player-card':
-      card = {
-        "type": card_type,
-        "fill_container": True,
-        "tap_action":{
-          "action": "more-info"
-        },
-        "volume_controls":[
-         # "volume_mute",
-          "volume_set",
-          "volume_buttons"
-        ],
-        "show_volume_level": False,
-        "name": card_name,
-        "icon": card_icon,
-        "entity": entity
-      }
-    # group card
-    elif card_type == 'custom:auto-entities':
-      card = {
-        "type": card_type,
-        "card":{
-          "type": "entities",
-          "title": card_name
-        },
-        "filter": {"include": [{"group": entity}]}
-      }
-
-    # sensor
-    elif card_type == 'sensor':
-      if simple is True:
-        card = {
-          "type": card_type,
-          "graph": "line",
-          "name": card_name,
-          "icon": card_icon,
-          "entity": entity
-        }
-      else: # complex minigraph temperature sensor card from 
-      # https://bbs.hassbian.com/forum.php?mod=redirect&goto=findpost&ptid=22509&pid=550976
-        card = {
-          "type": "custom:vertical-stack-in-card",
-          "cards": [
-            {
-              "type": "custom:mushroom-template-card",
-              "entity": entity,
-              "primary": card_name,
-              "secondary": "{{ states('" + entity + "') | round(0) }}\u00b0C\n",
-              "icon": "mdi:thermometer",
-              "icon_color": "{% set value = states('" + entity + "') | int %}\n{% if value < 18 %}\n  blue\n{% elif value < 28 %}\n  light-green\n{% elif value < 40 %}\n  red\n{% else %}\n  green\n{% endif %}",
-              "tap_action": {
-                "action": "more-info"
-              }
-            } | self.getCardModColor('transparent'),
-            {
-              "type": "custom:layout-card",
-              "layout_type": "masonry",
-              "layout": {
-                "width": 150,
-                "max_cols": 1,
-                "height": "auto",
-                "padding": "0px",
-                "card_margin": "var(--masonry-view-card-margin, -10px 8px 15px)"
-              },
-              "cards": [
-                {
-                  "type": "custom:mini-graph-card",
-                  "tap_action": {
-                    "action": "more-info"
-                  },
-                  "entities": [
-                    {
-                      "entity": entity,
-                      "name": "Temperature"
-                    }
-                  ],
-                  "color_thresholds": [
-                    {
-                      "value": -10,
-                      "color": "#0000ff"
-                    },
-                    {
-                      "value": 18,
-                      "color": "#0000ff"
-                    },
-                    {
-                      "value": 18.1,
-                      "color": "#00FF00"
-                    },
-                    {
-                      "value": 27,
-                      "color": "#00FF00"
-                    },
-                    {
-                      "value": 27.1,
-                      "color": "#FF0000"
-                    },
-                    {
-                      "value": 40,
-                      "color": "#FF0000"
-                    }
-                  ],
-                  "hours_to_show": 24,
-                  "line_width": 3,
-                  "animate": True,
-                  "show": {
-                    "name": False,
-                    "icon": False,
-                    "state": False,
-                    "legend": False,
-                    "fill": "fade"
-                  },
-                  "card_mod": {
-                    "style": "ha-card {\n  background: none;\n  box-shadow: none;\n  --ha-card-border-width: 0;\n}"
-                  }
-                }
-              ]
-            }
-          ]
-        }
-
-    # entity card
-    # binary_sensor    - tap to more-info
-    # switch           - tap to toggle
-    # input boolean
-    elif card_type == 'custom:mushroom-entity-card':
-      card = {
-        "type": card_type,
-        "fill_container": True,
-        "tap_action":{
-          "action": "toggle"
-        },
-        "name": card_name,
-        "icon": card_icon,
-        "entity": entity
-      }
-    
-    # entities card
-    # input_timer
-    elif card_type == 'entities':
-      card = {
-        "type": card_type,
-        "entities":[
-          { "name":   card_name,
-            "entity": entity}
-        ]
-      }
-
-    # schduler card
-    elif card_type == 'custom:scheduler-card':
-      card = {
-        "type": card_type,
-        "include": entity,
-        "exclude": [],
-        "title": True,
-        "discover_existing": True,
-        "time_step": 30        
-      }
-
-    # timer card
-    elif card_type == 'custom:flipdown-timer-card':
-      card = {
-        "type": card_type,
-        "show_hour": True,
-        "show_title": True,
-        "theme": 'dark',
-        "styles": {
-          "rotor": {
-            "width": "50px",
-            "height": "80px"},
-          "button": {
-            "width": "100px",
-            "location": "bottom"}
-        },
-        "name": card_name,
-        "icon": card_icon,
-        "entity": entity
-      }
-
-    # input_number
-    # number
-    elif card_type == 'custom:mushroom-number-card':
-      card = {
-        "type": card_type,
-        "fill_container": True,
-        "tap_action":{
-          "action": "more-info"
-        },
-        "display_mode": "buttons",
-        "name": card_name,
-        "icon": 'mdi:counter' if card_icon is None else card_icon,
-        "entity": entity
-      }
-
-    # input_select
-    elif card_type == 'custom:mushroom-select-card':
-      card = {
-        "type": card_type,
-        "fill_container": True,
-        "tap_action":{
-          "action": "more-info"
-        },
-        "icon": "mdi:brightness-4" if card_icon is None else card_icon,
-        "secondary_info": state if secondary_info is None else secondary_info,
-        "name": card_name,
-        "icon": card_icon,
-        "entity": entity
-      }
-    return card
-
-
-
-  def getCardMod(self, style='background_color_select', card_type=None, color=None, support_dark_mode=True):
-    css_variable = ""
-
-    if style == 'background_color_select':
-      css_variable += ":host { --ha-card-background:" + self.getColor(color) + ";}\n" 
-
-    elif style == 'ios16_toggle':
-      entity_is_on_condition = " (states(config.entity) in ['on']) " + \
-                                  ("and (states('sun.sun') != 'below_horizon')" if support_dark_mode == True else '')
-
-      # Make card background white if on, dark if off
-      css_variable += (":host {\n"
-      "--ha-card-background:    {% if" + entity_is_on_condition + "%} " + self.getColor("less_transparent_white") + "  {% else  %} " + self.getColor("more_transparent_grey") + "  {% endif %};\n" 
-      "--primary-text-color:    {% if" + entity_is_on_condition + "%} black                                            {% else  %} white                                           {% endif %};\n" 
-      "--secondary-text-color : {% if" + entity_is_on_condition + "%} " + self.getColor("dark_grey") +                "{% else  %} " + self.getColor("light_grey") +             " {% endif %};\n"
-      ";}\n")
-      
-      # Make icon a bit larger, similar to ios 16
-      css_variable += ("ha-card > mushroom-card > mushroom-state-item > mushroom-shape-icon > ha-state-icon {\n"
-      "--mdc-icon-size: 0.6em;"
-      ";}\n")
-
-      # Make icon inner white if on, outter dark if off
-      if card_type == 'custom:mushroom-light-card':
-          css_variable +=  "ha-card > mushroom-card > mushroom-state-item > mushroom-shape-icon {"       + " \n" + \
-            "--icon-color-disabled:   " + self.getColor(color)                                           + ";\n" + \
-            "--shape-color-disabled:  " + self.getColor("more_transparent_grey")                         + ";\n" + \
-            "--icon-color:            " + self.getColor("white")                                         + ";\n" + \
-            "--shape-color:            {% if state_attr(config.entity, 'color_mode') == 'color_temp' %}" + " \n" + \
-                                          self.getColor(color)                                           + " \n" + \
-                                      "{% else  %}"                                                      + " \n" + \
-                                      "   rgb{{state_attr(config.entity, 'rgb_color')}}"                 + " \n" + \
-                                      "{% endif%}"                                                       + ";\n" + \
-            "}\n"
-
-      else:
-        css_variable += ( "ha-card > mushroom-card > mushroom-state-item > mushroom-shape-icon {\n"
-          "--icon-color-disabled:  " + self.getColor(color)            + ";\n"
-          "--shape-color-disabled: " + self.getColor("more_transparent_grey") + ";\n"
-          "--icon-color:           " + self.getColor("white")                 + ";\n"
-          "--shape-color:          " + self.getColor(color)            + ";\n"
-          "}\n")
-
-      # Make light card brightness slider color same as the light color if it is in RGB, otherwise use ios_yellow
-      if card_type == 'custom:mushroom-light-card':
-          css_variable +=  "ha-card > mushroom-card > div > mushroom-light-brightness-control {"         + " \n" + \
-            "--slider-color:           {% if state_attr(config.entity, 'color_mode') == 'color_temp' %}" + " \n" + \
-                                          self.getColor(color)                                           + " \n" + \
-                                      "{% else  %}"                                                      + " \n" + \
-                                      "   rgb{{state_attr(config.entity, 'rgb_color')}}"                 + " \n" + \
-                                      "{% endif%}"                                                       + ";\n" + \
-            "--slider-bg-color:        {% if state_attr(config.entity, 'color_mode') == 'color_temp' %}" + " \n" + \
-                                          "{{ '" + self.getColor(color) + "' | regex_replace(',([\d\.])+\)$', ',0.2)') }}" + " \n" + \
-                                      "{% else  %}"                                                      + " \n" + \
-                                      "   rgba{{(state_attr(config.entity, 'rgb_color')|string)[0:-1]}}, 0.2)"  + " \n" + \
-                                      "{% endif%}"                                                       + ";\n" + \
-            "}\n"
-
-      # Make bottom buttons background more visiable in white card
-      # and default in dark card
-      if card_type == 'custom:mushroom-light-card':
-        for index in [2,3]:
-          css_variable += "" + \
-            "ha-card > mushroom-card > div > mushroom-button:nth-child(" + str(index) + ") {"
-          css_variable += "" + \
-            "  --bg-color: {% if " + entity_is_on_condition + " %} " + self.getColor("less_transparent_white") + " {% else %} rgba(var(--rgb-primary-text-color), 0.05)" +  " {% endif %};" + \
-            "}\n"
-        
-    else: 
-      raise TypeError( "\n" +\
-          "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n" + \
-          "getCardMod does not support style = " + style + \
-          "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n")
-
-    return {
-      "card_mod": {
-        "style":  css_variable 
-      }    
-    }
-
-  def getColor(self, color):
-    # The last digit of rgba represents opacity and the value of it is between 0.0 and 1.0 
-    # !! always needs to follow the rgba format to maintain a compatibility 
-    if color == 'transparent':
-      return "rgba(245, 245, 245, 0)"
-    elif color == 'more_transparent_grey':
-      return "rgba(10, 10, 10, 0.4)"
-    elif color == 'less_transparent_grey':
-      return "rgba(10, 10, 10, 0.7)"
-    elif color == 'most_transparent_white':
-      return "rgba(245, 245, 245, 0.1)"
-    elif color == 'more_transparent_white':
-      return "rgba(245, 245, 245, 0.3)"
-    elif color == 'less_transparent_white':
-      return "rgba(245, 245, 245, 0.9)"
-    elif color == 'dark_grey':
-      return "rgba(100, 100, 100, 1)"
-    elif color == 'light_grey':
-      return "rgba(220, 220, 220, 1)"
-    elif color == 'ios_yellow':
-      return "rgba(253,204,0,1)"
-    else: 
-      return color
-
-  def getCardModColor(self, color):
-    return self.getCardMod('background_color_select', color=color)
-
 #  def addEntityCard(self, entity, entity_name=None, entity_name_translation=None, 
 #                          card_name=None, card_type=None,card_icon=None,card_icon_color=None,double_tab_action=None, card_group=None):
 #
 #
-#    self.room_cards += [self.getEntityCard(entity=entity,
+#    self.room_cards += [self.hccl.getEntityCard(entity=entity,
 #                                          entity_name=entity_name,
 #                                          entity_name_translation=entity_name_translation,
 #                                          card_name=card_name,
@@ -1010,10 +594,10 @@ class RoomBase:
 
     ###################################################################################################
     # Buttons
-    # Aqara Wireless Switch,   WXKG11LM  ZigbeeID: ["lumi.sensor_switch.aq2"]
-    # MiJia Wireless Switch,   WXKG01LM  ZigbeeID: ["lumi.sensor_switch"]
-    # MiJia Wireless Switch 2, ble XMWXKG01LM
-    # Aqara Opple switch 3 bands, WXCJKG13LM, ZigbeeID: ["lumi.remote.b686opcn01"]
+    # Aqara Wireless Switch,   WXKG11LM  ZigbeeID: ["lumi.sensor_switch.aq2"]       action_list:[]
+    # MiJia Wireless Switch,   WXKG01LM  ZigbeeID: ["lumi.sensor_switch"]           action_list:['single', 'double', 'triple', 'quadruple', 'many','release', 'hold']                                                                              
+    # MiJia Wireless Switch 2, ble XMWXKG01LM                                       action_list:['single', 'double', 'hold']         
+    # Aqara Opple switch 3 bands, WXCJKG13LM, ZigbeeID: ["lumi.remote.b686opcn01"]  action_list:['button_1_single', 'button_2_single', 'button_3_single', 'button_4_single', 'button_5_single', 'button_6_single'] - more buttons for double/hold etc                                               
     ###################################################################################################
     elif((model == "Aqara Wireless Switch") or \
          (model == "MiJia Wireless Switch") or \
@@ -1166,14 +750,16 @@ class RoomBase:
 
     ###################################################################################################
     # Temperature Sensor in Xiaomi Gateway 3
-    # Qingping Temperature Sensor, id: "ble LYWSDCGQ/01ZM"
-    # Mijia2 Temperature Sensor,   id: "ble LYWSD03MMC"
+    # Qingping Temperature Sensor,      id: "ble LYWSDCGQ/01ZM"
+    # Qingping Lite Temperature Sensor, id: "ble CGDK2"
+    # Mijia2 Temperature Sensor,        id: "ble LYWSD03MMC"
     #
     # Temperature Sensor in Passive BLE 
     # "Mijia2 Temperature Clock", id:"ble LYWSD02MMC"
     ###################################################################################################
-    elif((model == "Qingping Temperature Sensor"  and integration == 'Xiaomi Gateway 3') or \
-         (model == "Mijia2 Temperature Sensor"    and integration == 'Xiaomi Gateway 3')): 
+    elif((model == "Qingping Temperature Sensor"      and integration == 'Xiaomi Gateway 3') or \
+         (model == "Mijia2 Temperature Sensor"        and integration == 'Xiaomi Gateway 3') or \
+         (model == "Qingping Lite Temperature Sensor" and integration == 'Xiaomi Gateway 3')): 
 
       self.template_list += [
         {
@@ -1285,6 +871,7 @@ class RoomBase:
           "binary_sensor": [
             {
               "name": name + name_postfix,
+              # round(1) means to round to 0.1 
               "state": '{% if (states.sensor["' + mac + '"].state) | float | round(1) > ' + str(power_on_threshold) + ' %} on {% else %} off {% endif %}'
             }
           ],
@@ -1543,38 +1130,38 @@ class RoomBase:
       # Add dashboard cards
       # Entertainment
       if self.tvs is not None and self.tvs != []:
-        self.main_card_list.append(self.getEntityCard(entity=self.tvs[0],     card_name='TV'))
+        self.main_card_list.append(self.hccl.getEntityCard(entity=self.tvs[0],     card_name='TV'))
 
       if self.thermostat is not None:      
-        self.main_card_list.append(self.getEntityCard(entity=self.thermostat, card_name='Raditor'))
+        self.main_card_list.append(self.hccl.getEntityCard(entity=self.thermostat, card_name='Raditor'))
 
       # Light and curtains
       for light in self.lights:
-        self.main_card_list.append(self.getEntityCard(entity=light))
+        self.main_card_list.append(self.hccl.getEntityCard(entity=light))
 
       for curtain in self.curtains:
-        self.main_card_list.append(self.getEntityCard(entity=curtain))
+        self.main_card_list.append(self.hccl.getEntityCard(entity=curtain))
       
       # Climate Control
       if self.cfg_temp_control:
-        self.main_card_list.append(self.getEntityCard(entity=self.room_heating_override, card_name='Heating Override'))
+        self.main_card_list.append(self.hccl.getEntityCard(entity=self.room_heating_override, card_name='Heating Override'))
 
       if self.temperature_sensor is not None:
-        self.main_card_list.append(self.getEntityCard(entity=self.temperature_sensor, card_name='Temperature'))
+        self.main_card_list.append(self.hccl.getEntityCard(entity=self.temperature_sensor, card_name='Temperature'))
 
       # --------------------
       #  Tail Card
       # --------------------
       if self.cfg_temp_control:
-        self.tail_card_list.append(self.getEntityCard(entity=[self.thermostat], entity_name='', card_name='Schedule', card_type='custom:scheduler-card'))
+        self.tail_card_list.append(self.hccl.getEntityCard(entity=[self.thermostat], entity_name='', card_name='Schedule', card_type='custom:scheduler-card'))
 
       # Motion 
       if self.cfg_occupancy:
-        self.tail_card_list.append(self.getEntityCard(entity=self.occupancy_group, card_name='Occupancy'))
+        self.tail_card_list.append(self.hccl.getEntityCard(entity=self.occupancy_group, card_name='Occupancy'))
 
       # Room Automation Control
       if self.cfg_group_auto:      
-        self.tail_card_list.append(self.getEntityCard(entity=self.room_auto_gen_automations, card_name='Automation Control'))
+        self.tail_card_list.append(self.hccl.getEntityCard(entity=self.room_auto_gen_automations, card_name='Automation Control'))
       
 
 
@@ -1665,7 +1252,7 @@ class RoomBase:
         "template":          self.template_list,
         "binary_sensor":     self.binary_sensor_list,
         "light":             self.light_list,
-        "adaptive_lighting": self.adaptive_lighting_list
+        "adaptive_lighting": self.al_light_list
       }
 
   def gen_motion_light_automations(self):
@@ -2051,59 +1638,31 @@ class RoomBase:
               {
                 "condition": "state",
                 "entity_id": self.room_heating_override,
-                "state": "on"
+                "state": "off"
               }
             ],
             "then": [
-              #{ "service": "automation.turn_off",
-              #  "entity_id": [self.automation_heating_on['id'],
-              #                self.automation_heating_off['id']]
-              #},
               { "service": "automation.trigger",
-                "entity_id": [self.automation_heating_on['id']]
+                "entity_id": [self.automation_heating_off['id']]
               }
             ],
             "else": [
-              #{ "service": "automation.turn_on",
-              #  "entity_id": [self.automation_heating_on['id'],
-              #                self.automation_heating_off['id']]
-              #},
               { "service": "automation.trigger",
-                "entity_id": [self.automation_heating_off['id']]
+                "entity_id": [self.automation_heating_on['id']]
+              },
+              { "delay": {"hours": 2}
+              },
+              {
+                "service": "homeassistant.turn_off",
+                "entity_id": self.room_heating_override
+              },              
+              { "service": "automation.trigger",
+                "entity_id": [self.automation_heating_on['id']]
               }
             ]
           }
         ]
       }      
-    ]
-
-    self.automations += [
-      {
-        "alias" : "ZH-" + self.automation_room_name + "Heating Manual Override Timeout in Few Hours" + "-" + self.room_name,
-        "configured": self.cfg_temp_control,
-        "trigger": [
-          {
-            "platform": "state",
-            "entity_id": self.room_heating_override,
-            "from": "off",
-            "to": "on"
-          }
-        ],
-        "action": [
-          {
-            "delay": {
-              "hours": 2,
-              "minutes": 0,
-              "seconds": 0,
-              "milliseconds": 0
-            }
-          },
-          {
-            "service": "homeassistant.turn_off",
-            "entity_id": self.room_heating_override
-          }
-        ]
-      }
     ]
 
     self.automations += [
@@ -2181,59 +1740,75 @@ class RoomBase:
           self.turn(gateway_power_switch, "on")
         ] if gateway_power_switch != 'N/A' else [])
     }]  
-  
 
-  def gen_curtain_button_automations(self):
-    self.automations += [{
-        "alias" : "ZLB-" + self.automation_room_name + "Remote Button-Single-Toggle Blind" + "-" + self.room_name,
-        "configured": (len(self.curtain_buttons) > 0),
-        "trigger": [
-          {
-            "platform": "state",
-            "entity_id": self.curtain_buttons,
-            "to": ["single", "1"]
-          }
-        ],
-        "mode":"single", 
-        "action": self.turn(self.curtains, 'toggle')
-    }]
+  # constant
+  TOGGLE_AL_SLEEP_MODE  = 'toggle_al_sleep_mode'                  
+  TOGGLE_CURTAINS       = 'toggle_curtains'                 
+  TOGGLE_LAMP_0         = 'toggle_lamp_0'                 
+  TOGGLE_LAMP_1         = 'toggle_lamp_1'                 
+  TOGGLE_CEILING_LIGHTS = 'toggle_ceiling_lights'                 
+  TOGGLE_LEDS           = 'toggle_leds'       
+  CYCLE_SCENES          = 'cycle_scenes'
+  DO_NOTHING            = 'do_nothing'
 
+  def get_trigger_action_list(self):
+    return {
+            "choose": 
+              ([{ "conditions": [{"condition": "trigger","id": self.CYCLE_SCENES         }], "sequence": {"choose": self.get_scene_state_machine(), "default": self.setNewSceneState("All White")}}]) + \
+              ([{ "conditions": [{"condition": "trigger","id": self.DO_NOTHING           }], "sequence": [{"service": "script.do_nothing"}]}])                                                        + \
+              ([{ "conditions": [{"condition": "trigger","id": self.TOGGLE_AL_SLEEP_MODE }], "sequence": [self.turn(self.al_sleep_mode, 'toggle')]}]                                                ) + \
+              ([{ "conditions": [{"condition": "trigger","id": self.TOGGLE_CURTAINS      }], "sequence": [self.turn(self.curtains,      'toggle')]}] if len(self.curtains)       >= 1 else []       ) + \
+              ([{ "conditions": [{"condition": "trigger","id": self.TOGGLE_LAMP_0        }], "sequence": [self.turn(self.lamps[0],      'toggle')]}] if len(self.lamps)          >= 1 else []       ) + \
+              ([{ "conditions": [{"condition": "trigger","id": self.TOGGLE_LAMP_1        }], "sequence": [self.turn(self.lamps[1],      'toggle')]}] if len(self.lamps)          >= 2 else []       ) + \
+              ([{ "conditions": [{"condition": "trigger","id": self.TOGGLE_CEILING_LIGHTS}], "sequence": [self.turn(self.ceiling_lights,'toggle')]}] if len(self.ceiling_lights) >= 1 else []       ) + \
+              ([{ "conditions": [{"condition": "trigger","id": self.TOGGLE_LEDS          }], "sequence": [self.turn(self.leds,          'toggle')]}] if len(self.leds)           >= 1 else []       )
+          } 
 
   def gen_xiaomi_button_automations(self):
     self.automations += [{
-        "alias" : "ZLB-" + self.automation_room_name + "Remote Button - Single - Applies Different Scenes (State Machine)" + "-" + self.room_name,
+        "alias" : "ZLB-" + self.automation_room_name + "Single Button Button Control" + "-" + self.room_name,
         "configured": self.cfg_remote_light and (self.num_of_xiaomi_button > 0),
-        "trigger": [
-          {
-            "platform": "state",
-            "entity_id": self.xiaomi_buttons,
-            "to": ["single", "1"]
-          }
-        ],
+        "trigger": 
+          ([{"platform": "state",  "entity_id": self.xiaomi_buttons,    "to": ["single", "1"], "id": self.CYCLE_SCENES     }]) + \
+          ([{"platform": "state",  "entity_id": self.xiaomi_buttons,    "to": ["double", "2"], "id": self.TOGGLE_CURTAINS  }]) + \
+          ([{"platform": "state",  "entity_id": self.xiaomi_buttons[0], "to": ["hold",      ], "id": self.TOGGLE_LAMP_0    }] if len(self.xiaomi_buttons) >= 1 else []) + \
+          ([{"platform": "state",  "entity_id": self.xiaomi_buttons[1], "to": ["hold",      ], "id": self.TOGGLE_LAMP_1    }] if len(self.xiaomi_buttons) >= 2 else []) + \
+          ([{"platform": "state",  "entity_id": self.xiaomi_buttons,    "to": ["triple", "3"], "id": self.DO_NOTHING       }]) + \
+          ([{"platform": "state",  "entity_id": self.xiaomi_buttons,    "to": ["quadruple"  ], "id": self.DO_NOTHING       }]) + \
+          ([{"platform": "state",  "entity_id": self.xiaomi_buttons,    "to": ["many"       ], "id": self.DO_NOTHING       }]) + \
+          ([{"platform": "state",  "entity_id": self.xiaomi_buttons,    "to": ["release"    ], "id": self.DO_NOTHING       }]),
         "mode":"queued", # this has to be queued to make sure no button press is ignored
-        
-        # Skip the starting Reset scene as this is used to trigger transition when calling a scene
-        #"condition": [
-        #  {
-        #    "condition": "not",
-        #    "conditions": [
-        #      {
-        #        "condition": "state",
-        #        "entity_id": self.room_scene_ctl,
-        #        "state": "Reset"
-        #      }
-        #    ]
-        #  }
-        #],
-        
-        "action": [
-          {
-            "choose": self.get_scene_state_machine(),
-            # In the case no condition is matching, turn off everything
-            "default": self.setNewSceneState("All White")
-          }
-        ]
+        "action": self.get_trigger_action_list()
     }]
+
+    self.automations += [{
+        "alias" : "ZLB-" + self.automation_room_name + "Six Key Button Control" + "-" + self.room_name,
+        "configured": len(self.six_key_buttons) > 0,
+        "trigger": [
+          {"platform": "state",  "entity_id": self.six_key_buttons, "to": 'button_1_single', "id": self.TOGGLE_AL_SLEEP_MODE },
+          {"platform": "state",  "entity_id": self.six_key_buttons, "to": 'button_2_single', "id": self.TOGGLE_CURTAINS      },
+          {"platform": "state",  "entity_id": self.six_key_buttons, "to": 'button_3_single', "id": self.TOGGLE_LAMP_0        },
+          {"platform": "state",  "entity_id": self.six_key_buttons, "to": 'button_4_single', "id": self.TOGGLE_LAMP_1        },
+          {"platform": "state",  "entity_id": self.six_key_buttons, "to": 'button_5_single', "id": self.TOGGLE_CEILING_LIGHTS},
+          {"platform": "state",  "entity_id": self.six_key_buttons, "to": 'button_6_single', "id": self.TOGGLE_LEDS          }
+        ],
+        "mode":"parallel", 
+        "action": self.get_trigger_action_list()
+    }]
+
+    self.automations += [{
+        "alias" : "ZLB-" + self.automation_room_name + "Four Key Button Control" + "-" + self.room_name,
+        "configured": len(self.four_key_buttons) > 0,
+        "trigger": [
+          {"platform": "state",  "entity_id": self.four_key_buttons,  "to": 'on',                "id": self.TOGGLE_CURTAINS     },
+          {"platform": "state",  "entity_id": self.four_key_buttons,  "to": 'off',               "id": self.TOGGLE_AL_SLEEP_MODE},
+          {"platform": "state",  "entity_id": self.four_key_buttons,  "to": 'arrow_left_click',  "id": self.TOGGLE_LAMP_0       },
+          {"platform": "state",  "entity_id": self.four_key_buttons,  "to": 'arrow_right_click', "id": self.TOGGLE_LAMP_1       }
+        ],
+        "mode":"parallel", 
+        "action": self.get_trigger_action_list()
+    }]
+    
 
     self.automations += [{
         "alias" : "ZL-" + self.automation_room_name + "Applies Different Scenes Based on Scene Selections (State Execution)" + "-" + self.room_name,
@@ -2265,108 +1840,18 @@ class RoomBase:
         ]
     }]
 
-    self.automations += [
-      {
-        "alias":"ZLB-" + self.automation_room_name + "Remote Button - Double - Toggle Lamps" + "-" + self.room_name,
-        "configured": self.cfg_remote_light and (self.num_of_xiaomi_button > 0),
-        "trigger": [
-          {
-            "platform": "state",
-            "entity_id": self.xiaomi_buttons,
-            "to": ["double", "2"]
-          }
-        ],
-        "action": [
-            self.turn(self.lamps, "toggle"),
-        ]
-      }
-    ]
 
-    self.automations += [
-      {
-        "alias":"ZLB-" + self.automation_room_name + "Remote Button - Triple - Toggle Ceiling Lights" + "-" + self.room_name,
-        "configured": self.cfg_remote_light and (self.num_of_xiaomi_button > 0),
-        "trigger": [
-          {
-            "platform": "state",
-            "entity_id": self.xiaomi_buttons,
-            "to": ["triple", "3"]
-          }
-        ],
-        "action": [
-            self.turn(self.ceiling_lights, "toggle"),
-        ]
-      }
-    ]
-
-    self.automations += [
-      {
-        "alias":"ZLB-" + self.automation_room_name + "Remote Button - Long - Toggle LEDs" + "-" + self.room_name,
-        "configured": self.cfg_remote_light and (self.num_of_xiaomi_button > 0),
-        "trigger": [
-          {
-            "platform": "state",
-            "entity_id": self.xiaomi_buttons,
-            "to": "hold"
-          }
-        ],
-        "action": [
-            self.turn(self.leds, "toggle") 
-        ]
-      }
-    ]
-
-
+  def gen_curtain_button_automations(self):
     self.automations += [{
-        "alias" : "ZLB-" + self.automation_room_name + "Six Key Button Control" + "-" + self.room_name,
-        "configured": len(self.six_key_buttons) > 0,
-        "trigger": [
-          {"platform": "state",  "entity_id": self.six_key_buttons,  "id": 'button_1_single',  "to": 'button_1_single'},
-          {"platform": "state",  "entity_id": self.six_key_buttons,  "id": 'button_2_single',  "to": 'button_2_single'},
-          {"platform": "state",  "entity_id": self.six_key_buttons,  "id": 'button_3_single',  "to": 'button_3_single'},
-          {"platform": "state",  "entity_id": self.six_key_buttons,  "id": 'button_4_single',  "to": 'button_4_single'},
-          {"platform": "state",  "entity_id": self.six_key_buttons,  "id": 'button_5_single',  "to": 'button_5_single'},
-          {"platform": "state",  "entity_id": self.six_key_buttons,  "id": 'button_6_single',  "to": 'button_6_single'}
-        ],
-        "mode":"parallel", 
-        "action": [
-          {
-            "choose": [
-              { "conditions": [{"condition": "trigger","id": ["button_1_single"]}], "sequence": [self.turn('switch.adaptive_lighting_sleep_mode_' + self.room_entity, 'toggle')]},
-              { "conditions": [{"condition": "trigger","id": ["button_2_single"]}], "sequence": [self.turn(self.curtains,      'toggle')]},
-              { "conditions": [{"condition": "trigger","id": ["button_3_single"]}], "sequence": [self.turn(self.lamps[0],      'toggle')]} if len(self.six_key_buttons) > 0 else [],
-              { "conditions": [{"condition": "trigger","id": ["button_4_single"]}], "sequence": [self.turn(self.lamps[1],      'toggle')]} if len(self.six_key_buttons) > 0 else [],
-              { "conditions": [{"condition": "trigger","id": ["button_5_single"]}], "sequence": [self.turn(self.ceiling_lights,'toggle')]},
-              { "conditions": [{"condition": "trigger","id": ["button_6_single"]}], "sequence": [self.turn(self.leds,          'toggle')]}
-            ]
-          }   
-        ]
+        "alias" : "ZLB-" + self.automation_room_name + "Remote Button-Single-Toggle Blind" + "-" + self.room_name,
+        "configured": (len(self.curtain_buttons) > 0),
+        "trigger": {"platform": "state",  "entity_id": self.curtain_buttons,    "to": ["single", "1"], "id": self.TOGGLE_CURTAINS },
+        "mode":"restart", 
+        "action": self.get_trigger_action_list()
     }]
 
 
-    self.automations += [{
-        "alias" : "ZLB-" + self.automation_room_name + "Four Key Button Control" + "-" + self.room_name,
-        "configured": len(self.four_key_buttons) > 0,
-        "trigger": [
-          {"platform": "state",  "entity_id": self.four_key_buttons,  "id": 'on',                "to": 'on'},
-          {"platform": "state",  "entity_id": self.four_key_buttons,  "id": 'off',               "to": 'off'},
-          {"platform": "state",  "entity_id": self.four_key_buttons,  "id": 'arrow_left_click',  "to": 'arrow_left_click'},
-          {"platform": "state",  "entity_id": self.four_key_buttons,  "id": 'arrow_right_click', "to": 'arrow_right_click'}
-        ],
-        "mode":"parallel", 
-        "action": [
-          {
-            "choose": [
-              { "conditions": [{"condition": "trigger","id": ['on'               ]}], "sequence": [self.turn(self.curtains,      'toggle')]},
-              { "conditions": [{"condition": "trigger","id": ["off"              ]}], "sequence": [self.turn('switch.adaptive_lighting_sleep_mode_' + self.room_entity, 'toggle')]},
-              { "conditions": [{"condition": "trigger","id": ['arrow_left_click' ]}], "sequence": [self.turn(self.lamps[0],      'toggle')]} if len(self.four_key_buttons) > 0 else [],
-              { "conditions": [{"condition": "trigger","id": ['arrow_right_click']}], "sequence": [self.turn(self.lamps[1],      'toggle')]} if len(self.four_key_buttons) > 0 else [],
-            ]
-          }   
-        ]
-    }]
-
-
+  
   # Exceptions that will be written per room - most of them because the wall button have multiple keys and multiple lights
   # [TODO] Ground Corridor - double - turn off everything apart from en-suite room/toilet 
   # [TODO] First Corridor - double - turn off everything apart from en-suite room/toilet 
@@ -2470,7 +1955,7 @@ class RoomBase:
   #          "at": self.start_of_sleep_time
   #        }
   #      ],
-  #      "action": [self.turn('switch.adaptive_lighting_sleep_mode_' + self.room_entity, 'on')]
+  #      "action": [self.turn(self.al_sleep_mode, 'on')]
   #    }
   #  ]
   #
@@ -2484,7 +1969,7 @@ class RoomBase:
   #          "at": self.end_of_sleep_time
   #        }
   #      ],
-  #      "action": [self.turn('switch.adaptive_lighting_sleep_mode_' + self.room_entity, 'off')]
+  #      "action": [self.turn(self.al_sleep_mode, 'off')]
   #    }
   #  ]
 
@@ -2536,7 +2021,7 @@ class RoomBase:
             "state":  "off"
           },
           { "service": "adaptive_lighting.apply",
-            "data":    {"entity_id": "switch.adaptive_lighting_adapt_brightness_" + self.room_entity}
+            "data":    {"entity_id": self.al_adapt_brightness}
           }
         ]        
       }
@@ -2770,7 +2255,7 @@ class RoomBase:
                          {"service":"homeassistant.turn_on",  "entity_id": entity_list}],
                         alias='Everytime to turn on a wall switch, make sure to turn off it first to make sure the smart lights will be back on')
     # Adaptive light only applies when lights are turned on by light.turn_on instead of homeassistant.turn_on
-    # that's not  true..... 
+    # that's not true..... 
     elif is_light_list and (state == 'on' or state == 'off'):
       action_service = {"service":"light.turn_on"  if state == 'on'     else \
                                   "light.turn_off" if state == 'off'    else None,
@@ -2798,12 +2283,12 @@ class RoomBase:
 
 
     if entity_list != None and entity_list != []:
-      return self.convertToSingleService(action_service, 
-                                         alias =  ('Turn'  + \
-                                                   (' nothing'        if entity_list==[]              else \
+      return self.convertToSingleService( action_service, 
+                                          alias =  ('Turn'  + \
+                                                    (' nothing'        if entity_list==[]              else \
                                                     ' ' + entity_list if isinstance(entity_list, str) else " " + " ".join(entity_list)) + \
-                                                   (''                if state==None                  else ' state=' + state) + \
-                                                   (''                if light_brightness==None       else ' light_brightness=' + str(light_brightness))))
+                                                    (''                if state==None                  else ' state=' + state) + \
+                                                    (''                if light_brightness==None       else ' light_brightness=' + str(light_brightness))))
     else:
       return {"service": "script.do_nothing"}
 
@@ -3082,101 +2567,93 @@ class RoomBase:
 
     self.room_theme          = ios_themes[random.randint(0,6)]
 
-  def getRestricedAccess(self, user, inner_card):
-    if user not in ['us', 'en_suite_room_user', 'guest_room_user']:
-      raise TypeError( "\n" +\
-                       "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n" + \
-                       "User " + user + "is not supported for restriction card" + "\n" + \
-                       "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n")
+  def addView(self, viewPath='',
+                    cards=[], 
+                    theme="Mushroom Shadow",
+                    title=''):
+                      
+    self.views += [{
+                  "theme": theme,
+                  "title": title,
+                  "path":  viewPath,
+                  #"icon": "",
+                  "subview": True,
+                  "badges": [],
+                  "cards": cards
+                 }]
 
+  def getRoomViews(self):
+    # Add room header navagation cards (back card + scene card)
+    self.header_card_list += self.getHeaderCardList()
     
-    return {
-      "type": "custom:restriction-card",
-      "restrictions": {
-        "hide": {
-          "exemptions": [
-            {"user": "72e8e305715145febff1ba701fd78954"},
-            {"user": "60652445f3d14a8f822054569404b643"},
-            {"user": "317c743e4c8348b8a70d671db917dbe8"}
-          ]
-        }
-      },
-      "exemptions": [
-        {"user": "72e8e305715145febff1ba701fd78954"},
-        {"user": "60652445f3d14a8f822054569404b643"},
-        {"user": "317c743e4c8348b8a70d671db917dbe8"}
-      ],
-      "card": inner_card
-    }
-
-  def getTemplateCard(self, icon='mdi:head-alert-outline', 
-                            icon_color='blue', 
-                            primary=None, 
-                            secondary=None, 
-                            condition_entity=None, 
-                            tap_entity=None, 
-                            condition_state='on', 
-                            condition_state_not=None, 
-                            condition_states=None,
-                            tap_action='more-info',
-                            theme='default'):
+    all_cards = self.getLayoutWrapperCardList(self.header_card_list) + \
+                self.getLayoutWrapperCardList(self.main_card_list)   + \
+                self.tail_card_list
     
-    self.dashboard_view_path = "/" + self.dashboard_root + "/" + self.room_navi_path
+    #if self.room_name == 'Guest Room':
+    #  print (self.main_card_list)
+    self.addView(title=self.room_name, theme=self.room_theme, viewPath=self.room_navi_path, cards=all_cards)
+    return self.views
+
+
+  def getLayoutWrapperCardList(self, cards=None):
     
-    tap_action_dict = {}
-    entity =  tap_entity                  if tap_entity       != None else \
-              condition_entity            if condition_entity != None else \
-              'input_boolean.placeholder'
-             
-    if   tap_action == 'navigate':
-      tap_action_dict = {
-        "action": "navigate",
-        "navigation_path": self.dashboard_view_path} 
-    elif tap_action == 'more-info':
-      tap_action_dict = {"action": "more-info"}
-    
-    template_card = {
-      "type":       "custom:mushroom-template-card",
-      "icon":       "{% set entity = '"+entity+"' %}\n" + icon,
-      "tap_action": tap_action_dict,
-      "entity":     entity,
-      "layout":     "horizontal",
-      "fill_container": True,
-    } | ({"primary"   : primary                                         } if primary   != None      else {}) \
-      | ({"secondary" : secondary                                       } if secondary != None      else {}) \
-      | ({"icon_color": "{% set entity = '"+entity+"' %}\n" + icon_color} if theme     == 'default' else {}) 
+    if self.dashboard_type in ['mobile', 'default']:
+      grid_cards = [{
+          "square": False,
+          "columns": 2,
+          "type": "grid",
+          "cards": cards}]          
+    elif self.dashboard_type == 'tablet':
+      grid_cards = cards
+    else: 
+        raise TypeError( "\n" +\
+          "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n" + \
+          "getLayoutWrapperCardList does not support dashboard_type" + dashboard_type + \
+          "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n")
 
-    if condition_entity == None:
-      condition_card = template_card
-    else:
-      condition_card = {}
-
-      # Use single condition
-      if condition_states is None:
-        condition_card = {
-          "type": "conditional",
-          "conditions": [
-            ( {"entity":    condition_entity}) | ( 
-              {"state_not": condition_state_not} if condition_state_not != None else \
-              {"state":     condition_state}    )
-          ],
-          "card": template_card }
-          
-      else: # Use multiple conditions 
-        condition_card = {
-          "type": "custom:state-switch",
-          "entity": condition_entity,
-          states: {}}
-        for state in condition_states:
-          condition_card['states'] |= { state : template_card}
-
-    if theme == 'ios':
-      #condition_card |= self.getCardMod(style='ios16_toggle',color=("{% set entity = '"+entity+"' %}\n" + icon_color))
-      condition_card |= self.getCardMod(color=("{% set entity = '"+entity+"' %}\n" + icon_color))
-
-    return condition_card
-
-
+    return grid_cards
+  
+  def getHeaderCardList(self,navigate_path=None):
+    # Navigation header
+    return ([
+        {
+          "type": "custom:mushroom-template-card",
+          "entity": "input_boolean.placeholder",
+          "icon": "mdi:keyboard-return",
+          "icon_color": "yellow",
+          "primary": "HOME",
+          "secondary": "",
+          "layout": "vertical",
+          "hold_action": {
+            "action": "toggle"
+          },
+          "tap_action":{
+            "action": "navigate",
+            "navigation_path": (self.dashboard_root+"/"+"home") if navigate_path == None else navigate_path
+          },
+          "card_mod": {
+            "style": {
+              "mushroom-state-info$": ".primary {\n  font-size: 16px !important;\n  position: relative;\n  top: 0px;\n  left: 0px;\n  overflow: visible !important;\n  white-space:  \n}\n",
+              "mushroom-shape-icon$": ".shape {\n  position: relative;\n  left: 0px;\n  top: 0px;\n}\n",
+              ".": ":host {\n  --mush-icon-size: 80px;\n}\n"
+            }
+          }
+        },
+        self.hccl.getEntityCard(entity=self.room_scene_ctl, secondary_info='none')
+#        {
+#          "type": "entities",
+#          "entities": [
+#            {
+#              "entity": self.room_scene_ctl,
+#              "name": "Scene"
+#            }
+#          ],
+#          "state_color": True,
+#          "title": "Run a Scene",
+#        }
+    ])
+  
   def getNavigationRoomCard (self):
     type = 'mushroom'
 
@@ -3269,95 +2746,34 @@ class RoomBase:
       }
 
     return self.getRestricedAccess('us', room_card)
-        
 
-  def addView(self, viewPath='',
-                    cards=[], 
-                    theme="Mushroom Shadow",
-                    title=''):
-                      
-    self.views += [{
-                  "theme": theme,
-                  "title": title,
-                  "path":  viewPath,
-                  #"icon": "",
-                  "subview": True,
-                  "badges": [],
-                  "cards": cards
-                 }]
+  def getRestricedAccess(self, user, inner_card):
+    if user not in ['us', 'en_suite_room_user', 'guest_room_user']:
+      raise TypeError( "\n" +\
+                       "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n" + \
+                       "User " + user + "is not supported for restriction card" + "\n" + \
+                       "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n")
 
-  def getRoomViews(self):
-    # Add room header navagation cards (back card + scene card)
-    self.header_card_list += self.getHeaderCardList()
     
-    all_cards = self.getLayoutWrapperCardList(self.header_card_list) + \
-                self.getLayoutWrapperCardList(self.main_card_list)   + \
-                self.tail_card_list
-    
-    #if self.room_name == 'Guest Room':
-    #  print (self.main_card_list)
-    self.addView(title=self.room_name, theme=self.room_theme, viewPath=self.room_navi_path, cards=all_cards)
-    return self.views
+    return {
+      "type": "custom:restriction-card",
+      "restrictions": {
+        "hide": {
+          "exemptions": [
+            {"user": "72e8e305715145febff1ba701fd78954"},
+            {"user": "60652445f3d14a8f822054569404b643"},
+            {"user": "317c743e4c8348b8a70d671db917dbe8"}
+          ]
+        }
+      },
+      "exemptions": [
+        {"user": "72e8e305715145febff1ba701fd78954"},
+        {"user": "60652445f3d14a8f822054569404b643"},
+        {"user": "317c743e4c8348b8a70d671db917dbe8"}
+      ],
+      "card": inner_card
+    }
 
-
-  def getLayoutWrapperCardList(self, cards=None):
-    
-    if self.dashboard_type in ['mobile', 'default']:
-      grid_cards = [{
-          "square": False,
-          "columns": 2,
-          "type": "grid",
-          "cards": cards}]          
-    elif self.dashboard_type == 'tablet':
-      grid_cards = cards
-    else: 
-        raise TypeError( "\n" +\
-          "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n" + \
-          "getLayoutWrapperCardList does not support dashboard_type" + dashboard_type + \
-          "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n")
-
-    return grid_cards
-  
-  def getHeaderCardList(self,navigate_path=None):
-    # Navigation header
-    return ([
-        {
-          "type": "custom:mushroom-template-card",
-          "entity": "input_boolean.placeholder",
-          "icon": "mdi:keyboard-return",
-          "icon_color": "yellow",
-          "primary": "HOME",
-          "secondary": "",
-          "layout": "vertical",
-          "hold_action": {
-            "action": "toggle"
-          },
-          "tap_action":{
-            "action": "navigate",
-            "navigation_path": (self.dashboard_root+"/"+"home") if navigate_path == None else navigate_path
-          },
-          "card_mod": {
-            "style": {
-              "mushroom-state-info$": ".primary {\n  font-size: 16px !important;\n  position: relative;\n  top: 0px;\n  left: 0px;\n  overflow: visible !important;\n  white-space:  \n}\n",
-              "mushroom-shape-icon$": ".shape {\n  position: relative;\n  left: 0px;\n  top: 0px;\n}\n",
-              ".": ":host {\n  --mush-icon-size: 80px;\n}\n"
-            }
-          }
-        },
-        self.getEntityCard(entity=self.room_scene_ctl, secondary_info='none')
-#        {
-#          "type": "entities",
-#          "entities": [
-#            {
-#              "entity": self.room_scene_ctl,
-#              "name": "Scene"
-#            }
-#          ],
-#          "state_color": True,
-#          "title": "Run a Scene",
-#        }
-    ])
-  
 
   # Create a new yaml and write to it
   def writeConfig (self):
@@ -3486,9 +2902,9 @@ class MasterRoom(RoomBase):
     self.add_mac_device("master_room_tv_led_magic_home",     self.room_name + " TV LED",              'Light',              "Generic Lights")
     self.add_mac_device("master_room_drawer_led_magic_home", self.room_name + " Drawer LED",          'Light',              "Generic Lights")
     self.add_mac_device("0x04cf8cdf3c73a19b",                self.room_name + " Curtain",             'Curtain',            "Aqara B1 curtain motor")
-    self.add_mac_device('18c23c24681a',                      self.room_name,                          'Button',             'MiJia Wireless Switch 2', postfix='1')
+    #self.add_mac_device('18c23c24681a',                      self.room_name,                          'Button',             'MiJia Wireless Switch 2', postfix='1')
+    self.add_mac_device('18c23c25a26c',                      self.room_name,                          'Button',             'MiJia Wireless Switch 2', postfix='1')
     self.add_mac_device('18c23c25960b',                      self.room_name,                          'Button',             'MiJia Wireless Switch 2', postfix='2')
-    self.add_mac_device('18c23c25a26c',                      self.room_name,                          'Button',             'MiJia Wireless Switch 2', postfix='3')
     self.add_mac_device("0x04cf8cdf3c7ad638",                self.room_name,                          'Wall Switch',        "Aqara D1 Wall Switch (With Neutral, Triple Rocker)", flex_switch=[2,3])
     self.add_mac_device('sonoff_1001e49ec4_1',               self.room_name + ' Dressing Table Light','Switch',             'Generic Switches')
     self.add_mac_device("sonoff_1001e4a0a0_1",               self.room_name + ' Gateway Power',       'Switch',             "Generic Switches")
@@ -3570,7 +2986,7 @@ class MasterRoom(RoomBase):
     
     # Adaptive lighting
     if self.cfg_adaptive_lighting:
-      self.adaptive_lighting_list[0]["lights"] += self.ceiling_lights + self.lamps
+      self.al_light_list[0]["lights"] += self.ceiling_lights + self.lamps
 
   def get_cover_entities(self):
     super().get_cover_entities()
@@ -3592,7 +3008,9 @@ class MasterRoom(RoomBase):
     super().get_remote_entities()
     self.wall_buttons            = ["sensor." + self.room_entity + "_entrance_wall_button"]
     self.buttons                 = self.wall_buttons + self.xiaomi_buttons
+
     # button states do not work well (not responsive) with template sensor renaming
+    # and this usage pressing buttons quickly a lot of time
     self.four_key_buttons        = ['sensor.0x842e14fffe60b64a_action']
 
 
@@ -3661,6 +3079,7 @@ class MasterToilet(RoomBase):
   def get_remote_entities(self):  
     super().get_remote_entities()
     # N.B. Xiaomi zigbee button rename using template does not sample very well
+    # and this usage pressing buttons quickly a lot of time
     # Use manual rename on the native entity itself
     self.curtain_buttons = ["sensor.master_toilet_blind_button_action"]
 
@@ -3679,7 +3098,7 @@ class MasterToilet(RoomBase):
 
     # Adaptive lighting
     if self.cfg_adaptive_lighting:
-      self.adaptive_lighting_list[0]["lights"] += self.ceiling_lights + ["light.master_toilet_dressing_room_light"]
+      self.al_light_list[0]["lights"] += self.ceiling_lights + ["light.master_toilet_dressing_room_light"]
 
   def get_mirror_sensor_entities(self):
     super().get_mirror_sensor_entities()
@@ -3725,7 +3144,9 @@ class Kitchen(RoomBase):
 
   def get_entity_declarations(self):
     super().get_entity_declarations()
-    self.add_mac_device("a4c1380e91a7",                               self.room_name,                   'Temperature Sensor', "Mijia2 Temperature Sensor")     
+    
+    self.add_mac_device("582d34828f85",                               self.room_name,                   'Temperature Sensor', "Qingping Lite Temperature Sensor")
+    #self.add_mac_device("a4c1380e91a7",                               self.room_name,                   'Temperature Sensor', "Mijia2 Temperature Sensor")     
     self.add_mac_device("curtain_e521",                               self.room_name + " Curtain",      'Curtain',            "Generic Curtains")     
     self.add_mac_device('0x00158d0005210fa9',                         self.room_name + ' Extractor',    'Wall Switch',        'Aqara D1 Wall Switch (With Neutral, Double Rocker)', switch_rename_dir={2: 'Kitchen Extractor'})
     self.add_mac_device('0x04cf8cdf3c7ad647',                         self.room_name,                   'Wall Switch',        'Aqara D1 Wall Switch (With Neutral, Triple Rocker)', flex_switch=[2], switch_rename_dir={3: 'Kitchen Floor LED'})
@@ -3761,7 +3182,7 @@ class Kitchen(RoomBase):
     self.lights                  = self.leds + self.lamps + self.ceiling_lights
 
     # Adaptive lighting
-    self.adaptive_lighting_list[0]["lights"] += self.ceiling_lights + ["light.kitchen_worktop_led"]
+    self.al_light_list[0]["lights"] += self.ceiling_lights + ["light.kitchen_worktop_led"]
 
   def get_cover_entities(self):
     super().get_cover_entities()
@@ -3955,7 +3376,7 @@ class LivingRoom(RoomBase):
     self.lights                  = self.leds + self.lamps + self.ceiling_lights
 
     # Adaptive lighting
-    self.adaptive_lighting_list[0]["lights"] += self.ceiling_lights + \
+    self.al_light_list[0]["lights"] += self.ceiling_lights + \
                                             [ "light.living_room_floor_light_1", 
                                               "light.living_room_3_head_lamp_1",
                                               "light.living_room_3_head_lamp_2",
@@ -4061,7 +3482,7 @@ class EnSuiteRoom(RoomBase):
 
   def get_entity_declarations(self):
     super().get_entity_declarations()
-    self.add_mac_device('0x00158d000403d6c0',              self.room_name,                       'Button',              'MiJia Wireless Switch')
+    #self.add_mac_device('0x00158d000403d6c0',              self.room_name,                       'Button',              'MiJia Wireless Switch')
     self.add_mac_device("0x04cf8cdf3c797717",              self.room_name + " Six Key Button 1", 'Button',              "Aqara Opple switch 3 bands", integration='Z2M')
     self.add_mac_device('0x00158d00047d69e6',              self.room_name,                       'Wall Switch',         'Aqara D1 Wall Switch (With Neutral, Single Rocker)')
     self.add_mac_device("dced8308f496",                    self.room_name,                       'Motion Sensor',       "Ziqing Occupancy Sensor")
@@ -4099,6 +3520,7 @@ class EnSuiteRoom(RoomBase):
   def get_remote_entities(self):  
     super().get_remote_entities()
     # button states do not work well (not responsive) with template sensor renaming
+    # and this usage pressing buttons quickly a lot of time
     self.six_key_buttons = ['sensor.0x04cf8cdf3c797717_0x04cf8cdf3c797717_action',
                             'sensor.0x04cf8cdf3c7976f8_0x04cf8cdf3c7976f8_action']
 
@@ -4109,7 +3531,7 @@ class EnSuiteRoom(RoomBase):
     self.lights                  = self.leds + self.lamps + self.ceiling_lights
 
     # Adaptive lighting
-    self.adaptive_lighting_list[0]["lights"] += self.lamps + self.ceiling_lights
+    self.al_light_list[0]["lights"] += self.lamps + self.ceiling_lights
 
   def get_cover_entities(self):
     super().get_cover_entities()
@@ -4146,7 +3568,7 @@ class EnSuiteToilet(RoomBase):
     super().get_light_entities()
 
     # Adaptive lighting
-    self.adaptive_lighting_list[0]["lights"] += self.ceiling_lights
+    self.al_light_list[0]["lights"] += self.ceiling_lights
 
   def get_motion_sensor_entities(self):
     super().get_motion_sensor_entities()
@@ -4173,8 +3595,8 @@ class GuestRoom(RoomBase):
     self.cfg_scene              = True            
     self.cfg_occupancy          = True        
     self.cfg_group_auto         = True       
-    #self.cfg_motion_light       = True
-    #self.cfg_remote_light       = True
+    self.cfg_motion_light       = True
+    self.cfg_remote_light       = True
     self.cfg_temp_control       = True
     self.cfg_temp_calibration   = True
     self.cfg_custom_scene       = False
@@ -4196,14 +3618,14 @@ class GuestRoom(RoomBase):
     # This Ziqing Occupancy Sensor is Out of Order
     #self.add_mac_device("dced8309090d",       self.room_name,                    'Motion Sensor',      "Ziqing Occupancy Sensor")
     #self.add_mac_device('18c23c25a26c',       self.room_name,                    'Button',             'MiJia Wireless Switch 2', postfix='1')
-    #self.add_mac_device('18c23c246426',       self.room_name,                    'Button',             'MiJia Wireless Switch 2', postfix='2')
+    self.add_mac_device('18c23c246426',       self.room_name,                    'Button',             'MiJia Wireless Switch 2', postfix='1')
+    self.add_mac_device('18c23c2826fc',       self.room_name,                    'Button',             'MiJia Wireless Switch 2', postfix='2')
     self.add_mac_device("curtain_1050",       self.room_name + " Curtain",       'Curtain',            "Generic Curtains")     
 
   def get_cover_entities(self):
     super().get_cover_entities()
     # Cover entities
     self.curtains               = [ "cover.guest_room_curtain"] 
-
 
   def get_motion_sensor_entities(self):
     super().get_motion_sensor_entities()
@@ -4222,7 +3644,7 @@ class GuestRoom(RoomBase):
     self.lights                  = self.leds + self.lamps + self.ceiling_lights
 
     # Adaptive lighting
-    self.adaptive_lighting_list[0]["lights"] += self.ceiling_lights + self.lamps
+    self.al_light_list[0]["lights"] += self.ceiling_lights + self.lamps
 
 
   def getDashboardSettings(self):
@@ -4258,7 +3680,7 @@ class GuestToilet(RoomBase):
     self.lights                  = self.leds + self.lamps + self.ceiling_lights
 
     # Adaptive lighting
-    self.adaptive_lighting_list[0]["lights"] += self.ceiling_lights 
+    self.al_light_list[0]["lights"] += self.ceiling_lights 
 
 
   def get_entity_declarations(self):
@@ -4318,7 +3740,7 @@ class Study(RoomBase):
 
     # Adaptive lighting
     if self.cfg_adaptive_lighting:
-      self.adaptive_lighting_list[0]["lights"] += self.ceiling_lights 
+      self.al_light_list[0]["lights"] += self.ceiling_lights 
 
   def get_motion_sensor_entities(self):
     super().get_motion_sensor_entities()
@@ -4348,19 +3770,22 @@ class Study(RoomBase):
 
   def get_entity_declarations(self):
     super().get_entity_declarations()
-    self.add_mac_device("a4c138cfc701",               self.room_name,                     'Temperature Sensor', "Mijia2 Temperature Sensor")
+    
+    #self.add_mac_device("a4c138cfc701",               self.room_name,                     'Temperature Sensor', "Mijia2 Temperature Sensor")
+    self.add_mac_device("582d34828cc1",               self.room_name,                     'Temperature Sensor', "Qingping Lite Temperature Sensor")
     self.add_mac_device('0x00158d00045245be',         self.room_name,                     'Wall Switch',        'Aqara D1 Wall Switch (With Neutral, Single Rocker)', integration='Z2M', flex_switch=True)
     self.add_mac_device("0x00158d00070b2f26",         self.room_name + ' Blind',          'Curtain',            "Aqara roller shade motor")
     self.add_mac_device("mss210_b083_outlet",         self.room_name + ' Studio Lamp 1',  'Switch',             "Generic Switches")
     self.add_mac_device('18c23c282711',               self.room_name,                     'Button',             'MiJia Wireless Switch 2')
     self.add_mac_device('18c23c26ea40',               self.room_name + ' Desk',           'Motion Sensor',      'Mijia Motion Sensor 2')
-    self.add_mac_device('0x00158d000171756e_power',   'Feeding Bottle Warmer',            'Power',              'Generic Power Measurement Switch', power_on_threshold=30)
+    self.add_mac_device('0x00158d000171756e_power',   'Feeding Bottle Warmer',            'Power',              'Generic Power Measurement Switch', power_on_threshold=1.5)
+    self.add_mac_device("0x00158d000171756e_plug",    'Feeding Bottle Warmer',            'Switch',             "Generic Switches")
 
     # This Meross switch is Out-of-Order
     #self.add_mac_device("mss210_ce70_outlet", self.room_name + ' Studio Lamp 2',   'Switch',            "Generic Switches")
     self.add_mac_device("sonoff_1001e49ade_1",       self.room_name + ' Gateway Power',   'Switch',            "Generic Switches")
 
-#('0x00158d00054a6eb9', 'Study',                      'Aqara Motion and Illuminance Sensor')
+    #('0x00158d00054a6eb9', 'Study',                      'Aqara Motion and Illuminance Sensor')
     #self.add_mac_device("mss210_c519_outlet", self.room_name + ' Screen LED',      'Switch',      "Generic Switches")
 
 
@@ -4410,7 +3835,7 @@ class Corridor(RoomBase):
   def get_light_entities(self):
     super().get_light_entities()
     # Adaptive lighting
-    self.adaptive_lighting_list[0]["lights"] += self.ceiling_lights
+    self.al_light_list[0]["lights"] += self.ceiling_lights
 
 
   def get_remote_entities(self):  
@@ -4479,7 +3904,7 @@ class GroundToilet(RoomBase):
   def get_light_entities(self):
     super().get_light_entities()
     # Adaptive lighting
-    self.adaptive_lighting_list[0]["lights"] += self.ceiling_lights 
+    self.al_light_list[0]["lights"] += self.ceiling_lights 
 
 
   def getDashboardSettings(self):

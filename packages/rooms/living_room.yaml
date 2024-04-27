@@ -286,24 +286,8 @@ automation:
       - delay:
           hours: 0
           minutes: 0
-          seconds: 0
-          milliseconds: 500
-      - service: cover.open_cover
-        target:
-          entity_id: cover.living_room_curtain_2
-      - delay:
-          hours: 0
-          minutes: 0
-          seconds: 0
-          milliseconds: 500
-      - service: cover.open_cover
-        target:
-          entity_id: cover.living_room_curtain_2
-      - delay:
-          hours: 0
-          minutes: 0
-          seconds: 0
-          milliseconds: 500
+          seconds: 1
+          milliseconds: 0
       - service: cover.open_cover
         target:
           entity_id: cover.living_room_curtain_2
@@ -606,15 +590,12 @@ automation:
   - alias: S-LR Living Room Sonos Night Mode Turns On When Guest Room Have People Or In the Night
     id: fjdslfjdsjvdsljflsjdlfdsmldlsjklfdsjk
     trigger:
-      - at: "21:30:05"
+      - at: "22:30:05"
         platform: time
       - platform: state
         entity_id:
-          - group.guest_room_motion_group
-      - platform: state
-        entity_id:
           - input_select.guest_room_occupancy
-          - input_select.study_occupancy          
+          - input_select.study_occupancy
     action:
       - condition: state
         entity_id: switch.living_room_sonos_night_sound
@@ -623,20 +604,15 @@ automation:
         condition: or
         conditions:
           - condition: time
-            after: "21:30:00"
+            after: "22:30:00"
             before: "09:00:00"
-          - condition: state
-            entity_id: input_select.guest_room_occupancy
-            state:
-              - Just Entered
-              - Stayed Inside
-              - In Sleep
-          - condition: state
-            entity_id: input_select.study_occupancy
-            state:
-              - Just Entered
-              - Stayed Inside
-              - In Sleep
+          - alias: "Soneone in the guest room/study"
+            not:
+              - condition: state
+                entity_id:
+                  - input_select.guest_room_occupancy
+                  - input_select.study_occupancy
+                state: Outside
       # Sonos Night Mode
       - service: switch.turn_on
         entity_id:
@@ -656,11 +632,8 @@ automation:
         platform: time
       - platform: state
         entity_id:
-          - group.guest_room_motion_group
-      - platform: state
-        entity_id:
           - input_select.guest_room_occupancy
-          - input_select.study_occupancy          
+          - input_select.study_occupancy
     action:
       - condition: state
         entity_id: switch.living_room_sonos_night_sound
@@ -670,14 +643,14 @@ automation:
         conditions:
           - condition: time
             after: "09:00:00"
-            before: "21:30:00"
-          - condition: state
-            entity_id: input_select.guest_room_occupancy
+            before: "22:30:00"
+          - alias: "No one in the guest room/study"
+            condition: state
+            entity_id:
+              - input_select.guest_room_occupancy
+              - input_select.study_occupancy
             state: Outside
-          - condition: state
-            entity_id: input_select.study_occupancy
-            state: Outside
-      # Turn down volume
+      # Turn down volumes
       - repeat:
           count: 8
           sequence:
@@ -705,16 +678,16 @@ automation:
           - condition: numeric_state
             entity_id: media_player.living_room_sonos
             attribute: volume_level
-            above: 0.40
+            above: 0.50
         then:
           - service: media_player.volume_set
             data:
-              volume_level: 0.40
+              volume_level: 0.50
             target:
               entity_id: media_player.living_room_sonos
           - service: script.notify_alexa_speakers_and_phones
             data:
-              tts_message: Night mode is on due to people in guest room. Limit maximum volume allowed. 有人呆在客房或书房，音量被限制到40以免吵到客房的人。
+              tts_message: 晚上了或者白天有人呆在客房或书房，音量被限制到50以免吵到客房的人。
               alexa_speaker_list:
                 - media_player.living_room_echo
     mode: single

@@ -584,31 +584,23 @@ automation:
   - if:
     - condition: state
       entity_id: input_boolean.study_heating_override
-      state: 'on'
+      state: 'off'
     then:
     - service: automation.trigger
       entity_id:
-      - automation.zh_st_heating_schedule_on_if_staying_in_the_room_study
+      - automation.zh_st_heating_schedule_off_if_people_left_the_room_study
     else:
     - service: automation.trigger
       entity_id:
-      - automation.zh_st_heating_schedule_off_if_people_left_the_room_study
+      - automation.zh_st_heating_schedule_on_if_staying_in_the_room_study
+    - delay:
+        hours: 2
+    - service: homeassistant.turn_off
+      entity_id: input_boolean.study_heating_override
+    - service: automation.trigger
+      entity_id:
+      - automation.zh_st_heating_schedule_on_if_staying_in_the_room_study
   id: automation.zh_st_heating_manual_override_study
-- alias: ZH-ST Heating Manual Override Timeout in Few Hours-Study
-  trigger:
-  - platform: state
-    entity_id: input_boolean.study_heating_override
-    from: 'off'
-    to: 'on'
-  action:
-  - delay:
-      hours: 2
-      minutes: 0
-      seconds: 0
-      milliseconds: 0
-  - service: homeassistant.turn_off
-    entity_id: input_boolean.study_heating_override
-  id: automation.zh_st_heating_manual_override_timeout_in_few_hours_study
 - alias: ZH-ST Valve Calibrate Temperature Using External Sensor-Study
   use_blueprint:
     path: calibrate_valve_temperature.yaml
@@ -1235,23 +1227,213 @@ automation:
   id: automation.zl_st_applies_different_scenes_based_on_scene_selections_state_execution_study
 - alias: ZLB-ST Remote Button-Single-Toggle Blind-Study
   trigger:
-  - platform: state
+    platform: state
     entity_id:
     - sensor.study_button
     to:
     - single
     - '1'
-  mode: single
+    id: toggle_curtains
+  mode: restart
   action:
-    alias: Turn cover.study_blind state=toggle
-    if:
-      condition: state
-      entity_id: input_boolean.always_on_constant
-      state: 'on'
-    then:
-      service: cover.toggle
-      entity_id:
-      - cover.study_blind
+    choose:
+    - conditions:
+      - condition: trigger
+        id: cycle_scenes
+      sequence:
+        choose:
+        - conditions:
+            condition: state
+            entity_id: input_select.study_scene
+            state: All Off
+          sequence:
+            service: script.call_room_scene
+            data:
+              room_scene_select: input_select.study_scene
+              scene: All White
+        - conditions:
+            condition: state
+            entity_id: input_select.study_scene
+            state: All White
+          sequence:
+            service: script.call_room_scene
+            data:
+              room_scene_select: input_select.study_scene
+              scene: Lamp LED White
+        - conditions:
+            condition: state
+            entity_id: input_select.study_scene
+            state: Lamp LED White
+          sequence:
+            service: script.call_room_scene
+            data:
+              room_scene_select: input_select.study_scene
+              scene: All Off
+        default:
+          service: script.call_room_scene
+          data:
+            room_scene_select: input_select.study_scene
+            scene: All White
+    - conditions:
+      - condition: trigger
+        id: do_nothing
+      sequence:
+      - service: script.do_nothing
+    - conditions:
+      - condition: trigger
+        id: toggle_al_sleep_mode
+      sequence:
+      - alias: Turn switch.adaptive_lighting_sleep_mode_study state=toggle
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+          if:
+          - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
+            condition: state
+            entity_id: switch.adaptive_lighting_sleep_mode_study
+            state: 'on'
+            match: any
+          then:
+            alias: Turn switch.adaptive_lighting_sleep_mode_study state=off
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              service: homeassistant.turn_off
+              entity_id: switch.adaptive_lighting_sleep_mode_study
+          else:
+            alias: Turn switch.adaptive_lighting_sleep_mode_study state=on
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              service: homeassistant.turn_on
+              entity_id: switch.adaptive_lighting_sleep_mode_study
+    - conditions:
+      - condition: trigger
+        id: toggle_curtains
+      sequence:
+      - alias: Turn cover.study_blind state=toggle
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+          service: cover.toggle
+          entity_id:
+          - cover.study_blind
+    - conditions:
+      - condition: trigger
+        id: toggle_lamp_0
+      sequence:
+      - alias: Turn switch.study_studio_lamp state=toggle
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+          if:
+          - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
+            condition: state
+            entity_id: switch.study_studio_lamp
+            state: 'on'
+            match: any
+          then:
+            alias: Turn switch.study_studio_lamp state=off
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              service: homeassistant.turn_off
+              entity_id: switch.study_studio_lamp
+          else:
+            alias: Turn switch.study_studio_lamp state=on
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              service: homeassistant.turn_on
+              entity_id: switch.study_studio_lamp
+    - conditions:
+      - condition: trigger
+        id: toggle_ceiling_lights
+      sequence:
+      - alias: Turn light.study_ceiling_light state=toggle
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+          if:
+          - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
+            condition: state
+            entity_id:
+            - light.study_ceiling_light
+            state: 'on'
+            match: any
+          then:
+            alias: Turn light.study_ceiling_light state=off
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              service: light.turn_off
+              entity_id:
+              - light.study_ceiling_light
+          else:
+            alias: Turn light.study_ceiling_light state=on
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              service: light.turn_on
+              entity_id:
+              - light.study_ceiling_light
+    - conditions:
+      - condition: trigger
+        id: toggle_leds
+      sequence:
+      - alias: Turn switch.study_screen_led state=toggle
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+          if:
+          - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
+            condition: state
+            entity_id:
+            - switch.study_screen_led
+            state: 'on'
+            match: any
+          then:
+            alias: Turn switch.study_screen_led state=off
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              service: homeassistant.turn_off
+              entity_id:
+              - switch.study_screen_led
+          else:
+            alias: Turn switch.study_screen_led state=on
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              service: homeassistant.turn_on
+              entity_id:
+              - switch.study_screen_led
   id: automation.zlb_st_remote_button_single_toggle_blind_study
 - alias: ZLB-ST Wall Switch - Double Press - Leave Room and Turn Off Everything-Study
   trigger:
@@ -1416,6 +1598,9 @@ switch:
   name: Study Studio Lamp 1
   entities: switch.mss210_b083_outlet
 - platform: group
+  name: Feeding Bottle Warmer
+  entities: switch.0x00158d000171756e_plug
+- platform: group
   name: Study Gateway Power
   entities: switch.sonoff_1001e49ade_1
 cover:
@@ -1429,7 +1614,7 @@ template:
 - sensor:
   - name: Study Temperature Sensor
     unit_of_measurement: "\xB0C"
-    state: '{{states.sensor["a4c138cfc701_temperature"].state | float | round(1)}}'
+    state: '{{states.sensor["582d34828cc1_temperature"].state | float | round(1)}}'
 - sensor:
   - name: Study Blind Curtain Battery
     unit_of_measurement: '%'
@@ -1447,7 +1632,7 @@ template:
     state: '{{states.sensor["18c23c26ea40_battery"].state}}'
 - binary_sensor:
   - name: Feeding Bottle Warmer
-    state: '{% if (states.sensor["0x00158d000171756e_power"].state) | float | round(1) > 30 %} on {% else %} off {% endif %}'
+    state: '{% if (states.sensor["0x00158d000171756e_power"].state) | float | round(1) > 1.5 %} on {% else %} off {% endif %}'
 binary_sensor:
 - platform: group
   name: Study Desk Motion Sensor Motion
@@ -1528,7 +1713,6 @@ group:
     - automation.zh_st_heating_schedule_on_if_staying_in_the_room_study
     - automation.zh_st_heating_schedule_off_if_people_left_the_room_study
     - automation.zh_st_heating_manual_override_study
-    - automation.zh_st_heating_manual_override_timeout_in_few_hours_study
     - automation.zh_st_valve_calibrate_temperature_using_external_sensor_study
     - automation.zl_st_applies_different_scenes_based_on_scene_selections_state_execution_study
     - automation.zlb_st_remote_button_single_toggle_blind_study

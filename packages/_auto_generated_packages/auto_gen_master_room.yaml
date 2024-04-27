@@ -746,31 +746,23 @@ automation:
   - if:
     - condition: state
       entity_id: input_boolean.master_room_heating_override
-      state: 'on'
+      state: 'off'
     then:
     - service: automation.trigger
       entity_id:
-      - automation.zh_mr_heating_schedule_on_if_staying_in_the_room_master_room
+      - automation.zh_mr_heating_schedule_off_if_people_left_the_room_master_room
     else:
     - service: automation.trigger
       entity_id:
-      - automation.zh_mr_heating_schedule_off_if_people_left_the_room_master_room
+      - automation.zh_mr_heating_schedule_on_if_staying_in_the_room_master_room
+    - delay:
+        hours: 2
+    - service: homeassistant.turn_off
+      entity_id: input_boolean.master_room_heating_override
+    - service: automation.trigger
+      entity_id:
+      - automation.zh_mr_heating_schedule_on_if_staying_in_the_room_master_room
   id: automation.zh_mr_heating_manual_override_master_room
-- alias: ZH-MR Heating Manual Override Timeout in Few Hours-Master Room
-  trigger:
-  - platform: state
-    entity_id: input_boolean.master_room_heating_override
-    from: 'off'
-    to: 'on'
-  action:
-  - delay:
-      hours: 2
-      minutes: 0
-      seconds: 0
-      milliseconds: 0
-  - service: homeassistant.turn_off
-    entity_id: input_boolean.master_room_heating_override
-  id: automation.zh_mr_heating_manual_override_timeout_in_few_hours_master_room
 - alias: ZH-MR Valve Calibrate Temperature Using External Sensor-Master Room
   use_blueprint:
     path: calibrate_valve_temperature.yaml
@@ -778,7 +770,7 @@ automation:
       tado_valve_entity: climate.master_room
       external_temperature_sensor_entity: sensor.master_room_temperature_sensor
   id: automation.zh_mr_valve_calibrate_temperature_using_external_sensor_master_room
-- alias: ZLB-MR Remote Button - Single - Applies Different Scenes (State Machine)-Master Room
+- alias: ZLB-MR Single Button Button Control-Master Room
   trigger:
   - platform: state
     entity_id:
@@ -788,69 +780,623 @@ automation:
     to:
     - single
     - '1'
+    id: cycle_scenes
+  - platform: state
+    entity_id:
+    - sensor.master_room_button_1
+    - sensor.master_room_button_2
+    - sensor.master_room_button_3
+    to:
+    - double
+    - '2'
+    id: toggle_curtains
+  - platform: state
+    entity_id: sensor.master_room_button_1
+    to:
+    - hold
+    id: toggle_lamp_0
+  - platform: state
+    entity_id: sensor.master_room_button_2
+    to:
+    - hold
+    id: toggle_lamp_1
+  - platform: state
+    entity_id:
+    - sensor.master_room_button_1
+    - sensor.master_room_button_2
+    - sensor.master_room_button_3
+    to:
+    - triple
+    - '3'
+    id: do_nothing
+  - platform: state
+    entity_id:
+    - sensor.master_room_button_1
+    - sensor.master_room_button_2
+    - sensor.master_room_button_3
+    to:
+    - quadruple
+    id: do_nothing
+  - platform: state
+    entity_id:
+    - sensor.master_room_button_1
+    - sensor.master_room_button_2
+    - sensor.master_room_button_3
+    to:
+    - many
+    id: do_nothing
+  - platform: state
+    entity_id:
+    - sensor.master_room_button_1
+    - sensor.master_room_button_2
+    - sensor.master_room_button_3
+    to:
+    - release
+    id: do_nothing
   mode: queued
   action:
-  - choose:
+    choose:
     - conditions:
-        condition: state
-        entity_id: input_select.master_room_scene
-        state: All Off
+      - condition: trigger
+        id: cycle_scenes
       sequence:
-        service: script.call_room_scene
-        data:
-          room_scene_select: input_select.master_room_scene
-          scene: All White
+        choose:
+        - conditions:
+            condition: state
+            entity_id: input_select.master_room_scene
+            state: All Off
+          sequence:
+            service: script.call_room_scene
+            data:
+              room_scene_select: input_select.master_room_scene
+              scene: All White
+        - conditions:
+            condition: state
+            entity_id: input_select.master_room_scene
+            state: All White
+          sequence:
+            service: script.call_room_scene
+            data:
+              room_scene_select: input_select.master_room_scene
+              scene: Lamp LED White
+        - conditions:
+            condition: state
+            entity_id: input_select.master_room_scene
+            state: Lamp LED White
+          sequence:
+            service: script.call_room_scene
+            data:
+              room_scene_select: input_select.master_room_scene
+              scene: Hue
+        - conditions:
+            condition: state
+            entity_id: input_select.master_room_scene
+            state: Hue
+          sequence:
+            service: script.call_room_scene
+            data:
+              room_scene_select: input_select.master_room_scene
+              scene: Sleep Mode
+        - conditions:
+            condition: state
+            entity_id: input_select.master_room_scene
+            state: Sleep Mode
+          sequence:
+            service: script.call_room_scene
+            data:
+              room_scene_select: input_select.master_room_scene
+              scene: Dark Night Mode
+        - conditions:
+            condition: state
+            entity_id: input_select.master_room_scene
+            state: Dark Night Mode
+          sequence:
+            service: script.call_room_scene
+            data:
+              room_scene_select: input_select.master_room_scene
+              scene: All Off
+        default:
+          service: script.call_room_scene
+          data:
+            room_scene_select: input_select.master_room_scene
+            scene: All White
     - conditions:
-        condition: state
-        entity_id: input_select.master_room_scene
-        state: All White
+      - condition: trigger
+        id: do_nothing
       sequence:
-        service: script.call_room_scene
-        data:
-          room_scene_select: input_select.master_room_scene
-          scene: Lamp LED White
+      - service: script.do_nothing
     - conditions:
-        condition: state
-        entity_id: input_select.master_room_scene
-        state: Lamp LED White
+      - condition: trigger
+        id: toggle_al_sleep_mode
       sequence:
-        service: script.call_room_scene
-        data:
-          room_scene_select: input_select.master_room_scene
-          scene: Hue
+      - alias: Turn switch.adaptive_lighting_sleep_mode_master_room state=toggle
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+          if:
+          - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
+            condition: state
+            entity_id: switch.adaptive_lighting_sleep_mode_master_room
+            state: 'on'
+            match: any
+          then:
+            alias: Turn switch.adaptive_lighting_sleep_mode_master_room state=off
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              service: homeassistant.turn_off
+              entity_id: switch.adaptive_lighting_sleep_mode_master_room
+          else:
+            alias: Turn switch.adaptive_lighting_sleep_mode_master_room state=on
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              service: homeassistant.turn_on
+              entity_id: switch.adaptive_lighting_sleep_mode_master_room
     - conditions:
-        condition: state
-        entity_id: input_select.master_room_scene
-        state: Hue
+      - condition: trigger
+        id: toggle_curtains
       sequence:
-        service: script.call_room_scene
-        data:
-          room_scene_select: input_select.master_room_scene
-          scene: Sleep Mode
+      - alias: Turn cover.master_room_curtain state=toggle
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+          service: cover.toggle
+          entity_id:
+          - cover.master_room_curtain
     - conditions:
-        condition: state
-        entity_id: input_select.master_room_scene
-        state: Sleep Mode
+      - condition: trigger
+        id: toggle_lamp_0
       sequence:
-        service: script.call_room_scene
-        data:
-          room_scene_select: input_select.master_room_scene
-          scene: Dark Night Mode
+      - alias: Turn light.master_room_lamp_1 state=toggle
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+          if:
+          - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
+            condition: state
+            entity_id: light.master_room_lamp_1
+            state: 'on'
+            match: any
+          then:
+            alias: Turn light.master_room_lamp_1 state=off
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              service: light.turn_off
+              entity_id: light.master_room_lamp_1
+          else:
+            alias: Turn light.master_room_lamp_1 state=on
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              service: light.turn_on
+              entity_id: light.master_room_lamp_1
     - conditions:
-        condition: state
-        entity_id: input_select.master_room_scene
-        state: Dark Night Mode
+      - condition: trigger
+        id: toggle_lamp_1
       sequence:
-        service: script.call_room_scene
-        data:
-          room_scene_select: input_select.master_room_scene
-          scene: All Off
-    default:
-      service: script.call_room_scene
-      data:
-        room_scene_select: input_select.master_room_scene
-        scene: All White
-  id: automation.zlb_mr_remote_button_single_applies_different_scenes_state_machine_master_room
+      - alias: Turn light.master_room_lamp_2 state=toggle
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+          if:
+          - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
+            condition: state
+            entity_id: light.master_room_lamp_2
+            state: 'on'
+            match: any
+          then:
+            alias: Turn light.master_room_lamp_2 state=off
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              service: light.turn_off
+              entity_id: light.master_room_lamp_2
+          else:
+            alias: Turn light.master_room_lamp_2 state=on
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              service: light.turn_on
+              entity_id: light.master_room_lamp_2
+    - conditions:
+      - condition: trigger
+        id: toggle_ceiling_lights
+      sequence:
+      - alias: Turn light.master_room_bed_ceiling_light light.master_room_drawer_ceiling_light state=toggle
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+          if:
+          - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
+            condition: state
+            entity_id:
+            - light.master_room_bed_ceiling_light
+            - light.master_room_drawer_ceiling_light
+            state: 'on'
+            match: any
+          then:
+            alias: Turn light.master_room_bed_ceiling_light light.master_room_drawer_ceiling_light state=off
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              service: light.turn_off
+              entity_id:
+              - light.master_room_bed_ceiling_light
+              - light.master_room_drawer_ceiling_light
+          else:
+            alias: Turn light.master_room_bed_ceiling_light light.master_room_drawer_ceiling_light state=on
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              service: light.turn_on
+              entity_id:
+              - light.master_room_bed_ceiling_light
+              - light.master_room_drawer_ceiling_light
+    - conditions:
+      - condition: trigger
+        id: toggle_leds
+      sequence:
+      - alias: Turn light.master_room_drawer_led light.master_room_tv_led light.master_room_bed_led state=toggle
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+          if:
+          - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
+            condition: state
+            entity_id:
+            - light.master_room_drawer_led
+            - light.master_room_tv_led
+            - light.master_room_bed_led
+            state: 'on'
+            match: any
+          then:
+            alias: Turn light.master_room_drawer_led light.master_room_tv_led light.master_room_bed_led state=off
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              service: light.turn_off
+              entity_id:
+              - light.master_room_drawer_led
+              - light.master_room_tv_led
+              - light.master_room_bed_led
+          else:
+            alias: Turn light.master_room_drawer_led light.master_room_tv_led light.master_room_bed_led state=on
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              service: light.turn_on
+              entity_id:
+              - light.master_room_drawer_led
+              - light.master_room_tv_led
+              - light.master_room_bed_led
+  id: automation.zlb_mr_single_button_button_control_master_room
+- alias: ZLB-MR Four Key Button Control-Master Room
+  trigger:
+  - platform: state
+    entity_id:
+    - sensor.0x842e14fffe60b64a_action
+    to: 'on'
+    id: toggle_curtains
+  - platform: state
+    entity_id:
+    - sensor.0x842e14fffe60b64a_action
+    to: 'off'
+    id: toggle_al_sleep_mode
+  - platform: state
+    entity_id:
+    - sensor.0x842e14fffe60b64a_action
+    to: arrow_left_click
+    id: toggle_lamp_0
+  - platform: state
+    entity_id:
+    - sensor.0x842e14fffe60b64a_action
+    to: arrow_right_click
+    id: toggle_lamp_1
+  mode: parallel
+  action:
+    choose:
+    - conditions:
+      - condition: trigger
+        id: cycle_scenes
+      sequence:
+        choose:
+        - conditions:
+            condition: state
+            entity_id: input_select.master_room_scene
+            state: All Off
+          sequence:
+            service: script.call_room_scene
+            data:
+              room_scene_select: input_select.master_room_scene
+              scene: All White
+        - conditions:
+            condition: state
+            entity_id: input_select.master_room_scene
+            state: All White
+          sequence:
+            service: script.call_room_scene
+            data:
+              room_scene_select: input_select.master_room_scene
+              scene: Lamp LED White
+        - conditions:
+            condition: state
+            entity_id: input_select.master_room_scene
+            state: Lamp LED White
+          sequence:
+            service: script.call_room_scene
+            data:
+              room_scene_select: input_select.master_room_scene
+              scene: Hue
+        - conditions:
+            condition: state
+            entity_id: input_select.master_room_scene
+            state: Hue
+          sequence:
+            service: script.call_room_scene
+            data:
+              room_scene_select: input_select.master_room_scene
+              scene: Sleep Mode
+        - conditions:
+            condition: state
+            entity_id: input_select.master_room_scene
+            state: Sleep Mode
+          sequence:
+            service: script.call_room_scene
+            data:
+              room_scene_select: input_select.master_room_scene
+              scene: Dark Night Mode
+        - conditions:
+            condition: state
+            entity_id: input_select.master_room_scene
+            state: Dark Night Mode
+          sequence:
+            service: script.call_room_scene
+            data:
+              room_scene_select: input_select.master_room_scene
+              scene: All Off
+        default:
+          service: script.call_room_scene
+          data:
+            room_scene_select: input_select.master_room_scene
+            scene: All White
+    - conditions:
+      - condition: trigger
+        id: do_nothing
+      sequence:
+      - service: script.do_nothing
+    - conditions:
+      - condition: trigger
+        id: toggle_al_sleep_mode
+      sequence:
+      - alias: Turn switch.adaptive_lighting_sleep_mode_master_room state=toggle
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+          if:
+          - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
+            condition: state
+            entity_id: switch.adaptive_lighting_sleep_mode_master_room
+            state: 'on'
+            match: any
+          then:
+            alias: Turn switch.adaptive_lighting_sleep_mode_master_room state=off
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              service: homeassistant.turn_off
+              entity_id: switch.adaptive_lighting_sleep_mode_master_room
+          else:
+            alias: Turn switch.adaptive_lighting_sleep_mode_master_room state=on
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              service: homeassistant.turn_on
+              entity_id: switch.adaptive_lighting_sleep_mode_master_room
+    - conditions:
+      - condition: trigger
+        id: toggle_curtains
+      sequence:
+      - alias: Turn cover.master_room_curtain state=toggle
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+          service: cover.toggle
+          entity_id:
+          - cover.master_room_curtain
+    - conditions:
+      - condition: trigger
+        id: toggle_lamp_0
+      sequence:
+      - alias: Turn light.master_room_lamp_1 state=toggle
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+          if:
+          - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
+            condition: state
+            entity_id: light.master_room_lamp_1
+            state: 'on'
+            match: any
+          then:
+            alias: Turn light.master_room_lamp_1 state=off
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              service: light.turn_off
+              entity_id: light.master_room_lamp_1
+          else:
+            alias: Turn light.master_room_lamp_1 state=on
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              service: light.turn_on
+              entity_id: light.master_room_lamp_1
+    - conditions:
+      - condition: trigger
+        id: toggle_lamp_1
+      sequence:
+      - alias: Turn light.master_room_lamp_2 state=toggle
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+          if:
+          - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
+            condition: state
+            entity_id: light.master_room_lamp_2
+            state: 'on'
+            match: any
+          then:
+            alias: Turn light.master_room_lamp_2 state=off
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              service: light.turn_off
+              entity_id: light.master_room_lamp_2
+          else:
+            alias: Turn light.master_room_lamp_2 state=on
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              service: light.turn_on
+              entity_id: light.master_room_lamp_2
+    - conditions:
+      - condition: trigger
+        id: toggle_ceiling_lights
+      sequence:
+      - alias: Turn light.master_room_bed_ceiling_light light.master_room_drawer_ceiling_light state=toggle
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+          if:
+          - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
+            condition: state
+            entity_id:
+            - light.master_room_bed_ceiling_light
+            - light.master_room_drawer_ceiling_light
+            state: 'on'
+            match: any
+          then:
+            alias: Turn light.master_room_bed_ceiling_light light.master_room_drawer_ceiling_light state=off
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              service: light.turn_off
+              entity_id:
+              - light.master_room_bed_ceiling_light
+              - light.master_room_drawer_ceiling_light
+          else:
+            alias: Turn light.master_room_bed_ceiling_light light.master_room_drawer_ceiling_light state=on
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              service: light.turn_on
+              entity_id:
+              - light.master_room_bed_ceiling_light
+              - light.master_room_drawer_ceiling_light
+    - conditions:
+      - condition: trigger
+        id: toggle_leds
+      sequence:
+      - alias: Turn light.master_room_drawer_led light.master_room_tv_led light.master_room_bed_led state=toggle
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+          if:
+          - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
+            condition: state
+            entity_id:
+            - light.master_room_drawer_led
+            - light.master_room_tv_led
+            - light.master_room_bed_led
+            state: 'on'
+            match: any
+          then:
+            alias: Turn light.master_room_drawer_led light.master_room_tv_led light.master_room_bed_led state=off
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              service: light.turn_off
+              entity_id:
+              - light.master_room_drawer_led
+              - light.master_room_tv_led
+              - light.master_room_bed_led
+          else:
+            alias: Turn light.master_room_drawer_led light.master_room_tv_led light.master_room_bed_led state=on
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              service: light.turn_on
+              entity_id:
+              - light.master_room_drawer_led
+              - light.master_room_tv_led
+              - light.master_room_bed_led
+  id: automation.zlb_mr_four_key_button_control_master_room
 - alias: ZL-MR Applies Different Scenes Based on Scene Selections (State Execution)-Master Room
   trigger:
   - platform: state
@@ -1658,296 +2204,6 @@ automation:
                   entity_id:
                   - cover.master_room_curtain
   id: automation.zl_mr_applies_different_scenes_based_on_scene_selections_state_execution_master_room
-- alias: ZLB-MR Remote Button - Double - Toggle Lamps-Master Room
-  trigger:
-  - platform: state
-    entity_id:
-    - sensor.master_room_button_1
-    - sensor.master_room_button_2
-    - sensor.master_room_button_3
-    to:
-    - double
-    - '2'
-  action:
-  - alias: Turn light.master_room_lamp_1 light.master_room_lamp_2 state=toggle
-    if:
-      condition: state
-      entity_id: input_boolean.always_on_constant
-      state: 'on'
-    then:
-      if:
-      - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
-        condition: state
-        entity_id:
-        - light.master_room_lamp_1
-        - light.master_room_lamp_2
-        state: 'on'
-        match: any
-      then:
-        alias: Turn light.master_room_lamp_1 light.master_room_lamp_2 state=off
-        if:
-          condition: state
-          entity_id: input_boolean.always_on_constant
-          state: 'on'
-        then:
-          service: light.turn_off
-          entity_id:
-          - light.master_room_lamp_1
-          - light.master_room_lamp_2
-      else:
-        alias: Turn light.master_room_lamp_1 light.master_room_lamp_2 state=on
-        if:
-          condition: state
-          entity_id: input_boolean.always_on_constant
-          state: 'on'
-        then:
-          service: light.turn_on
-          entity_id:
-          - light.master_room_lamp_1
-          - light.master_room_lamp_2
-  id: automation.zlb_mr_remote_button_double_toggle_lamps_master_room
-- alias: ZLB-MR Remote Button - Triple - Toggle Ceiling Lights-Master Room
-  trigger:
-  - platform: state
-    entity_id:
-    - sensor.master_room_button_1
-    - sensor.master_room_button_2
-    - sensor.master_room_button_3
-    to:
-    - triple
-    - '3'
-  action:
-  - alias: Turn light.master_room_bed_ceiling_light light.master_room_drawer_ceiling_light state=toggle
-    if:
-      condition: state
-      entity_id: input_boolean.always_on_constant
-      state: 'on'
-    then:
-      if:
-      - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
-        condition: state
-        entity_id:
-        - light.master_room_bed_ceiling_light
-        - light.master_room_drawer_ceiling_light
-        state: 'on'
-        match: any
-      then:
-        alias: Turn light.master_room_bed_ceiling_light light.master_room_drawer_ceiling_light state=off
-        if:
-          condition: state
-          entity_id: input_boolean.always_on_constant
-          state: 'on'
-        then:
-          service: light.turn_off
-          entity_id:
-          - light.master_room_bed_ceiling_light
-          - light.master_room_drawer_ceiling_light
-      else:
-        alias: Turn light.master_room_bed_ceiling_light light.master_room_drawer_ceiling_light state=on
-        if:
-          condition: state
-          entity_id: input_boolean.always_on_constant
-          state: 'on'
-        then:
-          service: light.turn_on
-          entity_id:
-          - light.master_room_bed_ceiling_light
-          - light.master_room_drawer_ceiling_light
-  id: automation.zlb_mr_remote_button_triple_toggle_ceiling_lights_master_room
-- alias: ZLB-MR Remote Button - Long - Toggle LEDs-Master Room
-  trigger:
-  - platform: state
-    entity_id:
-    - sensor.master_room_button_1
-    - sensor.master_room_button_2
-    - sensor.master_room_button_3
-    to: hold
-  action:
-  - alias: Turn light.master_room_drawer_led light.master_room_tv_led light.master_room_bed_led state=toggle
-    if:
-      condition: state
-      entity_id: input_boolean.always_on_constant
-      state: 'on'
-    then:
-      if:
-      - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
-        condition: state
-        entity_id:
-        - light.master_room_drawer_led
-        - light.master_room_tv_led
-        - light.master_room_bed_led
-        state: 'on'
-        match: any
-      then:
-        alias: Turn light.master_room_drawer_led light.master_room_tv_led light.master_room_bed_led state=off
-        if:
-          condition: state
-          entity_id: input_boolean.always_on_constant
-          state: 'on'
-        then:
-          service: light.turn_off
-          entity_id:
-          - light.master_room_drawer_led
-          - light.master_room_tv_led
-          - light.master_room_bed_led
-      else:
-        alias: Turn light.master_room_drawer_led light.master_room_tv_led light.master_room_bed_led state=on
-        if:
-          condition: state
-          entity_id: input_boolean.always_on_constant
-          state: 'on'
-        then:
-          service: light.turn_on
-          entity_id:
-          - light.master_room_drawer_led
-          - light.master_room_tv_led
-          - light.master_room_bed_led
-  id: automation.zlb_mr_remote_button_long_toggle_leds_master_room
-- alias: ZLB-MR Four Key Button Control-Master Room
-  trigger:
-  - platform: state
-    entity_id:
-    - sensor.0x842e14fffe60b64a_action
-    id: 'on'
-    to: 'on'
-  - platform: state
-    entity_id:
-    - sensor.0x842e14fffe60b64a_action
-    id: 'off'
-    to: 'off'
-  - platform: state
-    entity_id:
-    - sensor.0x842e14fffe60b64a_action
-    id: arrow_left_click
-    to: arrow_left_click
-  - platform: state
-    entity_id:
-    - sensor.0x842e14fffe60b64a_action
-    id: arrow_right_click
-    to: arrow_right_click
-  mode: parallel
-  action:
-  - choose:
-    - conditions:
-      - condition: trigger
-        id:
-        - 'on'
-      sequence:
-      - alias: Turn cover.master_room_curtain state=toggle
-        if:
-          condition: state
-          entity_id: input_boolean.always_on_constant
-          state: 'on'
-        then:
-          service: cover.toggle
-          entity_id:
-          - cover.master_room_curtain
-    - conditions:
-      - condition: trigger
-        id:
-        - 'off'
-      sequence:
-      - alias: Turn switch.adaptive_lighting_sleep_mode_master_room state=toggle
-        if:
-          condition: state
-          entity_id: input_boolean.always_on_constant
-          state: 'on'
-        then:
-          if:
-          - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
-            condition: state
-            entity_id: switch.adaptive_lighting_sleep_mode_master_room
-            state: 'on'
-            match: any
-          then:
-            alias: Turn switch.adaptive_lighting_sleep_mode_master_room state=off
-            if:
-              condition: state
-              entity_id: input_boolean.always_on_constant
-              state: 'on'
-            then:
-              service: homeassistant.turn_off
-              entity_id: switch.adaptive_lighting_sleep_mode_master_room
-          else:
-            alias: Turn switch.adaptive_lighting_sleep_mode_master_room state=on
-            if:
-              condition: state
-              entity_id: input_boolean.always_on_constant
-              state: 'on'
-            then:
-              service: homeassistant.turn_on
-              entity_id: switch.adaptive_lighting_sleep_mode_master_room
-    - conditions:
-      - condition: trigger
-        id:
-        - arrow_left_click
-      sequence:
-      - alias: Turn light.master_room_lamp_1 state=toggle
-        if:
-          condition: state
-          entity_id: input_boolean.always_on_constant
-          state: 'on'
-        then:
-          if:
-          - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
-            condition: state
-            entity_id: light.master_room_lamp_1
-            state: 'on'
-            match: any
-          then:
-            alias: Turn light.master_room_lamp_1 state=off
-            if:
-              condition: state
-              entity_id: input_boolean.always_on_constant
-              state: 'on'
-            then:
-              service: light.turn_off
-              entity_id: light.master_room_lamp_1
-          else:
-            alias: Turn light.master_room_lamp_1 state=on
-            if:
-              condition: state
-              entity_id: input_boolean.always_on_constant
-              state: 'on'
-            then:
-              service: light.turn_on
-              entity_id: light.master_room_lamp_1
-    - conditions:
-      - condition: trigger
-        id:
-        - arrow_right_click
-      sequence:
-      - alias: Turn light.master_room_lamp_2 state=toggle
-        if:
-          condition: state
-          entity_id: input_boolean.always_on_constant
-          state: 'on'
-        then:
-          if:
-          - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
-            condition: state
-            entity_id: light.master_room_lamp_2
-            state: 'on'
-            match: any
-          then:
-            alias: Turn light.master_room_lamp_2 state=off
-            if:
-              condition: state
-              entity_id: input_boolean.always_on_constant
-              state: 'on'
-            then:
-              service: light.turn_off
-              entity_id: light.master_room_lamp_2
-          else:
-            alias: Turn light.master_room_lamp_2 state=on
-            if:
-              condition: state
-              entity_id: input_boolean.always_on_constant
-              state: 'on'
-            then:
-              service: light.turn_on
-              entity_id: light.master_room_lamp_2
-  id: automation.zlb_mr_four_key_button_control_master_room
 - alias: ZLB-MR Wall Switch - Double Press - Leave Room and Turn Off Everything-Master Room
   trigger:
   - platform: state
@@ -2215,13 +2471,10 @@ template:
     state: '{{states.sensor["0x04cf8cdf3c73a19b_battery"].state}}'
 - sensor:
   - name: Master Room Button 1
-    state: '{{states.sensor["18c23c24681a_action"].state}}'
+    state: '{{states.sensor["18c23c25a26c_action"].state}}'
 - sensor:
   - name: Master Room Button 2
     state: '{{states.sensor["18c23c25960b_action"].state}}'
-- sensor:
-  - name: Master Room Button 3
-    state: '{{states.sensor["18c23c25a26c_action"].state}}'
 - sensor:
   - name: Master Room Wall Button
     state: '{{states.sensor["0x04cf8cdf3c7ad638_action"].state}}'
@@ -2368,14 +2621,10 @@ group:
     - automation.zh_mr_heating_schedule_on_if_staying_in_the_room_master_room
     - automation.zh_mr_heating_schedule_off_if_people_left_the_room_master_room
     - automation.zh_mr_heating_manual_override_master_room
-    - automation.zh_mr_heating_manual_override_timeout_in_few_hours_master_room
     - automation.zh_mr_valve_calibrate_temperature_using_external_sensor_master_room
-    - automation.zlb_mr_remote_button_single_applies_different_scenes_state_machine_master_room
-    - automation.zl_mr_applies_different_scenes_based_on_scene_selections_state_execution_master_room
-    - automation.zlb_mr_remote_button_double_toggle_lamps_master_room
-    - automation.zlb_mr_remote_button_triple_toggle_ceiling_lights_master_room
-    - automation.zlb_mr_remote_button_long_toggle_leds_master_room
+    - automation.zlb_mr_single_button_button_control_master_room
     - automation.zlb_mr_four_key_button_control_master_room
+    - automation.zl_mr_applies_different_scenes_based_on_scene_selections_state_execution_master_room
     - automation.zlb_mr_wall_switch_double_press_leave_room_and_turn_off_everything_master_room
     - automation.zoc_mr_occupancy_update_master_room
     - automation.ztv_mr_reset_picture_mode_when_turning_on_tv_master_room

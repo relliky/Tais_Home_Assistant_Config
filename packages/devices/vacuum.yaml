@@ -1,16 +1,21 @@
-automation:
-  #  - alias: T-KC Kitchen Vacuum Starts At 4am
-  #    id: 3r2u9fjefkjdisofjoidsaklds
-  #    description: ""
-  #    trigger:
-  #      - at: 04:00:00
-  #        platform: time
-  #    condition:
-  #    action:
-  #      - service: vacuum.start
-  #        entity_id: vacuum.xiaomi_vacuum_cleaner
+template:
+  - sensor:
+      - name: "Vacuum Robot X1 Error State"
+        state: >
+          {% if is_state('sensor.x1_last_error', '0') %}
+              Normal
+          {% elif is_state('sensor.x1_last_error', '301') %}
+              扫地机器人清水用完了。请加清水和倒掉污水。Clean Water in the Vacuum Robot Dock Has Run Out. 
+          {% elif is_state('sensor.x1_last_error', '302') %}
+              扫地机器人污水箱已满。Dirty water in the vacuum robot has been full.
+          {% else %}    
+              扫地机器人发生不明错误，请查看。Vacuum Robot has unknown error. Please check if it's working ok.
+          {% endif %}
 
-  - alias: VN-KC Remember to Refill Kitchen Vacuum Water when Going to Kitchen
+
+
+automation:
+  - alias: VN-KC Notify Vacuum Robot Error
     id: nvdiasojfoewnfdjsaf
     mode: single
     trigger:
@@ -19,22 +24,23 @@ automation:
           - group.kitchen_motion_group
           - group.living_room_motion_group
     condition:
-      - condition: state
-        entity_id: sensor.x1_last_error
-        state: "301"
+      - condition: not
+        conditions:    
+          - condition: state
+            entity_id: sensor.vacuum_robot_x1_state
+            state: "Normal"
     action:
-      - service: script.notify_alexa_speakers_and_phones
-        data:
-          tts_message: Clean Water in the Vacuum Robot Dock Has Run Out. 扫地机器人清水用完了，记得加清水。
-          notify_tai: "yes"
-          notify_ke_ba_ba: "yes"
-          notify_ke_ma_ma: "yes"
-          notify_ke: "yes"
-          #notify_alvaro: "yes"
-          alexa_speaker_list:
-            - media_player.kitchen_echo
-            - media_player.living_room_echo
-      - delay: "04:00:00"
+        - service: script.notify_alexa_speakers_and_phones
+          data:
+            tts_message: "{{states('sensor.vacuum_robot_x1_error_state')}}"
+            notify_tai: "yes"
+            notify_ke_ba_ba: "yes"
+            notify_ke_ma_ma: "yes"
+            notify_ke: "yes"
+            alexa_speaker_list:
+              - media_player.kitchen_echo
+              - media_player.living_room_echo
+        - delay: "04:00:00"
 
   - alias: V-KC Ask X1 To Return To Dock If Stuck
     id: 3902jgfrngfd89bvfdsjkfdjiafuew

@@ -134,31 +134,23 @@ automation:
   - if:
     - condition: state
       entity_id: input_boolean.corridor_heating_override
-      state: 'on'
+      state: 'off'
     then:
     - service: automation.trigger
       entity_id:
-      - automation.zh_cr_heating_schedule_on_if_staying_in_the_room_corridor
+      - automation.zh_cr_heating_schedule_off_if_people_left_the_room_corridor
     else:
     - service: automation.trigger
       entity_id:
-      - automation.zh_cr_heating_schedule_off_if_people_left_the_room_corridor
+      - automation.zh_cr_heating_schedule_on_if_staying_in_the_room_corridor
+    - delay:
+        hours: 2
+    - service: homeassistant.turn_off
+      entity_id: input_boolean.corridor_heating_override
+    - service: automation.trigger
+      entity_id:
+      - automation.zh_cr_heating_schedule_on_if_staying_in_the_room_corridor
   id: automation.zh_cr_heating_manual_override_corridor
-- alias: ZH-CR Heating Manual Override Timeout in Few Hours-Corridor
-  trigger:
-  - platform: state
-    entity_id: input_boolean.corridor_heating_override
-    from: 'off'
-    to: 'on'
-  action:
-  - delay:
-      hours: 2
-      minutes: 0
-      seconds: 0
-      milliseconds: 0
-  - service: homeassistant.turn_off
-    entity_id: input_boolean.corridor_heating_override
-  id: automation.zh_cr_heating_manual_override_timeout_in_few_hours_corridor
 - alias: ZLB-CR Wall Switch - Double Press - Leave Room and Turn Off Everything-Corridor
   trigger:
   - platform: state
@@ -394,7 +386,6 @@ group:
     - automation.zh_cr_heating_schedule_on_if_staying_in_the_room_corridor
     - automation.zh_cr_heating_schedule_off_if_people_left_the_room_corridor
     - automation.zh_cr_heating_manual_override_corridor
-    - automation.zh_cr_heating_manual_override_timeout_in_few_hours_corridor
     - automation.zlb_cr_wall_switch_double_press_leave_room_and_turn_off_everything_corridor
     - automation.zoc_cr_occupancy_update_corridor
     - switch.0x00158d00048783e5_channel_1

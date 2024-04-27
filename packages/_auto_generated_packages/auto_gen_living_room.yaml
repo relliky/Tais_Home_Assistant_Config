@@ -623,31 +623,23 @@ automation:
   - if:
     - condition: state
       entity_id: input_boolean.living_room_heating_override
-      state: 'on'
+      state: 'off'
     then:
     - service: automation.trigger
       entity_id:
-      - automation.zh_lr_heating_schedule_on_if_staying_in_the_room_living_room
+      - automation.zh_lr_heating_schedule_off_if_people_left_the_room_living_room
     else:
     - service: automation.trigger
       entity_id:
-      - automation.zh_lr_heating_schedule_off_if_people_left_the_room_living_room
+      - automation.zh_lr_heating_schedule_on_if_staying_in_the_room_living_room
+    - delay:
+        hours: 2
+    - service: homeassistant.turn_off
+      entity_id: input_boolean.living_room_heating_override
+    - service: automation.trigger
+      entity_id:
+      - automation.zh_lr_heating_schedule_on_if_staying_in_the_room_living_room
   id: automation.zh_lr_heating_manual_override_living_room
-- alias: ZH-LR Heating Manual Override Timeout in Few Hours-Living Room
-  trigger:
-  - platform: state
-    entity_id: input_boolean.living_room_heating_override
-    from: 'off'
-    to: 'on'
-  action:
-  - delay:
-      hours: 2
-      minutes: 0
-      seconds: 0
-      milliseconds: 0
-  - service: homeassistant.turn_off
-    entity_id: input_boolean.living_room_heating_override
-  id: automation.zh_lr_heating_manual_override_timeout_in_few_hours_living_room
 - alias: ZH-LR Valve Calibrate Temperature Using External Sensor-Living Room
   use_blueprint:
     path: calibrate_valve_temperature.yaml
@@ -655,7 +647,7 @@ automation:
       tado_valve_entity: climate.living_room
       external_temperature_sensor_entity: sensor.living_room_temperature_sensor
   id: automation.zh_lr_valve_calibrate_temperature_using_external_sensor_living_room
-- alias: ZLB-LR Remote Button - Single - Applies Different Scenes (State Machine)-Living Room
+- alias: ZLB-LR Single Button Button Control-Living Room
   trigger:
   - platform: state
     entity_id:
@@ -663,60 +655,298 @@ automation:
     to:
     - single
     - '1'
+    id: cycle_scenes
+  - platform: state
+    entity_id:
+    - sensor.living_room_button
+    to:
+    - double
+    - '2'
+    id: toggle_curtains
+  - platform: state
+    entity_id: sensor.living_room_button
+    to:
+    - hold
+    id: toggle_lamp_0
+  - platform: state
+    entity_id:
+    - sensor.living_room_button
+    to:
+    - triple
+    - '3'
+    id: do_nothing
+  - platform: state
+    entity_id:
+    - sensor.living_room_button
+    to:
+    - quadruple
+    id: do_nothing
+  - platform: state
+    entity_id:
+    - sensor.living_room_button
+    to:
+    - many
+    id: do_nothing
+  - platform: state
+    entity_id:
+    - sensor.living_room_button
+    to:
+    - release
+    id: do_nothing
   mode: queued
   action:
-  - choose:
+    choose:
     - conditions:
-        condition: state
-        entity_id: input_select.living_room_scene
-        state: All Off
+      - condition: trigger
+        id: cycle_scenes
       sequence:
-        service: script.call_room_scene
-        data:
-          room_scene_select: input_select.living_room_scene
-          scene: All White
+        choose:
+        - conditions:
+            condition: state
+            entity_id: input_select.living_room_scene
+            state: All Off
+          sequence:
+            service: script.call_room_scene
+            data:
+              room_scene_select: input_select.living_room_scene
+              scene: All White
+        - conditions:
+            condition: state
+            entity_id: input_select.living_room_scene
+            state: All White
+          sequence:
+            service: script.call_room_scene
+            data:
+              room_scene_select: input_select.living_room_scene
+              scene: Lamp LED White
+        - conditions:
+            condition: state
+            entity_id: input_select.living_room_scene
+            state: Lamp LED White
+          sequence:
+            service: script.call_room_scene
+            data:
+              room_scene_select: input_select.living_room_scene
+              scene: Hue
+        - conditions:
+            condition: state
+            entity_id: input_select.living_room_scene
+            state: Hue
+          sequence:
+            service: script.call_room_scene
+            data:
+              room_scene_select: input_select.living_room_scene
+              scene: LED White
+        - conditions:
+            condition: state
+            entity_id: input_select.living_room_scene
+            state: LED White
+          sequence:
+            service: script.call_room_scene
+            data:
+              room_scene_select: input_select.living_room_scene
+              scene: All Off
+        default:
+          service: script.call_room_scene
+          data:
+            room_scene_select: input_select.living_room_scene
+            scene: All White
     - conditions:
-        condition: state
-        entity_id: input_select.living_room_scene
-        state: All White
+      - condition: trigger
+        id: do_nothing
       sequence:
-        service: script.call_room_scene
-        data:
-          room_scene_select: input_select.living_room_scene
-          scene: Lamp LED White
+      - service: script.do_nothing
     - conditions:
-        condition: state
-        entity_id: input_select.living_room_scene
-        state: Lamp LED White
+      - condition: trigger
+        id: toggle_al_sleep_mode
       sequence:
-        service: script.call_room_scene
-        data:
-          room_scene_select: input_select.living_room_scene
-          scene: Hue
+      - alias: Turn switch.adaptive_lighting_sleep_mode_living_room state=toggle
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+          if:
+          - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
+            condition: state
+            entity_id: switch.adaptive_lighting_sleep_mode_living_room
+            state: 'on'
+            match: any
+          then:
+            alias: Turn switch.adaptive_lighting_sleep_mode_living_room state=off
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              service: homeassistant.turn_off
+              entity_id: switch.adaptive_lighting_sleep_mode_living_room
+          else:
+            alias: Turn switch.adaptive_lighting_sleep_mode_living_room state=on
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              service: homeassistant.turn_on
+              entity_id: switch.adaptive_lighting_sleep_mode_living_room
     - conditions:
-        condition: state
-        entity_id: input_select.living_room_scene
-        state: Hue
+      - condition: trigger
+        id: toggle_curtains
       sequence:
-        service: script.call_room_scene
-        data:
-          room_scene_select: input_select.living_room_scene
-          scene: LED White
+      - alias: Turn cover.living_room_curtain_1 cover.living_room_curtain_2 state=toggle
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+          service: cover.toggle
+          entity_id:
+          - cover.living_room_curtain_1
+          - cover.living_room_curtain_2
     - conditions:
-        condition: state
-        entity_id: input_select.living_room_scene
-        state: LED White
+      - condition: trigger
+        id: toggle_lamp_0
       sequence:
-        service: script.call_room_scene
-        data:
-          room_scene_select: input_select.living_room_scene
-          scene: All Off
-    default:
-      service: script.call_room_scene
-      data:
-        room_scene_select: input_select.living_room_scene
-        scene: All White
-  id: automation.zlb_lr_remote_button_single_applies_different_scenes_state_machine_living_room
+      - alias: Turn light.living_room_floor_light_1 state=toggle
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+          if:
+          - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
+            condition: state
+            entity_id: light.living_room_floor_light_1
+            state: 'on'
+            match: any
+          then:
+            alias: Turn light.living_room_floor_light_1 state=off
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              service: light.turn_off
+              entity_id: light.living_room_floor_light_1
+          else:
+            alias: Turn light.living_room_floor_light_1 state=on
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              service: light.turn_on
+              entity_id: light.living_room_floor_light_1
+    - conditions:
+      - condition: trigger
+        id: toggle_lamp_1
+      sequence:
+      - alias: Turn light.living_room_3_head_lamp_1 state=toggle
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+          if:
+          - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
+            condition: state
+            entity_id: light.living_room_3_head_lamp_1
+            state: 'on'
+            match: any
+          then:
+            alias: Turn light.living_room_3_head_lamp_1 state=off
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              service: light.turn_off
+              entity_id: light.living_room_3_head_lamp_1
+          else:
+            alias: Turn light.living_room_3_head_lamp_1 state=on
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              service: light.turn_on
+              entity_id: light.living_room_3_head_lamp_1
+    - conditions:
+      - condition: trigger
+        id: toggle_ceiling_lights
+      sequence:
+      - alias: Turn light.living_room_ceiling_light state=toggle
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+          if:
+          - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
+            condition: state
+            entity_id:
+            - light.living_room_ceiling_light
+            state: 'on'
+            match: any
+          then:
+            alias: Turn light.living_room_ceiling_light state=off
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              service: light.turn_off
+              entity_id:
+              - light.living_room_ceiling_light
+          else:
+            alias: Turn light.living_room_ceiling_light state=on
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              service: light.turn_on
+              entity_id:
+              - light.living_room_ceiling_light
+    - conditions:
+      - condition: trigger
+        id: toggle_leds
+      sequence:
+      - alias: Turn switch.living_room_floor_light_3 state=toggle
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+          if:
+          - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
+            condition: state
+            entity_id:
+            - switch.living_room_floor_light_3
+            state: 'on'
+            match: any
+          then:
+            alias: Turn switch.living_room_floor_light_3 state=off
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              service: homeassistant.turn_off
+              entity_id:
+              - switch.living_room_floor_light_3
+          else:
+            alias: Turn switch.living_room_floor_light_3 state=on
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              service: homeassistant.turn_on
+              entity_id:
+              - switch.living_room_floor_light_3
+  id: automation.zlb_lr_single_button_button_control_living_room
 - alias: ZL-LR Applies Different Scenes Based on Scene Selections (State Execution)-Living Room
   trigger:
   - platform: state
@@ -1503,142 +1733,6 @@ automation:
                   - cover.living_room_curtain_1
                   - cover.living_room_curtain_2
   id: automation.zl_lr_applies_different_scenes_based_on_scene_selections_state_execution_living_room
-- alias: ZLB-LR Remote Button - Double - Toggle Lamps-Living Room
-  trigger:
-  - platform: state
-    entity_id:
-    - sensor.living_room_button
-    to:
-    - double
-    - '2'
-  action:
-  - alias: Turn light.living_room_floor_light_1 light.living_room_3_head_lamp_1 light.living_room_3_head_lamp_2 light.living_room_3_head_lamp_3 state=toggle
-    if:
-      condition: state
-      entity_id: input_boolean.always_on_constant
-      state: 'on'
-    then:
-      if:
-      - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
-        condition: state
-        entity_id:
-        - light.living_room_floor_light_1
-        - light.living_room_3_head_lamp_1
-        - light.living_room_3_head_lamp_2
-        - light.living_room_3_head_lamp_3
-        state: 'on'
-        match: any
-      then:
-        alias: Turn light.living_room_floor_light_1 light.living_room_3_head_lamp_1 light.living_room_3_head_lamp_2 light.living_room_3_head_lamp_3 state=off
-        if:
-          condition: state
-          entity_id: input_boolean.always_on_constant
-          state: 'on'
-        then:
-          service: light.turn_off
-          entity_id:
-          - light.living_room_floor_light_1
-          - light.living_room_3_head_lamp_1
-          - light.living_room_3_head_lamp_2
-          - light.living_room_3_head_lamp_3
-      else:
-        alias: Turn light.living_room_floor_light_1 light.living_room_3_head_lamp_1 light.living_room_3_head_lamp_2 light.living_room_3_head_lamp_3 state=on
-        if:
-          condition: state
-          entity_id: input_boolean.always_on_constant
-          state: 'on'
-        then:
-          service: light.turn_on
-          entity_id:
-          - light.living_room_floor_light_1
-          - light.living_room_3_head_lamp_1
-          - light.living_room_3_head_lamp_2
-          - light.living_room_3_head_lamp_3
-  id: automation.zlb_lr_remote_button_double_toggle_lamps_living_room
-- alias: ZLB-LR Remote Button - Triple - Toggle Ceiling Lights-Living Room
-  trigger:
-  - platform: state
-    entity_id:
-    - sensor.living_room_button
-    to:
-    - triple
-    - '3'
-  action:
-  - alias: Turn light.living_room_ceiling_light state=toggle
-    if:
-      condition: state
-      entity_id: input_boolean.always_on_constant
-      state: 'on'
-    then:
-      if:
-      - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
-        condition: state
-        entity_id:
-        - light.living_room_ceiling_light
-        state: 'on'
-        match: any
-      then:
-        alias: Turn light.living_room_ceiling_light state=off
-        if:
-          condition: state
-          entity_id: input_boolean.always_on_constant
-          state: 'on'
-        then:
-          service: light.turn_off
-          entity_id:
-          - light.living_room_ceiling_light
-      else:
-        alias: Turn light.living_room_ceiling_light state=on
-        if:
-          condition: state
-          entity_id: input_boolean.always_on_constant
-          state: 'on'
-        then:
-          service: light.turn_on
-          entity_id:
-          - light.living_room_ceiling_light
-  id: automation.zlb_lr_remote_button_triple_toggle_ceiling_lights_living_room
-- alias: ZLB-LR Remote Button - Long - Toggle LEDs-Living Room
-  trigger:
-  - platform: state
-    entity_id:
-    - sensor.living_room_button
-    to: hold
-  action:
-  - alias: Turn switch.living_room_floor_light_3 state=toggle
-    if:
-      condition: state
-      entity_id: input_boolean.always_on_constant
-      state: 'on'
-    then:
-      if:
-      - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
-        condition: state
-        entity_id:
-        - switch.living_room_floor_light_3
-        state: 'on'
-        match: any
-      then:
-        alias: Turn switch.living_room_floor_light_3 state=off
-        if:
-          condition: state
-          entity_id: input_boolean.always_on_constant
-          state: 'on'
-        then:
-          service: homeassistant.turn_off
-          entity_id:
-          - switch.living_room_floor_light_3
-      else:
-        alias: Turn switch.living_room_floor_light_3 state=on
-        if:
-          condition: state
-          entity_id: input_boolean.always_on_constant
-          state: 'on'
-        then:
-          service: homeassistant.turn_on
-          entity_id:
-          - switch.living_room_floor_light_3
-  id: automation.zlb_lr_remote_button_long_toggle_leds_living_room
 - alias: ZLB-LR Wall Switch - Double Press - Leave Room and Turn Off Everything-Living Room
   trigger:
   - platform: state
@@ -2078,13 +2172,9 @@ group:
     - automation.zh_lr_heating_schedule_on_if_staying_in_the_room_living_room
     - automation.zh_lr_heating_schedule_off_if_people_left_the_room_living_room
     - automation.zh_lr_heating_manual_override_living_room
-    - automation.zh_lr_heating_manual_override_timeout_in_few_hours_living_room
     - automation.zh_lr_valve_calibrate_temperature_using_external_sensor_living_room
-    - automation.zlb_lr_remote_button_single_applies_different_scenes_state_machine_living_room
+    - automation.zlb_lr_single_button_button_control_living_room
     - automation.zl_lr_applies_different_scenes_based_on_scene_selections_state_execution_living_room
-    - automation.zlb_lr_remote_button_double_toggle_lamps_living_room
-    - automation.zlb_lr_remote_button_triple_toggle_ceiling_lights_living_room
-    - automation.zlb_lr_remote_button_long_toggle_leds_living_room
     - automation.zlb_lr_wall_switch_double_press_leave_room_and_turn_off_everything_living_room
     - automation.zoc_lr_occupancy_update_living_room
     - automation.ztv_lr_reset_picture_mode_when_turning_on_tv_living_room

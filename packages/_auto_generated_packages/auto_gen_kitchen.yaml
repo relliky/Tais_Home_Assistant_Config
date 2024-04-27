@@ -567,31 +567,23 @@ automation:
   - if:
     - condition: state
       entity_id: input_boolean.kitchen_heating_override
-      state: 'on'
+      state: 'off'
     then:
     - service: automation.trigger
       entity_id:
-      - automation.zh_kc_heating_schedule_on_if_staying_in_the_room_kitchen
+      - automation.zh_kc_heating_schedule_off_if_people_left_the_room_kitchen
     else:
     - service: automation.trigger
       entity_id:
-      - automation.zh_kc_heating_schedule_off_if_people_left_the_room_kitchen
+      - automation.zh_kc_heating_schedule_on_if_staying_in_the_room_kitchen
+    - delay:
+        hours: 2
+    - service: homeassistant.turn_off
+      entity_id: input_boolean.kitchen_heating_override
+    - service: automation.trigger
+      entity_id:
+      - automation.zh_kc_heating_schedule_on_if_staying_in_the_room_kitchen
   id: automation.zh_kc_heating_manual_override_kitchen
-- alias: ZH-KC Heating Manual Override Timeout in Few Hours-Kitchen
-  trigger:
-  - platform: state
-    entity_id: input_boolean.kitchen_heating_override
-    from: 'off'
-    to: 'on'
-  action:
-  - delay:
-      hours: 2
-      minutes: 0
-      seconds: 0
-      milliseconds: 0
-  - service: homeassistant.turn_off
-    entity_id: input_boolean.kitchen_heating_override
-  id: automation.zh_kc_heating_manual_override_timeout_in_few_hours_kitchen
 - alias: ZH-KC Valve Calibrate Temperature Using External Sensor-Kitchen
   use_blueprint:
     path: calibrate_valve_temperature.yaml
@@ -1613,7 +1605,7 @@ template:
 - sensor:
   - name: Kitchen Temperature Sensor
     unit_of_measurement: "\xB0C"
-    state: '{{states.sensor["a4c1380e91a7_temperature"].state | float | round(1)}}'
+    state: '{{states.sensor["582d34828f85_temperature"].state | float | round(1)}}'
 - sensor:
   - name: Kitchen Extractor Wall Button
     state: '{{states.sensor["0x00158d0005210fa9_action"].state}}'
@@ -1741,7 +1733,6 @@ group:
     - automation.zh_kc_heating_schedule_on_if_staying_in_the_room_kitchen
     - automation.zh_kc_heating_schedule_off_if_people_left_the_room_kitchen
     - automation.zh_kc_heating_manual_override_kitchen
-    - automation.zh_kc_heating_manual_override_timeout_in_few_hours_kitchen
     - automation.zh_kc_valve_calibrate_temperature_using_external_sensor_kitchen
     - automation.zl_kc_applies_different_scenes_based_on_scene_selections_state_execution_kitchen
     - automation.zlb_kc_wall_switch_single_left_press_toggle_ceiling_light_kitchen

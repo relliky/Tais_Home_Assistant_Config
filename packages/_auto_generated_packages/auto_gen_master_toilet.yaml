@@ -513,31 +513,23 @@ automation:
   - if:
     - condition: state
       entity_id: input_boolean.master_toilet_heating_override
-      state: 'on'
+      state: 'off'
     then:
     - service: automation.trigger
       entity_id:
-      - automation.zh_mt_heating_schedule_on_if_staying_in_the_room_master_toilet
+      - automation.zh_mt_heating_schedule_off_if_people_left_the_room_master_toilet
     else:
     - service: automation.trigger
       entity_id:
-      - automation.zh_mt_heating_schedule_off_if_people_left_the_room_master_toilet
+      - automation.zh_mt_heating_schedule_on_if_staying_in_the_room_master_toilet
+    - delay:
+        hours: 2
+    - service: homeassistant.turn_off
+      entity_id: input_boolean.master_toilet_heating_override
+    - service: automation.trigger
+      entity_id:
+      - automation.zh_mt_heating_schedule_on_if_staying_in_the_room_master_toilet
   id: automation.zh_mt_heating_manual_override_master_toilet
-- alias: ZH-MT Heating Manual Override Timeout in Few Hours-Master Toilet
-  trigger:
-  - platform: state
-    entity_id: input_boolean.master_toilet_heating_override
-    from: 'off'
-    to: 'on'
-  action:
-  - delay:
-      hours: 2
-      minutes: 0
-      seconds: 0
-      milliseconds: 0
-  - service: homeassistant.turn_off
-    entity_id: input_boolean.master_toilet_heating_override
-  id: automation.zh_mt_heating_manual_override_timeout_in_few_hours_master_toilet
 - alias: ZH-MT Valve Calibrate Temperature Using External Sensor-Master Toilet
   use_blueprint:
     path: calibrate_valve_temperature.yaml
@@ -1074,23 +1066,179 @@ automation:
   id: automation.zl_mt_applies_different_scenes_based_on_scene_selections_state_execution_master_toilet
 - alias: ZLB-MT Remote Button-Single-Toggle Blind-Master Toilet
   trigger:
-  - platform: state
+    platform: state
     entity_id:
     - sensor.master_toilet_blind_button_action
     to:
     - single
     - '1'
-  mode: single
+    id: toggle_curtains
+  mode: restart
   action:
-    alias: Turn cover.master_toilet_dressing_room_blind state=toggle
-    if:
-      condition: state
-      entity_id: input_boolean.always_on_constant
-      state: 'on'
-    then:
-      service: cover.toggle
-      entity_id:
-      - cover.master_toilet_dressing_room_blind
+    choose:
+    - conditions:
+      - condition: trigger
+        id: cycle_scenes
+      sequence:
+        choose:
+        - conditions:
+            condition: state
+            entity_id: input_select.master_toilet_scene
+            state: All Off
+          sequence:
+            service: script.call_room_scene
+            data:
+              room_scene_select: input_select.master_toilet_scene
+              scene: All White
+        - conditions:
+            condition: state
+            entity_id: input_select.master_toilet_scene
+            state: All White
+          sequence:
+            service: script.call_room_scene
+            data:
+              room_scene_select: input_select.master_toilet_scene
+              scene: Lamp LED White
+        - conditions:
+            condition: state
+            entity_id: input_select.master_toilet_scene
+            state: Lamp LED White
+          sequence:
+            service: script.call_room_scene
+            data:
+              room_scene_select: input_select.master_toilet_scene
+              scene: All Off
+        default:
+          service: script.call_room_scene
+          data:
+            room_scene_select: input_select.master_toilet_scene
+            scene: All White
+    - conditions:
+      - condition: trigger
+        id: do_nothing
+      sequence:
+      - service: script.do_nothing
+    - conditions:
+      - condition: trigger
+        id: toggle_al_sleep_mode
+      sequence:
+      - alias: Turn switch.adaptive_lighting_sleep_mode_master_toilet state=toggle
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+          if:
+          - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
+            condition: state
+            entity_id: switch.adaptive_lighting_sleep_mode_master_toilet
+            state: 'on'
+            match: any
+          then:
+            alias: Turn switch.adaptive_lighting_sleep_mode_master_toilet state=off
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              service: homeassistant.turn_off
+              entity_id: switch.adaptive_lighting_sleep_mode_master_toilet
+          else:
+            alias: Turn switch.adaptive_lighting_sleep_mode_master_toilet state=on
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              service: homeassistant.turn_on
+              entity_id: switch.adaptive_lighting_sleep_mode_master_toilet
+    - conditions:
+      - condition: trigger
+        id: toggle_curtains
+      sequence:
+      - alias: Turn cover.master_toilet_dressing_room_blind state=toggle
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+          service: cover.toggle
+          entity_id:
+          - cover.master_toilet_dressing_room_blind
+    - conditions:
+      - condition: trigger
+        id: toggle_ceiling_lights
+      sequence:
+      - alias: Turn light.master_toilet_ceiling_light state=toggle
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+          if:
+          - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
+            condition: state
+            entity_id:
+            - light.master_toilet_ceiling_light
+            state: 'on'
+            match: any
+          then:
+            alias: Turn light.master_toilet_ceiling_light state=off
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              service: light.turn_off
+              entity_id:
+              - light.master_toilet_ceiling_light
+          else:
+            alias: Turn light.master_toilet_ceiling_light state=on
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              service: light.turn_on
+              entity_id:
+              - light.master_toilet_ceiling_light
+    - conditions:
+      - condition: trigger
+        id: toggle_leds
+      sequence:
+      - alias: Turn switch.master_toilet_floor_led state=toggle
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+          if:
+          - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
+            condition: state
+            entity_id:
+            - switch.master_toilet_floor_led
+            state: 'on'
+            match: any
+          then:
+            alias: Turn switch.master_toilet_floor_led state=off
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              service: homeassistant.turn_off
+              entity_id:
+              - switch.master_toilet_floor_led
+          else:
+            alias: Turn switch.master_toilet_floor_led state=on
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              service: homeassistant.turn_on
+              entity_id:
+              - switch.master_toilet_floor_led
   id: automation.zlb_mt_remote_button_single_toggle_blind_master_toilet
 - alias: ZLB-MT Wall Switch - Single Press - Toggle Ceiling Light-Master Toilet
   trigger:
@@ -1444,7 +1592,6 @@ group:
     - automation.zh_mt_heating_schedule_on_if_staying_in_the_room_master_toilet
     - automation.zh_mt_heating_schedule_off_if_people_left_the_room_master_toilet
     - automation.zh_mt_heating_manual_override_master_toilet
-    - automation.zh_mt_heating_manual_override_timeout_in_few_hours_master_toilet
     - automation.zh_mt_valve_calibrate_temperature_using_external_sensor_master_toilet
     - automation.zl_mt_applies_different_scenes_based_on_scene_selections_state_execution_master_toilet
     - automation.zlb_mt_remote_button_single_toggle_blind_master_toilet

@@ -377,31 +377,23 @@ automation:
   - if:
     - condition: state
       entity_id: input_boolean.ground_toilet_heating_override
-      state: 'on'
+      state: 'off'
     then:
     - service: automation.trigger
       entity_id:
-      - automation.zh_0t_heating_schedule_on_if_staying_in_the_room_ground_toilet
+      - automation.zh_0t_heating_schedule_off_if_people_left_the_room_ground_toilet
     else:
     - service: automation.trigger
       entity_id:
-      - automation.zh_0t_heating_schedule_off_if_people_left_the_room_ground_toilet
+      - automation.zh_0t_heating_schedule_on_if_staying_in_the_room_ground_toilet
+    - delay:
+        hours: 2
+    - service: homeassistant.turn_off
+      entity_id: input_boolean.ground_toilet_heating_override
+    - service: automation.trigger
+      entity_id:
+      - automation.zh_0t_heating_schedule_on_if_staying_in_the_room_ground_toilet
   id: automation.zh_0t_heating_manual_override_ground_toilet
-- alias: ZH-0T Heating Manual Override Timeout in Few Hours-Ground Toilet
-  trigger:
-  - platform: state
-    entity_id: input_boolean.ground_toilet_heating_override
-    from: 'off'
-    to: 'on'
-  action:
-  - delay:
-      hours: 2
-      minutes: 0
-      seconds: 0
-      milliseconds: 0
-  - service: homeassistant.turn_off
-    entity_id: input_boolean.ground_toilet_heating_override
-  id: automation.zh_0t_heating_manual_override_timeout_in_few_hours_ground_toilet
 - alias: ZH-0T Valve Calibrate Temperature Using External Sensor-Ground Toilet
   use_blueprint:
     path: calibrate_valve_temperature.yaml
@@ -1055,7 +1047,6 @@ group:
     - automation.zh_0t_heating_schedule_on_if_staying_in_the_room_ground_toilet
     - automation.zh_0t_heating_schedule_off_if_people_left_the_room_ground_toilet
     - automation.zh_0t_heating_manual_override_ground_toilet
-    - automation.zh_0t_heating_manual_override_timeout_in_few_hours_ground_toilet
     - automation.zh_0t_valve_calibrate_temperature_using_external_sensor_ground_toilet
     - automation.zl_0t_applies_different_scenes_based_on_scene_selections_state_execution_ground_toilet
     - automation.zlb_0t_wall_switch_single_press_toggle_ceiling_light_ground_toilet
