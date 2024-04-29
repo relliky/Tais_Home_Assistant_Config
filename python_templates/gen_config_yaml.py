@@ -2887,8 +2887,8 @@ class MasterRoom(RoomBase):
 
   def get_entity_declarations(self):
     super().get_entity_declarations()    
-    self.add_mac_device("582d343b6a27",                      self.room_name,                          'Temperature Sesnor', "Mijia2 Temperature Sensor", postfix='new_1')
-    self.add_mac_device("a4c138ecdbba",                      self.room_name,                          'Temperature Sesnor', "Mijia2 Temperature Sensor", postfix='new_2')
+    self.add_mac_device("582d34376b04",                      self.room_name,                          'Temperature Sensor', "Qingping Temperature Sensor", postfix='new_1')
+    self.add_mac_device("582d343b6a27",                      self.room_name,                          'Temperature Sensor', "Qingping Temperature Sensor", postfix='new_2')
   # self.add_mac_device('0x54ef441000792d09',                self.room_name + ' Bed',                 'Pressure Sensor',    'Aqara Pressure Sensor')    
   # self.add_mac_device('e4aaec755efa',                      self.room_name + ' Bed',                 'Pressure Sensor 4',  'Mijia2 Pressure Sensor',  postfix='1')    
   # self.add_mac_device('e4aaec755f4b',                      self.room_name + ' Bed',                 'Pressure Sensor 4',  'Mijia2 Pressure Sensor',  postfix='2')    
@@ -3333,7 +3333,8 @@ class LivingRoom(RoomBase):
     self.add_mac_device("dced8308e951",                       self.room_name,                    'Motion Sensor',      "Ziqing Occupancy Sensor")
   # self.add_mac_device('0x54ef441000792d1d',                 self.room_name + ' Sofa',          'Pressure Sensor 1',  'Aqara Pressure Sensor')    
     #self.add_mac_device("2ab7",                               self.room_name,                    'Temperature Sensor', "Mijia2 Temperature Clock",  postfix='1', integration='Passive BLE Monitor')
-    self.add_mac_device("a4c13864aca3",                       self.room_name,                    'Temperature Sensor', "Mijia2 Temperature Sensor")
+    #self.add_mac_device("a4c13864aca3",                       self.room_name,                    'Temperature Sensor', "Mijia2 Temperature Sensor")
+    self.add_mac_device("582d34828cc6",                       self.room_name,                    'Temperature Sensor', "Qingping Lite Temperature Sensor")
     self.add_mac_device('0x00158d0008d8ead8',                 self.room_name,                    'Wall Switch',        'Aqara D1 Wall Switch (With Neutral, Single Rocker)', flex_switch=True)
     self.add_mac_device("0x54ef441000452fd8",                 self.room_name + ' Curtain',       'Curtain',            "Aqara B1 curtain motor",    postfix='1')
     self.add_mac_device("0x54ef4410001f409c",                 self.room_name + ' Curtain',       'Curtain',            "Aqara B1 curtain motor",    postfix='2')
