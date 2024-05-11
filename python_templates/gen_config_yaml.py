@@ -35,7 +35,7 @@ class RoomBase:
     self.get_room_config()
     self.get_room_name_and_property()
     
-    print ("Generating " + self.room_name + " Yaml Package")
+    self.info ("Generating " + self.room_name + " Yaml Package")
 
     # Entities
     self.get_time_entities()
@@ -87,7 +87,6 @@ class RoomBase:
     self.cfg_remote_light       = False
     self.cfg_temp_control       = False
     self.cfg_temp_calibration   = False
-    self.cfg_tv                 = False
 
     # Adavanced Enables
     self.cfg_scene_color_led   = False
@@ -103,6 +102,21 @@ class RoomBase:
     self.room_entity           = 'uninitialized_room_entity'
     self.room_name             = 'Uninitialized_room_name'    
     self.room_short_name       = 'uninitialized_room_short_name'
+
+  def error(self, msg):
+        raise TypeError( "\n" +\
+                         "###################################################################################\n" + \
+                         msg + "\n" + \
+                         "###################################################################################\n")
+
+  def warn(self, str):
+      warnings.warn("\n" +\
+          "-----------------------------------------------------\n" + \
+          str + "\n" + \
+          "-----------------------------------------------------\n")
+
+  def info(self, str):
+      print(str)
 
   def get_time_entities(self):
     self.end_of_sleep_time   = '06:30:00'
@@ -156,8 +170,8 @@ class RoomBase:
     self.buttons                 = self.wall_buttons + self.xiaomi_buttons
     self.curtain_buttons         = []
     self.six_key_buttons         = []
-    self.four_key_buttons         = []
-
+    self.four_key_buttons        = []
+    self.eight_key_knob_buttons  = []
 
   def get_wall_switches(self):
     self.wall_switches          = []
@@ -270,15 +284,11 @@ class RoomBase:
     return  name
 
   def get_tv_entities(self):
-    if self.cfg_tv:
-      # TV entities
-      self.tv_room_entity          = self.room_entity
-      self.tvs                     = ["media_player." + self.tv_room_entity + "_tv"]
-      self.fire_tvs                = ["media_player." + self.tv_room_entity + "_fire_tv"]
-    else:
-      self.tv_room_entity          = None
-      self.tvs                     = []
-      self.fire_tvs                = []
+    self.tv_room_entity          = None
+    self.tvs                     = []
+    self.tv_picture_mode         = []
+    self.tv_soundbars            = []
+    self.fire_tvs                = []
       
   def get_time_setup(self):
     # Time setup
@@ -1405,7 +1415,7 @@ class RoomBase:
     self.automations += [
       { 
         "alias" : "ZTV-" + self.automation_room_name + "Reset Picture Mode When Turning on TV" + "-" + self.room_name,
-        "configured": self.cfg_tv,
+        "configured": len(self.tvs) > 0,
         "trigger": [
           { "platform": "state",
             "entity_id": self.tvs,
@@ -1741,27 +1751,66 @@ class RoomBase:
         ] if gateway_power_switch != 'N/A' else [])
     }]  
 
-  # constant
-  TOGGLE_AL_SLEEP_MODE  = 'toggle_al_sleep_mode'                  
-  TOGGLE_CURTAINS       = 'toggle_curtains'                 
-  TOGGLE_LAMP_0         = 'toggle_lamp_0'                 
-  TOGGLE_LAMP_1         = 'toggle_lamp_1'                 
-  TOGGLE_CEILING_LIGHTS = 'toggle_ceiling_lights'                 
-  TOGGLE_LEDS           = 'toggle_leds'       
-  CYCLE_SCENES          = 'cycle_scenes'
-  DO_NOTHING            = 'do_nothing'
+  # constant definition to make sure there is no typo to pass an undefined string
+  TOGGLE_AL_SLEEP_MODE      = 'TOGGLE_AL_SLEEP_MODE'                  
+  TOGGLE_CURTAINS           = 'TOGGLE_CURTAINS'        
+  INCREMENT_CURTAINS        = 'INCREMENT_CURTAINS'
+  DECREMENT_CURTAINS        = 'DECREMENT_CURTAINS'        
+  TOGGLE_LAMP_0             = 'TOGGLE_LAMP_0'                 
+  INCREMENT_LAMP_0          = 'INCREMENT_LAMP_0' 
+  DECREMENT_LAMP_0          = 'DECREMENT_LAMP_0'  
+  TOGGLE_LAMP_1             = 'TOGGLE_LAMP_1'                 
+  INCREMENT_LAMP_1          = 'INCREMENT_LAMP_1' 
+  DECREMENT_LAMP_1          = 'DECREMENT_LAMP_1'  
+  TOGGLE_CEILING_LIGHTS     = 'TOGGLE_CEILING_LIGHTS'                 
+  INCREMENT_CEILING_LIGHTS  = 'INCREMENT_CEILING_LIGHTS' 
+  DECREMENT_CEILING_LIGHTS  = 'DECREMENT_CEILING_LIGHTS'  
+  TOGGLE_LEDS               = 'TOGGLE_LEDS'       
+  INCREMENT_LEDS            = 'INCREMENT_LEDS' 
+  DECREMENT_LEDS            = 'DECREMENT_LEDS'  
+  CYCLE_SCENES              = 'CYCLE_SCENES'
+  DO_NOTHING                = 'DO_NOTHING'
+  CYCLE_TV_BRIGHTNESS       = 'CYCLE_TV_BRIGHTNESS'
+  INCREMENT_TV_BRIGHTNESS   = 'INCREMENT_TV_BRIGHTNESS'
+  DECREMENT_TV_BRIGHTNESS   = 'DECREMENT_TV_BRIGHTNESS'
+  INCREMENT_TV_VOLUME       = 'INCREMENT_TV_VOLUME'
+  DECREMENT_TV_VOLUME       = 'DECREMENT_TV_VOLUME'
+  TOGGLE_TV_POWER           = 'TOGGLE_TV_POWER'
+  TOGGLE_HEATING            = 'TOGGLE_HEATING'       
+  INCREMENT_HEATING         = 'INCREMENT_HEATING'
+  DECREMENT_HEATING         = 'DECREMENT_HEATING'
 
   def get_trigger_action_list(self):
     return {
-            "choose": 
-              ([{ "conditions": [{"condition": "trigger","id": self.CYCLE_SCENES         }], "sequence": {"choose": self.get_scene_state_machine(), "default": self.setNewSceneState("All White")}}]) + \
-              ([{ "conditions": [{"condition": "trigger","id": self.DO_NOTHING           }], "sequence": [{"service": "script.do_nothing"}]}])                                                        + \
-              ([{ "conditions": [{"condition": "trigger","id": self.TOGGLE_AL_SLEEP_MODE }], "sequence": [self.turn(self.al_sleep_mode, 'toggle')]}]                                                ) + \
-              ([{ "conditions": [{"condition": "trigger","id": self.TOGGLE_CURTAINS      }], "sequence": [self.turn(self.curtains,      'toggle')]}] if len(self.curtains)       >= 1 else []       ) + \
-              ([{ "conditions": [{"condition": "trigger","id": self.TOGGLE_LAMP_0        }], "sequence": [self.turn(self.lamps[0],      'toggle')]}] if len(self.lamps)          >= 1 else []       ) + \
-              ([{ "conditions": [{"condition": "trigger","id": self.TOGGLE_LAMP_1        }], "sequence": [self.turn(self.lamps[1],      'toggle')]}] if len(self.lamps)          >= 2 else []       ) + \
-              ([{ "conditions": [{"condition": "trigger","id": self.TOGGLE_CEILING_LIGHTS}], "sequence": [self.turn(self.ceiling_lights,'toggle')]}] if len(self.ceiling_lights) >= 1 else []       ) + \
-              ([{ "conditions": [{"condition": "trigger","id": self.TOGGLE_LEDS          }], "sequence": [self.turn(self.leds,          'toggle')]}] if len(self.leds)           >= 1 else []       )
+      "choose": 
+        ([{ "conditions":[{"condition": "trigger","id": self.CYCLE_SCENES            }], "sequence": {"choose": self.get_scene_state_machine(), "default": self.setNewSceneState("All White")}}])  + \
+        ([{ "conditions":[{"condition": "trigger","id": self.DO_NOTHING              }], "sequence": [{"service": "script.do_nothing"}]}])                                                         + \
+        ([{ "conditions":[{"condition": "trigger","id": self.TOGGLE_AL_SLEEP_MODE    }], "sequence": [self.turn(self.al_sleep_mode, 'toggle'                  )]}]                                              ) + \
+        ([{ "conditions":[{"condition": "trigger","id": self.TOGGLE_CURTAINS         }], "sequence": [self.turn(self.curtains,      'toggle'                  )]}] if len(self.curtains)       >= 1 else []     ) + \
+        ([{ "conditions":[{"condition": "trigger","id": self.INCREMENT_CURTAINS      }], "sequence": [self.turn(self.curtains,      'increment'               )]}] if len(self.curtains)       >= 1 else []     ) + \
+        ([{ "conditions":[{"condition": "trigger","id": self.DECREMENT_CURTAINS      }], "sequence": [self.turn(self.curtains,      'decrement'               )]}] if len(self.curtains)       >= 1 else []     ) + \
+        ([{ "conditions":[{"condition": "trigger","id": self.TOGGLE_LAMP_0           }], "sequence": [self.turn(self.lamps[0],      'toggle'   , step_value=25)]}] if len(self.lamps)          >= 1 else []     ) + \
+        ([{ "conditions":[{"condition": "trigger","id": self.INCREMENT_LAMP_0        }], "sequence": [self.turn(self.lamps[0],      'increment', step_value=25)]}] if len(self.lamps)          >= 1 else []     ) + \
+        ([{ "conditions":[{"condition": "trigger","id": self.DECREMENT_LAMP_0        }], "sequence": [self.turn(self.lamps[0],      'decrement', step_value=25)]}] if len(self.lamps)          >= 1 else []     ) + \
+        ([{ "conditions":[{"condition": "trigger","id": self.TOGGLE_LAMP_1           }], "sequence": [self.turn(self.lamps[1],      'toggle'   , step_value=25)]}] if len(self.lamps)          >= 2 else []     ) + \
+        ([{ "conditions":[{"condition": "trigger","id": self.INCREMENT_LAMP_1        }], "sequence": [self.turn(self.lamps[1],      'increment', step_value=25)]}] if len(self.lamps)          >= 2 else []     ) + \
+        ([{ "conditions":[{"condition": "trigger","id": self.DECREMENT_LAMP_1        }], "sequence": [self.turn(self.lamps[1],      'decrement', step_value=25)]}] if len(self.lamps)          >= 2 else []     ) + \
+        ([{ "conditions":[{"condition": "trigger","id": self.TOGGLE_CEILING_LIGHTS   }], "sequence": [self.turn(self.ceiling_lights,'toggle'   , step_value=25)]}] if len(self.ceiling_lights) >= 1 else []     ) + \
+        ([{ "conditions":[{"condition": "trigger","id": self.INCREMENT_CEILING_LIGHTS}], "sequence": [self.turn(self.ceiling_lights,'increment', step_value=25)]}] if len(self.ceiling_lights) >= 1 else []     ) + \
+        ([{ "conditions":[{"condition": "trigger","id": self.DECREMENT_CEILING_LIGHTS}], "sequence": [self.turn(self.ceiling_lights,'decrement', step_value=25)]}] if len(self.ceiling_lights) >= 1 else []     ) + \
+        ([{ "conditions":[{"condition": "trigger","id": self.TOGGLE_LEDS             }], "sequence": [self.turn(self.leds,          'toggle'   , step_value=25)]}] if len(self.leds)           >= 1 else []     ) + \
+        ([{ "conditions":[{"condition": "trigger","id": self.INCREMENT_LEDS          }], "sequence": [self.turn(self.leds,          'increment', step_value=25)]}] if len(self.leds)           >= 1 else []     ) + \
+        ([{ "conditions":[{"condition": "trigger","id": self.DECREMENT_LEDS          }], "sequence": [self.turn(self.leds,          'decrement', step_value=25)]}] if len(self.leds)           >= 1 else []     ) + \
+        ([{ "conditions":[{"condition": "trigger","id": self.TOGGLE_TV_POWER         }], "sequence": [self.turn(self.tvs,           'power_toggle'            )]}] if len(self.tvs)            >= 1 else []     ) + \
+        ([{ "conditions":[{"condition": "trigger","id": self.CYCLE_TV_BRIGHTNESS     }], "sequence": [self.turn(self.tvs,            tv_brightness='cycle'    )]}] if len(self.tvs)            >= 1 else []     ) + \
+        ([{ "conditions":[{"condition": "trigger","id": self.INCREMENT_TV_BRIGHTNESS }], "sequence": [self.turn(self.tvs,            tv_brightness='increment')]}] if len(self.tvs)            >= 1 else []     ) + \
+        ([{ "conditions":[{"condition": "trigger","id": self.DECREMENT_TV_BRIGHTNESS }], "sequence": [self.turn(self.tvs,            tv_brightness='decrement')]}] if len(self.tvs)            >= 1 else []     ) + \
+        ([{ "conditions":[{"condition": "trigger","id": self.INCREMENT_TV_VOLUME     }], "sequence": [self.turn('tv_volumne',        'increment', step_value=3)]}] if len(self.tvs)            >= 1 else []     ) + \
+        ([{ "conditions":[{"condition": "trigger","id": self.DECREMENT_TV_VOLUME     }], "sequence": [self.turn('tv_volumne',        'decrement', step_value=3)]}] if len(self.tvs)            >= 1 else []     ) + \
+        ([{ "conditions":[{"condition": "trigger","id": self.TOGGLE_HEATING          }], "sequence": [self.turn('heating',           'toggle'                 )]}] if len(self.thermostat)     >= 1 else []     ) + \
+        ([{ "conditions":[{"condition": "trigger","id": self.INCREMENT_HEATING       }], "sequence": [self.turn('heating',           'increment', step_value=1)]}] if len(self.thermostat)     >= 1 else []     ) + \
+        ([{ "conditions":[{"condition": "trigger","id": self.DECREMENT_HEATING       }], "sequence": [self.turn('heating',           'decrement', step_value=1)]}] if len(self.thermostat)     >= 1 else []     ) + \
+        ([])    
           } 
 
   def gen_xiaomi_button_automations(self):
@@ -1780,6 +1829,68 @@ class RoomBase:
         "mode":"queued", # this has to be queued to make sure no button press is ignored
         "action": self.get_trigger_action_list()
     }]
+
+    self.automations += [{
+        "alias" : "ZLB-" + self.automation_room_name + "Eight Key Knob Control" + "-" + self.room_name,
+        "configured": len(self.eight_key_knob_buttons) > 0,
+        "trigger": [
+          {"platform":"state","entity_id": self.eight_key_knob_buttons,"to": 'button_1_single',                                      "id": self.TOGGLE_AL_SLEEP_MODE },
+          {"platform":"state","entity_id": self.eight_key_knob_buttons,"to": ['button_1_double','button_1_hold',
+                                                                              "knob_clockwise_after_toggling_button_1",
+                                                                              "knob_clockwise_after_toggling_button_1_and_knob",
+                                                                              "knob_anticlockwise_after_toggling_button_1",
+                                                                              "knob_anticlockwise_after_toggling_button_1_and_knob"],"id": self.CYCLE_SCENES },
+          {"platform":"state","entity_id": self.eight_key_knob_buttons,"to": 'button_2_single',                                      "id": self.TOGGLE_CEILING_LIGHTS},
+          #{"platform":"state","entity_id": self.eight_key_knob_buttons,"to": ['button_2_double','button_2_hold'],                    "id": self.DO_NOTHING},
+          {"platform":"state","entity_id": self.eight_key_knob_buttons,"to": ["knob_clockwise_after_toggling_button_2",
+                                                                              "knob_clockwise_after_toggling_button_2_and_knob"],    "id": self.INCREMENT_CEILING_LIGHTS},
+          {"platform":"state","entity_id": self.eight_key_knob_buttons,"to": ["knob_anticlockwise_after_toggling_button_2",
+                                                                              "knob_anticlockwise_after_toggling_button_2_and_knob"],"id": self.DECREMENT_CEILING_LIGHTS},
+          {"platform":"state","entity_id": self.eight_key_knob_buttons,"to": 'button_3_single',                                      "id": self.TOGGLE_HEATING         },
+          #{"platform":"state","entity_id": self.eight_key_knob_buttons,"to": ['button_3_double','button_3_hold'],                    "id": self.DO_NOTHING},          
+          {"platform":"state","entity_id": self.eight_key_knob_buttons,"to": ["knob_clockwise_after_toggling_button_3",
+                                                                              "knob_clockwise_after_toggling_button_3_and_knob"],    "id": self.INCREMENT_HEATING},
+          {"platform":"state","entity_id": self.eight_key_knob_buttons,"to": ["knob_anticlockwise_after_toggling_button_3",
+                                                                              "knob_anticlockwise_after_toggling_button_3_and_knob"],"id": self.DECREMENT_HEATING},          
+          {"platform":"state","entity_id": self.eight_key_knob_buttons,"to": 'button_4_single',                                      "id": self.CYCLE_TV_BRIGHTNESS  },
+          #{"platform":"state","entity_id": self.eight_key_knob_buttons,"to": ['button_4_double'],                                   "id": self.DO_NOTHING},          
+          {"platform":"state","entity_id": self.eight_key_knob_buttons,"to": 'button_4_hold',                                        "id": self.TOGGLE_TV_POWER      },
+          {"platform":"state","entity_id": self.eight_key_knob_buttons,"to": ["knob_clockwise_after_toggling_button_4",
+                                                                              "knob_clockwise_after_toggling_button_4_and_knob"],    "id": self.INCREMENT_TV_VOLUME  },
+          {"platform":"state","entity_id": self.eight_key_knob_buttons,"to": ["knob_anticlockwise_after_toggling_button_4",
+                                                                              "knob_anticlockwise_after_toggling_button_4_and_knob"],"id": self.DECREMENT_TV_VOLUME  },
+          #{"platform":"state","entity_id": self.eight_key_knob_buttons,"to": ["knob_clockwise_after_toggling_button_4_and_knob"],    "id": self.INCREMENT_TV_BRIGHTNESS},
+          #{"platform":"state","entity_id": self.eight_key_knob_buttons,"to": ["knob_anticlockwise_after_toggling_button_4_and_knob"],"id": self.DECREMENT_TV_BRIGHTNESS},
+          {"platform":"state","entity_id": self.eight_key_knob_buttons,"to": 'button_5_single',                                      "id": self.TOGGLE_LEDS          },
+          #{"platform":"state","entity_id": self.eight_key_knob_buttons,"to": ['button_5_double','button_5_hold'],                    "id": self.DO_NOTHING},          
+          {"platform":"state","entity_id": self.eight_key_knob_buttons,"to": ["knob_clockwise_after_toggling_button_5",
+                                                                              "knob_clockwise_after_toggling_button_5_and_knob"],    "id": self.INCREMENT_LEDS       },
+          {"platform":"state","entity_id": self.eight_key_knob_buttons,"to": ["knob_anticlockwise_after_toggling_button_5",
+                                                                              "knob_anticlockwise_after_toggling_button_5_and_knob"],"id": self.DECREMENT_LEDS       },
+          {"platform":"state","entity_id": self.eight_key_knob_buttons,"to": 'button_6_single',                                      "id": self.TOGGLE_CURTAINS      },
+          #{"platform":"state","entity_id": self.eight_key_knob_buttons,"to": ['button_6_double','button_6_hold'],                    "id": self.DO_NOTHING},          
+          {"platform":"state","entity_id": self.eight_key_knob_buttons,"to": ["knob_clockwise_after_toggling_button_6",
+                                                                              "knob_clockwise_after_toggling_button_6_and_knob"],    "id": self.INCREMENT_CURTAINS},
+          {"platform":"state","entity_id": self.eight_key_knob_buttons,"to": ["knob_anticlockwise_after_toggling_button_6",
+                                                                              "knob_anticlockwise_after_toggling_button_6_and_knob"],"id": self.DECREMENT_CURTAINS},          
+          {"platform":"state","entity_id": self.eight_key_knob_buttons,"to": 'button_7_single',                                      "id": self.TOGGLE_LAMP_0        },
+          #{"platform":"state","entity_id": self.eight_key_knob_buttons,"to": ['button_7_double','button_7_hold'],                    "id": self.DO_NOTHING},          
+          {"platform":"state","entity_id": self.eight_key_knob_buttons,"to": ["knob_clockwise_after_toggling_button_7",
+                                                                              "knob_clockwise_after_toggling_button_7_and_knob"],    "id": self.INCREMENT_LAMP_0     },
+          {"platform":"state","entity_id": self.eight_key_knob_buttons,"to": ["knob_anticlockwise_after_toggling_button_7",
+                                                                              "knob_anticlockwise_after_toggling_button_7_and_knob"],"id": self.DECREMENT_LAMP_0     },
+          {"platform":"state","entity_id": self.eight_key_knob_buttons,"to": 'button_8_single',                                      "id": self.TOGGLE_LAMP_1        },
+          #{"platform":"state","entity_id": self.eight_key_knob_buttons,"to": ['button_8_double','button_8_hold'],                    "id": self.DO_NOTHING},          
+          {"platform":"state","entity_id": self.eight_key_knob_buttons,"to": ["knob_clockwise_after_toggling_button_8",
+                                                                              "knob_clockwise_after_toggling_button_8_and_knob"],    "id": self.INCREMENT_LAMP_1     },
+          {"platform":"state","entity_id": self.eight_key_knob_buttons,"to": ["knob_anticlockwise_after_toggling_button_8",
+                                                                              "knob_anticlockwise_after_toggling_button_8_and_knob"],"id": self.DECREMENT_LAMP_1     },
+        ],
+        "mode":"parallel", 
+        "action": self.get_trigger_action_list()
+    }]
+
+
 
     self.automations += [{
         "alias" : "ZLB-" + self.automation_room_name + "Six Key Button Control" + "-" + self.room_name,
@@ -2142,9 +2253,12 @@ class RoomBase:
     return id
 
   # Create service call for turn on/off entities
-  def turn(self, entity_list, state=None, light_brightness=None, tv_brightness=None, inc_unavail=True):
-    assert state in ['on', 'off', 'toggle', None], "State has to be one of 'on', 'off', 'toggle', 'None', but it is " + state
+  def turn(self, entity_list, state=None, light_brightness=None, tv_brightness=None, inc_unavail=True, step_value=34):
+    assert state in ['on', 'off', 'toggle', 'increment', 'decrement', 'power_toggle', 'single_device_volume_inc', 'single_device_volume_dec', None], "State has to be one of legal states, but it is " + state
     #assert type(entity_list) is list , "entity_list has to be a list, but it is " + entity_list
+
+    if state in ['increment', 'decrement']:
+      step_value = -1 * step_value if state == 'decrement' else step_value
 
     is_light_list = True
     if type(entity_list) is list:
@@ -2153,32 +2267,92 @@ class RoomBase:
     else:
         is_light_list = is_light_list if entity_list.startswith('light.') else False
 
-        
-    if light_brightness != None:
+    if state == 'power_toggle':
+      action_service = {"if": self.continueIf(entity_list, "off"), 
+                        "then": self.turn(entity_list, 'on'), 
+                        "else": self.turn(entity_list, 'off')}
+    elif light_brightness != None:
       action_service = {"service" : "light.turn_on",
                         "entity_id" : entity_list,
                         "data": {"brightness_pct": light_brightness}}
     elif tv_brightness != None:
-      action_service =    {
-                          "if": [
-                            {
-                              'alias': 'Set TV brightness when it is on',
-                              "condition": "state",
-                              "entity_id": entity_list,
-                              "state": "on"
-                            }
-                          ],
-                          "then":  {"service" : "samsungtv_smart.select_picture_mode",
-                                      "data": { "entity_id" : entity_list,
-                                                "picture_mode": "Movie"    if tv_brightness in [1, '1'] else \
-                                                                "Natural"  if tv_brightness in [2, '2'] else \
-                                                                "Standard" if tv_brightness in [3, '3'] else \
-                                                                "Dynamic"}}
-                        }
+      if tv_brightness == 'cycle':
+        action_service =    {"choose": 
+          ([{ "conditions":self.continueIf(self.tv_picture_mode, "Movie"   ), "sequence": self.turn(self.tvs, tv_brightness=4)}])  + \
+          ([{ "conditions":self.continueIf(self.tv_picture_mode, "Natural" ), "sequence": self.turn(self.tvs, tv_brightness=1)}])  + \
+          ([{ "conditions":self.continueIf(self.tv_picture_mode, "Standard"), "sequence": self.turn(self.tvs, tv_brightness=2)}])  + \
+          ([{ "conditions":self.continueIf(self.tv_picture_mode, "Dynamic" ), "sequence": self.turn(self.tvs, tv_brightness=3)}])  + \
+          ([])    
+          } 
+      elif tv_brightness == 'increment':
+        action_service =    {"choose": 
+          ([{ "conditions":self.continueIf(self.tv_picture_mode, "Movie"   ), "sequence": self.turn(self.tvs, tv_brightness=2)}])  + \
+          ([{ "conditions":self.continueIf(self.tv_picture_mode, "Natural" ), "sequence": self.turn(self.tvs, tv_brightness=3)}])  + \
+          ([{ "conditions":self.continueIf(self.tv_picture_mode, "Standard"), "sequence": self.turn(self.tvs, tv_brightness=4)}])  + \
+          ([{ "conditions":self.continueIf(self.tv_picture_mode, "Dynamic" ), "sequence": self.turn(self.tvs, tv_brightness=4)}])  + \
+          ([])    
+          } 
+      elif tv_brightness == 'decrement':
+        action_service =    {"choose": 
+          ([{ "conditions":self.continueIf(self.tv_picture_mode, "Movie"   ), "sequence": self.turn(self.tvs, tv_brightness=1)}])  + \
+          ([{ "conditions":self.continueIf(self.tv_picture_mode, "Natural" ), "sequence": self.turn(self.tvs, tv_brightness=1)}])  + \
+          ([{ "conditions":self.continueIf(self.tv_picture_mode, "Standard"), "sequence": self.turn(self.tvs, tv_brightness=2)}])  + \
+          ([{ "conditions":self.continueIf(self.tv_picture_mode, "Dynamic" ), "sequence": self.turn(self.tvs, tv_brightness=3)}])  + \
+          ([])    
+          }           
+      elif tv_brightness in [1,2,3,4,5,6,7,8,9,10]:
+        action_service =    {
+                            "if": [
+                              {
+                                'alias': 'Set TV brightness when it is on',
+                                "condition": "state",
+                                "entity_id": entity_list,
+                                "state": "on"
+                              }
+                            ],
+                            "then":  { "service" : "input_select.select_option",
+                                        "data": { "entity_id" : self.tv_picture_mode,
+                                                  "option": "Movie"    if tv_brightness in [1, '1'] else \
+                                                            "Natural"  if tv_brightness in [2, '2'] else \
+                                                            "Standard" if tv_brightness in [3, '3'] else \
+                                                            "Dynamic"}}
+                          }
+                          #  "then":  {"service" : "samsungtv_smart.select_picture_mode",
+                          #              "data": { "entity_id" : entity_list,
+                          #                        "picture_mode": "Movie"    if tv_brightness in [1, '1'] else \
+                          #                                        "Natural"  if tv_brightness in [2, '2'] else \
+                          #                                        "Standard" if tv_brightness in [3, '3'] else \
+                          #                                        "Dynamic"}}
+      else:
+        self.error(f"turn({entity_list}, tv_brightness={tv_brightness}) is not supported")
+    elif entity_list == 'tv_volumne':
+      if state in ['increment', 'decrement']:
+        single_device_state = "single_device_volume_inc" if state == 'increment' else "single_device_volume_dec"
+        if len(self.tv_soundbars) > 0:
+          action_service = {"if":   self.continueIf(self.tv_soundbars, "playing"), 
+                            "then": self.turn(self.tv_soundbars, single_device_state, step_value=step_value),
+                            "else": self.turn(self.tvs,          single_device_state, step_value=step_value)}
+        else:
+          action_service = self.turn(self.tvs, single_device_state)
+      else:
+        self.error(f"turn({entity_list}, {state}) is not supported.")
+
+    elif state in ['single_device_volume_inc', "single_device_volume_dec"] :
+        action_service = {"service": "media_player.volume_set",
+                          "entity_id": entity_list,
+                          "data_template":
+                            {"volume_level": "{{ (state_attr('" + entity_list[0] + "', 'volume_level')) + " + str(step_value/100) +" }}"}
+                          }
+
     elif entity_list == self.curtains:
       
+      if state in ['increment', 'decrement']:
+        action_service = {"service": "cover.set_cover_position",
+                          "target":{"entity_id": self.curtains},
+                          # making sure the final value saturated to range [0,100]
+                          "data":  {"position": "{{ [[ (state_attr('" + self.curtains[0] + "', 'current_position')) + " + str(step_value) + " ,0]|max,100]|min}}"}}        
       # Shutter blind
-      if self.aqara_shutter_blind == True and state in ['on', 'off']:
+      elif self.aqara_shutter_blind == True and state in ['on', 'off']:        
         if state == 'on': 
           if self.room_entity == 'study':
             # open full blind for study
@@ -2200,21 +2374,33 @@ class RoomBase:
           action_service = {"service":   "cover.toggle",
                             "entity_id": entity_list}      
       # Normal blind or curtains
-      else:
+      elif state in ['on', 'off', 'toggle']:
         action_service = {"service":  "cover.open_cover"       if state == 'on'     else \
                                       "cover.close_cover"      if state == 'off'    else \
                                       "cover.toggle"           if state == 'toggle' else None,
                           "entity_id": entity_list}
+      else:
+        self.error(f"turn({entity_list}, state={state}) is not supported")                          
+
+      # stop the curtain before any curtain actions - make sure the previous action is stopped
+      action_service = self.convertToSingleService(
+                      [{"service":  "cover.stop_cover",
+                        "entity_id": entity_list},   
+                        action_service])    
 
     # TODO make sure that it only turns a directory or a list.
     # use a different way to handle this case                    
     elif entity_list == self.thermostat:
-      hvac_mode = "heat" if state == 'on' else "off"
+      hvac_mode = "off" if state == 'off' else "heat"
       
-      action_service = { "service": "climate.set_hvac_mode",
-                         "data": {"hvac_mode": hvac_mode},
-                         "entity_id": self.thermostat
-                       }
+      if state in ['on', 'off']:
+        action_service = { "service": "climate.set_hvac_mode",
+                          "data": {"hvac_mode": hvac_mode},
+                          "entity_id": self.thermostat
+                        }
+      else:
+        self.error(f"turn({entity_list}, state={state}) is not supported")                          
+
     #--------------------------------------------------------------------------                       
     # No need to do this as long as adaptive light setting is with enough delay                   
     #--------------------------------------------------------------------------                       
@@ -2223,11 +2409,22 @@ class RoomBase:
     #  action_service = self.setLightsToWhite(self.lamps)
     
     elif entity_list == 'heating':
-      action_service = self.convertToSingleService(
-                       [self.turn(self.thermostat,          state),
-                        self.turn(self.thermostat_schedule, state)] + \
-                        ([] if self.room_entity != 'kitchen' else \
-                        [self.turn('switch.kitchen_hot_water', state)]))
+      if state in ['toggle']:
+        action_service = {"if": self.continueIf(self.thermostat, "off"), 
+                          "then": self.turn(entity_list, 'on'), 
+                          "else": self.turn(entity_list, 'off')}      
+      elif state in ['on', 'off']:
+        action_service = self.convertToSingleService(
+                        [self.turn(self.thermostat,          state),
+                          self.turn(self.thermostat_schedule, state)] + \
+                          ([] if self.room_entity != 'kitchen' else \
+                          [self.turn('switch.kitchen_hot_water', state)]))
+      elif state in ['increment', 'decrement']:
+        action_service = {"service": "climate.set_temperature",
+                          "target":{"entity_id": self.thermostat},
+                          "data":  {"temperature": "{{ (state_attr('" + self.thermostat + "', 'temperature')) + " + str(step_value) + "}}"}}
+      else:
+        self.error(f"turn({entity_list}, state={state}) is not supported")
 
     #--------------------------------------------------------------------------                       
     # This does not work very well as hue integeration lights are never unavailable, even without power                   
@@ -2253,13 +2450,22 @@ class RoomBase:
                         [{"service":"homeassistant.turn_off", "entity_id": entity_list},
                          {"delay": {"milliseconds": 200}},
                          {"service":"homeassistant.turn_on",  "entity_id": entity_list}],
-                        alias='Everytime to turn on a wall switch, make sure to turn off it first to make sure the smart lights will be back on')
+                          alias='Everytime to turn on a wall switch, make sure to turn off it first to make sure the smart lights will be back on')
     # Adaptive light only applies when lights are turned on by light.turn_on instead of homeassistant.turn_on
     # that's not true..... 
     elif is_light_list and (state == 'on' or state == 'off'):
       action_service = {"service":"light.turn_on"  if state == 'on'     else \
                                   "light.turn_off" if state == 'off'    else None,
                         "entity_id": entity_list}
+
+    elif is_light_list and (state == 'increment' or state == 'decrement'):
+      action_service = {"service":"light.turn_on",
+                        "target":{"entity_id":entity_list},
+                        "data":{"brightness_step_pct":step_value}}
+
+    # does not work if light list has swtich entity
+    elif is_light_list == False and (state == 'increment' or state == 'decrement'):
+      action_service =  {"service": "script.do_nothing"}
 
     elif state == 'on' or state == 'off':
       action_service = {"service":"homeassistant.turn_on"  if state == 'on'     else \
@@ -2281,12 +2487,11 @@ class RoomBase:
                           "else": self.turn(entity_list, 'on')
                         }
 
-
     if entity_list != None and entity_list != []:
       return self.convertToSingleService( action_service, 
                                           alias =  ('Turn'  + \
                                                     (' nothing'        if entity_list==[]              else \
-                                                    ' ' + entity_list if isinstance(entity_list, str) else " " + " ".join(entity_list)) + \
+                                                    ' ' + entity_list  if isinstance(entity_list, str) else " " + " ".join(entity_list)) + \
                                                     (''                if state==None                  else ' state=' + state) + \
                                                     (''                if light_brightness==None       else ' light_brightness=' + str(light_brightness))))
     else:
@@ -2347,13 +2552,9 @@ class RoomBase:
       elif scene_name == 'Lamp LED White':
           scene_service += [self.turn(self.ceiling_lights, "off"),
                             self.turn(self.lamps, "on"),
-                            self.turn(self.leds, "on"),
-                            self.turn(self.tvs, tv_brightness=3)]
+                            self.turn(self.leds, "on")]
       elif scene_name == 'LED White':
-          scene_service += [self.turn(self.ceiling_lights, "off"),
-                            self.turn(self.lamps, "off"),
-                            self.turn(self.leds, "on"),
-                            self.turn(self.tvs, tv_brightness=2)]
+          scene_service += [self.turn(self.leds, "on")]
       elif scene_name == 'Hue': 
           parallel_enable = False
           scene_service += [# turn off non rgb lights
@@ -2399,8 +2600,6 @@ class RoomBase:
                          "Scene " + scene_name + " is not supported." + "\n" + \
                          "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n")
       
-
-
       if parallel_enable == True:
         scene_service = [{"parallel":scene_service}] 
         
@@ -2489,8 +2688,8 @@ class RoomBase:
 
   def continueIf(self, entity_id, state, attribute=None, lastFor=None):
     cond =  { "condition": "state",
-                "entity_id": entity_id,
-                "state": state
+              "entity_id": entity_id,
+              "state":     state
             }
     cond |= {"attribute": attribute} if attribute  != None else {}
     cond |= {"for":       lastFor}   if lastFor    != None else {}
@@ -2882,7 +3081,6 @@ class MasterRoom(RoomBase):
     self.cfg_custom_scene       = True
     self.cfg_motion_bed_led     = True
     self.cfg_auto_curtain_ctl   = True
-    self.cfg_tv                 = True
     self.cfg_adaptive_lighting  = True
 
   def get_entity_declarations(self):
@@ -2994,6 +3192,14 @@ class MasterRoom(RoomBase):
     #"cover.master_room_blind" - too noisy
     self.curtains               = [ "cover.master_room_curtain"] 
 
+  def get_tv_entities(self):
+    super().get_tv_entities()
+    self.tvs                     = [f"media_player.{self.room_entity}_tv"]
+    self.tv_picture_mode         = [f"input_select.{self.room_entity}_tv_picture_mode"]
+    self.tv_soundbars            = [f"media_player.{self.room_entity}_sonos"]
+    self.fire_tvs                = [f"media_player.{self.room_entity}_fire_tv"]      
+    
+
   # Overwrite scene 'All off' to include turning off blinds
   def callSceneService(self, scene_name):
     scene_service = super().callSceneService(scene_name)
@@ -3012,8 +3218,8 @@ class MasterRoom(RoomBase):
     # button states do not work well (not responsive) with template sensor renaming
     # and this usage pressing buttons quickly a lot of time
     self.four_key_buttons        = ['sensor.0x842e14fffe60b64a_action']
-
-
+    self.eight_key_knob_buttons  = ['sensor.f0a3033b201b_action',
+                                    'sensor.cf0c1f9b4dbc_action']
 
   def gen_room_specific_automations(self):
     self.add_offline_device_automations(
@@ -3130,7 +3336,6 @@ class Kitchen(RoomBase):
     self.cfg_motion_light       = True
     self.cfg_remote_light       = True
     self.cfg_auto_curtain_ctl   = True
-    self.cfg_tv                 = True
     self.cfg_adaptive_lighting  = True
 
   def get_motion_sensor_entities(self):
@@ -3175,10 +3380,10 @@ class Kitchen(RoomBase):
   def get_light_entities(self):
     super().get_light_entities()
     # Light/Switch entities
-    self.ceiling_lights          = ["light.kitchen_ceiling_light",
-                                    "light.kitchen_dining_light"]
-    self.leds                    = ["switch.kitchen_floor_led", 
-                                    "light.kitchen_tv_led"]
+    self.ceiling_lights          = ["light."  + self.room_entity + "_ceiling_light",
+                                    "light."  + self.room_entity + "_dining_light"]
+    self.leds                    = ["switch." + self.room_entity + "_floor_led", 
+                                    "light."  + self.room_entity + "_tv_led"]
     self.lights                  = self.leds + self.lamps + self.ceiling_lights
 
     # Adaptive lighting
@@ -3187,12 +3392,19 @@ class Kitchen(RoomBase):
   def get_cover_entities(self):
     super().get_cover_entities()
     # Cover entities
-    self.curtains               = ["cover.kitchen_curtain"] 
+    self.curtains               = ["cover." + self.room_entity + "_curtain"] 
+
+  def get_tv_entities(self):
+    super().get_tv_entities()
+    self.tvs                     = [f"media_player.{self.room_entity}_tv"]
+    self.tv_picture_mode         = [f"input_select.{self.room_entity}_tv_picture_mode"]
+    self.fire_tvs                = [f"media_player.{self.room_entity}_fire_tv"]      
+ 
 
   def gen_wall_button_single_automations(self):
     self.gen_a_button_toggle_automation(      button_state_list=["single_left", "button_1_single"],
                                               button_state_name='Single Left',
-                                              device_list='light.kitchen_ceiling_light',
+                                              device_list="light." + self.room_entity + "_ceiling_light",
                                               device_name='Ceiling Light')
 
     #self.gen_a_button_toggle_automation(      button_state_list=["single_center", "button_2_single"],
@@ -3299,28 +3511,27 @@ class LivingRoom(RoomBase):
     self.cfg_scene_color_lamp   = True
     self.cfg_temp_control       = True
     self.cfg_temp_calibration   = True
-    self.cfg_tv                 = True
     self.cfg_adaptive_lighting  = True
     self.cfg_led_only_scene     = True
 
   def get_motion_sensor_entities(self):
     super().get_motion_sensor_entities()
     self.all_motion_sensors = [
-      "binary_sensor.living_room_sofa_motion_sensor_motion",
-      "binary_sensor.living_room_entrance_motion_sensor_motion",
-      "binary_sensor.tais_desk_motion_sensor_motion",
-      "binary_sensor.living_room_sofa_pressure_sensor",
-      "binary_sensor.living_room_occupancy_sensor_occupancy"
+      f"binary_sensor.tais_desk_motion_sensor_motion",
+      f"binary_sensor.{self.room_entity}_sofa_motion_sensor_motion",
+      f"binary_sensor.{self.room_entity}_entrance_motion_sensor_motion",
+      f"binary_sensor.{self.room_entity}_sofa_pressure_sensor",
+      f"binary_sensor.{self.room_entity}_occupancy_sensor_occupancy"
     ]
 
     self.entrance_motion_sensors = [
-      "binary_sensor.living_room_entrance_motion_sensor_motion",
-      "binary_sensor.living_room_sliding_door"
+      f"binary_sensor.{self.room_entity}_entrance_motion_sensor_motion",
+      f"binary_sensor.{self.room_entity}_sliding_door"
     ]
 
   def get_room_name_and_property(self):  
     super().get_room_name_and_property()
-    self.room_type              = 'bedroom' # as we often fall into sleep in living room
+    self.room_type     = 'bedroom' # as we often fall into sleep in living room
 
   def get_entity_declarations(self):
     super().get_entity_declarations()
@@ -3354,47 +3565,51 @@ class LivingRoom(RoomBase):
     self.add_mac_device("hue_color_lamp_4",                    self.room_name + " 3 Head Lamp 3",'Light',              "Generic Lights")
     self.add_mac_device('ef0f_29831979_mss210_main_channel',   self.room_name + ' Floor Light 3','Switch',             'Generic Switches')
 
-
-
 #('0x00158d0004501b0a', 'Living Room Sofa',           'Aqara Motion and Illuminance Sensor')
 #('0x00158d0001212747', 'Boiler Room',                'Aqara Door & Window Sensor')
 
   def get_window_entities(self):
     super().get_window_entities()
-    self.windows                 = ["binary_sensor.living_room_sliding_door",
-                                    "binary_sensor.living_room_window"]
+    self.windows                 = [f"binary_sensor.{self.room_entity}_sliding_door",
+                                    f"binary_sensor.{self.room_entity}_window"]
 
+  def get_tv_entities(self):
+    super().get_tv_entities()
+    self.tvs                     = [f"media_player.{self.room_entity}_tv"]
+    self.tv_picture_mode         = [f"input_select.{self.room_entity}_tv_picture_mode"]
+    self.tv_soundbars            = [f"media_player.{self.room_entity}_sonos"]
+    self.fire_tvs                = [f"media_player.{self.room_entity}_fire_tv"]      
 
   def get_light_entities(self):
     super().get_light_entities()
     self.leds                    = [#"light.living_room_tv_led", 
                                     #"light.living_room_sofa_led",
-                                    "switch.living_room_floor_light_3"] 
-    self.lamps                   = ["light.living_room_floor_light_1", 
-                                    "light.living_room_3_head_lamp_1",
-                                    "light.living_room_3_head_lamp_2",
-                                    "light.living_room_3_head_lamp_3"] 
+                                    f"switch.{self.room_entity}_light_3"] 
+    self.lamps                   = [f"light.{ self.room_entity}_floor_light_1", 
+                                    f"light.{ self.room_entity}_3_head_lamp_1",
+                                    f"light.{ self.room_entity}_3_head_lamp_2",
+                                    f"light.{ self.room_entity}_3_head_lamp_3"] 
     self.lights                  = self.leds + self.lamps + self.ceiling_lights
 
     # Adaptive lighting
     self.al_light_list[0]["lights"] += self.ceiling_lights + \
-                                            [ "light.living_room_floor_light_1", 
-                                              "light.living_room_3_head_lamp_1",
-                                              "light.living_room_3_head_lamp_2",
-                                              "light.living_room_3_head_lamp_3",
-                                              "light.boiler_room_light"] 
+                                            [ f"light.{self.room_entity}_floor_light_1", 
+                                              f"light.{self.room_entity}_3_head_lamp_1",
+                                              f"light.{self.room_entity}_3_head_lamp_2",
+                                              f"light.{self.room_entity}_3_head_lamp_3",
+                                              f"light.boiler_room_light"] 
 
   def get_cover_entities(self):
     super().get_cover_entities()
     # Cover entities
-    self.curtains               = [ "cover.living_room_curtain_1",
-                                    "cover.living_room_curtain_2"] 
+    self.curtains               = [ f"cover.{self.room_entity}_curtain_1",
+                                    f"cover.{self.room_entity}_curtain_2"] 
 
   def gen_room_specific_automations(self):
     self.add_offline_device_automations(
       device_type          = 'Zigbee',
-      offline_device       = 'switch.living_room_wall_switch',
-      gateway_power_switch = 'switch.living_room_gateway_power',
+      offline_device       = f'switch.{self.room_entity}_wall_switch',
+      gateway_power_switch = f'switch.{self.room_entity}_gateway_power',
       tts_message          = self.automation_room_name + "0F gateway zigbee devices are offline. Restarting gateway."
       )
 
@@ -3478,7 +3693,6 @@ class EnSuiteRoom(RoomBase):
     self.cfg_led_only_scene     = True
     self.cfg_motion_bed_led     = True
     self.cfg_auto_curtain_ctl   = True
-    self.cfg_tv                 = True
     self.cfg_adaptive_lighting  = True
 
   def get_entity_declarations(self):
@@ -3502,8 +3716,10 @@ class EnSuiteRoom(RoomBase):
   def get_tv_entities(self):
     super().get_tv_entities()
     self.tv_room_entity          = 'portable'
-    self.tvs                     = ["media_player." + self.tv_room_entity + "_tv"]
-    self.fire_tvs                = ["media_player." + self.tv_room_entity + "_fire_tv"]      
+    self.tvs                     = [f"media_player.{self.tv_room_entity}_tv"]
+    self.tv_picture_mode         = [f"input_select.{self.tv_room_entity}_tv_picture_mode"]
+    self.fire_tvs                = [f"media_player.{self.tv_room_entity}_fire_tv"]      
+
 
   def get_motion_sensor_entities(self):
     super().get_motion_sensor_entities()
@@ -3522,9 +3738,10 @@ class EnSuiteRoom(RoomBase):
     super().get_remote_entities()
     # button states do not work well (not responsive) with template sensor renaming
     # and this usage pressing buttons quickly a lot of time
-    self.six_key_buttons = ['sensor.0x04cf8cdf3c797717_0x04cf8cdf3c797717_action',
-                            'sensor.0x04cf8cdf3c7976f8_0x04cf8cdf3c7976f8_action']
-
+    #self.six_key_buttons = ['sensor.0x04cf8cdf3c797717_0x04cf8cdf3c797717_action',
+    #                        'sensor.0x04cf8cdf3c7976f8_0x04cf8cdf3c7976f8_action']
+    self.eight_key_knob_buttons  = ['sensor.d5154864a1bb_action',
+                                    'sensor.ce327cd55cd0_action']
   def get_light_entities(self):
     super().get_light_entities()
     # Light/Switch entities
@@ -3542,8 +3759,8 @@ class EnSuiteRoom(RoomBase):
   def getDashboardSettings(self):
     super().getDashboardSettings()
     self.dashboard_default_root = 'en-suite-room'
-    self.dashboard_view_name = 'en-suite-room'
-    self.room_icon           = 'mdi:bed-queen'
+    self.dashboard_view_name    = 'en-suite-room'
+    self.room_icon              = 'mdi:bed-queen'
 
 class EnSuiteToilet(RoomBase):
   def get_room_config(self):
