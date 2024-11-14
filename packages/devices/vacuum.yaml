@@ -2,17 +2,17 @@ template:
   - sensor:
       - name: "Vacuum Robot X1 Error State"
         state: >
-          {% if is_state('sensor.x1_last_error', '0') %}
+          {% if is_state('sensor.x1_last_error', '0') or is_state('sensor.x1_last_error', 'Unknown') or is_state('sensor.x1_last_error', 'unknown')  %}
               Normal
           {% elif is_state('sensor.x1_last_error', '301') %}
-              扫地机器人清水用完了。请加清水和倒掉污水。Clean Water in the Vacuum Robot Dock Has Run Out. 
+              扫地机器人清水用完了。请加清水和倒掉污水。Clean Water in the Vacuum Robot Dock Has Run Out. Please refill clean water tank and empty the dirty water tank.
           {% elif is_state('sensor.x1_last_error', '302') %}
-              扫地机器人污水箱已满。Dirty water in the vacuum robot has been full.
+              扫地机器人污水箱已满。Dirty water tank in the vacuum robot dock has been full.
+          {% elif is_state('sensor.x1_last_error', '103') %}
+              驱动轮困难，请把扫地机器人移到别的地方。Vacuum robot wheel got stuck, please move it to other places.
           {% else %}    
               扫地机器人发生不明错误，请查看。Vacuum Robot has unknown error. Please check if it's working ok.
           {% endif %}
-
-
 
 automation:
   - alias: VN-KC Notify Vacuum Robot Error
@@ -25,22 +25,24 @@ automation:
           - group.living_room_motion_group
     condition:
       - condition: not
-        conditions:    
+        conditions:
           - condition: state
-            entity_id: sensor.vacuum_robot_x1_state
+            entity_id: sensor.vacuum_robot_x1_error_state
             state: "Normal"
     action:
-        - service: script.notify_alexa_speakers_and_phones
-          data:
-            tts_message: "{{states('sensor.vacuum_robot_x1_error_state')}}"
-            notify_tai: "yes"
-            notify_ke_ba_ba: "yes"
-            notify_ke_ma_ma: "yes"
-            notify_ke: "yes"
-            alexa_speaker_list:
-              - media_player.kitchen_echo
-              - media_player.living_room_echo
-        - delay: "04:00:00"
+      - service: script.notify_alexa_speakers_and_phones
+        data:
+          tts_message: "{{states('sensor.vacuum_robot_x1_error_state')}}"
+          notify_tai: "yes"
+          notify_guest_room_tenant: "yes"
+          notify_en_suite_room_tenant: "yes"
+          #notify_ke_ba_ba: "yes"
+          #notify_ke_ma_ma: "yes"
+          #notify_ke: "yes"
+          alexa_speaker_list:
+            - media_player.kitchen_echo
+            - media_player.living_room_echo
+      - delay: "04:00:00"
 
   - alias: V-KC Ask X1 To Return To Dock If Stuck
     id: 3902jgfrngfd89bvfdsjkfdjiafuew
@@ -74,38 +76,38 @@ automation:
           entity_id: vacuum.x1
     mode: single
 
-  - alias: VB-KC Kitchen Vacuum Toggle by Pressing The Rightmost 2 Buttons
-    id: 3492849032uriojewjfreau8fef
-    mode: single
-    trigger:
-      - platform: state
-        entity_id:
-          - sensor.kitchen_wall_button
-        to: button_both_23_single
-    condition: []
-    action:
-      - if:
-          - condition: state
-            entity_id: vacuum.x1
-            state: cleaning
-        then:
-          - service: vacuum.stop
-            target:
-              entity_id: vacuum.x1
-          - delay: "00:00:01"
-          - service: vacuum.return_to_base
-            target:
-              entity_id: vacuum.x1
-        else:
-          # Clean Kitchen
-          - service: vacuum.send_command
-            target:
-              entity_id: vacuum.x1
-            data:
-              command: spot_area
-              params:
-                rooms: 0
-                cleanings: 1
+#  - alias: VB-KC Kitchen Vacuum Toggle by Pressing The Rightmost 2 Buttons
+#    id: 3492849032uriojewjfreau8fef
+#    mode: single
+#    trigger:
+#      - platform: state
+#        entity_id:
+#          - sensor.kitchen_wall_button
+#        to: button_both_23_single
+#    condition: []
+#    action:
+#      - if:
+#          - condition: state
+#            entity_id: vacuum.x1
+#            state: cleaning
+#        then:
+#          - service: vacuum.stop
+#            target:
+#              entity_id: vacuum.x1
+#          - delay: "00:00:01"
+#          - service: vacuum.return_to_base
+#            target:
+#              entity_id: vacuum.x1
+#        else:
+#          # Clean Kitchen
+#          - service: vacuum.send_command
+#            target:
+#              entity_id: vacuum.x1
+#            data:
+#              command: spot_area
+#              params:
+#                rooms: 0
+#                cleanings: 1
 #script:
 #  kitchen_window_left_open_critical_notification:
 #    alias: Kitchen Window Left Open Critical Notification

@@ -158,9 +158,28 @@ automation:
                   - cover.en_suite_room_curtain
     else:
       if:
-      - condition: state
-        entity_id: sun.sun
-        state: above_horizon
+      - condition: and
+        conditions:
+        - condition: or
+          conditions:
+          - condition: numeric_state
+            entity_id: sensor.living_room_light_sensor
+            above: 100
+          - condition: state
+            entity_id: sensor.living_room_light_sensor
+            state:
+            - unavailable
+            - unknown
+        - condition: or
+          conditions:
+          - condition: state
+            entity_id: sun.sun
+            state: above_horizon
+          - condition: state
+            entity_id: sun.sun
+            state:
+            - unavailable
+            - unknown
       then:
         alias: Lights on when bright outdoor
         if:
@@ -541,6 +560,7 @@ automation:
                 entity_id:
                 - input_select.portable_tv_picture_mode
                 option: Standard
+    - service: script.do_nothing
 - alias: ZL-ER Disable Entering Lights-on Automation If any People are in the Room-En-suite Room
   trigger:
   - platform: state
@@ -628,7 +648,9 @@ automation:
     from:
     - Just Entered
     - Outside
-    to: Stayed Inside
+    to:
+    - Stayed Inside
+    - In Sleep
   action:
   - if:
     - condition: not
@@ -903,6 +925,40 @@ automation:
             - cover.en_suite_room_curtain
     - conditions:
       - condition: trigger
+        id: TOGGLE_CURTAIN_0
+      sequence:
+      - alias: Turn cover.en_suite_room_curtain state=toggle
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+          if:
+          - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
+            condition: state
+            entity_id: cover.en_suite_room_curtain
+            state: 'on'
+            match: any
+          then:
+            alias: Turn cover.en_suite_room_curtain state=off
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              service: homeassistant.turn_off
+              entity_id: cover.en_suite_room_curtain
+          else:
+            alias: Turn cover.en_suite_room_curtain state=on
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              service: homeassistant.turn_on
+              entity_id: cover.en_suite_room_curtain
+    - conditions:
+      - condition: trigger
         id: INCREMENT_CURTAINS
       sequence:
       - alias: Turn cover.en_suite_room_curtain state=increment
@@ -951,6 +1007,28 @@ automation:
               - cover.en_suite_room_curtain
             data:
               position: '{{ [[ (state_attr(''cover.en_suite_room_curtain'', ''current_position'')) + -34 ,0]|max,100]|min}}'
+    - conditions:
+      - condition: trigger
+        id: INCREMENT_CURTAIN_0
+      sequence:
+      - alias: Turn cover.en_suite_room_curtain state=increment
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+          service: script.do_nothing
+    - conditions:
+      - condition: trigger
+        id: DECREMENT_CURTAIN_0
+      sequence:
+      - alias: Turn cover.en_suite_room_curtain state=decrement
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+          service: script.do_nothing
     - conditions:
       - condition: trigger
         id: TOGGLE_LAMP_0
@@ -1824,6 +1902,12 @@ automation:
     entity_id:
     - sensor.d5154864a1bb_action
     - sensor.ce327cd55cd0_action
+    to: button_5_double
+    id: TOGGLE_SCREEN_LED
+  - platform: state
+    entity_id:
+    - sensor.d5154864a1bb_action
+    - sensor.ce327cd55cd0_action
     to:
     - knob_clockwise_after_toggling_button_5
     - knob_clockwise_after_toggling_button_5_and_knob
@@ -2014,6 +2098,40 @@ automation:
             - cover.en_suite_room_curtain
     - conditions:
       - condition: trigger
+        id: TOGGLE_CURTAIN_0
+      sequence:
+      - alias: Turn cover.en_suite_room_curtain state=toggle
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+          if:
+          - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
+            condition: state
+            entity_id: cover.en_suite_room_curtain
+            state: 'on'
+            match: any
+          then:
+            alias: Turn cover.en_suite_room_curtain state=off
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              service: homeassistant.turn_off
+              entity_id: cover.en_suite_room_curtain
+          else:
+            alias: Turn cover.en_suite_room_curtain state=on
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              service: homeassistant.turn_on
+              entity_id: cover.en_suite_room_curtain
+    - conditions:
+      - condition: trigger
         id: INCREMENT_CURTAINS
       sequence:
       - alias: Turn cover.en_suite_room_curtain state=increment
@@ -2062,6 +2180,28 @@ automation:
               - cover.en_suite_room_curtain
             data:
               position: '{{ [[ (state_attr(''cover.en_suite_room_curtain'', ''current_position'')) + -34 ,0]|max,100]|min}}'
+    - conditions:
+      - condition: trigger
+        id: INCREMENT_CURTAIN_0
+      sequence:
+      - alias: Turn cover.en_suite_room_curtain state=increment
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+          service: script.do_nothing
+    - conditions:
+      - condition: trigger
+        id: DECREMENT_CURTAIN_0
+      sequence:
+      - alias: Turn cover.en_suite_room_curtain state=decrement
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+          service: script.do_nothing
     - conditions:
       - condition: trigger
         id: TOGGLE_LAMP_0
@@ -2996,24 +3136,6 @@ automation:
               service: light.turn_on
               entity_id:
               - light.en_suite_room_bed_led
-          - alias: Turn media_player.portable_tv
-            if:
-              condition: state
-              entity_id: input_boolean.always_on_constant
-              state: 'on'
-            then:
-              if:
-              - alias: Set TV brightness when it is on
-                condition: state
-                entity_id:
-                - media_player.portable_tv
-                state: 'on'
-              then:
-                service: input_select.select_option
-                data:
-                  entity_id:
-                  - input_select.portable_tv_picture_mode
-                  option: Standard
     - conditions:
       - condition: state
         entity_id: input_select.en_suite_room_scene
@@ -3026,25 +3148,6 @@ automation:
           state: 'on'
         then:
         - parallel:
-          - alias: Turn light.en_suite_room_ceiling_light state=off
-            if:
-              condition: state
-              entity_id: input_boolean.always_on_constant
-              state: 'on'
-            then:
-              service: light.turn_off
-              entity_id:
-              - light.en_suite_room_ceiling_light
-          - alias: Turn light.en_suite_room_lamp_1 light.en_suite_room_lamp_2 state=off
-            if:
-              condition: state
-              entity_id: input_boolean.always_on_constant
-              state: 'on'
-            then:
-              service: light.turn_off
-              entity_id:
-              - light.en_suite_room_lamp_1
-              - light.en_suite_room_lamp_2
           - alias: Turn light.en_suite_room_bed_led state=on
             if:
               condition: state
@@ -3054,24 +3157,6 @@ automation:
               service: light.turn_on
               entity_id:
               - light.en_suite_room_bed_led
-          - alias: Turn media_player.portable_tv
-            if:
-              condition: state
-              entity_id: input_boolean.always_on_constant
-              state: 'on'
-            then:
-              if:
-              - alias: Set TV brightness when it is on
-                condition: state
-                entity_id:
-                - media_player.portable_tv
-                state: 'on'
-              then:
-                service: input_select.select_option
-                data:
-                  entity_id:
-                  - input_select.portable_tv_picture_mode
-                  option: Natural
     - conditions:
       - condition: state
         entity_id: input_select.en_suite_room_scene
@@ -3802,7 +3887,6 @@ sensor:
 input_boolean:
   en_suite_room_sleep_time:
     name: En Suite Room Sleep Time
-    initial: 'off'
   en_suite_room_heating_override:
     name: En Suite Room Heating Override
     initial: 'off'

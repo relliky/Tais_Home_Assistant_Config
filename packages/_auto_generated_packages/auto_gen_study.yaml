@@ -108,7 +108,7 @@ automation:
               entity_id: input_boolean.led_control_in_hot_sunshine_study
               state: 'on'
             then:
-              alias: Turn switch.study_screen_led state=on
+              alias: Turn switch.study_screen_light state=on
               if:
                 condition: state
                 entity_id: input_boolean.always_on_constant
@@ -116,9 +116,9 @@ automation:
               then:
                 service: homeassistant.turn_on
                 entity_id:
-                - switch.study_screen_led
+                - switch.study_screen_light
             else:
-              alias: Turn switch.study_screen_led state=off
+              alias: Turn switch.study_screen_light state=off
               if:
                 condition: state
                 entity_id: input_boolean.always_on_constant
@@ -126,7 +126,7 @@ automation:
               then:
                 service: homeassistant.turn_off
                 entity_id:
-                - switch.study_screen_led
+                - switch.study_screen_light
           - if:
               condition: state
               entity_id: input_boolean.curtain_control_in_hot_sunshine_study
@@ -175,9 +175,28 @@ automation:
                   - cover.study_blind
     else:
       if:
-      - condition: state
-        entity_id: sun.sun
-        state: above_horizon
+      - condition: and
+        conditions:
+        - condition: or
+          conditions:
+          - condition: numeric_state
+            entity_id: sensor.living_room_light_sensor
+            above: 100
+          - condition: state
+            entity_id: sensor.living_room_light_sensor
+            state:
+            - unavailable
+            - unknown
+        - condition: or
+          conditions:
+          - condition: state
+            entity_id: sun.sun
+            state: above_horizon
+          - condition: state
+            entity_id: sun.sun
+            state:
+            - unavailable
+            - unknown
       then:
         alias: Lights on when bright outdoor
         if:
@@ -240,7 +259,7 @@ automation:
                 entity_id: input_boolean.led_control_when_bright_outdoor_study
                 state: 'on'
               then:
-                alias: Turn switch.study_screen_led state=on
+                alias: Turn switch.study_screen_light state=on
                 if:
                   condition: state
                   entity_id: input_boolean.always_on_constant
@@ -248,9 +267,9 @@ automation:
                 then:
                   service: homeassistant.turn_on
                   entity_id:
-                  - switch.study_screen_led
+                  - switch.study_screen_light
               else:
-                alias: Turn switch.study_screen_led state=off
+                alias: Turn switch.study_screen_light state=off
                 if:
                   condition: state
                   entity_id: input_boolean.always_on_constant
@@ -258,7 +277,7 @@ automation:
                 then:
                   service: homeassistant.turn_off
                   entity_id:
-                  - switch.study_screen_led
+                  - switch.study_screen_light
             - if:
                 condition: state
                 entity_id: input_boolean.curtain_control_when_bright_outdoor_study
@@ -367,7 +386,7 @@ automation:
                 entity_id: input_boolean.led_control_when_dark_outdoor_study
                 state: 'on'
               then:
-                alias: Turn switch.study_screen_led state=on
+                alias: Turn switch.study_screen_light state=on
                 if:
                   condition: state
                   entity_id: input_boolean.always_on_constant
@@ -375,9 +394,9 @@ automation:
                 then:
                   service: homeassistant.turn_on
                   entity_id:
-                  - switch.study_screen_led
+                  - switch.study_screen_light
               else:
-                alias: Turn switch.study_screen_led state=off
+                alias: Turn switch.study_screen_light state=off
                 if:
                   condition: state
                   entity_id: input_boolean.always_on_constant
@@ -385,7 +404,7 @@ automation:
                 then:
                   service: homeassistant.turn_off
                   entity_id:
-                  - switch.study_screen_led
+                  - switch.study_screen_light
             - if:
                 condition: state
                 entity_id: input_boolean.curtain_control_when_dark_outdoor_study
@@ -530,7 +549,7 @@ automation:
             service: homeassistant.turn_off
             entity_id:
             - switch.study_studio_lamp
-        - alias: Turn switch.study_screen_led state=off
+        - alias: Turn switch.study_screen_light state=off
           if:
             condition: state
             entity_id: input_boolean.always_on_constant
@@ -538,8 +557,9 @@ automation:
           then:
             service: homeassistant.turn_off
             entity_id:
-            - switch.study_screen_led
+            - switch.study_screen_light
         - service: script.do_nothing
+    - service: script.do_nothing
 - alias: ZL-ST Disable Entering Lights-on Automation If any People are in the Room-Study
   trigger:
   - platform: state
@@ -563,7 +583,9 @@ automation:
     from:
     - Just Entered
     - Outside
-    to: Stayed Inside
+    to:
+    - Stayed Inside
+    - In Sleep
   action:
   - if:
     - condition: not
@@ -717,7 +739,7 @@ automation:
               service: light.turn_on
               entity_id:
               - light.study_ceiling_light
-          - alias: Turn switch.study_screen_led state=on
+          - alias: Turn switch.study_screen_light state=on
             if:
               condition: state
               entity_id: input_boolean.always_on_constant
@@ -725,7 +747,7 @@ automation:
             then:
               service: homeassistant.turn_on
               entity_id:
-              - switch.study_screen_led
+              - switch.study_screen_light
           - service: script.do_nothing
     - conditions:
       - condition: state
@@ -748,7 +770,7 @@ automation:
               service: homeassistant.turn_off
               entity_id:
               - switch.study_studio_lamp
-          - alias: Turn switch.study_screen_led state=off
+          - alias: Turn switch.study_screen_light state=off
             if:
               condition: state
               entity_id: input_boolean.always_on_constant
@@ -756,7 +778,7 @@ automation:
             then:
               service: homeassistant.turn_off
               entity_id:
-              - switch.study_screen_led
+              - switch.study_screen_light
           - alias: Turn light.study_ceiling_light state=on
             if:
               condition: state
@@ -797,7 +819,7 @@ automation:
               service: homeassistant.turn_on
               entity_id:
               - switch.study_studio_lamp
-          - alias: Turn switch.study_screen_led state=on
+          - alias: Turn switch.study_screen_light state=on
             if:
               condition: state
               entity_id: input_boolean.always_on_constant
@@ -805,8 +827,7 @@ automation:
             then:
               service: homeassistant.turn_on
               entity_id:
-              - switch.study_screen_led
-          - service: script.do_nothing
+              - switch.study_screen_light
     - conditions:
       - condition: state
         entity_id: input_select.study_scene
@@ -819,25 +840,7 @@ automation:
           state: 'on'
         then:
         - parallel:
-          - alias: Turn light.study_ceiling_light state=off
-            if:
-              condition: state
-              entity_id: input_boolean.always_on_constant
-              state: 'on'
-            then:
-              service: light.turn_off
-              entity_id:
-              - light.study_ceiling_light
-          - alias: Turn switch.study_studio_lamp state=off
-            if:
-              condition: state
-              entity_id: input_boolean.always_on_constant
-              state: 'on'
-            then:
-              service: homeassistant.turn_off
-              entity_id:
-              - switch.study_studio_lamp
-          - alias: Turn switch.study_screen_led state=on
+          - alias: Turn switch.study_screen_light state=on
             if:
               condition: state
               entity_id: input_boolean.always_on_constant
@@ -845,8 +848,7 @@ automation:
             then:
               service: homeassistant.turn_on
               entity_id:
-              - switch.study_screen_led
-          - service: script.do_nothing
+              - switch.study_screen_light
     - conditions:
       - condition: state
         entity_id: input_select.study_scene
@@ -863,7 +865,7 @@ automation:
             light_list:
             - switch.study_studio_lamp
             - light.study_ceiling_light
-            - switch.study_screen_led
+            - switch.study_screen_light
             state: 'off'
             rgb: non_rgb_only
         - service: pyscript.turn_rgb_light
@@ -871,7 +873,7 @@ automation:
             light_list:
             - switch.study_studio_lamp
             - light.study_ceiling_light
-            - switch.study_screen_led
+            - switch.study_screen_light
         - service: script.do_nothing
     - conditions:
       - condition: state
@@ -947,7 +949,7 @@ automation:
               service: homeassistant.turn_off
               entity_id:
               - switch.study_studio_lamp
-          - alias: Turn switch.study_screen_led state=off
+          - alias: Turn switch.study_screen_light state=off
             if:
               condition: state
               entity_id: input_boolean.always_on_constant
@@ -955,7 +957,7 @@ automation:
             then:
               service: homeassistant.turn_off
               entity_id:
-              - switch.study_screen_led
+              - switch.study_screen_light
           - service: script.do_nothing
     - conditions:
       - condition: state
@@ -1023,7 +1025,7 @@ automation:
                 entity_id: input_boolean.led_control_in_hot_sunshine_study
                 state: 'on'
               then:
-                alias: Turn switch.study_screen_led state=on
+                alias: Turn switch.study_screen_light state=on
                 if:
                   condition: state
                   entity_id: input_boolean.always_on_constant
@@ -1031,9 +1033,9 @@ automation:
                 then:
                   service: homeassistant.turn_on
                   entity_id:
-                  - switch.study_screen_led
+                  - switch.study_screen_light
               else:
-                alias: Turn switch.study_screen_led state=off
+                alias: Turn switch.study_screen_light state=off
                 if:
                   condition: state
                   entity_id: input_boolean.always_on_constant
@@ -1041,7 +1043,7 @@ automation:
                 then:
                   service: homeassistant.turn_off
                   entity_id:
-                  - switch.study_screen_led
+                  - switch.study_screen_light
             - if:
                 condition: state
                 entity_id: input_boolean.curtain_control_in_hot_sunshine_study
@@ -1154,7 +1156,7 @@ automation:
                 entity_id: input_boolean.led_control_when_bright_outdoor_study
                 state: 'on'
               then:
-                alias: Turn switch.study_screen_led state=on
+                alias: Turn switch.study_screen_light state=on
                 if:
                   condition: state
                   entity_id: input_boolean.always_on_constant
@@ -1162,9 +1164,9 @@ automation:
                 then:
                   service: homeassistant.turn_on
                   entity_id:
-                  - switch.study_screen_led
+                  - switch.study_screen_light
               else:
-                alias: Turn switch.study_screen_led state=off
+                alias: Turn switch.study_screen_light state=off
                 if:
                   condition: state
                   entity_id: input_boolean.always_on_constant
@@ -1172,7 +1174,7 @@ automation:
                 then:
                   service: homeassistant.turn_off
                   entity_id:
-                  - switch.study_screen_led
+                  - switch.study_screen_light
             - if:
                 condition: state
                 entity_id: input_boolean.curtain_control_when_bright_outdoor_study
@@ -1285,7 +1287,7 @@ automation:
                 entity_id: input_boolean.led_control_when_dark_outdoor_study
                 state: 'on'
               then:
-                alias: Turn switch.study_screen_led state=on
+                alias: Turn switch.study_screen_light state=on
                 if:
                   condition: state
                   entity_id: input_boolean.always_on_constant
@@ -1293,9 +1295,9 @@ automation:
                 then:
                   service: homeassistant.turn_on
                   entity_id:
-                  - switch.study_screen_led
+                  - switch.study_screen_light
               else:
-                alias: Turn switch.study_screen_led state=off
+                alias: Turn switch.study_screen_light state=off
                 if:
                   condition: state
                   entity_id: input_boolean.always_on_constant
@@ -1303,7 +1305,7 @@ automation:
                 then:
                   service: homeassistant.turn_off
                   entity_id:
-                  - switch.study_screen_led
+                  - switch.study_screen_light
             - if:
                 condition: state
                 entity_id: input_boolean.curtain_control_when_dark_outdoor_study
@@ -1463,6 +1465,40 @@ automation:
             - cover.study_blind
     - conditions:
       - condition: trigger
+        id: TOGGLE_CURTAIN_0
+      sequence:
+      - alias: Turn cover.study_blind state=toggle
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+          if:
+          - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
+            condition: state
+            entity_id: cover.study_blind
+            state: 'on'
+            match: any
+          then:
+            alias: Turn cover.study_blind state=off
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              service: homeassistant.turn_off
+              entity_id: cover.study_blind
+          else:
+            alias: Turn cover.study_blind state=on
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              service: homeassistant.turn_on
+              entity_id: cover.study_blind
+    - conditions:
+      - condition: trigger
         id: INCREMENT_CURTAINS
       sequence:
       - alias: Turn cover.study_blind state=increment
@@ -1511,6 +1547,28 @@ automation:
               - cover.study_blind
             data:
               position: '{{ [[ (state_attr(''cover.study_blind'', ''current_position'')) + -34 ,0]|max,100]|min}}'
+    - conditions:
+      - condition: trigger
+        id: INCREMENT_CURTAIN_0
+      sequence:
+      - alias: Turn cover.study_blind state=increment
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+          service: script.do_nothing
+    - conditions:
+      - condition: trigger
+        id: DECREMENT_CURTAIN_0
+      sequence:
+      - alias: Turn cover.study_blind state=decrement
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+          service: script.do_nothing
     - conditions:
       - condition: trigger
         id: TOGGLE_LAMP_0
@@ -1640,7 +1698,7 @@ automation:
       - condition: trigger
         id: TOGGLE_LEDS
       sequence:
-      - alias: Turn switch.study_screen_led state=toggle
+      - alias: Turn switch.study_screen_light state=toggle
         if:
           condition: state
           entity_id: input_boolean.always_on_constant
@@ -1650,11 +1708,11 @@ automation:
           - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
             condition: state
             entity_id:
-            - switch.study_screen_led
+            - switch.study_screen_light
             state: 'on'
             match: any
           then:
-            alias: Turn switch.study_screen_led state=off
+            alias: Turn switch.study_screen_light state=off
             if:
               condition: state
               entity_id: input_boolean.always_on_constant
@@ -1662,9 +1720,9 @@ automation:
             then:
               service: homeassistant.turn_off
               entity_id:
-              - switch.study_screen_led
+              - switch.study_screen_light
           else:
-            alias: Turn switch.study_screen_led state=on
+            alias: Turn switch.study_screen_light state=on
             if:
               condition: state
               entity_id: input_boolean.always_on_constant
@@ -1672,12 +1730,12 @@ automation:
             then:
               service: homeassistant.turn_on
               entity_id:
-              - switch.study_screen_led
+              - switch.study_screen_light
     - conditions:
       - condition: trigger
         id: INCREMENT_LEDS
       sequence:
-      - alias: Turn switch.study_screen_led state=increment
+      - alias: Turn switch.study_screen_light state=increment
         if:
           condition: state
           entity_id: input_boolean.always_on_constant
@@ -1688,7 +1746,7 @@ automation:
       - condition: trigger
         id: DECREMENT_LEDS
       sequence:
-      - alias: Turn switch.study_screen_led state=decrement
+      - alias: Turn switch.study_screen_light state=decrement
         if:
           condition: state
           entity_id: input_boolean.always_on_constant
@@ -1927,7 +1985,6 @@ sensor:
 input_boolean:
   master_room_sleep_time:
     name: Master Room Sleep Time
-    initial: 'off'
   study_heating_override:
     name: Study Heating Override
     initial: 'off'
@@ -1964,6 +2021,9 @@ switch:
 - platform: group
   name: Study Studio Lamp 1
   entities: switch.mss210_b083_outlet
+- platform: group
+  name: Study Screen Light
+  entities: switch.sonoff_10020aa912_1
 - platform: group
   name: Feeding Bottle Warmer
   entities: switch.0x00158d000171756e_plug
@@ -2047,7 +2107,7 @@ group:
   study_light_group:
     name: Study Light Group
     entities:
-    - switch.study_screen_led
+    - switch.study_screen_light
     - switch.study_studio_lamp
     - light.study_ceiling_light
   study_window_group:

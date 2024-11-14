@@ -90,9 +90,28 @@ automation:
               service: script.do_nothing
     else:
       if:
-      - condition: state
-        entity_id: sun.sun
-        state: above_horizon
+      - condition: and
+        conditions:
+        - condition: or
+          conditions:
+          - condition: numeric_state
+            entity_id: sensor.living_room_light_sensor
+            above: 100
+          - condition: state
+            entity_id: sensor.living_room_light_sensor
+            state:
+            - unavailable
+            - unknown
+        - condition: or
+          conditions:
+          - condition: state
+            entity_id: sun.sun
+            state: above_horizon
+          - condition: state
+            entity_id: sun.sun
+            state:
+            - unavailable
+            - unknown
       then:
         alias: Lights on when bright outdoor
         if:
@@ -261,6 +280,7 @@ automation:
         - service: script.do_nothing
         - service: script.do_nothing
         - service: script.do_nothing
+    - service: script.do_nothing
 - alias: ZL-0T Disable Entering Lights-on Automation If any People are in the Room-Ground Toilet
   trigger:
   - platform: state
@@ -284,7 +304,9 @@ automation:
     from:
     - Just Entered
     - Outside
-    to: Stayed Inside
+    to:
+    - Stayed Inside
+    - In Sleep
   action:
   - if:
     - condition: not
@@ -479,7 +501,6 @@ automation:
               - light.ground_toilet_ceiling_light
           - service: script.do_nothing
           - service: script.do_nothing
-          - service: script.do_nothing
     - conditions:
       - condition: state
         entity_id: input_select.ground_toilet_scene
@@ -492,17 +513,6 @@ automation:
           state: 'on'
         then:
         - parallel:
-          - alias: Turn light.ground_toilet_ceiling_light state=off
-            if:
-              condition: state
-              entity_id: input_boolean.always_on_constant
-              state: 'on'
-            then:
-              service: light.turn_off
-              entity_id:
-              - light.ground_toilet_ceiling_light
-          - service: script.do_nothing
-          - service: script.do_nothing
           - service: script.do_nothing
     - conditions:
       - condition: state
@@ -910,7 +920,6 @@ sensor:
 input_boolean:
   master_room_sleep_time:
     name: Master Room Sleep Time
-    initial: 'off'
   ground_toilet_heating_override:
     name: Ground Toilet Heating Override
     initial: 'off'

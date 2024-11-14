@@ -18,6 +18,7 @@ def now_is_after(hour, minute, second):
 #           |<----c3---------|                      |                  |
 #           |<-------------------c5-----------------|<------c10--------|
 #           |<----------------------------------------------c8---------|
+#           |------------------------c11------------------------------>|
 #          |c1|             |c4|                  |c6|                |c9|
 #
 # State machine changing conditions:
@@ -57,15 +58,22 @@ def room_occupancy_state_machine(occupancy_entity_str,
     motion_off_ratio_for_2x_min= 1 - motion_on_ratio_for_2x_min
     nxt_state                  = ''
     stay_inside_for            = get_sec_of_cur_state(occupancy_entity_str) if cur_state == 'Stayed Inside' else 0
-    now_is_sleep_time          = state.get(sleep_time) == 'on'
+    now_is_sleep_time          = state.get(sleep_time) == 'on' and room_type == 'bedroom'
     normal_timeout             = 1 if room_type == 'landing' else 5 # other rooms timeout at 5 minutes 
     
     # Outside -> xxx
     if cur_state == 'Outside':
       
+        # c11. Outside -> In Sleep
+        # People can sometimes not moving for a while and go to outside state
+        # Make them back to In Sleep state as long as they moved once
+        if motion == 'on' and \
+            now_is_sleep_time:
+            nxt_state = "In Sleep"
+
         # c0. Outside      -> Just Entered:
         #     currently on
-        if motion == 'on':
+        elif motion == 'on':
             nxt_state = "Just Entered"
             
         # c1. Outside      -> Outside: 
@@ -80,8 +88,8 @@ def room_occupancy_state_machine(occupancy_entity_str,
         # c2. Just Entered -> Stayed Inside:
         #     currently on & previously largely on in [0,x] or [0,2x]
         if motion == 'on' and \
-           (motion_on_ratio_for_x_min  >= 0.6 or
-            motion_on_ratio_for_2x_min >= 0.4):
+          (motion_on_ratio_for_x_min  >= 0.6 or \
+           motion_on_ratio_for_2x_min >= 0.4):
             nxt_state = "Stayed Inside"
             
         # c3. Just Entered -> Outside:

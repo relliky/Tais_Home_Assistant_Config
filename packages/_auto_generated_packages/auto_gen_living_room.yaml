@@ -85,7 +85,7 @@ automation:
               entity_id: input_boolean.lamp_control_in_hot_sunshine_living_room
               state: 'on'
             then:
-              alias: Turn light.living_room_floor_light_1 light.living_room_3_head_lamp_1 light.living_room_3_head_lamp_2 light.living_room_3_head_lamp_3 state=on
+              alias: Turn light.living_room_floor_light_1 light.living_room_floor_light_2 state=on
               if:
                 condition: state
                 entity_id: input_boolean.always_on_constant
@@ -94,11 +94,9 @@ automation:
                 service: light.turn_on
                 entity_id:
                 - light.living_room_floor_light_1
-                - light.living_room_3_head_lamp_1
-                - light.living_room_3_head_lamp_2
-                - light.living_room_3_head_lamp_3
+                - light.living_room_floor_light_2
             else:
-              alias: Turn light.living_room_floor_light_1 light.living_room_3_head_lamp_1 light.living_room_3_head_lamp_2 light.living_room_3_head_lamp_3 state=off
+              alias: Turn light.living_room_floor_light_1 light.living_room_floor_light_2 state=off
               if:
                 condition: state
                 entity_id: input_boolean.always_on_constant
@@ -107,15 +105,13 @@ automation:
                 service: light.turn_off
                 entity_id:
                 - light.living_room_floor_light_1
-                - light.living_room_3_head_lamp_1
-                - light.living_room_3_head_lamp_2
-                - light.living_room_3_head_lamp_3
+                - light.living_room_floor_light_2
           - if:
               condition: state
               entity_id: input_boolean.led_control_in_hot_sunshine_living_room
               state: 'on'
             then:
-              alias: Turn switch.living_room_light_3 state=on
+              alias: Turn switch.living_room_floor_light_3 state=on
               if:
                 condition: state
                 entity_id: input_boolean.always_on_constant
@@ -123,9 +119,9 @@ automation:
               then:
                 service: homeassistant.turn_on
                 entity_id:
-                - switch.living_room_light_3
+                - switch.living_room_floor_light_3
             else:
-              alias: Turn switch.living_room_light_3 state=off
+              alias: Turn switch.living_room_floor_light_3 state=off
               if:
                 condition: state
                 entity_id: input_boolean.always_on_constant
@@ -133,7 +129,7 @@ automation:
               then:
                 service: homeassistant.turn_off
                 entity_id:
-                - switch.living_room_light_3
+                - switch.living_room_floor_light_3
           - if:
               condition: state
               entity_id: input_boolean.curtain_control_in_hot_sunshine_living_room
@@ -182,9 +178,28 @@ automation:
                   - cover.living_room_curtain_2
     else:
       if:
-      - condition: state
-        entity_id: sun.sun
-        state: above_horizon
+      - condition: and
+        conditions:
+        - condition: or
+          conditions:
+          - condition: numeric_state
+            entity_id: sensor.living_room_light_sensor
+            above: 100
+          - condition: state
+            entity_id: sensor.living_room_light_sensor
+            state:
+            - unavailable
+            - unknown
+        - condition: or
+          conditions:
+          - condition: state
+            entity_id: sun.sun
+            state: above_horizon
+          - condition: state
+            entity_id: sun.sun
+            state:
+            - unavailable
+            - unknown
       then:
         alias: Lights on when bright outdoor
         if:
@@ -223,7 +238,7 @@ automation:
                 entity_id: input_boolean.lamp_control_when_bright_outdoor_living_room
                 state: 'on'
               then:
-                alias: Turn light.living_room_floor_light_1 light.living_room_3_head_lamp_1 light.living_room_3_head_lamp_2 light.living_room_3_head_lamp_3 state=on
+                alias: Turn light.living_room_floor_light_1 light.living_room_floor_light_2 state=on
                 if:
                   condition: state
                   entity_id: input_boolean.always_on_constant
@@ -232,11 +247,9 @@ automation:
                   service: light.turn_on
                   entity_id:
                   - light.living_room_floor_light_1
-                  - light.living_room_3_head_lamp_1
-                  - light.living_room_3_head_lamp_2
-                  - light.living_room_3_head_lamp_3
+                  - light.living_room_floor_light_2
               else:
-                alias: Turn light.living_room_floor_light_1 light.living_room_3_head_lamp_1 light.living_room_3_head_lamp_2 light.living_room_3_head_lamp_3 state=off
+                alias: Turn light.living_room_floor_light_1 light.living_room_floor_light_2 state=off
                 if:
                   condition: state
                   entity_id: input_boolean.always_on_constant
@@ -245,15 +258,13 @@ automation:
                   service: light.turn_off
                   entity_id:
                   - light.living_room_floor_light_1
-                  - light.living_room_3_head_lamp_1
-                  - light.living_room_3_head_lamp_2
-                  - light.living_room_3_head_lamp_3
+                  - light.living_room_floor_light_2
             - if:
                 condition: state
                 entity_id: input_boolean.led_control_when_bright_outdoor_living_room
                 state: 'on'
               then:
-                alias: Turn switch.living_room_light_3 state=on
+                alias: Turn switch.living_room_floor_light_3 state=on
                 if:
                   condition: state
                   entity_id: input_boolean.always_on_constant
@@ -261,9 +272,9 @@ automation:
                 then:
                   service: homeassistant.turn_on
                   entity_id:
-                  - switch.living_room_light_3
+                  - switch.living_room_floor_light_3
               else:
-                alias: Turn switch.living_room_light_3 state=off
+                alias: Turn switch.living_room_floor_light_3 state=off
                 if:
                   condition: state
                   entity_id: input_boolean.always_on_constant
@@ -271,7 +282,7 @@ automation:
                 then:
                   service: homeassistant.turn_off
                   entity_id:
-                  - switch.living_room_light_3
+                  - switch.living_room_floor_light_3
             - if:
                 condition: state
                 entity_id: input_boolean.curtain_control_when_bright_outdoor_living_room
@@ -356,7 +367,7 @@ automation:
                 entity_id: input_boolean.lamp_control_when_dark_outdoor_living_room
                 state: 'on'
               then:
-                alias: Turn light.living_room_floor_light_1 light.living_room_3_head_lamp_1 light.living_room_3_head_lamp_2 light.living_room_3_head_lamp_3 state=on
+                alias: Turn light.living_room_floor_light_1 light.living_room_floor_light_2 state=on
                 if:
                   condition: state
                   entity_id: input_boolean.always_on_constant
@@ -365,11 +376,9 @@ automation:
                   service: light.turn_on
                   entity_id:
                   - light.living_room_floor_light_1
-                  - light.living_room_3_head_lamp_1
-                  - light.living_room_3_head_lamp_2
-                  - light.living_room_3_head_lamp_3
+                  - light.living_room_floor_light_2
               else:
-                alias: Turn light.living_room_floor_light_1 light.living_room_3_head_lamp_1 light.living_room_3_head_lamp_2 light.living_room_3_head_lamp_3 state=off
+                alias: Turn light.living_room_floor_light_1 light.living_room_floor_light_2 state=off
                 if:
                   condition: state
                   entity_id: input_boolean.always_on_constant
@@ -378,15 +387,13 @@ automation:
                   service: light.turn_off
                   entity_id:
                   - light.living_room_floor_light_1
-                  - light.living_room_3_head_lamp_1
-                  - light.living_room_3_head_lamp_2
-                  - light.living_room_3_head_lamp_3
+                  - light.living_room_floor_light_2
             - if:
                 condition: state
                 entity_id: input_boolean.led_control_when_dark_outdoor_living_room
                 state: 'on'
               then:
-                alias: Turn switch.living_room_light_3 state=on
+                alias: Turn switch.living_room_floor_light_3 state=on
                 if:
                   condition: state
                   entity_id: input_boolean.always_on_constant
@@ -394,9 +401,9 @@ automation:
                 then:
                   service: homeassistant.turn_on
                   entity_id:
-                  - switch.living_room_light_3
+                  - switch.living_room_floor_light_3
               else:
-                alias: Turn switch.living_room_light_3 state=off
+                alias: Turn switch.living_room_floor_light_3 state=off
                 if:
                   condition: state
                   entity_id: input_boolean.always_on_constant
@@ -404,7 +411,7 @@ automation:
                 then:
                   service: homeassistant.turn_off
                   entity_id:
-                  - switch.living_room_light_3
+                  - switch.living_room_floor_light_3
             - if:
                 condition: state
                 entity_id: input_boolean.curtain_control_when_dark_outdoor_living_room
@@ -548,7 +555,7 @@ automation:
             service: light.turn_off
             entity_id:
             - light.living_room_ceiling_light
-        - alias: Turn light.living_room_floor_light_1 light.living_room_3_head_lamp_1 light.living_room_3_head_lamp_2 light.living_room_3_head_lamp_3 state=off
+        - alias: Turn light.living_room_floor_light_1 light.living_room_floor_light_2 state=off
           if:
             condition: state
             entity_id: input_boolean.always_on_constant
@@ -557,10 +564,8 @@ automation:
             service: light.turn_off
             entity_id:
             - light.living_room_floor_light_1
-            - light.living_room_3_head_lamp_1
-            - light.living_room_3_head_lamp_2
-            - light.living_room_3_head_lamp_3
-        - alias: Turn switch.living_room_light_3 state=off
+            - light.living_room_floor_light_2
+        - alias: Turn switch.living_room_floor_light_3 state=off
           if:
             condition: state
             entity_id: input_boolean.always_on_constant
@@ -568,7 +573,7 @@ automation:
           then:
             service: homeassistant.turn_off
             entity_id:
-            - switch.living_room_light_3
+            - switch.living_room_floor_light_3
         - alias: Turn media_player.living_room_tv
           if:
             condition: state
@@ -587,6 +592,7 @@ automation:
                 entity_id:
                 - input_select.living_room_tv_picture_mode
                 option: Standard
+    - service: script.do_nothing
 - alias: ZL-LR Disable Entering Lights-on Automation If any People are in the Room-Living Room
   trigger:
   - platform: state
@@ -610,7 +616,9 @@ automation:
     from:
     - Just Entered
     - Outside
-    to: Stayed Inside
+    to:
+    - Stayed Inside
+    - In Sleep
   action:
   - if:
     - condition: not
@@ -896,6 +904,74 @@ automation:
             - cover.living_room_curtain_2
     - conditions:
       - condition: trigger
+        id: TOGGLE_CURTAIN_0
+      sequence:
+      - alias: Turn cover.living_room_curtain_1 state=toggle
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+          if:
+          - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
+            condition: state
+            entity_id: cover.living_room_curtain_1
+            state: 'on'
+            match: any
+          then:
+            alias: Turn cover.living_room_curtain_1 state=off
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              service: homeassistant.turn_off
+              entity_id: cover.living_room_curtain_1
+          else:
+            alias: Turn cover.living_room_curtain_1 state=on
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              service: homeassistant.turn_on
+              entity_id: cover.living_room_curtain_1
+    - conditions:
+      - condition: trigger
+        id: TOGGLE_CURTAIN_1
+      sequence:
+      - alias: Turn cover.living_room_curtain_2 state=toggle
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+          if:
+          - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
+            condition: state
+            entity_id: cover.living_room_curtain_2
+            state: 'on'
+            match: any
+          then:
+            alias: Turn cover.living_room_curtain_2 state=off
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              service: homeassistant.turn_off
+              entity_id: cover.living_room_curtain_2
+          else:
+            alias: Turn cover.living_room_curtain_2 state=on
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              service: homeassistant.turn_on
+              entity_id: cover.living_room_curtain_2
+    - conditions:
+      - condition: trigger
         id: INCREMENT_CURTAINS
       sequence:
       - alias: Turn cover.living_room_curtain_1 cover.living_room_curtain_2 state=increment
@@ -948,6 +1024,50 @@ automation:
               - cover.living_room_curtain_2
             data:
               position: '{{ [[ (state_attr(''cover.living_room_curtain_1'', ''current_position'')) + -34 ,0]|max,100]|min}}'
+    - conditions:
+      - condition: trigger
+        id: INCREMENT_CURTAIN_0
+      sequence:
+      - alias: Turn cover.living_room_curtain_1 state=increment
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+          service: script.do_nothing
+    - conditions:
+      - condition: trigger
+        id: DECREMENT_CURTAIN_0
+      sequence:
+      - alias: Turn cover.living_room_curtain_1 state=decrement
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+          service: script.do_nothing
+    - conditions:
+      - condition: trigger
+        id: INCREMENT_CURTAIN_1
+      sequence:
+      - alias: Turn cover.living_room_curtain_2 state=increment
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+          service: script.do_nothing
+    - conditions:
+      - condition: trigger
+        id: DECREMENT_CURTAIN_1
+      sequence:
+      - alias: Turn cover.living_room_curtain_2 state=decrement
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+          service: script.do_nothing
     - conditions:
       - condition: trigger
         id: TOGGLE_LAMP_0
@@ -1016,7 +1136,7 @@ automation:
       - condition: trigger
         id: TOGGLE_LAMP_1
       sequence:
-      - alias: Turn light.living_room_3_head_lamp_1 state=toggle
+      - alias: Turn light.living_room_floor_light_2 state=toggle
         if:
           condition: state
           entity_id: input_boolean.always_on_constant
@@ -1025,32 +1145,32 @@ automation:
           if:
           - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
             condition: state
-            entity_id: light.living_room_3_head_lamp_1
+            entity_id: light.living_room_floor_light_2
             state: 'on'
             match: any
           then:
-            alias: Turn light.living_room_3_head_lamp_1 state=off
+            alias: Turn light.living_room_floor_light_2 state=off
             if:
               condition: state
               entity_id: input_boolean.always_on_constant
               state: 'on'
             then:
               service: light.turn_off
-              entity_id: light.living_room_3_head_lamp_1
+              entity_id: light.living_room_floor_light_2
           else:
-            alias: Turn light.living_room_3_head_lamp_1 state=on
+            alias: Turn light.living_room_floor_light_2 state=on
             if:
               condition: state
               entity_id: input_boolean.always_on_constant
               state: 'on'
             then:
               service: light.turn_on
-              entity_id: light.living_room_3_head_lamp_1
+              entity_id: light.living_room_floor_light_2
     - conditions:
       - condition: trigger
         id: INCREMENT_LAMP_1
       sequence:
-      - alias: Turn light.living_room_3_head_lamp_1 state=increment
+      - alias: Turn light.living_room_floor_light_2 state=increment
         if:
           condition: state
           entity_id: input_boolean.always_on_constant
@@ -1058,14 +1178,14 @@ automation:
         then:
           service: light.turn_on
           target:
-            entity_id: light.living_room_3_head_lamp_1
+            entity_id: light.living_room_floor_light_2
           data:
             brightness_step_pct: 25
     - conditions:
       - condition: trigger
         id: DECREMENT_LAMP_1
       sequence:
-      - alias: Turn light.living_room_3_head_lamp_1 state=decrement
+      - alias: Turn light.living_room_floor_light_2 state=decrement
         if:
           condition: state
           entity_id: input_boolean.always_on_constant
@@ -1073,7 +1193,7 @@ automation:
         then:
           service: light.turn_on
           target:
-            entity_id: light.living_room_3_head_lamp_1
+            entity_id: light.living_room_floor_light_2
           data:
             brightness_step_pct: -25
     - conditions:
@@ -1147,9 +1267,43 @@ automation:
             brightness_step_pct: -25
     - conditions:
       - condition: trigger
+        id: TOGGLE_SCREEN_LED
+      sequence:
+      - alias: Turn switch.tais_desk_screen_led state=toggle
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+          if:
+          - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
+            condition: state
+            entity_id: switch.tais_desk_screen_led
+            state: 'on'
+            match: any
+          then:
+            alias: Turn switch.tais_desk_screen_led state=off
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              service: homeassistant.turn_off
+              entity_id: switch.tais_desk_screen_led
+          else:
+            alias: Turn switch.tais_desk_screen_led state=on
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              service: homeassistant.turn_on
+              entity_id: switch.tais_desk_screen_led
+    - conditions:
+      - condition: trigger
         id: TOGGLE_LEDS
       sequence:
-      - alias: Turn switch.living_room_light_3 state=toggle
+      - alias: Turn switch.living_room_floor_light_3 state=toggle
         if:
           condition: state
           entity_id: input_boolean.always_on_constant
@@ -1159,11 +1313,11 @@ automation:
           - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
             condition: state
             entity_id:
-            - switch.living_room_light_3
+            - switch.living_room_floor_light_3
             state: 'on'
             match: any
           then:
-            alias: Turn switch.living_room_light_3 state=off
+            alias: Turn switch.living_room_floor_light_3 state=off
             if:
               condition: state
               entity_id: input_boolean.always_on_constant
@@ -1171,9 +1325,9 @@ automation:
             then:
               service: homeassistant.turn_off
               entity_id:
-              - switch.living_room_light_3
+              - switch.living_room_floor_light_3
           else:
-            alias: Turn switch.living_room_light_3 state=on
+            alias: Turn switch.living_room_floor_light_3 state=on
             if:
               condition: state
               entity_id: input_boolean.always_on_constant
@@ -1181,12 +1335,12 @@ automation:
             then:
               service: homeassistant.turn_on
               entity_id:
-              - switch.living_room_light_3
+              - switch.living_room_floor_light_3
     - conditions:
       - condition: trigger
         id: INCREMENT_LEDS
       sequence:
-      - alias: Turn switch.living_room_light_3 state=increment
+      - alias: Turn switch.living_room_floor_light_3 state=increment
         if:
           condition: state
           entity_id: input_boolean.always_on_constant
@@ -1197,7 +1351,7 @@ automation:
       - condition: trigger
         id: DECREMENT_LEDS
       sequence:
-      - alias: Turn switch.living_room_light_3 state=decrement
+      - alias: Turn switch.living_room_floor_light_3 state=decrement
         if:
           condition: state
           entity_id: input_boolean.always_on_constant
@@ -1745,6 +1899,1285 @@ automation:
           data:
             temperature: '{{ (state_attr(''climate.living_room'', ''temperature'')) + -1}}'
   id: automation.zlb_lr_single_button_button_control_living_room
+- alias: ZLB-LR Eight Key Knob Control-Living Room
+  trigger:
+  - platform: state
+    entity_id:
+    - sensor.df8c562a81a6_action
+    to: button_1_single
+    id: TOGGLE_AL_SLEEP_MODE
+  - platform: state
+    entity_id:
+    - sensor.df8c562a81a6_action
+    to:
+    - button_1_double
+    - button_1_hold
+    - knob_clockwise_after_toggling_button_1
+    - knob_clockwise_after_toggling_button_1_and_knob
+    - knob_anticlockwise_after_toggling_button_1
+    - knob_anticlockwise_after_toggling_button_1_and_knob
+    id: CYCLE_SCENES
+  - platform: state
+    entity_id:
+    - sensor.df8c562a81a6_action
+    to: button_2_single
+    id: TOGGLE_CEILING_LIGHTS
+  - platform: state
+    entity_id:
+    - sensor.df8c562a81a6_action
+    to:
+    - knob_clockwise_after_toggling_button_2
+    - knob_clockwise_after_toggling_button_2_and_knob
+    id: INCREMENT_CEILING_LIGHTS
+  - platform: state
+    entity_id:
+    - sensor.df8c562a81a6_action
+    to:
+    - knob_anticlockwise_after_toggling_button_2
+    - knob_anticlockwise_after_toggling_button_2_and_knob
+    id: DECREMENT_CEILING_LIGHTS
+  - platform: state
+    entity_id:
+    - sensor.df8c562a81a6_action
+    to: button_3_single
+    id: TOGGLE_HEATING
+  - platform: state
+    entity_id:
+    - sensor.df8c562a81a6_action
+    to:
+    - knob_clockwise_after_toggling_button_3
+    - knob_clockwise_after_toggling_button_3_and_knob
+    id: INCREMENT_HEATING
+  - platform: state
+    entity_id:
+    - sensor.df8c562a81a6_action
+    to:
+    - knob_anticlockwise_after_toggling_button_3
+    - knob_anticlockwise_after_toggling_button_3_and_knob
+    id: DECREMENT_HEATING
+  - platform: state
+    entity_id:
+    - sensor.df8c562a81a6_action
+    to: button_4_single
+    id: CYCLE_TV_BRIGHTNESS
+  - platform: state
+    entity_id:
+    - sensor.df8c562a81a6_action
+    to: button_4_hold
+    id: TOGGLE_TV_POWER
+  - platform: state
+    entity_id:
+    - sensor.df8c562a81a6_action
+    to:
+    - knob_clockwise_after_toggling_button_4
+    - knob_clockwise_after_toggling_button_4_and_knob
+    id: INCREMENT_TV_VOLUME
+  - platform: state
+    entity_id:
+    - sensor.df8c562a81a6_action
+    to:
+    - knob_anticlockwise_after_toggling_button_4
+    - knob_anticlockwise_after_toggling_button_4_and_knob
+    id: DECREMENT_TV_VOLUME
+  - platform: state
+    entity_id:
+    - sensor.df8c562a81a6_action
+    to: button_5_single
+    id: TOGGLE_LEDS
+  - platform: state
+    entity_id:
+    - sensor.df8c562a81a6_action
+    to: button_5_double
+    id: TOGGLE_SCREEN_LED
+  - platform: state
+    entity_id:
+    - sensor.df8c562a81a6_action
+    to:
+    - knob_clockwise_after_toggling_button_5
+    - knob_clockwise_after_toggling_button_5_and_knob
+    id: INCREMENT_LEDS
+  - platform: state
+    entity_id:
+    - sensor.df8c562a81a6_action
+    to:
+    - knob_anticlockwise_after_toggling_button_5
+    - knob_anticlockwise_after_toggling_button_5_and_knob
+    id: DECREMENT_LEDS
+  - platform: state
+    entity_id:
+    - sensor.df8c562a81a6_action
+    to: button_6_single
+    id: TOGGLE_CURTAINS
+  - platform: state
+    entity_id:
+    - sensor.df8c562a81a6_action
+    to:
+    - knob_clockwise_after_toggling_button_6
+    - knob_clockwise_after_toggling_button_6_and_knob
+    id: INCREMENT_CURTAINS
+  - platform: state
+    entity_id:
+    - sensor.df8c562a81a6_action
+    to:
+    - knob_anticlockwise_after_toggling_button_6
+    - knob_anticlockwise_after_toggling_button_6_and_knob
+    id: DECREMENT_CURTAINS
+  - platform: state
+    entity_id:
+    - sensor.df8c562a81a6_action
+    to: button_7_single
+    id: TOGGLE_LAMP_0
+  - platform: state
+    entity_id:
+    - sensor.df8c562a81a6_action
+    to:
+    - knob_clockwise_after_toggling_button_7
+    - knob_clockwise_after_toggling_button_7_and_knob
+    id: INCREMENT_LAMP_0
+  - platform: state
+    entity_id:
+    - sensor.df8c562a81a6_action
+    to:
+    - knob_anticlockwise_after_toggling_button_7
+    - knob_anticlockwise_after_toggling_button_7_and_knob
+    id: DECREMENT_LAMP_0
+  - platform: state
+    entity_id:
+    - sensor.df8c562a81a6_action
+    to: button_8_single
+    id: TOGGLE_LAMP_1
+  - platform: state
+    entity_id:
+    - sensor.df8c562a81a6_action
+    to:
+    - knob_clockwise_after_toggling_button_8
+    - knob_clockwise_after_toggling_button_8_and_knob
+    id: INCREMENT_LAMP_1
+  - platform: state
+    entity_id:
+    - sensor.df8c562a81a6_action
+    to:
+    - knob_anticlockwise_after_toggling_button_8
+    - knob_anticlockwise_after_toggling_button_8_and_knob
+    id: DECREMENT_LAMP_1
+  mode: parallel
+  action:
+    choose:
+    - conditions:
+      - condition: trigger
+        id: CYCLE_SCENES
+      sequence:
+        choose:
+        - conditions:
+            condition: state
+            entity_id: input_select.living_room_scene
+            state: All Off
+          sequence:
+            service: script.call_room_scene
+            data:
+              room_scene_select: input_select.living_room_scene
+              scene: All White
+        - conditions:
+            condition: state
+            entity_id: input_select.living_room_scene
+            state: All White
+          sequence:
+            service: script.call_room_scene
+            data:
+              room_scene_select: input_select.living_room_scene
+              scene: Lamp LED White
+        - conditions:
+            condition: state
+            entity_id: input_select.living_room_scene
+            state: Lamp LED White
+          sequence:
+            service: script.call_room_scene
+            data:
+              room_scene_select: input_select.living_room_scene
+              scene: Hue
+        - conditions:
+            condition: state
+            entity_id: input_select.living_room_scene
+            state: Hue
+          sequence:
+            service: script.call_room_scene
+            data:
+              room_scene_select: input_select.living_room_scene
+              scene: LED White
+        - conditions:
+            condition: state
+            entity_id: input_select.living_room_scene
+            state: LED White
+          sequence:
+            service: script.call_room_scene
+            data:
+              room_scene_select: input_select.living_room_scene
+              scene: All Off
+        default:
+          service: script.call_room_scene
+          data:
+            room_scene_select: input_select.living_room_scene
+            scene: All White
+    - conditions:
+      - condition: trigger
+        id: DO_NOTHING
+      sequence:
+      - service: script.do_nothing
+    - conditions:
+      - condition: trigger
+        id: TOGGLE_AL_SLEEP_MODE
+      sequence:
+      - alias: Turn switch.adaptive_lighting_sleep_mode_living_room state=toggle
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+          if:
+          - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
+            condition: state
+            entity_id: switch.adaptive_lighting_sleep_mode_living_room
+            state: 'on'
+            match: any
+          then:
+            alias: Turn switch.adaptive_lighting_sleep_mode_living_room state=off
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              service: homeassistant.turn_off
+              entity_id: switch.adaptive_lighting_sleep_mode_living_room
+          else:
+            alias: Turn switch.adaptive_lighting_sleep_mode_living_room state=on
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              service: homeassistant.turn_on
+              entity_id: switch.adaptive_lighting_sleep_mode_living_room
+    - conditions:
+      - condition: trigger
+        id: TOGGLE_CURTAINS
+      sequence:
+      - alias: Turn cover.living_room_curtain_1 cover.living_room_curtain_2 state=toggle
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+          alias: ''
+          if:
+            condition: state
+            entity_id: input_boolean.always_on_constant
+            state: 'on'
+          then:
+          - service: cover.stop_cover
+            entity_id:
+            - cover.living_room_curtain_1
+            - cover.living_room_curtain_2
+          - service: cover.toggle
+            entity_id:
+            - cover.living_room_curtain_1
+            - cover.living_room_curtain_2
+    - conditions:
+      - condition: trigger
+        id: TOGGLE_CURTAIN_0
+      sequence:
+      - alias: Turn cover.living_room_curtain_1 state=toggle
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+          if:
+          - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
+            condition: state
+            entity_id: cover.living_room_curtain_1
+            state: 'on'
+            match: any
+          then:
+            alias: Turn cover.living_room_curtain_1 state=off
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              service: homeassistant.turn_off
+              entity_id: cover.living_room_curtain_1
+          else:
+            alias: Turn cover.living_room_curtain_1 state=on
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              service: homeassistant.turn_on
+              entity_id: cover.living_room_curtain_1
+    - conditions:
+      - condition: trigger
+        id: TOGGLE_CURTAIN_1
+      sequence:
+      - alias: Turn cover.living_room_curtain_2 state=toggle
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+          if:
+          - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
+            condition: state
+            entity_id: cover.living_room_curtain_2
+            state: 'on'
+            match: any
+          then:
+            alias: Turn cover.living_room_curtain_2 state=off
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              service: homeassistant.turn_off
+              entity_id: cover.living_room_curtain_2
+          else:
+            alias: Turn cover.living_room_curtain_2 state=on
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              service: homeassistant.turn_on
+              entity_id: cover.living_room_curtain_2
+    - conditions:
+      - condition: trigger
+        id: INCREMENT_CURTAINS
+      sequence:
+      - alias: Turn cover.living_room_curtain_1 cover.living_room_curtain_2 state=increment
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+          alias: ''
+          if:
+            condition: state
+            entity_id: input_boolean.always_on_constant
+            state: 'on'
+          then:
+          - service: cover.stop_cover
+            entity_id:
+            - cover.living_room_curtain_1
+            - cover.living_room_curtain_2
+          - service: cover.set_cover_position
+            target:
+              entity_id:
+              - cover.living_room_curtain_1
+              - cover.living_room_curtain_2
+            data:
+              position: '{{ [[ (state_attr(''cover.living_room_curtain_1'', ''current_position'')) + 34 ,0]|max,100]|min}}'
+    - conditions:
+      - condition: trigger
+        id: DECREMENT_CURTAINS
+      sequence:
+      - alias: Turn cover.living_room_curtain_1 cover.living_room_curtain_2 state=decrement
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+          alias: ''
+          if:
+            condition: state
+            entity_id: input_boolean.always_on_constant
+            state: 'on'
+          then:
+          - service: cover.stop_cover
+            entity_id:
+            - cover.living_room_curtain_1
+            - cover.living_room_curtain_2
+          - service: cover.set_cover_position
+            target:
+              entity_id:
+              - cover.living_room_curtain_1
+              - cover.living_room_curtain_2
+            data:
+              position: '{{ [[ (state_attr(''cover.living_room_curtain_1'', ''current_position'')) + -34 ,0]|max,100]|min}}'
+    - conditions:
+      - condition: trigger
+        id: INCREMENT_CURTAIN_0
+      sequence:
+      - alias: Turn cover.living_room_curtain_1 state=increment
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+          service: script.do_nothing
+    - conditions:
+      - condition: trigger
+        id: DECREMENT_CURTAIN_0
+      sequence:
+      - alias: Turn cover.living_room_curtain_1 state=decrement
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+          service: script.do_nothing
+    - conditions:
+      - condition: trigger
+        id: INCREMENT_CURTAIN_1
+      sequence:
+      - alias: Turn cover.living_room_curtain_2 state=increment
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+          service: script.do_nothing
+    - conditions:
+      - condition: trigger
+        id: DECREMENT_CURTAIN_1
+      sequence:
+      - alias: Turn cover.living_room_curtain_2 state=decrement
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+          service: script.do_nothing
+    - conditions:
+      - condition: trigger
+        id: TOGGLE_LAMP_0
+      sequence:
+      - alias: Turn light.living_room_floor_light_1 state=toggle
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+          if:
+          - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
+            condition: state
+            entity_id: light.living_room_floor_light_1
+            state: 'on'
+            match: any
+          then:
+            alias: Turn light.living_room_floor_light_1 state=off
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              service: light.turn_off
+              entity_id: light.living_room_floor_light_1
+          else:
+            alias: Turn light.living_room_floor_light_1 state=on
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              service: light.turn_on
+              entity_id: light.living_room_floor_light_1
+    - conditions:
+      - condition: trigger
+        id: INCREMENT_LAMP_0
+      sequence:
+      - alias: Turn light.living_room_floor_light_1 state=increment
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+          service: light.turn_on
+          target:
+            entity_id: light.living_room_floor_light_1
+          data:
+            brightness_step_pct: 25
+    - conditions:
+      - condition: trigger
+        id: DECREMENT_LAMP_0
+      sequence:
+      - alias: Turn light.living_room_floor_light_1 state=decrement
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+          service: light.turn_on
+          target:
+            entity_id: light.living_room_floor_light_1
+          data:
+            brightness_step_pct: -25
+    - conditions:
+      - condition: trigger
+        id: TOGGLE_LAMP_1
+      sequence:
+      - alias: Turn light.living_room_floor_light_2 state=toggle
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+          if:
+          - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
+            condition: state
+            entity_id: light.living_room_floor_light_2
+            state: 'on'
+            match: any
+          then:
+            alias: Turn light.living_room_floor_light_2 state=off
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              service: light.turn_off
+              entity_id: light.living_room_floor_light_2
+          else:
+            alias: Turn light.living_room_floor_light_2 state=on
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              service: light.turn_on
+              entity_id: light.living_room_floor_light_2
+    - conditions:
+      - condition: trigger
+        id: INCREMENT_LAMP_1
+      sequence:
+      - alias: Turn light.living_room_floor_light_2 state=increment
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+          service: light.turn_on
+          target:
+            entity_id: light.living_room_floor_light_2
+          data:
+            brightness_step_pct: 25
+    - conditions:
+      - condition: trigger
+        id: DECREMENT_LAMP_1
+      sequence:
+      - alias: Turn light.living_room_floor_light_2 state=decrement
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+          service: light.turn_on
+          target:
+            entity_id: light.living_room_floor_light_2
+          data:
+            brightness_step_pct: -25
+    - conditions:
+      - condition: trigger
+        id: TOGGLE_CEILING_LIGHTS
+      sequence:
+      - alias: Turn light.living_room_ceiling_light state=toggle
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+          if:
+          - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
+            condition: state
+            entity_id:
+            - light.living_room_ceiling_light
+            state: 'on'
+            match: any
+          then:
+            alias: Turn light.living_room_ceiling_light state=off
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              service: light.turn_off
+              entity_id:
+              - light.living_room_ceiling_light
+          else:
+            alias: Turn light.living_room_ceiling_light state=on
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              service: light.turn_on
+              entity_id:
+              - light.living_room_ceiling_light
+    - conditions:
+      - condition: trigger
+        id: INCREMENT_CEILING_LIGHTS
+      sequence:
+      - alias: Turn light.living_room_ceiling_light state=increment
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+          service: light.turn_on
+          target:
+            entity_id:
+            - light.living_room_ceiling_light
+          data:
+            brightness_step_pct: 25
+    - conditions:
+      - condition: trigger
+        id: DECREMENT_CEILING_LIGHTS
+      sequence:
+      - alias: Turn light.living_room_ceiling_light state=decrement
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+          service: light.turn_on
+          target:
+            entity_id:
+            - light.living_room_ceiling_light
+          data:
+            brightness_step_pct: -25
+    - conditions:
+      - condition: trigger
+        id: TOGGLE_SCREEN_LED
+      sequence:
+      - alias: Turn switch.tais_desk_screen_led state=toggle
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+          if:
+          - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
+            condition: state
+            entity_id: switch.tais_desk_screen_led
+            state: 'on'
+            match: any
+          then:
+            alias: Turn switch.tais_desk_screen_led state=off
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              service: homeassistant.turn_off
+              entity_id: switch.tais_desk_screen_led
+          else:
+            alias: Turn switch.tais_desk_screen_led state=on
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              service: homeassistant.turn_on
+              entity_id: switch.tais_desk_screen_led
+    - conditions:
+      - condition: trigger
+        id: TOGGLE_LEDS
+      sequence:
+      - alias: Turn switch.living_room_floor_light_3 state=toggle
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+          if:
+          - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
+            condition: state
+            entity_id:
+            - switch.living_room_floor_light_3
+            state: 'on'
+            match: any
+          then:
+            alias: Turn switch.living_room_floor_light_3 state=off
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              service: homeassistant.turn_off
+              entity_id:
+              - switch.living_room_floor_light_3
+          else:
+            alias: Turn switch.living_room_floor_light_3 state=on
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              service: homeassistant.turn_on
+              entity_id:
+              - switch.living_room_floor_light_3
+    - conditions:
+      - condition: trigger
+        id: INCREMENT_LEDS
+      sequence:
+      - alias: Turn switch.living_room_floor_light_3 state=increment
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+          service: script.do_nothing
+    - conditions:
+      - condition: trigger
+        id: DECREMENT_LEDS
+      sequence:
+      - alias: Turn switch.living_room_floor_light_3 state=decrement
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+          service: script.do_nothing
+    - conditions:
+      - condition: trigger
+        id: TOGGLE_TV_POWER
+      sequence:
+      - alias: Turn media_player.living_room_tv state=power_toggle
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+          if:
+            condition: state
+            entity_id:
+            - media_player.living_room_tv
+            state: 'off'
+          then:
+            alias: Turn media_player.living_room_tv state=on
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              service: homeassistant.turn_on
+              entity_id:
+              - media_player.living_room_tv
+          else:
+            alias: Turn media_player.living_room_tv state=off
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              service: homeassistant.turn_off
+              entity_id:
+              - media_player.living_room_tv
+    - conditions:
+      - condition: trigger
+        id: CYCLE_TV_BRIGHTNESS
+      sequence:
+      - alias: Turn media_player.living_room_tv
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+          choose:
+          - conditions:
+              condition: state
+              entity_id:
+              - input_select.living_room_tv_picture_mode
+              state: Movie
+            sequence:
+              alias: Turn media_player.living_room_tv
+              if:
+                condition: state
+                entity_id: input_boolean.always_on_constant
+                state: 'on'
+              then:
+                if:
+                - alias: Set TV brightness when it is on
+                  condition: state
+                  entity_id:
+                  - media_player.living_room_tv
+                  state: 'on'
+                then:
+                  service: input_select.select_option
+                  data:
+                    entity_id:
+                    - input_select.living_room_tv_picture_mode
+                    option: Dynamic
+          - conditions:
+              condition: state
+              entity_id:
+              - input_select.living_room_tv_picture_mode
+              state: Natural
+            sequence:
+              alias: Turn media_player.living_room_tv
+              if:
+                condition: state
+                entity_id: input_boolean.always_on_constant
+                state: 'on'
+              then:
+                if:
+                - alias: Set TV brightness when it is on
+                  condition: state
+                  entity_id:
+                  - media_player.living_room_tv
+                  state: 'on'
+                then:
+                  service: input_select.select_option
+                  data:
+                    entity_id:
+                    - input_select.living_room_tv_picture_mode
+                    option: Movie
+          - conditions:
+              condition: state
+              entity_id:
+              - input_select.living_room_tv_picture_mode
+              state: Standard
+            sequence:
+              alias: Turn media_player.living_room_tv
+              if:
+                condition: state
+                entity_id: input_boolean.always_on_constant
+                state: 'on'
+              then:
+                if:
+                - alias: Set TV brightness when it is on
+                  condition: state
+                  entity_id:
+                  - media_player.living_room_tv
+                  state: 'on'
+                then:
+                  service: input_select.select_option
+                  data:
+                    entity_id:
+                    - input_select.living_room_tv_picture_mode
+                    option: Natural
+          - conditions:
+              condition: state
+              entity_id:
+              - input_select.living_room_tv_picture_mode
+              state: Dynamic
+            sequence:
+              alias: Turn media_player.living_room_tv
+              if:
+                condition: state
+                entity_id: input_boolean.always_on_constant
+                state: 'on'
+              then:
+                if:
+                - alias: Set TV brightness when it is on
+                  condition: state
+                  entity_id:
+                  - media_player.living_room_tv
+                  state: 'on'
+                then:
+                  service: input_select.select_option
+                  data:
+                    entity_id:
+                    - input_select.living_room_tv_picture_mode
+                    option: Standard
+    - conditions:
+      - condition: trigger
+        id: INCREMENT_TV_BRIGHTNESS
+      sequence:
+      - alias: Turn media_player.living_room_tv
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+          choose:
+          - conditions:
+              condition: state
+              entity_id:
+              - input_select.living_room_tv_picture_mode
+              state: Movie
+            sequence:
+              alias: Turn media_player.living_room_tv
+              if:
+                condition: state
+                entity_id: input_boolean.always_on_constant
+                state: 'on'
+              then:
+                if:
+                - alias: Set TV brightness when it is on
+                  condition: state
+                  entity_id:
+                  - media_player.living_room_tv
+                  state: 'on'
+                then:
+                  service: input_select.select_option
+                  data:
+                    entity_id:
+                    - input_select.living_room_tv_picture_mode
+                    option: Natural
+          - conditions:
+              condition: state
+              entity_id:
+              - input_select.living_room_tv_picture_mode
+              state: Natural
+            sequence:
+              alias: Turn media_player.living_room_tv
+              if:
+                condition: state
+                entity_id: input_boolean.always_on_constant
+                state: 'on'
+              then:
+                if:
+                - alias: Set TV brightness when it is on
+                  condition: state
+                  entity_id:
+                  - media_player.living_room_tv
+                  state: 'on'
+                then:
+                  service: input_select.select_option
+                  data:
+                    entity_id:
+                    - input_select.living_room_tv_picture_mode
+                    option: Standard
+          - conditions:
+              condition: state
+              entity_id:
+              - input_select.living_room_tv_picture_mode
+              state: Standard
+            sequence:
+              alias: Turn media_player.living_room_tv
+              if:
+                condition: state
+                entity_id: input_boolean.always_on_constant
+                state: 'on'
+              then:
+                if:
+                - alias: Set TV brightness when it is on
+                  condition: state
+                  entity_id:
+                  - media_player.living_room_tv
+                  state: 'on'
+                then:
+                  service: input_select.select_option
+                  data:
+                    entity_id:
+                    - input_select.living_room_tv_picture_mode
+                    option: Dynamic
+          - conditions:
+              condition: state
+              entity_id:
+              - input_select.living_room_tv_picture_mode
+              state: Dynamic
+            sequence:
+              alias: Turn media_player.living_room_tv
+              if:
+                condition: state
+                entity_id: input_boolean.always_on_constant
+                state: 'on'
+              then:
+                if:
+                - alias: Set TV brightness when it is on
+                  condition: state
+                  entity_id:
+                  - media_player.living_room_tv
+                  state: 'on'
+                then:
+                  service: input_select.select_option
+                  data:
+                    entity_id:
+                    - input_select.living_room_tv_picture_mode
+                    option: Dynamic
+    - conditions:
+      - condition: trigger
+        id: DECREMENT_TV_BRIGHTNESS
+      sequence:
+      - alias: Turn media_player.living_room_tv
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+          choose:
+          - conditions:
+              condition: state
+              entity_id:
+              - input_select.living_room_tv_picture_mode
+              state: Movie
+            sequence:
+              alias: Turn media_player.living_room_tv
+              if:
+                condition: state
+                entity_id: input_boolean.always_on_constant
+                state: 'on'
+              then:
+                if:
+                - alias: Set TV brightness when it is on
+                  condition: state
+                  entity_id:
+                  - media_player.living_room_tv
+                  state: 'on'
+                then:
+                  service: input_select.select_option
+                  data:
+                    entity_id:
+                    - input_select.living_room_tv_picture_mode
+                    option: Movie
+          - conditions:
+              condition: state
+              entity_id:
+              - input_select.living_room_tv_picture_mode
+              state: Natural
+            sequence:
+              alias: Turn media_player.living_room_tv
+              if:
+                condition: state
+                entity_id: input_boolean.always_on_constant
+                state: 'on'
+              then:
+                if:
+                - alias: Set TV brightness when it is on
+                  condition: state
+                  entity_id:
+                  - media_player.living_room_tv
+                  state: 'on'
+                then:
+                  service: input_select.select_option
+                  data:
+                    entity_id:
+                    - input_select.living_room_tv_picture_mode
+                    option: Movie
+          - conditions:
+              condition: state
+              entity_id:
+              - input_select.living_room_tv_picture_mode
+              state: Standard
+            sequence:
+              alias: Turn media_player.living_room_tv
+              if:
+                condition: state
+                entity_id: input_boolean.always_on_constant
+                state: 'on'
+              then:
+                if:
+                - alias: Set TV brightness when it is on
+                  condition: state
+                  entity_id:
+                  - media_player.living_room_tv
+                  state: 'on'
+                then:
+                  service: input_select.select_option
+                  data:
+                    entity_id:
+                    - input_select.living_room_tv_picture_mode
+                    option: Natural
+          - conditions:
+              condition: state
+              entity_id:
+              - input_select.living_room_tv_picture_mode
+              state: Dynamic
+            sequence:
+              alias: Turn media_player.living_room_tv
+              if:
+                condition: state
+                entity_id: input_boolean.always_on_constant
+                state: 'on'
+              then:
+                if:
+                - alias: Set TV brightness when it is on
+                  condition: state
+                  entity_id:
+                  - media_player.living_room_tv
+                  state: 'on'
+                then:
+                  service: input_select.select_option
+                  data:
+                    entity_id:
+                    - input_select.living_room_tv_picture_mode
+                    option: Standard
+    - conditions:
+      - condition: trigger
+        id: INCREMENT_TV_VOLUME
+      sequence:
+      - alias: Turn tv_volumne state=increment
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+          if:
+            condition: state
+            entity_id:
+            - media_player.living_room_sonos
+            state: playing
+          then:
+            alias: Turn media_player.living_room_sonos state=single_device_volume_inc
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              service: media_player.volume_set
+              entity_id:
+              - media_player.living_room_sonos
+              data_template:
+                volume_level: '{{ (state_attr(''media_player.living_room_sonos'', ''volume_level'')) + 0.03 }}'
+          else:
+            alias: Turn media_player.living_room_tv state=single_device_volume_inc
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              service: media_player.volume_set
+              entity_id:
+              - media_player.living_room_tv
+              data_template:
+                volume_level: '{{ (state_attr(''media_player.living_room_tv'', ''volume_level'')) + 0.03 }}'
+    - conditions:
+      - condition: trigger
+        id: DECREMENT_TV_VOLUME
+      sequence:
+      - alias: Turn tv_volumne state=decrement
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+          if:
+            condition: state
+            entity_id:
+            - media_player.living_room_sonos
+            state: playing
+          then:
+            alias: Turn media_player.living_room_sonos state=single_device_volume_dec
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              service: media_player.volume_set
+              entity_id:
+              - media_player.living_room_sonos
+              data_template:
+                volume_level: '{{ (state_attr(''media_player.living_room_sonos'', ''volume_level'')) + -0.03 }}'
+          else:
+            alias: Turn media_player.living_room_tv state=single_device_volume_dec
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              service: media_player.volume_set
+              entity_id:
+              - media_player.living_room_tv
+              data_template:
+                volume_level: '{{ (state_attr(''media_player.living_room_tv'', ''volume_level'')) + -0.03 }}'
+    - conditions:
+      - condition: trigger
+        id: TOGGLE_HEATING
+      sequence:
+      - alias: Turn heating state=toggle
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+          if:
+            condition: state
+            entity_id: climate.living_room
+            state: 'off'
+          then:
+            alias: Turn heating state=on
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              alias: ''
+              if:
+                condition: state
+                entity_id: input_boolean.always_on_constant
+                state: 'on'
+              then:
+              - alias: Turn climate.living_room state=on
+                if:
+                  condition: state
+                  entity_id: input_boolean.always_on_constant
+                  state: 'on'
+                then:
+                  service: climate.set_hvac_mode
+                  data:
+                    hvac_mode: heat
+                  entity_id: climate.living_room
+              - alias: Turn switch.schedule_living_room_temperature state=on
+                if:
+                  condition: state
+                  entity_id: input_boolean.always_on_constant
+                  state: 'on'
+                then:
+                  service: homeassistant.turn_on
+                  entity_id: switch.schedule_living_room_temperature
+          else:
+            alias: Turn heating state=off
+            if:
+              condition: state
+              entity_id: input_boolean.always_on_constant
+              state: 'on'
+            then:
+              alias: ''
+              if:
+                condition: state
+                entity_id: input_boolean.always_on_constant
+                state: 'on'
+              then:
+              - alias: Turn climate.living_room state=off
+                if:
+                  condition: state
+                  entity_id: input_boolean.always_on_constant
+                  state: 'on'
+                then:
+                  service: climate.set_hvac_mode
+                  data:
+                    hvac_mode: 'off'
+                  entity_id: climate.living_room
+              - alias: Turn switch.schedule_living_room_temperature state=off
+                if:
+                  condition: state
+                  entity_id: input_boolean.always_on_constant
+                  state: 'on'
+                then:
+                  service: homeassistant.turn_off
+                  entity_id: switch.schedule_living_room_temperature
+    - conditions:
+      - condition: trigger
+        id: INCREMENT_HEATING
+      sequence:
+      - alias: Turn heating state=increment
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+          service: climate.set_temperature
+          target:
+            entity_id: climate.living_room
+          data:
+            temperature: '{{ (state_attr(''climate.living_room'', ''temperature'')) + 1}}'
+    - conditions:
+      - condition: trigger
+        id: DECREMENT_HEATING
+      sequence:
+      - alias: Turn heating state=decrement
+        if:
+          condition: state
+          entity_id: input_boolean.always_on_constant
+          state: 'on'
+        then:
+          service: climate.set_temperature
+          target:
+            entity_id: climate.living_room
+          data:
+            temperature: '{{ (state_attr(''climate.living_room'', ''temperature'')) + -1}}'
+  id: automation.zlb_lr_eight_key_knob_control_living_room
 - alias: ZL-LR Applies Different Scenes Based on Scene Selections (State Execution)-Living Room
   trigger:
   - platform: state
@@ -1764,7 +3197,7 @@ automation:
           state: 'on'
         then:
         - parallel:
-          - alias: Turn light.living_room_floor_light_1 light.living_room_3_head_lamp_1 light.living_room_3_head_lamp_2 light.living_room_3_head_lamp_3 state=on
+          - alias: Turn light.living_room_floor_light_1 light.living_room_floor_light_2 state=on
             if:
               condition: state
               entity_id: input_boolean.always_on_constant
@@ -1773,9 +3206,7 @@ automation:
               service: light.turn_on
               entity_id:
               - light.living_room_floor_light_1
-              - light.living_room_3_head_lamp_1
-              - light.living_room_3_head_lamp_2
-              - light.living_room_3_head_lamp_3
+              - light.living_room_floor_light_2
           - alias: Turn light.living_room_ceiling_light state=on
             if:
               condition: state
@@ -1785,7 +3216,7 @@ automation:
               service: light.turn_on
               entity_id:
               - light.living_room_ceiling_light
-          - alias: Turn switch.living_room_light_3 state=on
+          - alias: Turn switch.living_room_floor_light_3 state=on
             if:
               condition: state
               entity_id: input_boolean.always_on_constant
@@ -1793,7 +3224,7 @@ automation:
             then:
               service: homeassistant.turn_on
               entity_id:
-              - switch.living_room_light_3
+              - switch.living_room_floor_light_3
           - alias: Turn media_player.living_room_tv
             if:
               condition: state
@@ -1824,7 +3255,7 @@ automation:
           state: 'on'
         then:
         - parallel:
-          - alias: Turn light.living_room_floor_light_1 light.living_room_3_head_lamp_1 light.living_room_3_head_lamp_2 light.living_room_3_head_lamp_3 state=off
+          - alias: Turn light.living_room_floor_light_1 light.living_room_floor_light_2 state=off
             if:
               condition: state
               entity_id: input_boolean.always_on_constant
@@ -1833,10 +3264,8 @@ automation:
               service: light.turn_off
               entity_id:
               - light.living_room_floor_light_1
-              - light.living_room_3_head_lamp_1
-              - light.living_room_3_head_lamp_2
-              - light.living_room_3_head_lamp_3
-          - alias: Turn switch.living_room_light_3 state=off
+              - light.living_room_floor_light_2
+          - alias: Turn switch.living_room_floor_light_3 state=off
             if:
               condition: state
               entity_id: input_boolean.always_on_constant
@@ -1844,7 +3273,7 @@ automation:
             then:
               service: homeassistant.turn_off
               entity_id:
-              - switch.living_room_light_3
+              - switch.living_room_floor_light_3
           - alias: Turn light.living_room_ceiling_light state=on
             if:
               condition: state
@@ -1893,7 +3322,7 @@ automation:
               service: light.turn_off
               entity_id:
               - light.living_room_ceiling_light
-          - alias: Turn light.living_room_floor_light_1 light.living_room_3_head_lamp_1 light.living_room_3_head_lamp_2 light.living_room_3_head_lamp_3 state=on
+          - alias: Turn light.living_room_floor_light_1 light.living_room_floor_light_2 state=on
             if:
               condition: state
               entity_id: input_boolean.always_on_constant
@@ -1902,10 +3331,8 @@ automation:
               service: light.turn_on
               entity_id:
               - light.living_room_floor_light_1
-              - light.living_room_3_head_lamp_1
-              - light.living_room_3_head_lamp_2
-              - light.living_room_3_head_lamp_3
-          - alias: Turn switch.living_room_light_3 state=on
+              - light.living_room_floor_light_2
+          - alias: Turn switch.living_room_floor_light_3 state=on
             if:
               condition: state
               entity_id: input_boolean.always_on_constant
@@ -1913,25 +3340,7 @@ automation:
             then:
               service: homeassistant.turn_on
               entity_id:
-              - switch.living_room_light_3
-          - alias: Turn media_player.living_room_tv
-            if:
-              condition: state
-              entity_id: input_boolean.always_on_constant
-              state: 'on'
-            then:
-              if:
-              - alias: Set TV brightness when it is on
-                condition: state
-                entity_id:
-                - media_player.living_room_tv
-                state: 'on'
-              then:
-                service: input_select.select_option
-                data:
-                  entity_id:
-                  - input_select.living_room_tv_picture_mode
-                  option: Standard
+              - switch.living_room_floor_light_3
     - conditions:
       - condition: state
         entity_id: input_select.living_room_scene
@@ -1944,28 +3353,7 @@ automation:
           state: 'on'
         then:
         - parallel:
-          - alias: Turn light.living_room_ceiling_light state=off
-            if:
-              condition: state
-              entity_id: input_boolean.always_on_constant
-              state: 'on'
-            then:
-              service: light.turn_off
-              entity_id:
-              - light.living_room_ceiling_light
-          - alias: Turn light.living_room_floor_light_1 light.living_room_3_head_lamp_1 light.living_room_3_head_lamp_2 light.living_room_3_head_lamp_3 state=off
-            if:
-              condition: state
-              entity_id: input_boolean.always_on_constant
-              state: 'on'
-            then:
-              service: light.turn_off
-              entity_id:
-              - light.living_room_floor_light_1
-              - light.living_room_3_head_lamp_1
-              - light.living_room_3_head_lamp_2
-              - light.living_room_3_head_lamp_3
-          - alias: Turn switch.living_room_light_3 state=on
+          - alias: Turn switch.living_room_floor_light_3 state=on
             if:
               condition: state
               entity_id: input_boolean.always_on_constant
@@ -1973,25 +3361,7 @@ automation:
             then:
               service: homeassistant.turn_on
               entity_id:
-              - switch.living_room_light_3
-          - alias: Turn media_player.living_room_tv
-            if:
-              condition: state
-              entity_id: input_boolean.always_on_constant
-              state: 'on'
-            then:
-              if:
-              - alias: Set TV brightness when it is on
-                condition: state
-                entity_id:
-                - media_player.living_room_tv
-                state: 'on'
-              then:
-                service: input_select.select_option
-                data:
-                  entity_id:
-                  - input_select.living_room_tv_picture_mode
-                  option: Natural
+              - switch.living_room_floor_light_3
     - conditions:
       - condition: state
         entity_id: input_select.living_room_scene
@@ -2011,7 +3381,7 @@ automation:
             - light.living_room_3_head_lamp_2
             - light.living_room_3_head_lamp_3
             - light.living_room_ceiling_light
-            - switch.living_room_light_3
+            - switch.living_room_floor_light_3
             state: 'off'
             rgb: non_rgb_only
         - service: pyscript.turn_rgb_light
@@ -2022,7 +3392,7 @@ automation:
             - light.living_room_3_head_lamp_2
             - light.living_room_3_head_lamp_3
             - light.living_room_ceiling_light
-            - switch.living_room_light_3
+            - switch.living_room_floor_light_3
         - alias: Turn media_player.living_room_tv
           if:
             condition: state
@@ -2140,7 +3510,7 @@ automation:
               service: light.turn_off
               entity_id:
               - light.living_room_ceiling_light
-          - alias: Turn light.living_room_floor_light_1 light.living_room_3_head_lamp_1 light.living_room_3_head_lamp_2 light.living_room_3_head_lamp_3 state=off
+          - alias: Turn light.living_room_floor_light_1 light.living_room_floor_light_2 state=off
             if:
               condition: state
               entity_id: input_boolean.always_on_constant
@@ -2149,10 +3519,8 @@ automation:
               service: light.turn_off
               entity_id:
               - light.living_room_floor_light_1
-              - light.living_room_3_head_lamp_1
-              - light.living_room_3_head_lamp_2
-              - light.living_room_3_head_lamp_3
-          - alias: Turn switch.living_room_light_3 state=off
+              - light.living_room_floor_light_2
+          - alias: Turn switch.living_room_floor_light_3 state=off
             if:
               condition: state
               entity_id: input_boolean.always_on_constant
@@ -2160,7 +3528,7 @@ automation:
             then:
               service: homeassistant.turn_off
               entity_id:
-              - switch.living_room_light_3
+              - switch.living_room_floor_light_3
           - alias: Turn media_player.living_room_tv
             if:
               condition: state
@@ -2221,7 +3589,7 @@ automation:
                 entity_id: input_boolean.lamp_control_in_hot_sunshine_living_room
                 state: 'on'
               then:
-                alias: Turn light.living_room_floor_light_1 light.living_room_3_head_lamp_1 light.living_room_3_head_lamp_2 light.living_room_3_head_lamp_3 state=on
+                alias: Turn light.living_room_floor_light_1 light.living_room_floor_light_2 state=on
                 if:
                   condition: state
                   entity_id: input_boolean.always_on_constant
@@ -2230,11 +3598,9 @@ automation:
                   service: light.turn_on
                   entity_id:
                   - light.living_room_floor_light_1
-                  - light.living_room_3_head_lamp_1
-                  - light.living_room_3_head_lamp_2
-                  - light.living_room_3_head_lamp_3
+                  - light.living_room_floor_light_2
               else:
-                alias: Turn light.living_room_floor_light_1 light.living_room_3_head_lamp_1 light.living_room_3_head_lamp_2 light.living_room_3_head_lamp_3 state=off
+                alias: Turn light.living_room_floor_light_1 light.living_room_floor_light_2 state=off
                 if:
                   condition: state
                   entity_id: input_boolean.always_on_constant
@@ -2243,15 +3609,13 @@ automation:
                   service: light.turn_off
                   entity_id:
                   - light.living_room_floor_light_1
-                  - light.living_room_3_head_lamp_1
-                  - light.living_room_3_head_lamp_2
-                  - light.living_room_3_head_lamp_3
+                  - light.living_room_floor_light_2
             - if:
                 condition: state
                 entity_id: input_boolean.led_control_in_hot_sunshine_living_room
                 state: 'on'
               then:
-                alias: Turn switch.living_room_light_3 state=on
+                alias: Turn switch.living_room_floor_light_3 state=on
                 if:
                   condition: state
                   entity_id: input_boolean.always_on_constant
@@ -2259,9 +3623,9 @@ automation:
                 then:
                   service: homeassistant.turn_on
                   entity_id:
-                  - switch.living_room_light_3
+                  - switch.living_room_floor_light_3
               else:
-                alias: Turn switch.living_room_light_3 state=off
+                alias: Turn switch.living_room_floor_light_3 state=off
                 if:
                   condition: state
                   entity_id: input_boolean.always_on_constant
@@ -2269,7 +3633,7 @@ automation:
                 then:
                   service: homeassistant.turn_off
                   entity_id:
-                  - switch.living_room_light_3
+                  - switch.living_room_floor_light_3
             - if:
                 condition: state
                 entity_id: input_boolean.curtain_control_in_hot_sunshine_living_room
@@ -2358,7 +3722,7 @@ automation:
                 entity_id: input_boolean.lamp_control_when_bright_outdoor_living_room
                 state: 'on'
               then:
-                alias: Turn light.living_room_floor_light_1 light.living_room_3_head_lamp_1 light.living_room_3_head_lamp_2 light.living_room_3_head_lamp_3 state=on
+                alias: Turn light.living_room_floor_light_1 light.living_room_floor_light_2 state=on
                 if:
                   condition: state
                   entity_id: input_boolean.always_on_constant
@@ -2367,11 +3731,9 @@ automation:
                   service: light.turn_on
                   entity_id:
                   - light.living_room_floor_light_1
-                  - light.living_room_3_head_lamp_1
-                  - light.living_room_3_head_lamp_2
-                  - light.living_room_3_head_lamp_3
+                  - light.living_room_floor_light_2
               else:
-                alias: Turn light.living_room_floor_light_1 light.living_room_3_head_lamp_1 light.living_room_3_head_lamp_2 light.living_room_3_head_lamp_3 state=off
+                alias: Turn light.living_room_floor_light_1 light.living_room_floor_light_2 state=off
                 if:
                   condition: state
                   entity_id: input_boolean.always_on_constant
@@ -2380,15 +3742,13 @@ automation:
                   service: light.turn_off
                   entity_id:
                   - light.living_room_floor_light_1
-                  - light.living_room_3_head_lamp_1
-                  - light.living_room_3_head_lamp_2
-                  - light.living_room_3_head_lamp_3
+                  - light.living_room_floor_light_2
             - if:
                 condition: state
                 entity_id: input_boolean.led_control_when_bright_outdoor_living_room
                 state: 'on'
               then:
-                alias: Turn switch.living_room_light_3 state=on
+                alias: Turn switch.living_room_floor_light_3 state=on
                 if:
                   condition: state
                   entity_id: input_boolean.always_on_constant
@@ -2396,9 +3756,9 @@ automation:
                 then:
                   service: homeassistant.turn_on
                   entity_id:
-                  - switch.living_room_light_3
+                  - switch.living_room_floor_light_3
               else:
-                alias: Turn switch.living_room_light_3 state=off
+                alias: Turn switch.living_room_floor_light_3 state=off
                 if:
                   condition: state
                   entity_id: input_boolean.always_on_constant
@@ -2406,7 +3766,7 @@ automation:
                 then:
                   service: homeassistant.turn_off
                   entity_id:
-                  - switch.living_room_light_3
+                  - switch.living_room_floor_light_3
             - if:
                 condition: state
                 entity_id: input_boolean.curtain_control_when_bright_outdoor_living_room
@@ -2495,7 +3855,7 @@ automation:
                 entity_id: input_boolean.lamp_control_when_dark_outdoor_living_room
                 state: 'on'
               then:
-                alias: Turn light.living_room_floor_light_1 light.living_room_3_head_lamp_1 light.living_room_3_head_lamp_2 light.living_room_3_head_lamp_3 state=on
+                alias: Turn light.living_room_floor_light_1 light.living_room_floor_light_2 state=on
                 if:
                   condition: state
                   entity_id: input_boolean.always_on_constant
@@ -2504,11 +3864,9 @@ automation:
                   service: light.turn_on
                   entity_id:
                   - light.living_room_floor_light_1
-                  - light.living_room_3_head_lamp_1
-                  - light.living_room_3_head_lamp_2
-                  - light.living_room_3_head_lamp_3
+                  - light.living_room_floor_light_2
               else:
-                alias: Turn light.living_room_floor_light_1 light.living_room_3_head_lamp_1 light.living_room_3_head_lamp_2 light.living_room_3_head_lamp_3 state=off
+                alias: Turn light.living_room_floor_light_1 light.living_room_floor_light_2 state=off
                 if:
                   condition: state
                   entity_id: input_boolean.always_on_constant
@@ -2517,15 +3875,13 @@ automation:
                   service: light.turn_off
                   entity_id:
                   - light.living_room_floor_light_1
-                  - light.living_room_3_head_lamp_1
-                  - light.living_room_3_head_lamp_2
-                  - light.living_room_3_head_lamp_3
+                  - light.living_room_floor_light_2
             - if:
                 condition: state
                 entity_id: input_boolean.led_control_when_dark_outdoor_living_room
                 state: 'on'
               then:
-                alias: Turn switch.living_room_light_3 state=on
+                alias: Turn switch.living_room_floor_light_3 state=on
                 if:
                   condition: state
                   entity_id: input_boolean.always_on_constant
@@ -2533,9 +3889,9 @@ automation:
                 then:
                   service: homeassistant.turn_on
                   entity_id:
-                  - switch.living_room_light_3
+                  - switch.living_room_floor_light_3
               else:
-                alias: Turn switch.living_room_light_3 state=off
+                alias: Turn switch.living_room_floor_light_3 state=off
                 if:
                   condition: state
                   entity_id: input_boolean.always_on_constant
@@ -2543,7 +3899,7 @@ automation:
                 then:
                   service: homeassistant.turn_off
                   entity_id:
-                  - switch.living_room_light_3
+                  - switch.living_room_floor_light_3
             - if:
                 condition: state
                 entity_id: input_boolean.curtain_control_when_dark_outdoor_living_room
@@ -2797,7 +4153,6 @@ sensor:
 input_boolean:
   living_room_sleep_time:
     name: Living Room Sleep Time
-    initial: 'off'
   living_room_heating_override:
     name: Living Room Heating Override
     initial: 'off'
@@ -2852,6 +4207,10 @@ template:
   - name: Living Room Heating Required
     state: '{% set climate = "climate.living_room" %}{% if states(climate) == "unavailable" %}off{% else %} {{ ((state_attr(climate, "temperature")  > state_attr(climate, "current_temperature"))  and  (states(climate) != "off"))  }}{% endif %}'
 - sensor:
+  - name: Living Room Temperature Sensor
+    unit_of_measurement: "\xB0C"
+    state: '{% if   states(''sensor.living_room_temperature_sensor_1'') != ''unavailable'' and states(''sensor.living_room_temperature_sensor_1'') == ''unavailable'' %}{{states(''sensor.living_room_temperature_sensor_1'')}}{% elif states(''sensor.living_room_temperature_sensor_1'') == ''unavailable'' and states(''sensor.living_room_temperature_sensor_1'') != ''unavailable'' %}{{states(''sensor.living_room_temperature_sensor_1'')}}{% else %}{% set sensor_1 = states(''sensor.living_room_temperature_sensor_1'') | float | round(1) %}{% set sensor_2 = states(''sensor.living_room_temperature_sensor_1'') | float | round(1) %}{% if sensor_1 < 1.0 or sensor_2 < 1.0 or (sensor_1 + sensor_2) < 1.0 %}22.0{% else %}{{ ((sensor_1 + sensor_2) / 2) | round(1) }}{% endif %}{% endif %}'
+- sensor:
   - name: Living Room Entrance Motion Sensor Light
     unit_of_measurement: lx
     state: '{{states.sensor["0x00158d0003140ea8_illuminance"].state}}'
@@ -2864,9 +4223,9 @@ template:
     unit_of_measurement: lx
     state: '{{states.sensor["dced8308e951_illuminance"].state}}'
 - sensor:
-  - name: Living Room Temperature Sensor
+  - name: Living Room Temperature Sensor 1
     unit_of_measurement: "\xB0C"
-    state: '{{states.sensor["582d34828cc6_temperature"].state | float | round(1)}}'
+    state: '{{states.sensor["temperature_humidity_sensor_2ab7_temperature"].state | float | round(1)}}'
 - sensor:
   - name: Living Room Wall Button
     state: '{{states.sensor["0x00158d0008d8ead8_action"].state}}'
@@ -2925,7 +4284,7 @@ light:
   entities: light.28d127202ef6_light
 - platform: group
   name: Living Room Ceiling Light
-  entities: light.living_room_ceiling_light_yeelight
+  entities: light.yeelink_ceil30_3a4b_light
 - platform: group
   name: Living Room Floor Light 1
   entities: light.hue_color_lamp_1
@@ -2991,16 +4350,13 @@ group:
   living_room_light_group:
     name: Living Room Light Group
     entities:
-    - switch.living_room_light_3
+    - switch.living_room_floor_light_3
     - light.living_room_floor_light_1
-    - light.living_room_3_head_lamp_1
-    - light.living_room_3_head_lamp_2
-    - light.living_room_3_head_lamp_3
+    - light.living_room_floor_light_2
     - light.living_room_ceiling_light
   living_room_window_group:
     name: Living Room Window Group
     entities:
-    - binary_sensor.living_room_sliding_door
     - binary_sensor.living_room_window
   living_room_curtain_group:
     name: Living Room Curtain Group
@@ -3032,6 +4388,7 @@ group:
     - automation.zh_lr_heating_manual_override_living_room
     - automation.zh_lr_valve_calibrate_temperature_using_external_sensor_living_room
     - automation.zlb_lr_single_button_button_control_living_room
+    - automation.zlb_lr_eight_key_knob_control_living_room
     - automation.zl_lr_applies_different_scenes_based_on_scene_selections_state_execution_living_room
     - automation.zlb_lr_wall_switch_double_press_leave_room_and_turn_off_everything_living_room
     - automation.zoc_lr_occupancy_update_living_room

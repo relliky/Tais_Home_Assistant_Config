@@ -106,9 +106,28 @@ automation:
               service: script.do_nothing
     else:
       if:
-      - condition: state
-        entity_id: sun.sun
-        state: above_horizon
+      - condition: and
+        conditions:
+        - condition: or
+          conditions:
+          - condition: numeric_state
+            entity_id: sensor.living_room_light_sensor
+            above: 100
+          - condition: state
+            entity_id: sensor.living_room_light_sensor
+            state:
+            - unavailable
+            - unknown
+        - condition: or
+          conditions:
+          - condition: state
+            entity_id: sun.sun
+            state: above_horizon
+          - condition: state
+            entity_id: sun.sun
+            state:
+            - unavailable
+            - unknown
       then:
         alias: Lights on when bright outdoor
         if:
@@ -317,6 +336,15 @@ automation:
             entity_id:
             - switch.guest_toilet_floor_led
         - service: script.do_nothing
+    - alias: Turn switch.guest_toilet_extractor state=off
+      if:
+        condition: state
+        entity_id: input_boolean.always_on_constant
+        state: 'on'
+      then:
+        service: homeassistant.turn_off
+        entity_id:
+        - switch.guest_toilet_extractor
 - alias: ZL-GT Disable Entering Lights-on Automation If any People are in the Room-Guest Toilet
   trigger:
   - platform: state
@@ -340,7 +368,9 @@ automation:
     from:
     - Just Entered
     - Outside
-    to: Stayed Inside
+    to:
+    - Stayed Inside
+    - In Sleep
   action:
   - if:
     - condition: not
@@ -559,7 +589,6 @@ automation:
               service: homeassistant.turn_on
               entity_id:
               - switch.guest_toilet_floor_led
-          - service: script.do_nothing
     - conditions:
       - condition: state
         entity_id: input_select.guest_toilet_scene
@@ -572,16 +601,6 @@ automation:
           state: 'on'
         then:
         - parallel:
-          - alias: Turn light.guest_toilet_ceiling_light state=off
-            if:
-              condition: state
-              entity_id: input_boolean.always_on_constant
-              state: 'on'
-            then:
-              service: light.turn_off
-              entity_id:
-              - light.guest_toilet_ceiling_light
-          - service: script.do_nothing
           - alias: Turn switch.guest_toilet_floor_led state=on
             if:
               condition: state
@@ -591,7 +610,6 @@ automation:
               service: homeassistant.turn_on
               entity_id:
               - switch.guest_toilet_floor_led
-          - service: script.do_nothing
     - conditions:
       - condition: state
         entity_id: input_select.guest_toilet_scene
@@ -1050,7 +1068,6 @@ sensor:
 input_boolean:
   master_room_sleep_time:
     name: Master Room Sleep Time
-    initial: 'off'
   guest_toilet_heating_override:
     name: Guest Toilet Heating Override
     initial: 'off'
@@ -1114,7 +1131,18 @@ template:
 - sensor:
   - name: Guest Toilet Extractor Wall Button
     state: '{{states.sensor["0x00158d0008d94c10_action"].state}}'
-binary_sensor: []
+- sensor:
+  - name: Guest Toilet Shower Motion Sensor Light
+    unit_of_measurement: lx
+    state: '{{states.sensor["54ef44e3237b_illuminance"].state}}'
+- sensor:
+  - name: Guest Toilet Shower Motion Sensor Battery
+    unit_of_measurement: '%'
+    state: '{{states.sensor["54ef44e3237b_battery"].state}}'
+binary_sensor:
+- platform: group
+  name: Guest Toilet Shower Motion Sensor Motion
+  entities: binary_sensor.54ef44e3237b_motion
 light:
 - platform: group
   name: Guest Toilet Ceiling Light
@@ -1151,11 +1179,13 @@ group:
     - input_select.guest_toilet_occupancy
     - group.guest_toilet_motion_group
     - binary_sensor.guest_toilet_motion_sensor_motion
+    - binary_sensor.guest_toilet_shower_motion_sensor_motion
     - automation.zoc_gt_occupancy_update_guest_toilet
   guest_toilet_motion_group:
     name: Guest Toilet Motion Group
     entities:
     - binary_sensor.guest_toilet_motion_sensor_motion
+    - binary_sensor.guest_toilet_shower_motion_sensor_motion
   guest_toilet_light_group:
     name: Guest Toilet Light Group
     entities:

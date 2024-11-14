@@ -140,14 +140,14 @@ freedns:
 
 # Database logging config
 recorder:
-  #purge_keep_days: 5
-  auto_purge: false
+  purge_keep_days: 5
+  auto_purge: true
   commit_interval: 5 # updates log every 5s
   # Use local database to diognise performance issue
   # Use synology docker mariadb container
-  db_url: mysql://root:mariadb_pass@192.168.1.11/ha_1?charset=utf8mb4
+  #db_url: mysql://root:mariadb_pass@192.168.1.11/ha_1?charset=utf8mb4
   # Use HA supervisor mariadb container
-  #db_url: mysql://mariadb_user:mariadb_pass@core-mariadb/homeassistant?charset=utf8mb4
+  db_url: mysql://mariadb_user:mariadb_pass@core-mariadb/homeassistant?charset=utf8mb4
 
 # PVE monitor
 proxmoxve:
@@ -223,13 +223,18 @@ automation:
     id: "1602722452776"
     description: ""
     trigger:
-      - at: 04:00:00
+      - at: 03:58:00
         platform: time
     action:
       # restart Z2M to reduce the chance of experiencing pairing devices accidentally
       - service: hassio.addon_restart
         data:
           addon: 45df7312_zigbee2mqtt 
+      - delay: 00:01:00
+      - service: hassio.addon_restart
+        data:
+          addon: a0d7b954_vscode
+      - delay: 00:01:00
       # Restart HA          
       - service: homeassistant.restart
       # Generate report
@@ -291,50 +296,50 @@ automation:
   # Restart HA if certain entities becomes unavailable
   #
   ####################################################
-  - alias: T- Restart HA When Some Devices Are Offline
-    id: "1599910317895"
-    description: ""
-    trigger:
-      - minutes: /10
-        platform: time_pattern
-    action:
-      - choose:
-          # Check LR Zigbee
-          - conditions:
-              - condition: state
-                entity_id: binary_sensor.ground_toilet_motion_sensor_motion
-                state: "unavailable"
-            sequence:
-              - service: notify.notify
-                data:
-                  title: "Restarting HA in 1 Min"
-                  message: "LR Ground Toilet Sensor Is Offline. Restarting HA"
-              - delay: "00:01:00"
-              - service: homeassistant.restart
-          # Check MR Zigbee
-          - conditions:
-              - condition: state
-                entity_id: binary_sensor.master_toilet_basin_motion_sensor_motion
-                state: "unavailable"
-            sequence:
-              - service: notify.notify
-                data:
-                  title: "Restarting HA in 1 Min"
-                  message: "MR Master Toilet Sensor Is Offline. Restarting HA"
-              - delay: "00:01:00"
-              - service: homeassistant.restart
-          # Check BLE devices
-          - conditions:
-              - condition: state
-                entity_id: light.master_room_entrance_led_light
-                state: "unavailable"
-            sequence:
-              - service: notify.notify
-                data:
-                  title: "Restarting HA in 1 Min"
-                  message: "BLE Master Room Entrance Light Is Offline. Restarting HA"
-              - delay: "00:01:00"
-              - service: homeassistant.restart
+#  - alias: T- Restart HA When Some Devices Are Offline
+#    id: "1599910317895"
+#    description: ""
+#    trigger:
+#      - minutes: /10
+#        platform: time_pattern
+#    action:
+#      - choose:
+#          # Check LR Zigbee
+#          - conditions:
+#              - condition: state
+#                entity_id: binary_sensor.ground_toilet_motion_sensor_motion
+#                state: "unavailable"
+#            sequence:
+#              - service: notify.notify
+#                data:
+#                  title: "Restarting HA in 1 Min"
+#                  message: "LR Ground Toilet Sensor Is Offline. Restarting HA"
+#              - delay: "00:01:00"
+#              - service: homeassistant.restart
+#          # Check MR Zigbee
+#          - conditions:
+#              - condition: state
+#                entity_id: binary_sensor.master_toilet_basin_motion_sensor_motion
+#                state: "unavailable"
+#            sequence:
+#              - service: notify.notify
+#                data:
+#                  title: "Restarting HA in 1 Min"
+#                  message: "MR Master Toilet Sensor Is Offline. Restarting HA"
+#              - delay: "00:01:00"
+#              - service: homeassistant.restart
+#          # Check BLE devices
+#          - conditions:
+#              - condition: state
+#                entity_id: light.master_room_entrance_led_light
+#                state: "unavailable"
+#            sequence:
+#              - service: notify.notify
+#                data:
+#                  title: "Restarting HA in 1 Min"
+#                  message: "BLE Master Room Entrance Light Is Offline. Restarting HA"
+#              - delay: "00:01:00"
+#              - service: homeassistant.restart
 
 automation brightness:
   - alias: L- Set up Indoor Brightness Based On Sun

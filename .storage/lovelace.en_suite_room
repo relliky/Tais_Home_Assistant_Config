@@ -217,50 +217,161 @@
           "badges": [],
           "cards": [
             {
+              "square": false,
+              "columns": 2,
               "type": "grid",
               "cards": [
                 {
-                  "show_name": true,
-                  "show_icon": true,
-                  "type": "button",
+                  "type": "custom:mushroom-template-card",
+                  "entity": "input_boolean.placeholder",
+                  "icon": "mdi:keyboard-return",
+                  "icon_color": "yellow",
+                  "primary": "HOME",
+                  "secondary": "",
+                  "layout": "vertical",
+                  "hold_action": {
+                    "action": "toggle"
+                  },
                   "tap_action": {
                     "action": "navigate",
                     "navigation_path": "/lovelace/home"
                   },
-                  "entity": "input_boolean.placeholder",
-                  "icon": "mdi:keyboard-return",
-                  "name": "Home"
+                  "card_mod": {
+                    "style": {
+                      "mushroom-state-info$": ".primary {\n  font-size: 16px !important;\n  position: relative;\n  top: 0px;\n  left: 0px;\n  overflow: visible !important;\n  white-space:  \n}\n",
+                      "mushroom-shape-icon$": ".shape {\n  position: relative;\n  left: 0px;\n  top: 0px;\n}\n",
+                      ".": ":host {\n  --mush-icon-size: 80px;\n}\n"
+                    }
+                  }
                 },
                 {
-                  "type": "custom:thermostat-card",
-                  "entity": "climate.en_suite_toilet",
-                  "title": "Thermostat"
+                  "type": "custom:mushroom-select-card",
+                  "fill_container": true,
+                  "tap_action": {
+                    "action": "more-info"
+                  },
+                  "icon": "",
+                  "secondary_info": "none",
+                  "name": " Scene",
+                  "entity": "input_select.en_suite_toilet_scene"
                 },
                 {
-                  "type": "light",
+                  "type": "custom:mushroom-climate-card",
+                  "show_temperature_control": true,
+                  "collapsible_controls": false,
+                  "name": "Raditor",
+                  "icon": "",
+                  "entity": "climate.en_suite_toilet"
+                },
+                {
+                  "type": "custom:mushroom-light-card",
+                  "fill_container": true,
+                  "use_light_color": false,
+                  "show_brightness_control": true,
+                  "show_color_control": false,
+                  "show_color_temp_control": true,
+                  "collapsible_controls": false,
+                  "name": " Ceiling Light",
+                  "icon": "mdi:wall-sconce-round",
                   "entity": "light.en_suite_toilet_ceiling_light",
-                  "name": "Ceiling Light",
-                  "icon": "mdi:wall-sconce-round"
+                  "card_mod": {
+                    "style": ":host {\n--ha-card-background:    {% if (states(config.entity) in ['on']) and (states('sun.sun') != 'below_horizon')%} rgba(245, 245, 245, 0.9)  {% else  %} rgba(10, 10, 10, 0.4)  {% endif %};\n--primary-text-color:    {% if (states(config.entity) in ['on']) and (states('sun.sun') != 'below_horizon')%} black                                            {% else  %} white                                           {% endif %};\n--secondary-text-color : {% if (states(config.entity) in ['on']) and (states('sun.sun') != 'below_horizon')%} rgba(100, 100, 100, 1){% else  %} rgba(220, 220, 220, 1) {% endif %};\n;}\nha-card > mushroom-card > mushroom-state-item > mushroom-shape-icon > ha-state-icon {\n--mdc-icon-size: 0.6em;;}\nha-card > mushroom-card > mushroom-state-item > mushroom-shape-icon { \n--icon-color-disabled:   rgba(253,204,0,1);\n--shape-color-disabled:  rgba(10, 10, 10, 0.4);\n--icon-color:            white;\n--shape-color:            {% if state_attr(config.entity, 'color_mode') == 'color_temp' %} \nrgba(253,204,0,1) \n{% else  %} \n   rgb{{state_attr(config.entity, 'rgb_color')}} \n{% endif%};\n}\nha-card > mushroom-card > div > mushroom-light-brightness-control { \n--slider-color:           {% if state_attr(config.entity, 'color_mode') == 'color_temp' %} \nrgba(253,204,0,1) \n{% else  %} \n   rgb{{state_attr(config.entity, 'rgb_color')}} \n{% endif%};\n--slider-bg-color:        {% if state_attr(config.entity, 'color_mode') == 'color_temp' %} \n{{ 'rgba(253,204,0,1)' | regex_replace(',([\\d\\.])+\\)$', ',0.2)') }} \n{% else  %} \n   rgba{{(state_attr(config.entity, 'rgb_color')|string)[0:-1]}}, 0.2) \n{% endif%};\n}\nha-card > mushroom-card > div > mushroom-button:nth-child(2) {  --bg-color: {% if  (states(config.entity) in ['on']) and (states('sun.sun') != 'below_horizon') %} rgba(245, 245, 245, 0.9) {% else %} rgba(var(--rgb-primary-text-color), 0.05) {% endif %};}\nha-card > mushroom-card > div > mushroom-button:nth-child(3) {  --bg-color: {% if  (states(config.entity) in ['on']) and (states('sun.sun') != 'below_horizon') %} rgba(245, 245, 245, 0.9) {% else %} rgba(var(--rgb-primary-text-color), 0.05) {% endif %};}\n"
+                  }
                 },
                 {
-                  "show_name": true,
-                  "show_icon": true,
-                  "type": "button",
+                  "type": "custom:mushroom-entity-card",
+                  "fill_container": true,
                   "tap_action": {
                     "action": "toggle"
                   },
-                  "entity": "input_boolean.en_suite_toilet_heating_override",
                   "name": "Heating Override",
-                  "icon": "mdi:heating-coil"
+                  "icon": "mdi:heating-coil",
+                  "entity": "input_boolean.en_suite_toilet_heating_override"
                 },
                 {
-                  "type": "sensor",
-                  "entity": "sensor.en_suite_toilet_temperature_sensor",
-                  "graph": "line",
-                  "name": "Temperature"
+                  "type": "custom:vertical-stack-in-card",
+                  "cards": [
+                    {
+                      "type": "custom:mushroom-template-card",
+                      "entity": "sensor.en_suite_toilet_temperature_sensor",
+                      "primary": "Temperature",
+                      "secondary": "{{ states('sensor.en_suite_toilet_temperature_sensor') | round(0) }}°C\n",
+                      "icon": "mdi:thermometer",
+                      "icon_color": "{% set value = states('sensor.en_suite_toilet_temperature_sensor') | int %}\n{% if value < 18 %}\n  blue\n{% elif value < 28 %}\n  light-green\n{% elif value < 40 %}\n  red\n{% else %}\n  green\n{% endif %}",
+                      "tap_action": {
+                        "action": "more-info"
+                      },
+                      "card_mod": {
+                        "style": ":host { --ha-card-background:rgba(245, 245, 245, 0);}\n"
+                      }
+                    },
+                    {
+                      "type": "custom:layout-card",
+                      "layout_type": "masonry",
+                      "layout": {
+                        "width": 150,
+                        "max_cols": 1,
+                        "height": "auto",
+                        "padding": "0px",
+                        "card_margin": "var(--masonry-view-card-margin, -10px 8px 15px)"
+                      },
+                      "cards": [
+                        {
+                          "type": "custom:mini-graph-card",
+                          "tap_action": {
+                            "action": "more-info"
+                          },
+                          "entities": [
+                            {
+                              "entity": "sensor.en_suite_toilet_temperature_sensor",
+                              "name": "Temperature"
+                            }
+                          ],
+                          "color_thresholds": [
+                            {
+                              "value": -10,
+                              "color": "#0000ff"
+                            },
+                            {
+                              "value": 18,
+                              "color": "#0000ff"
+                            },
+                            {
+                              "value": 18.1,
+                              "color": "#00FF00"
+                            },
+                            {
+                              "value": 27,
+                              "color": "#00FF00"
+                            },
+                            {
+                              "value": 27.1,
+                              "color": "#FF0000"
+                            },
+                            {
+                              "value": 40,
+                              "color": "#FF0000"
+                            }
+                          ],
+                          "hours_to_show": 24,
+                          "line_width": 3,
+                          "animate": true,
+                          "show": {
+                            "name": false,
+                            "icon": false,
+                            "state": false,
+                            "legend": false,
+                            "fill": "fade"
+                          },
+                          "card_mod": {
+                            "style": "ha-card {\n  background: none;\n  box-shadow: none;\n  --ha-card-border-width: 0;\n}"
+                          }
+                        }
+                      ]
+                    }
+                  ]
                 }
-              ],
-              "columns": 2
+              ]
             },
             {
               "type": "custom:restriction-card",
