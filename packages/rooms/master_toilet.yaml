@@ -164,6 +164,51 @@ script:
 #
 ###############################################
 automation:
+  # Master Toilet Dressing Room
+  - alias: L-MT Master Toilet Dressing Lights On If People Present
+    description: ""
+    trigger:
+      - entity_id: binary_sensor.master_toilet_dressing_room_motion_sensor_motion
+        platform: state
+        to: "on"
+    action:
+      - entity_id: sensor.master_toilet_dressing_room_motion_sensor_light
+        condition: numeric_state
+        below: "30"
+      - service: light.turn_on
+        entity_id: light.master_toilet_dressing_room_light
+      - choose:
+          # IF - all lights off - turn on dressing room light
+          - conditions:
+              - condition: or
+                conditions:
+                  - condition: time
+                    after: input_datetime.beginning_of_midnight
+                  - condition: time
+                    before: input_datetime.beginning_of_early_morning
+            sequence:
+              - service: automation.trigger
+                entity_id: automation.master_toilet_lights_on_if_people_present
+
+  - alias: L-MT Master Toilet Dressing Lights Off If No People Present For 2 Min
+    description: ""
+    trigger:
+      - entity_id: binary_sensor.master_toilet_dressing_room_motion_sensor_motion
+        platform: state
+        from: "on"
+        to: "off"
+        for: 00:02:00
+      - minutes: /5
+        platform: time_pattern
+    condition:
+      - entity_id: binary_sensor.master_toilet_dressing_room_motion_sensor_motion
+        condition: state
+        state: "off"
+        for: 00:02:00
+    action:
+      - entity_id: light.master_toilet_dressing_room_light
+        service: light.turn_off
+
   #  # Master Toilet
   #  - alias: H-MT Master Toilet Heating On If People Present
   #    id: "1600014380137"
@@ -350,50 +395,6 @@ automation:
   #    action:
   #      - service: script.master_toilet_all_lights_turn_off
   #
-  # Master Toilet Dressing Room
-  - alias: L-MT Master Toilet Dressing Lights On If People Present
-    description: ""
-    trigger:
-      - entity_id: binary_sensor.master_toilet_dressing_room_motion_sensor_motion
-        platform: state
-        to: "on"
-    action:
-      - entity_id: sensor.master_toilet_dressing_room_motion_sensor_light
-        condition: numeric_state
-        below: "30"
-      - service: light.turn_on
-        entity_id: light.master_toilet_dressing_room_light
-      - choose:
-          # IF - all lights off - turn on dressing room light
-          - conditions:
-              - condition: or
-                conditions:
-                  - condition: time
-                    after: input_datetime.beginning_of_midnight
-                  - condition: time
-                    before: input_datetime.beginning_of_early_morning
-            sequence:
-              - service: automation.trigger
-                entity_id: automation.master_toilet_lights_on_if_people_present
-
-  - alias: L-MT Master Toilet Dressing Lights Off If No People Present For 2 Min
-    description: ""
-    trigger:
-      - entity_id: binary_sensor.master_toilet_dressing_room_motion_sensor_motion
-        platform: state
-        from: "on"
-        to: "off"
-        for: 00:02:00
-      - minutes: /5
-        platform: time_pattern
-    condition:
-      - entity_id: binary_sensor.master_toilet_dressing_room_motion_sensor_motion
-        condition: state
-        state: "off"
-        for: 00:02:00
-    action:
-      - entity_id: light.master_toilet_dressing_room_light
-        service: light.turn_off
 
   # Lighting Automation based on buttons
 #  - alias: B-MT Master Toilet Wall Switch Single Press - Toggle All Toilet Lights

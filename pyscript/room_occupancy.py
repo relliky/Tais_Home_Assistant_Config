@@ -42,7 +42,8 @@ def room_occupancy_state_machine(occupancy_entity_str,
                                  motion_on_ratio_for_x_min_str,
                                  motion_on_ratio_for_2x_min_str,
                                  room_type,
-                                 sleep_time):
+                                 sleep_time,
+                                 turn_to_outside_when_no_motion):
     
     #percentage_for_largely_def = 0.4
     #percentage_for_fully_def   = 0.8
@@ -98,6 +99,11 @@ def room_occupancy_state_machine(occupancy_entity_str,
              motion_off_ratio_for_2x_min >= 0.5:
                nxt_state = "Outside"
         
+        # special case when using only use occupancy sensor to accurately detect when people are outside
+        elif turn_to_outside_when_no_motion == 'yes' and \
+             motion == 'off':
+               nxt_state = "Outside"
+
         # c4. just_entered -> just_entered
         #     all other conditions
         else:
@@ -119,7 +125,12 @@ def room_occupancy_state_machine(occupancy_entity_str,
         elif motion_off_for >=  normal_timeout*60 and \
              motion_off_ratio_for_2x_min >= 0.7:
             nxt_state = "Outside"
-        
+
+        # special case when using only use occupancy sensor to accurately detect when people are outside
+        elif turn_to_outside_when_no_motion == 'yes' and \
+             motion == 'off':
+               nxt_state = "Outside"
+
         # c6. Stayed Inside -> Stayed Inside:
         #     all other condition
         else:
@@ -138,6 +149,11 @@ def room_occupancy_state_machine(occupancy_entity_str,
         elif motion_off_for >= 60*60:
             nxt_state = "Outside"
 
+        # special case when using only use occupancy sensor to accurately detect when people are outside
+        elif turn_to_outside_when_no_motion == 'yes' and \
+             motion == 'off':
+               nxt_state = "Outside"
+               
         # c9. In Sleep -> In Sleep:
         else:    
             nxt_state = "In Sleep"

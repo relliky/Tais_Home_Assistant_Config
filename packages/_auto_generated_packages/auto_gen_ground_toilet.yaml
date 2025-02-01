@@ -238,10 +238,6 @@ automation:
   - condition: state
     entity_id: input_select.ground_toilet_occupancy
     state: Outside
-  - condition: state
-    entity_id: group.ground_toilet_motion_group
-    state: 'off'
-    for: 00:01:00
   action:
     parallel:
     - alias: Turn automation.zl_0t_ceiling_lights_on_or_open_curtains_if_entering_to_room_ground_toilet state=on
@@ -873,7 +869,6 @@ automation:
   - entity_id: group.ground_toilet_motion_group
     platform: state
     to: 'off'
-    for: 05:00:00
   - minutes: /5
     platform: time_pattern
   action:
@@ -885,6 +880,7 @@ automation:
       motion_on_ratio_for_2x_min_str: sensor.ground_toilet_motion_on_ratio_for_last_8_minutes
       room_type: toilet
       sleep_time: input_boolean.master_room_sleep_time
+      turn_to_outside_when_no_motion: 'yes'
 input_select:
   ground_toilet_scene:
     name: Ground Toilet Scene
@@ -977,20 +973,16 @@ template:
     unit_of_measurement: "\xB0C"
     state: '{{states.sensor["a4c1387c09bd_temperature"].state | float | round(1)}}'
 - sensor:
-  - name: Ground Toilet Motion Sensor Light
+  - name: Ground Toilet Occupancy Sensor Light
     unit_of_measurement: lx
-    state: '{{states.sensor["0x00158d0004667569_illuminance"].state}}'
-- sensor:
-  - name: Ground Toilet Motion Sensor Battery
-    unit_of_measurement: '%'
-    state: '{{states.sensor["0x00158d0004667569_battery"].state}}'
+    state: '{{states.sensor["a4c1385ab801_illuminance"].state}}'
 - sensor:
   - name: Ground Toilet Wall Button
     state: '{{states.sensor["0x00158d0005435643_action"].state}}'
 binary_sensor:
 - platform: group
-  name: Ground Toilet Motion Sensor Motion
-  entities: binary_sensor.0x00158d0004667569_motion
+  name: Ground Toilet Occupancy Sensor Occupancy
+  entities: binary_sensor.a4c1385ab801_occupancy
 - platform: group
   name: Ground Toilet Door
   entities: binary_sensor.0x00158d00053fdaa8_contact
@@ -1029,12 +1021,12 @@ group:
     entities:
     - input_select.ground_toilet_occupancy
     - group.ground_toilet_motion_group
-    - binary_sensor.ground_toilet_motion_sensor_motion
+    - binary_sensor.ground_toilet_occupancy_sensor_occupancy
     - automation.zoc_0t_occupancy_update_ground_toilet
   ground_toilet_motion_group:
     name: Ground Toilet Motion Group
     entities:
-    - binary_sensor.ground_toilet_motion_sensor_motion
+    - binary_sensor.ground_toilet_occupancy_sensor_occupancy
   ground_toilet_light_group:
     name: Ground Toilet Light Group
     entities:

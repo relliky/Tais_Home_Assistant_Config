@@ -161,6 +161,8 @@ class RoomBase:
     self.occupancy_on_x_min_ratio_sensor  = "unitialized_ratio_sensor"
     self.occupancy_on_2x_min_ratio_sensor = "unitialized_ratio_sensor"
 
+    # default to assume that no motion requires a longer timeout than immediately set the room occupancy to Outside
+    self.turn_to_outside_when_no_motion = 'no'
     
   def get_remote_entities(self):  
     # Button (sensor) entities
@@ -360,22 +362,6 @@ class RoomBase:
     
     if self.cfg_group_auto:
       self.room_auto_gen_automations = "group." + self.room_entity + "_auto_gen_automations"
-
-    #self.config = { nameof(self.room_entity              ) : self.room_entity               ,
-    #                nameof(self.room_name                     ) : self.room_name                      ,
-    #                nameof(self.room_type                ) : self.room_type                 ,
-    #                nameof(self.bed_motion_sensors       ) : self.bed_motion_sensors        ,
-    #                nameof(self.entrance_motion_sensors  ) : self.entrance_motion_sensors   ,
-    #                nameof(self.buttons                  ) : self.buttons                   ,
-    #                nameof(self.xiaomi_buttons           ) : self.xiaomi_buttons            ,
-    #                nameof(self.bed_leds                 ) : self.bed_leds                  ,
-    #                nameof(self.leds                     ) : self.leds                      ,
-    #                nameof(self.ceiling_lights           ) : self.ceiling_lights            ,
-    #                nameof(self.lamps                    ) : self.lamps                     ,
-    #                nameof(self.room_entity              ) : self.room_entity       ,
-    #                nameof(self.room_entity              ) : self.room_entity       ,
-    #                nameof(self.room_entity              ) : self.room_entity       ,
-    #                nameof(self.room_entity              ) : self.room_entity       }
 
   def reset_json_environment(self):
     self.automations            = []
@@ -726,7 +712,8 @@ class RoomBase:
         }        
       ]
 
-    elif model == "Ziqing Occupancy Sensor" and integration == 'Xiaomi Gateway 3': 
+    elif (model == "Ziqing Occupancy Sensor" and integration == 'Xiaomi Gateway 3') or \
+         (model == "Linptech Occupancy Sensor") : 
 
       self.binary_sensor_list += [
         {
@@ -1318,14 +1305,15 @@ class RoomBase:
           { "condition": "state",
             "entity_id": self.room_occupancy,
             "state": "Outside"
-          },
-          # Make sure that if room_occupany is forced to Outside because of people override (by button for example)
+          }] + (
+          # For non-pure occupancy sensor room (that has PIR sensors)
+          # Make sure that if room_occupany is forced to Outside because of manual override (by button for example)
           # and people are going back to the room, the lights should not be turned off
-          { "condition": "state",
+          [{ "condition": "state",
             "entity_id": self.motion_group,
             "state": "off",
             "for": "00:01:00"
-          }],
+            }] if self.turn_to_outside_when_no_motion == 'no' else []),
         "action": { 
           'parallel': [
             # Re-enable lights on automation
@@ -2187,7 +2175,6 @@ class RoomBase:
             "entity_id": self.motion_group,
             "platform": "state",
             "to": "off",
-            "for": "05:00:00"
           },
           {
             "minutes": "/5",
@@ -2208,7 +2195,8 @@ class RoomBase:
                               "motion_on_ratio_for_x_min_str":  self.occupancy_on_x_min_ratio_sensor,
                               "motion_on_ratio_for_2x_min_str": self.occupancy_on_2x_min_ratio_sensor,
                               "room_type":                      self.room_type,
-                              "sleep_time":                     self.sleep_time
+                              "sleep_time":                     self.sleep_time,
+                              'turn_to_outside_when_no_motion': self.turn_to_outside_when_no_motion,
                               }
             #        }
             }
@@ -3130,10 +3118,13 @@ class MasterRoom(RoomBase):
     self.add_mac_device("582d34376b04",                      self.room_name,                          'Temperature Sensor', "Qingping Temperature Sensor", postfix='new_1')
     self.add_mac_device("582d343b6a27",                      self.room_name,                          'Temperature Sensor', "Qingping Temperature Sensor", postfix='new_2')
   # self.add_mac_device('0x54ef441000792d09',                self.room_name + ' Bed',                 'Pressure Sensor',    'Aqara Pressure Sensor')    
-    self.add_mac_device('e4aaec755efa',                      self.room_name + ' Bed',                 'Pressure Sensor 4',  'Mijia2 Pressure Sensor',  postfix='1')    
-    self.add_mac_device('e4aaec755cbc',                      self.room_name + ' Bed',                 'Pressure Sensor 4',  'Mijia2 Pressure Sensor',  postfix='2')    
-    self.add_mac_device('e4aaec755ef9',                      self.room_name + ' Bed',                 'Pressure Sensor 4',  'Mijia2 Pressure Sensor',  postfix='3')    
-    self.add_mac_device("dced830908fb",                      self.room_name,                          'Motion Sensor',      "Ziqing Occupancy Sensor")
+#    self.add_mac_device('e4aaec755efa',                      self.room_name + ' Bed',                 'Pressure Sensor 4',  'Mijia2 Pressure Sensor',  postfix='1')    
+#    self.add_mac_device('e4aaec755cbc',                      self.room_name + ' Bed',                 'Pressure Sensor 4',  'Mijia2 Pressure Sensor',  postfix='2')    
+#    self.add_mac_device('e4aaec755ef9',                      self.room_name + ' Bed',                 'Pressure Sensor 4',  'Mijia2 Pressure Sensor',  postfix='3')    
+
+    self.add_mac_device("a4c1383dc01d",                      self.room_name + ' Bed',                 'Motion Sensor',      "Linptech Occupancy Sensor")
+
+#    self.add_mac_device("dced830908fb",                      self.room_name,                          'Motion Sensor',      "Ziqing Occupancy Sensor")
     self.add_mac_device("0x00158d0005228ba8",                self.room_name + " TV",                  'Motion Sensor',      "Aqara Motion and Illuminance Sensor")
     self.add_mac_device('50ec50df3056',                      self.room_name + " Bed Ceiling Light",   'Light',              'Mijia BLE Lights')
     self.add_mac_device("master_room_drawer_ceiling_light_xiaomi",self.room_name + " Drawer Ceiling Light",'Light',"Generic Lights")
@@ -3150,7 +3141,7 @@ class MasterRoom(RoomBase):
     self.add_mac_device('sonoff_1001e49ec4_1',               self.room_name + ' Dressing Table Light','Switch',             'Generic Switches')
     self.add_mac_device("sonoff_1001e4a0a0_1",               self.room_name + ' Gateway Power',       'Switch',             "Generic Switches")
 
-    self.add_mac_device('e0798dba988e',                      self.room_name + ' Bed',                 'Motion Sensor',      'Mijia Motion Sensor 2s')
+#    self.add_mac_device('e0798dba988e',                      self.room_name + ' Bed',                 'Motion Sensor',      'Mijia Motion Sensor 2s')
 
     # New unused button
     #self.add_mac_device('18c23c25a26c',              self.room_name,                           'Button',             'MiJia Wireless Switch 2', postfix='3')
@@ -3201,11 +3192,12 @@ class MasterRoom(RoomBase):
 
     self.bed_motion_sensors = [
       "binary_sensor.master_room_bed_motion_sensor_motion",
+      "binary_sensor.master_room_bed_occupancy_sensor_occupancy",
       #"binary_sensor.master_room_bed_pressure_sensor_1",
       #"binary_sensor.master_room_bed_pressure_sensor_2",
       #"binary_sensor.master_room_bed_pressure_sensor_3",
       #"binary_sensor.master_room_bed_pressure_sensor",
-      "binary_sensor.master_room_occupancy_sensor_occupancy",
+      #"binary_sensor.master_room_occupancy_sensor_occupancy",
       #"binary_sensor.master_room_drawer_occupancy_sensor_occupancy"
     ]
     
@@ -4191,13 +4183,16 @@ class GroundToilet(RoomBase):
   def get_motion_sensor_entities(self):
     super().get_motion_sensor_entities()
     self.all_motion_sensors = [
-      "binary_sensor.ground_toilet_motion_sensor_motion"
+      "binary_sensor.ground_toilet_occupancy_sensor_occupancy"
     ]
+    # Linptech ES3 is good enough to detect if people is out
+    self.turn_to_outside_when_no_motion = 'yes'
 
   def get_entity_declarations(self):
     super().get_entity_declarations()
     self.add_mac_device("a4c1387c09bd",                    self.room_name,                                'Temperature Sensor', "Mijia2 Temperature Sensor")
-    self.add_mac_device('0x00158d0004667569',              self.room_name,                                'Motion Sensor',      'Aqara Motion and Illuminance Sensor')
+    self.add_mac_device("a4c1385ab801",                    self.room_name,                                'Motion Sensor',      "Linptech Occupancy Sensor")
+    #self.add_mac_device('0x00158d0004667569',              self.room_name,                                'Motion Sensor',      'Aqara Motion and Illuminance Sensor')
     self.add_mac_device("0x00158d0005435643",              self.room_name,                                'Wall Switch',        "Aqara D1 Wall Switch (With Neutral, Double Rocker)")
     self.add_mac_device('0x00158d00053fdaa8',              self.room_name + ' Door',                      'Door',               'Aqara Door & Window Sensor')
   # self.add_mac_device("0x90fd9ffffe8e24b6",              self.room_name + " Ceiling Light Spotlight 1", 'Light',              "TRADFRI LED Bulb GU10 400 Lumen, Dimmable, White spectrum", integration='Z2M')
