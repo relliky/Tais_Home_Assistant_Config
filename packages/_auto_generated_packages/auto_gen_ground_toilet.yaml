@@ -19,20 +19,36 @@ automation:
     data:
       room_scene_select: input_select.ground_toilet_scene
       scene: Idle
-  - if:
-    - condition: numeric_state
-      entity_id: sensor.met_office_cambridge_city_airport_temperature_3_hourly
-      above: '18'
-    - condition: time
-      after: 06:00:00
-      before: '16:00:00'
-    - condition: template
-      value_template: '{{ now().month > 4 and now().month < 9 }}'
-    - condition: state
-      entity_id: input_boolean.always_off_constant
-      state: 'on'
+  - alias: If it is bright morning
+    if:
+    - alias: Bright morning
+      condition: and
+      conditions:
+      - condition: or
+        conditions:
+        - condition: numeric_state
+          entity_id: sensor.living_room_light_sensor
+          above: 100
+        - condition: state
+          entity_id: sensor.living_room_light_sensor
+          state:
+          - unavailable
+          - unknown
+      - condition: or
+        conditions:
+        - condition: state
+          entity_id: sun.sun
+          state: above_horizon
+        - condition: state
+          entity_id: sun.sun
+          state:
+          - unavailable
+          - unknown
+      - condition: time
+        after: input_datetime.morning_start_time_ground_toilet
+        before: input_datetime.morning_end_time_ground_toilet
     then:
-      alias: Lights on in hot sunshine
+      alias: States when bright morning
       if:
         condition: state
         entity_id: input_boolean.always_on_constant
@@ -42,7 +58,7 @@ automation:
         - parallel:
           - if:
               condition: state
-              entity_id: input_boolean.ceiling_light_control_in_hot_sunshine_ground_toilet
+              entity_id: input_boolean.ceiling_light_control_bright_morning_ground_toilet
               state: 'on'
             then:
               alias: Turn light.ground_toilet_ceiling_light state=on
@@ -66,7 +82,7 @@ automation:
                 - light.ground_toilet_ceiling_light
           - if:
               condition: state
-              entity_id: input_boolean.lamp_control_in_hot_sunshine_ground_toilet
+              entity_id: input_boolean.lamp_control_bright_morning_ground_toilet
               state: 'on'
             then:
               service: script.do_nothing
@@ -74,7 +90,7 @@ automation:
               service: script.do_nothing
           - if:
               condition: state
-              entity_id: input_boolean.led_control_in_hot_sunshine_ground_toilet
+              entity_id: input_boolean.led_control_bright_morning_ground_toilet
               state: 'on'
             then:
               service: script.do_nothing
@@ -82,15 +98,17 @@ automation:
               service: script.do_nothing
           - if:
               condition: state
-              entity_id: input_boolean.curtain_control_in_hot_sunshine_ground_toilet
+              entity_id: input_boolean.curtain_control_bright_morning_ground_toilet
               state: 'on'
             then:
               service: script.do_nothing
             else:
               service: script.do_nothing
     else:
+      alias: If it is dark
       if:
-      - condition: and
+      - alias: Bright afternoon
+        condition: and
         conditions:
         - condition: or
           conditions:
@@ -112,8 +130,11 @@ automation:
             state:
             - unavailable
             - unknown
+        - condition: time
+          after: input_datetime.afternoon_start_time_ground_toilet
+          before: input_datetime.afternoon_end_time_ground_toilet
       then:
-        alias: Lights on when bright outdoor
+        alias: States when bright afternoon
         if:
           condition: state
           entity_id: input_boolean.always_on_constant
@@ -123,7 +144,7 @@ automation:
           - parallel:
             - if:
                 condition: state
-                entity_id: input_boolean.ceiling_light_control_when_bright_outdoor_ground_toilet
+                entity_id: input_boolean.ceiling_light_control_bright_afternoon_ground_toilet
                 state: 'on'
               then:
                 alias: Turn light.ground_toilet_ceiling_light state=on
@@ -147,7 +168,7 @@ automation:
                   - light.ground_toilet_ceiling_light
             - if:
                 condition: state
-                entity_id: input_boolean.lamp_control_when_bright_outdoor_ground_toilet
+                entity_id: input_boolean.lamp_control_bright_afternoon_ground_toilet
                 state: 'on'
               then:
                 service: script.do_nothing
@@ -155,7 +176,7 @@ automation:
                 service: script.do_nothing
             - if:
                 condition: state
-                entity_id: input_boolean.led_control_when_bright_outdoor_ground_toilet
+                entity_id: input_boolean.led_control_bright_afternoon_ground_toilet
                 state: 'on'
               then:
                 service: script.do_nothing
@@ -163,14 +184,14 @@ automation:
                 service: script.do_nothing
             - if:
                 condition: state
-                entity_id: input_boolean.curtain_control_when_bright_outdoor_ground_toilet
+                entity_id: input_boolean.curtain_control_bright_afternoon_ground_toilet
                 state: 'on'
               then:
                 service: script.do_nothing
               else:
                 service: script.do_nothing
       else:
-        alias: Lights on when dark outdoor
+        alias: States when dark
         if:
           condition: state
           entity_id: input_boolean.always_on_constant
@@ -180,7 +201,7 @@ automation:
           - parallel:
             - if:
                 condition: state
-                entity_id: input_boolean.ceiling_light_control_when_dark_outdoor_ground_toilet
+                entity_id: input_boolean.ceiling_light_control_dark_ground_toilet
                 state: 'on'
               then:
                 alias: Turn light.ground_toilet_ceiling_light state=on
@@ -204,7 +225,7 @@ automation:
                   - light.ground_toilet_ceiling_light
             - if:
                 condition: state
-                entity_id: input_boolean.lamp_control_when_dark_outdoor_ground_toilet
+                entity_id: input_boolean.lamp_control_dark_ground_toilet
                 state: 'on'
               then:
                 service: script.do_nothing
@@ -212,7 +233,7 @@ automation:
                 service: script.do_nothing
             - if:
                 condition: state
-                entity_id: input_boolean.led_control_when_dark_outdoor_ground_toilet
+                entity_id: input_boolean.led_control_dark_ground_toilet
                 state: 'on'
               then:
                 service: script.do_nothing
@@ -220,7 +241,7 @@ automation:
                 service: script.do_nothing
             - if:
                 condition: state
-                entity_id: input_boolean.curtain_control_when_dark_outdoor_ground_toilet
+                entity_id: input_boolean.curtain_control_dark_ground_toilet
                 state: 'on'
               then:
                 service: script.do_nothing
@@ -603,9 +624,9 @@ automation:
     - conditions:
       - condition: state
         entity_id: input_select.ground_toilet_scene
-        state: Lights on in hot sunshine
+        state: States when bright morning
       sequence:
-        alias: Lights on in hot sunshine
+        alias: States when bright morning
         if:
           condition: state
           entity_id: input_boolean.always_on_constant
@@ -615,7 +636,7 @@ automation:
           - parallel:
             - if:
                 condition: state
-                entity_id: input_boolean.ceiling_light_control_in_hot_sunshine_ground_toilet
+                entity_id: input_boolean.ceiling_light_control_bright_morning_ground_toilet
                 state: 'on'
               then:
                 alias: Turn light.ground_toilet_ceiling_light state=on
@@ -639,7 +660,7 @@ automation:
                   - light.ground_toilet_ceiling_light
             - if:
                 condition: state
-                entity_id: input_boolean.lamp_control_in_hot_sunshine_ground_toilet
+                entity_id: input_boolean.lamp_control_bright_morning_ground_toilet
                 state: 'on'
               then:
                 service: script.do_nothing
@@ -647,7 +668,7 @@ automation:
                 service: script.do_nothing
             - if:
                 condition: state
-                entity_id: input_boolean.led_control_in_hot_sunshine_ground_toilet
+                entity_id: input_boolean.led_control_bright_morning_ground_toilet
                 state: 'on'
               then:
                 service: script.do_nothing
@@ -655,7 +676,7 @@ automation:
                 service: script.do_nothing
             - if:
                 condition: state
-                entity_id: input_boolean.curtain_control_in_hot_sunshine_ground_toilet
+                entity_id: input_boolean.curtain_control_bright_morning_ground_toilet
                 state: 'on'
               then:
                 service: script.do_nothing
@@ -664,9 +685,9 @@ automation:
     - conditions:
       - condition: state
         entity_id: input_select.ground_toilet_scene
-        state: Lights on when bright outdoor
+        state: States when bright afternoon
       sequence:
-        alias: Lights on when bright outdoor
+        alias: States when bright afternoon
         if:
           condition: state
           entity_id: input_boolean.always_on_constant
@@ -676,7 +697,7 @@ automation:
           - parallel:
             - if:
                 condition: state
-                entity_id: input_boolean.ceiling_light_control_when_bright_outdoor_ground_toilet
+                entity_id: input_boolean.ceiling_light_control_bright_afternoon_ground_toilet
                 state: 'on'
               then:
                 alias: Turn light.ground_toilet_ceiling_light state=on
@@ -700,7 +721,7 @@ automation:
                   - light.ground_toilet_ceiling_light
             - if:
                 condition: state
-                entity_id: input_boolean.lamp_control_when_bright_outdoor_ground_toilet
+                entity_id: input_boolean.lamp_control_bright_afternoon_ground_toilet
                 state: 'on'
               then:
                 service: script.do_nothing
@@ -708,7 +729,7 @@ automation:
                 service: script.do_nothing
             - if:
                 condition: state
-                entity_id: input_boolean.led_control_when_bright_outdoor_ground_toilet
+                entity_id: input_boolean.led_control_bright_afternoon_ground_toilet
                 state: 'on'
               then:
                 service: script.do_nothing
@@ -716,7 +737,7 @@ automation:
                 service: script.do_nothing
             - if:
                 condition: state
-                entity_id: input_boolean.curtain_control_when_bright_outdoor_ground_toilet
+                entity_id: input_boolean.curtain_control_bright_afternoon_ground_toilet
                 state: 'on'
               then:
                 service: script.do_nothing
@@ -725,9 +746,9 @@ automation:
     - conditions:
       - condition: state
         entity_id: input_select.ground_toilet_scene
-        state: Lights on when dark outdoor
+        state: States when dark
       sequence:
-        alias: Lights on when dark outdoor
+        alias: States when dark
         if:
           condition: state
           entity_id: input_boolean.always_on_constant
@@ -737,7 +758,7 @@ automation:
           - parallel:
             - if:
                 condition: state
-                entity_id: input_boolean.ceiling_light_control_when_dark_outdoor_ground_toilet
+                entity_id: input_boolean.ceiling_light_control_dark_ground_toilet
                 state: 'on'
               then:
                 alias: Turn light.ground_toilet_ceiling_light state=on
@@ -761,7 +782,7 @@ automation:
                   - light.ground_toilet_ceiling_light
             - if:
                 condition: state
-                entity_id: input_boolean.lamp_control_when_dark_outdoor_ground_toilet
+                entity_id: input_boolean.lamp_control_dark_ground_toilet
                 state: 'on'
               then:
                 service: script.do_nothing
@@ -769,7 +790,7 @@ automation:
                 service: script.do_nothing
             - if:
                 condition: state
-                entity_id: input_boolean.led_control_when_dark_outdoor_ground_toilet
+                entity_id: input_boolean.led_control_dark_ground_toilet
                 state: 'on'
               then:
                 service: script.do_nothing
@@ -777,7 +798,7 @@ automation:
                 service: script.do_nothing
             - if:
                 condition: state
-                entity_id: input_boolean.curtain_control_when_dark_outdoor_ground_toilet
+                entity_id: input_boolean.curtain_control_dark_ground_toilet
                 state: 'on'
               then:
                 service: script.do_nothing
@@ -878,9 +899,11 @@ automation:
       motion_str: group.ground_toilet_motion_group
       motion_on_ratio_for_x_min_str: sensor.ground_toilet_motion_on_ratio_for_last_4_minutes
       motion_on_ratio_for_2x_min_str: sensor.ground_toilet_motion_on_ratio_for_last_8_minutes
-      room_type: toilet
-      sleep_time: input_boolean.master_room_sleep_time
+      sleep_time: input_boolean.always_off_constant
       turn_to_outside_when_no_motion: 'yes'
+      inside_to_outside_timeout: 300
+      sleep_to_outside_timesout: 3600
+      inside_to_sleep_timeout: 1800
 input_select:
   ground_toilet_scene:
     name: Ground Toilet Scene
@@ -914,48 +937,63 @@ sensor:
     minutes: '8'
   end: '{{ (now() | as_timestamp) | as_datetime | as_local }}'
 input_boolean:
-  master_room_sleep_time:
-    name: Master Room Sleep Time
   ground_toilet_heating_override:
     name: Ground Toilet Heating Override
     initial: 'off'
   curtain_control_when_left_ground_toilet:
     name: Curtain Control When Left Ground Toilet
     initial: 'off'
-  ceiling_light_control_in_hot_sunshine_ground_toilet:
-    name: Ceiling Light Control In Hot Sunshine Ground Toilet
+  ceiling_light_control_bright_morning_ground_toilet:
+    name: Ceiling Light Control Bright Morning Ground Toilet
     initial: 'off'
-  lamp_control_in_hot_sunshine_ground_toilet:
-    name: Lamp Control In Hot Sunshine Ground Toilet
+  lamp_control_bright_morning_ground_toilet:
+    name: Lamp Control Bright Morning Ground Toilet
     initial: 'off'
-  led_control_in_hot_sunshine_ground_toilet:
-    name: Led Control In Hot Sunshine Ground Toilet
+  led_control_bright_morning_ground_toilet:
+    name: Led Control Bright Morning Ground Toilet
     initial: 'off'
-  curtain_control_in_hot_sunshine_ground_toilet:
-    name: Curtain Control In Hot Sunshine Ground Toilet
+  curtain_control_bright_morning_ground_toilet:
+    name: Curtain Control Bright Morning Ground Toilet
     initial: 'off'
-  ceiling_light_control_when_bright_outdoor_ground_toilet:
-    name: Ceiling Light Control When Bright Outdoor Ground Toilet
-  lamp_control_when_bright_outdoor_ground_toilet:
-    name: Lamp Control When Bright Outdoor Ground Toilet
+  ceiling_light_control_bright_afternoon_ground_toilet:
+    name: Ceiling Light Control Bright Afternoon Ground Toilet
+  lamp_control_bright_afternoon_ground_toilet:
+    name: Lamp Control Bright Afternoon Ground Toilet
     initial: 'off'
-  led_control_when_bright_outdoor_ground_toilet:
-    name: Led Control When Bright Outdoor Ground Toilet
+  led_control_bright_afternoon_ground_toilet:
+    name: Led Control Bright Afternoon Ground Toilet
     initial: 'off'
-  curtain_control_when_bright_outdoor_ground_toilet:
-    name: Curtain Control When Bright Outdoor Ground Toilet
+  curtain_control_bright_afternoon_ground_toilet:
+    name: Curtain Control Bright Afternoon Ground Toilet
     initial: 'off'
-  ceiling_light_control_when_dark_outdoor_ground_toilet:
-    name: Ceiling Light Control When Dark Outdoor Ground Toilet
-  lamp_control_when_dark_outdoor_ground_toilet:
-    name: Lamp Control When Dark Outdoor Ground Toilet
+  ceiling_light_control_dark_ground_toilet:
+    name: Ceiling Light Control Dark Ground Toilet
+  lamp_control_dark_ground_toilet:
+    name: Lamp Control Dark Ground Toilet
     initial: 'off'
-  led_control_when_dark_outdoor_ground_toilet:
-    name: Led Control When Dark Outdoor Ground Toilet
+  led_control_dark_ground_toilet:
+    name: Led Control Dark Ground Toilet
     initial: 'off'
-  curtain_control_when_dark_outdoor_ground_toilet:
-    name: Curtain Control When Dark Outdoor Ground Toilet
+  curtain_control_dark_ground_toilet:
+    name: Curtain Control Dark Ground Toilet
     initial: 'off'
+input_datetime:
+  morning_start_time_ground_toilet:
+    name: Morning Start Time Ground Toilet
+    has_date: false
+    has_time: true
+  morning_end_time_ground_toilet:
+    name: Morning End Time Ground Toilet
+    has_date: false
+    has_time: true
+  afternoon_start_time_ground_toilet:
+    name: Afternoon Start Time Ground Toilet
+    has_date: false
+    has_time: true
+  afternoon_end_time_ground_toilet:
+    name: Afternoon End Time Ground Toilet
+    has_date: false
+    has_time: true
 switch:
 - platform: group
   name: Ground Toilet Wall Switch 1
@@ -1040,8 +1078,9 @@ group:
   ground_toilet_auto_gen_automations:
     name: Ground Toilet Auto Gen Automations
     entities:
-    - input_boolean.ceiling_light_control_when_bright_outdoor_ground_toilet
-    - input_boolean.ceiling_light_control_when_dark_outdoor_ground_toilet
+    - input_boolean.ceiling_light_control_bright_morning_ground_toilet
+    - input_boolean.ceiling_light_control_bright_afternoon_ground_toilet
+    - input_boolean.ceiling_light_control_dark_ground_toilet
     - automation.zl_0t_ceiling_lights_on_or_open_curtains_if_entering_to_room_ground_toilet
     - automation.zl_0t_lights_off_if_no_person_ground_toilet
     - automation.zl_0t_disable_entering_lights_on_automation_if_any_people_are_in_the_room_ground_toilet
@@ -1058,3 +1097,7 @@ group:
     - switch.0x00158d0005435643_wireless_1
     - switch.0x00158d0005435643_wireless_2
     - switch.adaptive_lighting_sleep_mode_ground_toilet
+    - input_datetime.morning_start_time_ground_toilet
+    - input_datetime.morning_end_time_ground_toilet
+    - input_datetime.afternoon_start_time_ground_toilet
+    - input_datetime.afternoon_end_time_ground_toilet

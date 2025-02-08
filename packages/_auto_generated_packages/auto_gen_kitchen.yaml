@@ -34,20 +34,36 @@ automation:
     data:
       room_scene_select: input_select.kitchen_scene
       scene: Idle
-  - if:
-    - condition: numeric_state
-      entity_id: sensor.met_office_cambridge_city_airport_temperature_3_hourly
-      above: '15'
-    - condition: time
-      after: '13:00:00'
-      before: '21:00:00'
-    - condition: template
-      value_template: '{{ now().month > 4 and now().month < 9 }}'
-    - condition: state
-      entity_id: input_boolean.always_on_constant
-      state: 'on'
+  - alias: If it is bright morning
+    if:
+    - alias: Bright morning
+      condition: and
+      conditions:
+      - condition: or
+        conditions:
+        - condition: numeric_state
+          entity_id: sensor.living_room_light_sensor
+          above: 100
+        - condition: state
+          entity_id: sensor.living_room_light_sensor
+          state:
+          - unavailable
+          - unknown
+      - condition: or
+        conditions:
+        - condition: state
+          entity_id: sun.sun
+          state: above_horizon
+        - condition: state
+          entity_id: sun.sun
+          state:
+          - unavailable
+          - unknown
+      - condition: time
+        after: input_datetime.morning_start_time_kitchen
+        before: input_datetime.morning_end_time_kitchen
     then:
-      alias: Lights on in hot sunshine
+      alias: States when bright morning
       if:
         condition: state
         entity_id: input_boolean.always_on_constant
@@ -57,7 +73,7 @@ automation:
         - parallel:
           - if:
               condition: state
-              entity_id: input_boolean.ceiling_light_control_in_hot_sunshine_kitchen
+              entity_id: input_boolean.ceiling_light_control_bright_morning_kitchen
               state: 'on'
             then:
               alias: Turn light.kitchen_ceiling_light light.kitchen_dining_light state=on
@@ -83,7 +99,7 @@ automation:
                 - light.kitchen_dining_light
           - if:
               condition: state
-              entity_id: input_boolean.lamp_control_in_hot_sunshine_kitchen
+              entity_id: input_boolean.lamp_control_bright_morning_kitchen
               state: 'on'
             then:
               service: script.do_nothing
@@ -91,7 +107,7 @@ automation:
               service: script.do_nothing
           - if:
               condition: state
-              entity_id: input_boolean.led_control_in_hot_sunshine_kitchen
+              entity_id: input_boolean.led_control_bright_morning_kitchen
               state: 'on'
             then:
               alias: Turn switch.kitchen_floor_led light.kitchen_tv_led state=on
@@ -117,7 +133,7 @@ automation:
                 - light.kitchen_tv_led
           - if:
               condition: state
-              entity_id: input_boolean.curtain_control_in_hot_sunshine_kitchen
+              entity_id: input_boolean.curtain_control_bright_morning_kitchen
               state: 'on'
             then:
               alias: Turn cover.kitchen_curtain state=on
@@ -158,8 +174,10 @@ automation:
                   entity_id:
                   - cover.kitchen_curtain
     else:
+      alias: If it is dark
       if:
-      - condition: and
+      - alias: Bright afternoon
+        condition: and
         conditions:
         - condition: or
           conditions:
@@ -181,8 +199,11 @@ automation:
             state:
             - unavailable
             - unknown
+        - condition: time
+          after: input_datetime.afternoon_start_time_kitchen
+          before: input_datetime.afternoon_end_time_kitchen
       then:
-        alias: Lights on when bright outdoor
+        alias: States when bright afternoon
         if:
           condition: state
           entity_id: input_boolean.always_on_constant
@@ -192,7 +213,7 @@ automation:
           - parallel:
             - if:
                 condition: state
-                entity_id: input_boolean.ceiling_light_control_when_bright_outdoor_kitchen
+                entity_id: input_boolean.ceiling_light_control_bright_afternoon_kitchen
                 state: 'on'
               then:
                 alias: Turn light.kitchen_ceiling_light light.kitchen_dining_light state=on
@@ -218,7 +239,7 @@ automation:
                   - light.kitchen_dining_light
             - if:
                 condition: state
-                entity_id: input_boolean.lamp_control_when_bright_outdoor_kitchen
+                entity_id: input_boolean.lamp_control_bright_afternoon_kitchen
                 state: 'on'
               then:
                 service: script.do_nothing
@@ -226,7 +247,7 @@ automation:
                 service: script.do_nothing
             - if:
                 condition: state
-                entity_id: input_boolean.led_control_when_bright_outdoor_kitchen
+                entity_id: input_boolean.led_control_bright_afternoon_kitchen
                 state: 'on'
               then:
                 alias: Turn switch.kitchen_floor_led light.kitchen_tv_led state=on
@@ -252,7 +273,7 @@ automation:
                   - light.kitchen_tv_led
             - if:
                 condition: state
-                entity_id: input_boolean.curtain_control_when_bright_outdoor_kitchen
+                entity_id: input_boolean.curtain_control_bright_afternoon_kitchen
                 state: 'on'
               then:
                 alias: Turn cover.kitchen_curtain state=on
@@ -293,7 +314,7 @@ automation:
                     entity_id:
                     - cover.kitchen_curtain
       else:
-        alias: Lights on when dark outdoor
+        alias: States when dark
         if:
           condition: state
           entity_id: input_boolean.always_on_constant
@@ -303,7 +324,7 @@ automation:
           - parallel:
             - if:
                 condition: state
-                entity_id: input_boolean.ceiling_light_control_when_dark_outdoor_kitchen
+                entity_id: input_boolean.ceiling_light_control_dark_kitchen
                 state: 'on'
               then:
                 alias: Turn light.kitchen_ceiling_light light.kitchen_dining_light state=on
@@ -329,7 +350,7 @@ automation:
                   - light.kitchen_dining_light
             - if:
                 condition: state
-                entity_id: input_boolean.lamp_control_when_dark_outdoor_kitchen
+                entity_id: input_boolean.lamp_control_dark_kitchen
                 state: 'on'
               then:
                 service: script.do_nothing
@@ -337,7 +358,7 @@ automation:
                 service: script.do_nothing
             - if:
                 condition: state
-                entity_id: input_boolean.led_control_when_dark_outdoor_kitchen
+                entity_id: input_boolean.led_control_dark_kitchen
                 state: 'on'
               then:
                 alias: Turn switch.kitchen_floor_led light.kitchen_tv_led state=on
@@ -363,7 +384,7 @@ automation:
                   - light.kitchen_tv_led
             - if:
                 condition: state
-                entity_id: input_boolean.curtain_control_when_dark_outdoor_kitchen
+                entity_id: input_boolean.curtain_control_dark_kitchen
                 state: 'on'
               then:
                 alias: Turn cover.kitchen_curtain state=on
@@ -1034,9 +1055,9 @@ automation:
     - conditions:
       - condition: state
         entity_id: input_select.kitchen_scene
-        state: Lights on in hot sunshine
+        state: States when bright morning
       sequence:
-        alias: Lights on in hot sunshine
+        alias: States when bright morning
         if:
           condition: state
           entity_id: input_boolean.always_on_constant
@@ -1046,7 +1067,7 @@ automation:
           - parallel:
             - if:
                 condition: state
-                entity_id: input_boolean.ceiling_light_control_in_hot_sunshine_kitchen
+                entity_id: input_boolean.ceiling_light_control_bright_morning_kitchen
                 state: 'on'
               then:
                 alias: Turn light.kitchen_ceiling_light light.kitchen_dining_light state=on
@@ -1072,7 +1093,7 @@ automation:
                   - light.kitchen_dining_light
             - if:
                 condition: state
-                entity_id: input_boolean.lamp_control_in_hot_sunshine_kitchen
+                entity_id: input_boolean.lamp_control_bright_morning_kitchen
                 state: 'on'
               then:
                 service: script.do_nothing
@@ -1080,7 +1101,7 @@ automation:
                 service: script.do_nothing
             - if:
                 condition: state
-                entity_id: input_boolean.led_control_in_hot_sunshine_kitchen
+                entity_id: input_boolean.led_control_bright_morning_kitchen
                 state: 'on'
               then:
                 alias: Turn switch.kitchen_floor_led light.kitchen_tv_led state=on
@@ -1106,7 +1127,7 @@ automation:
                   - light.kitchen_tv_led
             - if:
                 condition: state
-                entity_id: input_boolean.curtain_control_in_hot_sunshine_kitchen
+                entity_id: input_boolean.curtain_control_bright_morning_kitchen
                 state: 'on'
               then:
                 alias: Turn cover.kitchen_curtain state=on
@@ -1149,9 +1170,9 @@ automation:
     - conditions:
       - condition: state
         entity_id: input_select.kitchen_scene
-        state: Lights on when bright outdoor
+        state: States when bright afternoon
       sequence:
-        alias: Lights on when bright outdoor
+        alias: States when bright afternoon
         if:
           condition: state
           entity_id: input_boolean.always_on_constant
@@ -1161,7 +1182,7 @@ automation:
           - parallel:
             - if:
                 condition: state
-                entity_id: input_boolean.ceiling_light_control_when_bright_outdoor_kitchen
+                entity_id: input_boolean.ceiling_light_control_bright_afternoon_kitchen
                 state: 'on'
               then:
                 alias: Turn light.kitchen_ceiling_light light.kitchen_dining_light state=on
@@ -1187,7 +1208,7 @@ automation:
                   - light.kitchen_dining_light
             - if:
                 condition: state
-                entity_id: input_boolean.lamp_control_when_bright_outdoor_kitchen
+                entity_id: input_boolean.lamp_control_bright_afternoon_kitchen
                 state: 'on'
               then:
                 service: script.do_nothing
@@ -1195,7 +1216,7 @@ automation:
                 service: script.do_nothing
             - if:
                 condition: state
-                entity_id: input_boolean.led_control_when_bright_outdoor_kitchen
+                entity_id: input_boolean.led_control_bright_afternoon_kitchen
                 state: 'on'
               then:
                 alias: Turn switch.kitchen_floor_led light.kitchen_tv_led state=on
@@ -1221,7 +1242,7 @@ automation:
                   - light.kitchen_tv_led
             - if:
                 condition: state
-                entity_id: input_boolean.curtain_control_when_bright_outdoor_kitchen
+                entity_id: input_boolean.curtain_control_bright_afternoon_kitchen
                 state: 'on'
               then:
                 alias: Turn cover.kitchen_curtain state=on
@@ -1264,9 +1285,9 @@ automation:
     - conditions:
       - condition: state
         entity_id: input_select.kitchen_scene
-        state: Lights on when dark outdoor
+        state: States when dark
       sequence:
-        alias: Lights on when dark outdoor
+        alias: States when dark
         if:
           condition: state
           entity_id: input_boolean.always_on_constant
@@ -1276,7 +1297,7 @@ automation:
           - parallel:
             - if:
                 condition: state
-                entity_id: input_boolean.ceiling_light_control_when_dark_outdoor_kitchen
+                entity_id: input_boolean.ceiling_light_control_dark_kitchen
                 state: 'on'
               then:
                 alias: Turn light.kitchen_ceiling_light light.kitchen_dining_light state=on
@@ -1302,7 +1323,7 @@ automation:
                   - light.kitchen_dining_light
             - if:
                 condition: state
-                entity_id: input_boolean.lamp_control_when_dark_outdoor_kitchen
+                entity_id: input_boolean.lamp_control_dark_kitchen
                 state: 'on'
               then:
                 service: script.do_nothing
@@ -1310,7 +1331,7 @@ automation:
                 service: script.do_nothing
             - if:
                 condition: state
-                entity_id: input_boolean.led_control_when_dark_outdoor_kitchen
+                entity_id: input_boolean.led_control_dark_kitchen
                 state: 'on'
               then:
                 alias: Turn switch.kitchen_floor_led light.kitchen_tv_led state=on
@@ -1336,7 +1357,7 @@ automation:
                   - light.kitchen_tv_led
             - if:
                 condition: state
-                entity_id: input_boolean.curtain_control_when_dark_outdoor_kitchen
+                entity_id: input_boolean.curtain_control_dark_kitchen
                 state: 'on'
               then:
                 alias: Turn cover.kitchen_curtain state=on
@@ -1505,9 +1526,11 @@ automation:
       motion_str: group.kitchen_motion_group
       motion_on_ratio_for_x_min_str: sensor.kitchen_motion_on_ratio_for_last_4_minutes
       motion_on_ratio_for_2x_min_str: sensor.kitchen_motion_on_ratio_for_last_8_minutes
-      room_type: common_area
-      sleep_time: input_boolean.master_room_sleep_time
+      sleep_time: input_boolean.always_off_constant
       turn_to_outside_when_no_motion: 'no'
+      inside_to_outside_timeout: 300
+      sleep_to_outside_timesout: 3600
+      inside_to_sleep_timeout: 1800
 - alias: ZTV-KC Reset Picture Mode When Turning on TV-Kitchen
   trigger:
   - platform: state
@@ -1644,40 +1667,55 @@ sensor:
     minutes: '8'
   end: '{{ (now() | as_timestamp) | as_datetime | as_local }}'
 input_boolean:
-  master_room_sleep_time:
-    name: Master Room Sleep Time
   kitchen_heating_override:
     name: Kitchen Heating Override
     initial: 'off'
   curtain_control_when_left_kitchen:
     name: Curtain Control When Left Kitchen
-  ceiling_light_control_in_hot_sunshine_kitchen:
-    name: Ceiling Light Control In Hot Sunshine Kitchen
-  lamp_control_in_hot_sunshine_kitchen:
-    name: Lamp Control In Hot Sunshine Kitchen
+  ceiling_light_control_bright_morning_kitchen:
+    name: Ceiling Light Control Bright Morning Kitchen
+  lamp_control_bright_morning_kitchen:
+    name: Lamp Control Bright Morning Kitchen
     initial: 'off'
-  led_control_in_hot_sunshine_kitchen:
-    name: Led Control In Hot Sunshine Kitchen
-  curtain_control_in_hot_sunshine_kitchen:
-    name: Curtain Control In Hot Sunshine Kitchen
-  ceiling_light_control_when_bright_outdoor_kitchen:
-    name: Ceiling Light Control When Bright Outdoor Kitchen
-  lamp_control_when_bright_outdoor_kitchen:
-    name: Lamp Control When Bright Outdoor Kitchen
+  led_control_bright_morning_kitchen:
+    name: Led Control Bright Morning Kitchen
+  curtain_control_bright_morning_kitchen:
+    name: Curtain Control Bright Morning Kitchen
+  ceiling_light_control_bright_afternoon_kitchen:
+    name: Ceiling Light Control Bright Afternoon Kitchen
+  lamp_control_bright_afternoon_kitchen:
+    name: Lamp Control Bright Afternoon Kitchen
     initial: 'off'
-  led_control_when_bright_outdoor_kitchen:
-    name: Led Control When Bright Outdoor Kitchen
-  curtain_control_when_bright_outdoor_kitchen:
-    name: Curtain Control When Bright Outdoor Kitchen
-  ceiling_light_control_when_dark_outdoor_kitchen:
-    name: Ceiling Light Control When Dark Outdoor Kitchen
-  lamp_control_when_dark_outdoor_kitchen:
-    name: Lamp Control When Dark Outdoor Kitchen
+  led_control_bright_afternoon_kitchen:
+    name: Led Control Bright Afternoon Kitchen
+  curtain_control_bright_afternoon_kitchen:
+    name: Curtain Control Bright Afternoon Kitchen
+  ceiling_light_control_dark_kitchen:
+    name: Ceiling Light Control Dark Kitchen
+  lamp_control_dark_kitchen:
+    name: Lamp Control Dark Kitchen
     initial: 'off'
-  led_control_when_dark_outdoor_kitchen:
-    name: Led Control When Dark Outdoor Kitchen
-  curtain_control_when_dark_outdoor_kitchen:
-    name: Curtain Control When Dark Outdoor Kitchen
+  led_control_dark_kitchen:
+    name: Led Control Dark Kitchen
+  curtain_control_dark_kitchen:
+    name: Curtain Control Dark Kitchen
+input_datetime:
+  morning_start_time_kitchen:
+    name: Morning Start Time Kitchen
+    has_date: false
+    has_time: true
+  morning_end_time_kitchen:
+    name: Morning End Time Kitchen
+    has_date: false
+    has_time: true
+  afternoon_start_time_kitchen:
+    name: Afternoon Start Time Kitchen
+    has_date: false
+    has_time: true
+  afternoon_end_time_kitchen:
+    name: Afternoon End Time Kitchen
+    has_date: false
+    has_time: true
 switch:
 - platform: group
   name: Kitchen Extractor Wall Switch 1
@@ -1842,15 +1880,15 @@ group:
     name: Kitchen Auto Gen Automations
     entities:
     - input_boolean.curtain_control_when_left_kitchen
-    - input_boolean.ceiling_light_control_in_hot_sunshine_kitchen
-    - input_boolean.led_control_in_hot_sunshine_kitchen
-    - input_boolean.curtain_control_in_hot_sunshine_kitchen
-    - input_boolean.ceiling_light_control_when_bright_outdoor_kitchen
-    - input_boolean.led_control_when_bright_outdoor_kitchen
-    - input_boolean.curtain_control_when_bright_outdoor_kitchen
-    - input_boolean.ceiling_light_control_when_dark_outdoor_kitchen
-    - input_boolean.led_control_when_dark_outdoor_kitchen
-    - input_boolean.curtain_control_when_dark_outdoor_kitchen
+    - input_boolean.ceiling_light_control_bright_morning_kitchen
+    - input_boolean.led_control_bright_morning_kitchen
+    - input_boolean.curtain_control_bright_morning_kitchen
+    - input_boolean.ceiling_light_control_bright_afternoon_kitchen
+    - input_boolean.led_control_bright_afternoon_kitchen
+    - input_boolean.curtain_control_bright_afternoon_kitchen
+    - input_boolean.ceiling_light_control_dark_kitchen
+    - input_boolean.led_control_dark_kitchen
+    - input_boolean.curtain_control_dark_kitchen
     - automation.zlb_kc_flex_wall_switch_on_postion_2_automatically_turn_on_the_wall_switch_back_when_turned_off_kitchen
     - automation.zl_kc_ceiling_lights_on_or_open_curtains_if_entering_to_room_kitchen
     - automation.zl_kc_lights_off_if_no_person_kitchen
@@ -1880,3 +1918,7 @@ group:
     - switch.0x04cf8cdf3c7ad647_wireless_2
     - switch.0x04cf8cdf3c7ad647_wireless_3
     - switch.adaptive_lighting_sleep_mode_kitchen
+    - input_datetime.morning_start_time_kitchen
+    - input_datetime.morning_end_time_kitchen
+    - input_datetime.afternoon_start_time_kitchen
+    - input_datetime.afternoon_end_time_kitchen

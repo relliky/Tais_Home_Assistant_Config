@@ -197,9 +197,11 @@ automation:
       motion_str: group.corridor_motion_group
       motion_on_ratio_for_x_min_str: sensor.corridor_motion_on_ratio_for_last_4_minutes
       motion_on_ratio_for_2x_min_str: sensor.corridor_motion_on_ratio_for_last_8_minutes
-      room_type: landing
-      sleep_time: input_boolean.master_room_sleep_time
+      sleep_time: input_boolean.always_off_constant
       turn_to_outside_when_no_motion: 'no'
+      inside_to_outside_timeout: 60
+      sleep_to_outside_timesout: 3600
+      inside_to_sleep_timeout: 1800
 input_select:
   corridor_occupancy:
     name: Corridor Occupancy
@@ -226,48 +228,63 @@ sensor:
     minutes: '8'
   end: '{{ (now() | as_timestamp) | as_datetime | as_local }}'
 input_boolean:
-  master_room_sleep_time:
-    name: Master Room Sleep Time
   corridor_heating_override:
     name: Corridor Heating Override
     initial: 'off'
   curtain_control_when_left_corridor:
     name: Curtain Control When Left Corridor
     initial: 'off'
-  ceiling_light_control_in_hot_sunshine_corridor:
-    name: Ceiling Light Control In Hot Sunshine Corridor
+  ceiling_light_control_bright_morning_corridor:
+    name: Ceiling Light Control Bright Morning Corridor
     initial: 'off'
-  lamp_control_in_hot_sunshine_corridor:
-    name: Lamp Control In Hot Sunshine Corridor
+  lamp_control_bright_morning_corridor:
+    name: Lamp Control Bright Morning Corridor
     initial: 'off'
-  led_control_in_hot_sunshine_corridor:
-    name: Led Control In Hot Sunshine Corridor
+  led_control_bright_morning_corridor:
+    name: Led Control Bright Morning Corridor
     initial: 'off'
-  curtain_control_in_hot_sunshine_corridor:
-    name: Curtain Control In Hot Sunshine Corridor
+  curtain_control_bright_morning_corridor:
+    name: Curtain Control Bright Morning Corridor
     initial: 'off'
-  ceiling_light_control_when_bright_outdoor_corridor:
-    name: Ceiling Light Control When Bright Outdoor Corridor
-  lamp_control_when_bright_outdoor_corridor:
-    name: Lamp Control When Bright Outdoor Corridor
+  ceiling_light_control_bright_afternoon_corridor:
+    name: Ceiling Light Control Bright Afternoon Corridor
+  lamp_control_bright_afternoon_corridor:
+    name: Lamp Control Bright Afternoon Corridor
     initial: 'off'
-  led_control_when_bright_outdoor_corridor:
-    name: Led Control When Bright Outdoor Corridor
+  led_control_bright_afternoon_corridor:
+    name: Led Control Bright Afternoon Corridor
     initial: 'off'
-  curtain_control_when_bright_outdoor_corridor:
-    name: Curtain Control When Bright Outdoor Corridor
+  curtain_control_bright_afternoon_corridor:
+    name: Curtain Control Bright Afternoon Corridor
     initial: 'off'
-  ceiling_light_control_when_dark_outdoor_corridor:
-    name: Ceiling Light Control When Dark Outdoor Corridor
-  lamp_control_when_dark_outdoor_corridor:
-    name: Lamp Control When Dark Outdoor Corridor
+  ceiling_light_control_dark_corridor:
+    name: Ceiling Light Control Dark Corridor
+  lamp_control_dark_corridor:
+    name: Lamp Control Dark Corridor
     initial: 'off'
-  led_control_when_dark_outdoor_corridor:
-    name: Led Control When Dark Outdoor Corridor
+  led_control_dark_corridor:
+    name: Led Control Dark Corridor
     initial: 'off'
-  curtain_control_when_dark_outdoor_corridor:
-    name: Curtain Control When Dark Outdoor Corridor
+  curtain_control_dark_corridor:
+    name: Curtain Control Dark Corridor
     initial: 'off'
+input_datetime:
+  morning_start_time_corridor:
+    name: Morning Start Time Corridor
+    has_date: false
+    has_time: true
+  morning_end_time_corridor:
+    name: Morning End Time Corridor
+    has_date: false
+    has_time: true
+  afternoon_start_time_corridor:
+    name: Afternoon Start Time Corridor
+    has_date: false
+    has_time: true
+  afternoon_end_time_corridor:
+    name: Afternoon End Time Corridor
+    has_date: false
+    has_time: true
 switch:
 - platform: group
   name: Ground Corridor Wall Switch 1
@@ -380,8 +397,9 @@ group:
   corridor_auto_gen_automations:
     name: Corridor Auto Gen Automations
     entities:
-    - input_boolean.ceiling_light_control_when_bright_outdoor_corridor
-    - input_boolean.ceiling_light_control_when_dark_outdoor_corridor
+    - input_boolean.ceiling_light_control_bright_morning_corridor
+    - input_boolean.ceiling_light_control_bright_afternoon_corridor
+    - input_boolean.ceiling_light_control_dark_corridor
     - automation.zlb_cr_flex_wall_switch_on_postion_1_automatically_turn_on_the_wall_switch_back_when_turned_off_corridor
     - automation.zlb_cr_flex_wall_switch_on_postion_2_automatically_turn_on_the_wall_switch_back_when_turned_off_corridor
     - automation.zh_cr_heating_schedule_on_if_staying_in_the_room_corridor
@@ -398,3 +416,7 @@ group:
     - switch.0x00158d0005210fcf_wireless_1
     - switch.0x00158d0005210fcf_wireless_2
     - switch.adaptive_lighting_sleep_mode_corridor
+    - input_datetime.morning_start_time_corridor
+    - input_datetime.morning_end_time_corridor
+    - input_datetime.afternoon_start_time_corridor
+    - input_datetime.afternoon_end_time_corridor

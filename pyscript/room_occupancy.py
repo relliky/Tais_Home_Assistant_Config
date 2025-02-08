@@ -41,9 +41,11 @@ def room_occupancy_state_machine(occupancy_entity_str,
                                  motion_str,                                 
                                  motion_on_ratio_for_x_min_str,
                                  motion_on_ratio_for_2x_min_str,
-                                 room_type,
                                  sleep_time,
-                                 turn_to_outside_when_no_motion):
+                                 turn_to_outside_when_no_motion,
+                                 inside_to_sleep_timeout,
+                                 inside_to_outside_timeout,
+                                 sleep_to_outside_timesout):
     
     #percentage_for_largely_def = 0.4
     #percentage_for_fully_def   = 0.8
@@ -57,14 +59,18 @@ def room_occupancy_state_machine(occupancy_entity_str,
     motion_on_ratio_for_2x_min = float(state.get(motion_on_ratio_for_2x_min_str))/100
     motion_off_ratio_for_x_min = 1 - motion_on_ratio_for_x_min
     motion_off_ratio_for_2x_min= 1 - motion_on_ratio_for_2x_min
-    nxt_state                  = ''
+    nxt_state                  = 'Uninitialized_states'
     stay_inside_for            = get_sec_of_cur_state(occupancy_entity_str) if cur_state == 'Stayed Inside' else 0
-    now_is_sleep_time          = state.get(sleep_time) == 'on' and room_type == 'bedroom'
-    normal_timeout             = 1 if room_type == 'landing' else 5 # other rooms timeout at 5 minutes 
+    now_is_sleep_time          = state.get(sleep_time) == 'on'
     
+    # Timeouts   
+    inside_to_sleep_timeout    = int(inside_to_sleep_timeout) 
+    inside_to_outside_timeout  = int(inside_to_outside_timeout) 
+    sleep_to_outside_timesout  = int(sleep_to_outside_timesout)  
+
     # Outside -> xxx
     if cur_state == 'Outside':
-      
+
         # c11. Outside -> In Sleep
         # People can sometimes not moving for a while and go to outside state
         # Make them back to In Sleep state as long as they moved once
@@ -76,13 +82,13 @@ def room_occupancy_state_machine(occupancy_entity_str,
         #     currently on
         elif motion == 'on':
             nxt_state = "Just Entered"
-            
+
         # c1. Outside      -> Outside: 
         #     currently off for 5 Min & previously off in [0, 2x] 
         #     OR all other condition
         else:
             nxt_state = 'Outside'
-            
+
     # Just Entered -> xxx    
     elif cur_state == 'Just Entered':      
         
@@ -95,7 +101,7 @@ def room_occupancy_state_machine(occupancy_entity_str,
             
         # c3. Just Entered -> Outside:
         #     (currently off for <normal_timeout> minutes) & largely off in [0,2x]
-        elif motion_off_for >= normal_timeout*60 and \
+        elif motion_off_for >= inside_to_sleep_timeout and \
              motion_off_ratio_for_2x_min >= 0.5:
                nxt_state = "Outside"
         
@@ -115,14 +121,13 @@ def room_occupancy_state_machine(occupancy_entity_str,
         # c7. Stayed Inside -> In Sleep:
         #     People is inside the room for an hour in the night time 
         #     would assume they are in bed and ready for sleep
-        if room_type == 'bedroom' and \
-           stay_inside_for > 30*60 and \
+        if stay_inside_for > inside_to_sleep_timeout and \
            now_is_sleep_time:
             nxt_state = "In Sleep"
                     
         # c5. Stayed Inside -> Outside:
         #     (currently off for  <normal_timeout> minutes) & largely off in [0,2x]
-        elif motion_off_for >=  normal_timeout*60 and \
+        elif motion_off_for >=  inside_to_outside_timeout and \
              motion_off_ratio_for_2x_min >= 0.7:
             nxt_state = "Outside"
 
@@ -138,22 +143,17 @@ def room_occupancy_state_machine(occupancy_entity_str,
 
     # In Sleep -> xxx    
     elif cur_state == 'In Sleep':       
-        
+
         # c7. In Sleep -> Stayed Inside:
-        #     Assuming people will wake up once it is not sleep time anymore
+        #     Assuming people will wake up once it is not sleep time anymore, living the next FSM transition to handle inside->outside
         if not now_is_sleep_time:
             nxt_state = "Stayed Inside"
 
-        # c8. In Sleep -> Outside:
+        # c8. In Sleep -> Outside in sleep time:
         #     No motions for an hour means people are outside during sleep time
-        elif motion_off_for >= 60*60:
+        elif motion_off_for > sleep_to_outside_timesout:
             nxt_state = "Outside"
 
-        # special case when using only use occupancy sensor to accurately detect when people are outside
-        elif turn_to_outside_when_no_motion == 'yes' and \
-             motion == 'off':
-               nxt_state = "Outside"
-               
         # c9. In Sleep -> In Sleep:
         else:    
             nxt_state = "In Sleep"
@@ -163,22 +163,29 @@ def room_occupancy_state_machine(occupancy_entity_str,
 
     # Log I/O
     
-    #log.info("==========================================================================================================================================================================================")    
-    #log.info("motion_str: "                   + str(motion_str             ))    
-    #log.info("room_type                   :" + str(room_type              ))    
-    #log.info("cur_state                   :" + str(cur_state              ))    
-    #log.info("motion                      :" + str(motion                 ))    
-    #log.info("motion_state_lasts_for      :" + str(motion_state_lasts_for ))    
-    #log.info("motion_off_for              :" + str(motion_off_for         ))    
-    #log.info("motion_on_ratio_for_x_min   :" + str(motion_on_ratio_for_x_min ))    
-    #log.info("motion_on_ratio_for_2x_min  :" + str(motion_on_ratio_for_2x_min))    
-    #log.info("motion_off_ratio_for_x_min  :" + str(motion_off_ratio_for_x_min ))    
-    #log.info("motion_off_ratio_for_2x_min :" + str(motion_off_ratio_for_2x_min))    
-    #log.info("stay_inside_for             :" + str(stay_inside_for        ))    
-    #log.info("now_is_sleep_time           :" + str(now_is_sleep_time      ))    
-    #log.info("nxt_state                   :" + str(nxt_state              ))    
-    
-    
+#    log.info("==========================================================================================================================================================================================")    
+#    log.info("motion_str                     :" + str(motion_str             ))    
+#    log.info("cur_state                      :" + str(cur_state              ))    
+#    log.info("motion                         :" + str(motion                 ))    
+#    log.info("motion_state_lasts_for         :" + str(motion_state_lasts_for ))    
+#    log.info("motion_off_for                 :" + str(motion_off_for         ))    
+#    log.info("motion_on_ratio_for_x_min      :" + str(motion_on_ratio_for_x_min ))    
+#    log.info("motion_on_ratio_for_2x_min     :" + str(motion_on_ratio_for_2x_min))    
+#    log.info("motion_off_ratio_for_x_min     :" + str(motion_off_ratio_for_x_min ))    
+#    log.info("motion_off_ratio_for_2x_min    :" + str(motion_off_ratio_for_2x_min))    
+#    log.info("stay_inside_for                :" + str(stay_inside_for        ))    
+#    log.info("now_is_sleep_time              :" + str(now_is_sleep_time      ))    
+#    log.info("sleep_time                     :" + str(sleep_time                     ))    
+#    log.info("turn_to_outside_when_no_motion :" + str(turn_to_outside_when_no_motion ))    
+#    log.info("inside_to_sleep_timeout        :" + str(inside_to_sleep_timeout        ))    
+#    log.info("inside_to_outside_timeout      :" + str(inside_to_outside_timeout      ))    
+#    log.info("sleep_to_outside_timesout      :" + str(sleep_to_outside_timesout      ))    
+#    log.info("nxt_state                      :" + str(nxt_state              ))    
+#    log.info("==========================================================================================================================================================================================")    
+
+
+
+
     
 #room_occupancy_state_machine(  occupancy_entity_str=input_select.en_suite_room_occupancy,
 #                               motion_str=group.en_suite_room_motion,

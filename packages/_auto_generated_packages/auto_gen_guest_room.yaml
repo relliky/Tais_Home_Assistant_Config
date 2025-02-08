@@ -34,20 +34,36 @@ automation:
     data:
       room_scene_select: input_select.guest_room_scene
       scene: Idle
-  - if:
-    - condition: numeric_state
-      entity_id: sensor.met_office_cambridge_city_airport_temperature_3_hourly
-      above: '18'
-    - condition: time
-      after: 06:00:00
-      before: '16:00:00'
-    - condition: template
-      value_template: '{{ now().month > 4 and now().month < 9 }}'
-    - condition: state
-      entity_id: input_boolean.always_on_constant
-      state: 'on'
+  - alias: If it is bright morning
+    if:
+    - alias: Bright morning
+      condition: and
+      conditions:
+      - condition: or
+        conditions:
+        - condition: numeric_state
+          entity_id: sensor.living_room_light_sensor
+          above: 100
+        - condition: state
+          entity_id: sensor.living_room_light_sensor
+          state:
+          - unavailable
+          - unknown
+      - condition: or
+        conditions:
+        - condition: state
+          entity_id: sun.sun
+          state: above_horizon
+        - condition: state
+          entity_id: sun.sun
+          state:
+          - unavailable
+          - unknown
+      - condition: time
+        after: input_datetime.morning_start_time_guest_room
+        before: input_datetime.morning_end_time_guest_room
     then:
-      alias: Lights on in hot sunshine
+      alias: States when bright morning
       if:
         condition: state
         entity_id: input_boolean.always_on_constant
@@ -57,7 +73,7 @@ automation:
         - parallel:
           - if:
               condition: state
-              entity_id: input_boolean.ceiling_light_control_in_hot_sunshine_guest_room
+              entity_id: input_boolean.ceiling_light_control_bright_morning_guest_room
               state: 'on'
             then:
               alias: Turn light.guest_room_ceiling_light state=on
@@ -81,7 +97,7 @@ automation:
                 - light.guest_room_ceiling_light
           - if:
               condition: state
-              entity_id: input_boolean.lamp_control_in_hot_sunshine_guest_room
+              entity_id: input_boolean.lamp_control_bright_morning_guest_room
               state: 'on'
             then:
               alias: Turn light.guest_room_lamp_1 light.guest_room_lamp_2 state=on
@@ -107,7 +123,7 @@ automation:
                 - light.guest_room_lamp_2
           - if:
               condition: state
-              entity_id: input_boolean.led_control_in_hot_sunshine_guest_room
+              entity_id: input_boolean.led_control_bright_morning_guest_room
               state: 'on'
             then:
               service: script.do_nothing
@@ -115,7 +131,7 @@ automation:
               service: script.do_nothing
           - if:
               condition: state
-              entity_id: input_boolean.curtain_control_in_hot_sunshine_guest_room
+              entity_id: input_boolean.curtain_control_bright_morning_guest_room
               state: 'on'
             then:
               alias: Turn cover.guest_room_curtain state=on
@@ -156,8 +172,10 @@ automation:
                   entity_id:
                   - cover.guest_room_curtain
     else:
+      alias: If it is dark
       if:
-      - condition: and
+      - alias: Bright afternoon
+        condition: and
         conditions:
         - condition: or
           conditions:
@@ -179,8 +197,11 @@ automation:
             state:
             - unavailable
             - unknown
+        - condition: time
+          after: input_datetime.afternoon_start_time_guest_room
+          before: input_datetime.afternoon_end_time_guest_room
       then:
-        alias: Lights on when bright outdoor
+        alias: States when bright afternoon
         if:
           condition: state
           entity_id: input_boolean.always_on_constant
@@ -190,7 +211,7 @@ automation:
           - parallel:
             - if:
                 condition: state
-                entity_id: input_boolean.ceiling_light_control_when_bright_outdoor_guest_room
+                entity_id: input_boolean.ceiling_light_control_bright_afternoon_guest_room
                 state: 'on'
               then:
                 alias: Turn light.guest_room_ceiling_light state=on
@@ -214,7 +235,7 @@ automation:
                   - light.guest_room_ceiling_light
             - if:
                 condition: state
-                entity_id: input_boolean.lamp_control_when_bright_outdoor_guest_room
+                entity_id: input_boolean.lamp_control_bright_afternoon_guest_room
                 state: 'on'
               then:
                 alias: Turn light.guest_room_lamp_1 light.guest_room_lamp_2 state=on
@@ -240,7 +261,7 @@ automation:
                   - light.guest_room_lamp_2
             - if:
                 condition: state
-                entity_id: input_boolean.led_control_when_bright_outdoor_guest_room
+                entity_id: input_boolean.led_control_bright_afternoon_guest_room
                 state: 'on'
               then:
                 service: script.do_nothing
@@ -248,7 +269,7 @@ automation:
                 service: script.do_nothing
             - if:
                 condition: state
-                entity_id: input_boolean.curtain_control_when_bright_outdoor_guest_room
+                entity_id: input_boolean.curtain_control_bright_afternoon_guest_room
                 state: 'on'
               then:
                 alias: Turn cover.guest_room_curtain state=on
@@ -289,7 +310,7 @@ automation:
                     entity_id:
                     - cover.guest_room_curtain
       else:
-        alias: Lights on when dark outdoor
+        alias: States when dark
         if:
           condition: state
           entity_id: input_boolean.always_on_constant
@@ -299,7 +320,7 @@ automation:
           - parallel:
             - if:
                 condition: state
-                entity_id: input_boolean.ceiling_light_control_when_dark_outdoor_guest_room
+                entity_id: input_boolean.ceiling_light_control_dark_guest_room
                 state: 'on'
               then:
                 alias: Turn light.guest_room_ceiling_light state=on
@@ -323,7 +344,7 @@ automation:
                   - light.guest_room_ceiling_light
             - if:
                 condition: state
-                entity_id: input_boolean.lamp_control_when_dark_outdoor_guest_room
+                entity_id: input_boolean.lamp_control_dark_guest_room
                 state: 'on'
               then:
                 alias: Turn light.guest_room_lamp_1 light.guest_room_lamp_2 state=on
@@ -349,7 +370,7 @@ automation:
                   - light.guest_room_lamp_2
             - if:
                 condition: state
-                entity_id: input_boolean.led_control_when_dark_outdoor_guest_room
+                entity_id: input_boolean.led_control_dark_guest_room
                 state: 'on'
               then:
                 service: script.do_nothing
@@ -357,7 +378,7 @@ automation:
                 service: script.do_nothing
             - if:
                 condition: state
-                entity_id: input_boolean.curtain_control_when_dark_outdoor_guest_room
+                entity_id: input_boolean.curtain_control_dark_guest_room
                 state: 'on'
               then:
                 alias: Turn cover.guest_room_curtain state=on
@@ -2101,9 +2122,9 @@ automation:
     - conditions:
       - condition: state
         entity_id: input_select.guest_room_scene
-        state: Lights on in hot sunshine
+        state: States when bright morning
       sequence:
-        alias: Lights on in hot sunshine
+        alias: States when bright morning
         if:
           condition: state
           entity_id: input_boolean.always_on_constant
@@ -2113,7 +2134,7 @@ automation:
           - parallel:
             - if:
                 condition: state
-                entity_id: input_boolean.ceiling_light_control_in_hot_sunshine_guest_room
+                entity_id: input_boolean.ceiling_light_control_bright_morning_guest_room
                 state: 'on'
               then:
                 alias: Turn light.guest_room_ceiling_light state=on
@@ -2137,7 +2158,7 @@ automation:
                   - light.guest_room_ceiling_light
             - if:
                 condition: state
-                entity_id: input_boolean.lamp_control_in_hot_sunshine_guest_room
+                entity_id: input_boolean.lamp_control_bright_morning_guest_room
                 state: 'on'
               then:
                 alias: Turn light.guest_room_lamp_1 light.guest_room_lamp_2 state=on
@@ -2163,7 +2184,7 @@ automation:
                   - light.guest_room_lamp_2
             - if:
                 condition: state
-                entity_id: input_boolean.led_control_in_hot_sunshine_guest_room
+                entity_id: input_boolean.led_control_bright_morning_guest_room
                 state: 'on'
               then:
                 service: script.do_nothing
@@ -2171,7 +2192,7 @@ automation:
                 service: script.do_nothing
             - if:
                 condition: state
-                entity_id: input_boolean.curtain_control_in_hot_sunshine_guest_room
+                entity_id: input_boolean.curtain_control_bright_morning_guest_room
                 state: 'on'
               then:
                 alias: Turn cover.guest_room_curtain state=on
@@ -2214,9 +2235,9 @@ automation:
     - conditions:
       - condition: state
         entity_id: input_select.guest_room_scene
-        state: Lights on when bright outdoor
+        state: States when bright afternoon
       sequence:
-        alias: Lights on when bright outdoor
+        alias: States when bright afternoon
         if:
           condition: state
           entity_id: input_boolean.always_on_constant
@@ -2226,7 +2247,7 @@ automation:
           - parallel:
             - if:
                 condition: state
-                entity_id: input_boolean.ceiling_light_control_when_bright_outdoor_guest_room
+                entity_id: input_boolean.ceiling_light_control_bright_afternoon_guest_room
                 state: 'on'
               then:
                 alias: Turn light.guest_room_ceiling_light state=on
@@ -2250,7 +2271,7 @@ automation:
                   - light.guest_room_ceiling_light
             - if:
                 condition: state
-                entity_id: input_boolean.lamp_control_when_bright_outdoor_guest_room
+                entity_id: input_boolean.lamp_control_bright_afternoon_guest_room
                 state: 'on'
               then:
                 alias: Turn light.guest_room_lamp_1 light.guest_room_lamp_2 state=on
@@ -2276,7 +2297,7 @@ automation:
                   - light.guest_room_lamp_2
             - if:
                 condition: state
-                entity_id: input_boolean.led_control_when_bright_outdoor_guest_room
+                entity_id: input_boolean.led_control_bright_afternoon_guest_room
                 state: 'on'
               then:
                 service: script.do_nothing
@@ -2284,7 +2305,7 @@ automation:
                 service: script.do_nothing
             - if:
                 condition: state
-                entity_id: input_boolean.curtain_control_when_bright_outdoor_guest_room
+                entity_id: input_boolean.curtain_control_bright_afternoon_guest_room
                 state: 'on'
               then:
                 alias: Turn cover.guest_room_curtain state=on
@@ -2327,9 +2348,9 @@ automation:
     - conditions:
       - condition: state
         entity_id: input_select.guest_room_scene
-        state: Lights on when dark outdoor
+        state: States when dark
       sequence:
-        alias: Lights on when dark outdoor
+        alias: States when dark
         if:
           condition: state
           entity_id: input_boolean.always_on_constant
@@ -2339,7 +2360,7 @@ automation:
           - parallel:
             - if:
                 condition: state
-                entity_id: input_boolean.ceiling_light_control_when_dark_outdoor_guest_room
+                entity_id: input_boolean.ceiling_light_control_dark_guest_room
                 state: 'on'
               then:
                 alias: Turn light.guest_room_ceiling_light state=on
@@ -2363,7 +2384,7 @@ automation:
                   - light.guest_room_ceiling_light
             - if:
                 condition: state
-                entity_id: input_boolean.lamp_control_when_dark_outdoor_guest_room
+                entity_id: input_boolean.lamp_control_dark_guest_room
                 state: 'on'
               then:
                 alias: Turn light.guest_room_lamp_1 light.guest_room_lamp_2 state=on
@@ -2389,7 +2410,7 @@ automation:
                   - light.guest_room_lamp_2
             - if:
                 condition: state
-                entity_id: input_boolean.led_control_when_dark_outdoor_guest_room
+                entity_id: input_boolean.led_control_dark_guest_room
                 state: 'on'
               then:
                 service: script.do_nothing
@@ -2397,7 +2418,7 @@ automation:
                 service: script.do_nothing
             - if:
                 condition: state
-                entity_id: input_boolean.curtain_control_when_dark_outdoor_guest_room
+                entity_id: input_boolean.curtain_control_dark_guest_room
                 state: 'on'
               then:
                 alias: Turn cover.guest_room_curtain state=on
@@ -2482,9 +2503,11 @@ automation:
       motion_str: group.guest_room_motion_group
       motion_on_ratio_for_x_min_str: sensor.guest_room_motion_on_ratio_for_last_4_minutes
       motion_on_ratio_for_2x_min_str: sensor.guest_room_motion_on_ratio_for_last_8_minutes
-      room_type: bedroom
       sleep_time: input_boolean.guest_room_sleep_time
       turn_to_outside_when_no_motion: 'no'
+      inside_to_outside_timeout: 300
+      sleep_to_outside_timesout: 3600
+      inside_to_sleep_timeout: 1800
 input_select:
   guest_room_scene:
     name: Guest Room Scene
@@ -2519,40 +2542,57 @@ sensor:
     minutes: '8'
   end: '{{ (now() | as_timestamp) | as_datetime | as_local }}'
 input_boolean:
-  guest_room_sleep_time:
-    name: Guest Room Sleep Time
   guest_room_heating_override:
     name: Guest Room Heating Override
     initial: 'off'
+  guest_room_sleep_time:
+    name: Guest Room Sleep Time
   curtain_control_when_left_guest_room:
     name: Curtain Control When Left Guest Room
-  ceiling_light_control_in_hot_sunshine_guest_room:
-    name: Ceiling Light Control In Hot Sunshine Guest Room
-  lamp_control_in_hot_sunshine_guest_room:
-    name: Lamp Control In Hot Sunshine Guest Room
-  led_control_in_hot_sunshine_guest_room:
-    name: Led Control In Hot Sunshine Guest Room
+  ceiling_light_control_bright_morning_guest_room:
+    name: Ceiling Light Control Bright Morning Guest Room
+  lamp_control_bright_morning_guest_room:
+    name: Lamp Control Bright Morning Guest Room
+  led_control_bright_morning_guest_room:
+    name: Led Control Bright Morning Guest Room
     initial: 'off'
-  curtain_control_in_hot_sunshine_guest_room:
-    name: Curtain Control In Hot Sunshine Guest Room
-  ceiling_light_control_when_bright_outdoor_guest_room:
-    name: Ceiling Light Control When Bright Outdoor Guest Room
-  lamp_control_when_bright_outdoor_guest_room:
-    name: Lamp Control When Bright Outdoor Guest Room
-  led_control_when_bright_outdoor_guest_room:
-    name: Led Control When Bright Outdoor Guest Room
+  curtain_control_bright_morning_guest_room:
+    name: Curtain Control Bright Morning Guest Room
+  ceiling_light_control_bright_afternoon_guest_room:
+    name: Ceiling Light Control Bright Afternoon Guest Room
+  lamp_control_bright_afternoon_guest_room:
+    name: Lamp Control Bright Afternoon Guest Room
+  led_control_bright_afternoon_guest_room:
+    name: Led Control Bright Afternoon Guest Room
     initial: 'off'
-  curtain_control_when_bright_outdoor_guest_room:
-    name: Curtain Control When Bright Outdoor Guest Room
-  ceiling_light_control_when_dark_outdoor_guest_room:
-    name: Ceiling Light Control When Dark Outdoor Guest Room
-  lamp_control_when_dark_outdoor_guest_room:
-    name: Lamp Control When Dark Outdoor Guest Room
-  led_control_when_dark_outdoor_guest_room:
-    name: Led Control When Dark Outdoor Guest Room
+  curtain_control_bright_afternoon_guest_room:
+    name: Curtain Control Bright Afternoon Guest Room
+  ceiling_light_control_dark_guest_room:
+    name: Ceiling Light Control Dark Guest Room
+  lamp_control_dark_guest_room:
+    name: Lamp Control Dark Guest Room
+  led_control_dark_guest_room:
+    name: Led Control Dark Guest Room
     initial: 'off'
-  curtain_control_when_dark_outdoor_guest_room:
-    name: Curtain Control When Dark Outdoor Guest Room
+  curtain_control_dark_guest_room:
+    name: Curtain Control Dark Guest Room
+input_datetime:
+  morning_start_time_guest_room:
+    name: Morning Start Time Guest Room
+    has_date: false
+    has_time: true
+  morning_end_time_guest_room:
+    name: Morning End Time Guest Room
+    has_date: false
+    has_time: true
+  afternoon_start_time_guest_room:
+    name: Afternoon Start Time Guest Room
+    has_date: false
+    has_time: true
+  afternoon_end_time_guest_room:
+    name: Afternoon End Time Guest Room
+    has_date: false
+    has_time: true
 switch:
 - platform: group
   name: 'Guest Room Wall Switch '
@@ -2672,15 +2712,15 @@ group:
     name: Guest Room Auto Gen Automations
     entities:
     - input_boolean.curtain_control_when_left_guest_room
-    - input_boolean.ceiling_light_control_in_hot_sunshine_guest_room
-    - input_boolean.lamp_control_in_hot_sunshine_guest_room
-    - input_boolean.curtain_control_in_hot_sunshine_guest_room
-    - input_boolean.ceiling_light_control_when_bright_outdoor_guest_room
-    - input_boolean.lamp_control_when_bright_outdoor_guest_room
-    - input_boolean.curtain_control_when_bright_outdoor_guest_room
-    - input_boolean.ceiling_light_control_when_dark_outdoor_guest_room
-    - input_boolean.lamp_control_when_dark_outdoor_guest_room
-    - input_boolean.curtain_control_when_dark_outdoor_guest_room
+    - input_boolean.ceiling_light_control_bright_morning_guest_room
+    - input_boolean.lamp_control_bright_morning_guest_room
+    - input_boolean.curtain_control_bright_morning_guest_room
+    - input_boolean.ceiling_light_control_bright_afternoon_guest_room
+    - input_boolean.lamp_control_bright_afternoon_guest_room
+    - input_boolean.curtain_control_bright_afternoon_guest_room
+    - input_boolean.ceiling_light_control_dark_guest_room
+    - input_boolean.lamp_control_dark_guest_room
+    - input_boolean.curtain_control_dark_guest_room
     - automation.zlb_gr_flex_wall_switch_on_postion_1_automatically_turn_on_the_wall_switch_back_when_turned_off_guest_room
     - automation.zl_gr_ceiling_lights_on_or_open_curtains_if_entering_to_room_guest_room
     - automation.zl_gr_lights_off_if_no_person_guest_room
@@ -2697,3 +2737,7 @@ group:
     - switch.0x00158d00047b69d2_switch
     - switch.0x00158d00047b69d2_wireless
     - switch.adaptive_lighting_sleep_mode_guest_room
+    - input_datetime.morning_start_time_guest_room
+    - input_datetime.morning_end_time_guest_room
+    - input_datetime.afternoon_start_time_guest_room
+    - input_datetime.afternoon_end_time_guest_room
