@@ -18,7 +18,7 @@ import argparse
 #translator = Translator(to_lang="zh")
 
 # Set home
-home = CN
+home = 'CN'
 #home = UK
 
 ##################################################################
@@ -727,7 +727,8 @@ class RoomBase:
         }        
       ]
 
-    elif (model == "Ziqing Occupancy Sensor" and integration == 'Xiaomi Gateway 3') or \
+    elif (model == "Ziqing Occupancy Sensor") or \
+         (model == "Xiaomi Occupancy Sensor") or \
          (model == "Linptech Occupancy Sensor") : 
 
       self.binary_sensor_list += [
@@ -3473,10 +3474,10 @@ class Kitchen(RoomBase):
   def get_motion_sensor_entities(self):
     super().get_motion_sensor_entities()
     self.all_motion_sensors = [
-      #"binary_sensor.kitchen_occupancy_sensor_occupancy",
-      "binary_sensor.kitchen_worktop_motion_sensor_motion",
-      "binary_sensor.kitchen_dining_motion_sensor_motion",
-      "binary_sensor.kitchen_dining_table_motion_sensor_motion",
+      f"binary_sensor.{self.room_entity}_table_occupancy_sensor_occupancy",
+      f"binary_sensor.{self.room_entity}_worktop_motion_sensor_motion",
+      f"binary_sensor.{self.room_entity}_dining_motion_sensor_motion",
+      f"binary_sensor.{self.room_entity}_dining_table_motion_sensor_motion",
     ]
 
 
@@ -3496,32 +3497,31 @@ class Kitchen(RoomBase):
     self.add_mac_device('0x00158d0004660308',                         self.room_name + ' Worktop',      'Motion Sensor',      'Aqara Motion and Illuminance Sensor')
     self.add_mac_device('54ef44e559c6',                               self.room_name + ' Dining Table', 'Motion Sensor',      'Mijia Motion Sensor 2')
     self.add_mac_device("e4aaec4500e4",                               self.room_name + " Window",       'Window',             "Mijia2 Contact") # belong_to_group=self.windows)
+    self.add_mac_device("a4c1381a4361",                               self.room_name + ' Table',        'Motion Sensor',      "Linptech Occupancy Sensor")
     self.add_mac_device("kitchen_ceiling_light_hue",                  self.room_name + " Ceiling Light",'Light',              "Generic Lights")
     self.add_mac_device("kitchen_dining_light_yeelight",              self.room_name + " Dining Light", 'Light',              "Generic Lights")
     self.add_mac_device("kitchen_tv_led_magic_home",                  self.room_name + " TV LED",       'Light',              "Generic Lights")
     self.add_mac_device("34053207483fda906b54",                       self.room_name + " Worktop LED",  'Light',              "Generic Lights")
     self.add_mac_device("18c23c2caa33_water_leak",                    self.room_name + " Water Sensor", 'Binary Sensor',      "Generic Binary Sensor")
 
-
     # MCCGQ02HL
     #self.add_mac_device("0x158d00023e6015",       self.room_name + " Worktop",             "Aqara Wireless Switch")     
-  
 
   def get_window_entities(self):
     super().get_window_entities()
-    self.windows                 = ["binary_sensor.kitchen_window"]
+    self.windows                 = [f"binary_sensor.{self.room_entity}_window"]
 
   def get_light_entities(self):
     super().get_light_entities()
     # Light/Switch entities
-    self.ceiling_lights          = ["light."  + self.room_entity + "_ceiling_light",
-                                    "light."  + self.room_entity + "_dining_light"]
-    self.leds                    = ["switch." + self.room_entity + "_floor_led", 
-                                    "light."  + self.room_entity + "_tv_led"]
+    self.ceiling_lights          = [ f"light.{self.room_entity}_ceiling_light",
+                                     f"light.{self.room_entity}_dining_light"]
+    self.leds                    = [f"switch.{self.room_entity}_floor_led", 
+                                     f"light.{self.room_entity}_tv_led"]
     self.lights                  = self.leds + self.lamps + self.ceiling_lights
 
     # Adaptive lighting
-    self.al_light_list[0]["lights"] += self.ceiling_lights + ["light.kitchen_worktop_led"]
+    self.al_light_list[0]["lights"] += self.ceiling_lights + [f"light.{self.room_entity}_worktop_led"]
 
     self.extractor               = ['switch.' + self.room_entity + '_extractor']
 
@@ -3650,21 +3650,6 @@ class LivingRoom(RoomBase):
     self.cfg_adaptive_lighting  = True
     self.cfg_led_only_scene     = True
 
-  def get_motion_sensor_entities(self):
-    super().get_motion_sensor_entities()
-    self.all_motion_sensors = [
-      f"binary_sensor.tais_desk_motion_sensor_motion",
-      f"binary_sensor.{self.room_entity}_sofa_motion_sensor_motion",
-      f"binary_sensor.{self.room_entity}_entrance_motion_sensor_motion",
-      f"binary_sensor.{self.room_entity}_sofa_pressure_sensor",
-      f"binary_sensor.{self.room_entity}_occupancy_sensor_occupancy"
-    ]
-
-    self.entrance_motion_sensors = [
-      f"binary_sensor.{self.room_entity}_entrance_motion_sensor_motion",
-      f"binary_sensor.{self.room_entity}_sliding_door"
-    ]
-
   def get_room_name_and_property(self):  
     super().get_room_name_and_property()
     self.room_type     = 'bedroom' # as we often fall into sleep in living room
@@ -3675,6 +3660,10 @@ class LivingRoom(RoomBase):
     self.add_average_temperature_sensor(sensor_1='sensor.living_room_temperature_sensor_1', 
                                         sensor_2='sensor.living_room_temperature_sensor_1', 
                                         name='Living Room Temperature Sensor')
+
+
+    self.add_mac_device("a4c138c69e9f",                       self.room_name + ' TV',            'Motion Sensor',      "Linptech Occupancy Sensor")
+    self.add_mac_device("a4c1381b8035",                       self.room_name + ' Sofa',          'Motion Sensor',      "Linptech Occupancy Sensor")
 
     self.add_mac_device('0x00158d0003140ea8',                 self.room_name + ' Entrance',      'Motion Sensor',      'Aqara Motion and Illuminance Sensor')
     self.add_mac_device("dced8308e951",                       self.room_name,                    'Motion Sensor',      "Ziqing Occupancy Sensor")
@@ -3689,8 +3678,9 @@ class LivingRoom(RoomBase):
     self.add_mac_device("sonoff_1001e49906_1",                self.room_name + ' Gateway Power', 'Switch',             "Generic Switches")
     self.add_mac_device("e4aaec80beca",                       self.room_name + " Window",        'Window',             "Mijia2 Contact") 
     self.add_mac_device("e4aaec80bedb",                       self.room_name + " Sliding Door",  'Door',               "Mijia2 Contact") 
-    self.add_mac_device('0x00158d000451f90b',                 'Tais Desk',                       'Motion Sensor',      'Aqara Motion and Illuminance Sensor')
-    self.add_mac_device('sonoff_1001e49dd9_1',                'Tais Desk Screen LED',            'Switch',             'Generic Switches')
+    #self.add_mac_device('0x00158d000451f90b',                 self.room_name + ' Desk',          'Motion Sensor',      'Aqara Motion and Illuminance Sensor')
+    self.add_mac_device('d44867b89dd3',                       self.room_name + ' Desk',          'Motion Sensor',      'Xiaomi Occupancy Sensor')
+    self.add_mac_device('sonoff_1001e49dd9_1',                self.room_name + ' Desk Screen LED', 'Switch',           'Generic Switches')
     self.add_mac_device('0x00158d00054d83df',                 'Boiler Room',                     'Motion Sensor',      'Aqara Motion and Illuminance Sensor')
     self.add_mac_device('28d127202ef6',                       'Boiler Room Light',               'Light',              'Mijia BLE Lights')
     #self.add_mac_device("living_room_ceiling_light_yeelight",  self.room_name + ' Ceiling Light','Light',              "Generic Lights") # Yeelight integration
@@ -3703,6 +3693,22 @@ class LivingRoom(RoomBase):
 
 #('0x00158d0004501b0a', 'Living Room Sofa',           'Aqara Motion and Illuminance Sensor')
 #('0x00158d0001212747', 'Boiler Room',                'Aqara Door & Window Sensor')
+
+  def get_motion_sensor_entities(self):
+    super().get_motion_sensor_entities()
+    self.other_motion_sensors = [
+      f"binary_sensor.{self.room_entity}_desk_occupancy_sensor_occupancy",
+      f"binary_sensor.{self.room_entity}_tv_occupancy_sensor_occupancy",
+      f"binary_sensor.{self.room_entity}_sofa_occupancy_sensor_occupancy",
+      f"binary_sensor.{self.room_entity}_entrance_motion_sensor_motion", 
+    ]
+
+    self.entrance_motion_sensors = [
+      f"binary_sensor.{self.room_entity}_entrance_motion_sensor_motion",
+      f"binary_sensor.{self.room_entity}_sliding_door"
+    ]
+
+    self.all_motion_sensors = self.other_motion_sensors + self.entrance_motion_sensors
 
   def get_window_entities(self):
     super().get_window_entities()
@@ -3736,7 +3742,7 @@ class LivingRoom(RoomBase):
                                               f"light.{self.room_entity}_3_head_lamp_2",
                                               f"light.{self.room_entity}_3_head_lamp_3",
                                               f"light.boiler_room_light"] 
-    self.screen_leds            = 'switch.tais_desk_screen_led'
+    self.screen_leds            = f'switch.{self.room_entity}_desk_screen_led'
 
   def callSceneService(self, scene_name):  
     # overwrite Hue scene with Hue light list

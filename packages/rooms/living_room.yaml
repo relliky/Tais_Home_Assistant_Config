@@ -103,58 +103,6 @@ switch:
 #
 ###############################################
 script:
-  living_room_floor_lights_turn_off:
-    alias: Living Room Floor Lights Turn Off
-    max: 100
-    mode: parallel
-    sequence:
-      - entity_id: group.living_room_floor_light
-        service: homeassistant.turn_off
-
-  living_room_floor_lights_turn_on:
-    alias: Living Room Floor Lights Turn On
-    max: 100
-    mode: parallel
-    sequence:
-      - entity_id: group.living_room_floor_light
-        service: homeassistant.turn_on
-
-  living_room_all_lights_turn_on:
-    alias: Living Room Ceiling All Lights Turn On
-    mode: parallel
-    max: 100
-    sequence:
-      - service: homeassistant.turn_on
-        entity_id:
-          - light.living_room_ceiling_light
-          - switch.living_room_tree_light
-      - service: script.living_room_floor_lights_turn_on
-
-  living_room_all_lights_turn_off:
-    alias: Living Room All Lights Turn Off
-    mode: parallel
-    max: 100
-    sequence:
-      - service: homeassistant.turn_off
-        entity_id:
-          - light.living_room_ceiling_light
-          - switch.garden_light
-      - service: script.living_room_floor_lights_turn_off
-      - service: light.turn_off
-        entity_id:
-          - light.living_room_tv_led
-          - light.living_room_sofa_led
-
-  living_room_heating_scheduler:
-    alias: Living Room Set Heating Temperature
-    mode: restart
-    sequence:
-      - data:
-          temperature: 21
-          hvac_mode: heat
-        entity_id: climate.living_room
-        service: climate.set_temperature
-
   living_room_tv_slideshow:
     alias: Living Room TV Slideshow
     sequence:
@@ -293,56 +241,52 @@ automation:
           entity_id: cover.living_room_curtain_2
     mode: single
 
-#  # Tais Desk
-#  # Lighting Automation based on motion sensors
-#  - alias: L-LR Living Room Tai's Desk light On If People Present Sits In the Chair
-#    id: "1676066351420"
-#    trigger:
-#      #- entity_id: sensor.tais_desk_chair_movement_sensor
-#      #  platform: state
-#      #  to: "vibration"
-#      #- entity_id: sensor.tais_desk_chair_movement_sensor
-#      #  platform: state
-#      #  to: "tilt"
-#      - entity_id: binary_sensor.tais_desk_motion_sensor_motion
-#        platform: state
-#        from: "off"
-#        to: "on"
-#    action:
-#      - service: light.turn_on
-#        entity_id:
-#          #- light.tais_desk_lamps
-#          - light.living_room_3_head_lamp_1
-#          - light.living_room_3_head_lamp_2
-#          - light.living_room_3_head_lamp_3
-#        # Only turn on screen LED in daytime
-#      - condition: time
-#        after: "06:00:00"
-#        before: "20:00:00"
-#      - service: switch.turn_on
-#        entity_id: switch.tais_desk_screen_led
+  # Tais Desk
+  # Lighting Automation based on motion sensors
+  - alias: L-LR Living Room Tai's Desk light On If People Present Sits In the Chair
+    id: "1676066351420"
+    trigger:
+      #- entity_id: sensor.tais_desk_chair_movement_sensor
+      #  platform: state
+      #  to: "vibration"
+      #- entity_id: sensor.tais_desk_chair_movement_sensor
+      #  platform: state
+      #  to: "tilt"
+      - entity_id: binary_sensor.living_room_desk_occupancy_sensor_occupancy
+        platform: state
+        from: "off"
+        to: "on"
+    action:
+      - service: light.turn_on
+        entity_id:
+          - light.living_room_floor_light_2
+        # Only turn on screen LED in daytime
+      - condition: time
+        after: "06:00:00"
+        before: "20:00:00"
+      - service: switch.turn_on
+        entity_id: switch.living_room_desk_screen_led
 
   - alias: L-LR Living Room Tai's Desk light Off If Person Left the Chair
     id: "1636063351125"
     trigger:
       - entity_id:
           #- sensor.tais_desk_chair_movement_sensor
-          - binary_sensor.tais_desk_motion_sensor_motion
+          - binary_sensor.living_room_desk_occupancy_sensor_occupancy
         platform: state
         to: "off"
-        for: 00:05:00
       - minutes: /5
         platform: time_pattern
     condition:
       - entity_id:
           #- sensor.tais_desk_chair_movement_sensor
-          - binary_sensor.tais_desk_motion_sensor_motion
+          - binary_sensor.living_room_desk_occupancy_sensor_occupancy
         condition: state
         state: "off"
-        for: 00:05:00
+        for: 00:01:00
     action:
       - service: switch.turn_off
-        entity_id: switch.tais_desk_screen_led
+        entity_id: switch.living_room_desk_screen_led
 
   ###############################################
   # Heating/TV Automation based on motion sensors

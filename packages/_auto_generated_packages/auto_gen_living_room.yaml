@@ -1290,7 +1290,7 @@ automation:
       - condition: trigger
         id: TOGGLE_SCREEN_LED
       sequence:
-      - alias: Turn switch.tais_desk_screen_led state=toggle
+      - alias: Turn switch.living_room_desk_screen_led state=toggle
         if:
           condition: state
           entity_id: input_boolean.always_on_constant
@@ -1299,27 +1299,27 @@ automation:
           if:
           - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
             condition: state
-            entity_id: switch.tais_desk_screen_led
+            entity_id: switch.living_room_desk_screen_led
             state: 'on'
             match: any
           then:
-            alias: Turn switch.tais_desk_screen_led state=off
+            alias: Turn switch.living_room_desk_screen_led state=off
             if:
               condition: state
               entity_id: input_boolean.always_on_constant
               state: 'on'
             then:
               service: homeassistant.turn_off
-              entity_id: switch.tais_desk_screen_led
+              entity_id: switch.living_room_desk_screen_led
           else:
-            alias: Turn switch.tais_desk_screen_led state=on
+            alias: Turn switch.living_room_desk_screen_led state=on
             if:
               condition: state
               entity_id: input_boolean.always_on_constant
               state: 'on'
             then:
               service: homeassistant.turn_on
-              entity_id: switch.tais_desk_screen_led
+              entity_id: switch.living_room_desk_screen_led
     - conditions:
       - condition: trigger
         id: TOGGLE_LEDS
@@ -2569,7 +2569,7 @@ automation:
       - condition: trigger
         id: TOGGLE_SCREEN_LED
       sequence:
-      - alias: Turn switch.tais_desk_screen_led state=toggle
+      - alias: Turn switch.living_room_desk_screen_led state=toggle
         if:
           condition: state
           entity_id: input_boolean.always_on_constant
@@ -2578,27 +2578,27 @@ automation:
           if:
           - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
             condition: state
-            entity_id: switch.tais_desk_screen_led
+            entity_id: switch.living_room_desk_screen_led
             state: 'on'
             match: any
           then:
-            alias: Turn switch.tais_desk_screen_led state=off
+            alias: Turn switch.living_room_desk_screen_led state=off
             if:
               condition: state
               entity_id: input_boolean.always_on_constant
               state: 'on'
             then:
               service: homeassistant.turn_off
-              entity_id: switch.tais_desk_screen_led
+              entity_id: switch.living_room_desk_screen_led
           else:
-            alias: Turn switch.tais_desk_screen_led state=on
+            alias: Turn switch.living_room_desk_screen_led state=on
             if:
               condition: state
               entity_id: input_boolean.always_on_constant
               state: 'on'
             then:
               service: homeassistant.turn_on
-              entity_id: switch.tais_desk_screen_led
+              entity_id: switch.living_room_desk_screen_led
     - conditions:
       - condition: trigger
         id: TOGGLE_LEDS
@@ -4230,7 +4230,7 @@ switch:
   name: Living Room Gateway Power
   entities: switch.sonoff_1001e49906_1
 - platform: group
-  name: Tais Desk Screen LED
+  name: Living Room Desk Screen LED
   entities: switch.sonoff_1001e49dd9_1
 - platform: group
   name: Living Room Floor Light 3
@@ -4250,6 +4250,14 @@ template:
   - name: Living Room Temperature Sensor
     unit_of_measurement: "\xB0C"
     state: '{% if   states(''sensor.living_room_temperature_sensor_1'') != ''unavailable'' and states(''sensor.living_room_temperature_sensor_1'') == ''unavailable'' %}{{states(''sensor.living_room_temperature_sensor_1'')}}{% elif states(''sensor.living_room_temperature_sensor_1'') == ''unavailable'' and states(''sensor.living_room_temperature_sensor_1'') != ''unavailable'' %}{{states(''sensor.living_room_temperature_sensor_1'')}}{% else %}{% set sensor_1 = states(''sensor.living_room_temperature_sensor_1'') | float | round(1) %}{% set sensor_2 = states(''sensor.living_room_temperature_sensor_1'') | float | round(1) %}{% if sensor_1 < 1.0 or sensor_2 < 1.0 or (sensor_1 + sensor_2) < 1.0 %}22.0{% else %}{{ ((sensor_1 + sensor_2) / 2) | round(1) }}{% endif %}{% endif %}'
+- sensor:
+  - name: Living Room TV Occupancy Sensor Light
+    unit_of_measurement: lx
+    state: '{{states.sensor["a4c138c69e9f_illuminance"].state}}'
+- sensor:
+  - name: Living Room Sofa Occupancy Sensor Light
+    unit_of_measurement: lx
+    state: '{{states.sensor["a4c1381b8035_illuminance"].state}}'
 - sensor:
   - name: Living Room Entrance Motion Sensor Light
     unit_of_measurement: lx
@@ -4284,13 +4292,9 @@ template:
   - name: Living Room Button
     state: '{{states.sensor["0x00158d000424f995_action"].state}}'
 - sensor:
-  - name: Tais Desk Motion Sensor Light
+  - name: Living Room Desk Occupancy Sensor Light
     unit_of_measurement: lx
-    state: '{{states.sensor["0x00158d000451f90b_illuminance"].state}}'
-- sensor:
-  - name: Tais Desk Motion Sensor Battery
-    unit_of_measurement: '%'
-    state: '{{states.sensor["0x00158d000451f90b_battery"].state}}'
+    state: '{{states.sensor["d44867b89dd3_illuminance"].state}}'
 - sensor:
   - name: Boiler Room Motion Sensor Light
     unit_of_measurement: lx
@@ -4300,6 +4304,12 @@ template:
     unit_of_measurement: '%'
     state: '{{states.sensor["0x00158d00054d83df_battery"].state}}'
 binary_sensor:
+- platform: group
+  name: Living Room TV Occupancy Sensor Occupancy
+  entities: binary_sensor.a4c138c69e9f_occupancy
+- platform: group
+  name: Living Room Sofa Occupancy Sensor Occupancy
+  entities: binary_sensor.a4c1381b8035_occupancy
 - platform: group
   name: Living Room Entrance Motion Sensor Motion
   entities: binary_sensor.0x00158d0003140ea8_motion
@@ -4313,8 +4323,8 @@ binary_sensor:
   name: Living Room Sliding Door
   entities: binary_sensor.e4aaec80bedb_contact
 - platform: group
-  name: Tais Desk Motion Sensor Motion
-  entities: binary_sensor.0x00158d000451f90b_motion
+  name: Living Room Desk Occupancy Sensor Occupancy
+  entities: binary_sensor.d44867b89dd3_occupancy
 - platform: group
   name: Boiler Room Motion Sensor Motion
   entities: binary_sensor.0x00158d00054d83df_motion
@@ -4373,20 +4383,22 @@ group:
     entities:
     - input_select.living_room_occupancy
     - group.living_room_motion_group
-    - binary_sensor.tais_desk_motion_sensor_motion
-    - binary_sensor.living_room_sofa_motion_sensor_motion
+    - binary_sensor.living_room_desk_occupancy_sensor_occupancy
+    - binary_sensor.living_room_tv_occupancy_sensor_occupancy
+    - binary_sensor.living_room_sofa_occupancy_sensor_occupancy
     - binary_sensor.living_room_entrance_motion_sensor_motion
-    - binary_sensor.living_room_sofa_pressure_sensor
-    - binary_sensor.living_room_occupancy_sensor_occupancy
+    - binary_sensor.living_room_entrance_motion_sensor_motion
+    - binary_sensor.living_room_sliding_door
     - automation.zoc_lr_occupancy_update_living_room
   living_room_motion_group:
     name: Living Room Motion Group
     entities:
-    - binary_sensor.tais_desk_motion_sensor_motion
-    - binary_sensor.living_room_sofa_motion_sensor_motion
+    - binary_sensor.living_room_desk_occupancy_sensor_occupancy
+    - binary_sensor.living_room_tv_occupancy_sensor_occupancy
+    - binary_sensor.living_room_sofa_occupancy_sensor_occupancy
     - binary_sensor.living_room_entrance_motion_sensor_motion
-    - binary_sensor.living_room_sofa_pressure_sensor
-    - binary_sensor.living_room_occupancy_sensor_occupancy
+    - binary_sensor.living_room_entrance_motion_sensor_motion
+    - binary_sensor.living_room_sliding_door
   living_room_light_group:
     name: Living Room Light Group
     entities:
