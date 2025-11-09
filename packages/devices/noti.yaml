@@ -1,20 +1,26 @@
-#
-# - service: script.notify_alexa_speakers_and_phones
-#   data:
-#     tts_message: 'hello'
-#     notify_tai: yes
-#     notify_ke: yes
-#     notify_alvaro: yes
-#     alexa_speaker_list:
-#     - media_player.kitchen_echo
-#     - media_player.living_room_echo
-#
+######################################
+#                                    #
+# Global Enables for notifications   #
+#                                    #
+######################################
+input_boolean:
+  tais_notification_enable:
+    name: "Tai's Notification Enable"
+  kes_notification_enable:
+    name: "Ke's Notification Enable"
+  kes_mom_notification_enable:
+    name: "Ke's Mom Notification Enable"
+  kes_dad_notification_enable:
+    name: "Ke's Dad Notification Enable"
+
 
 script:
   notify_alexa_speakers_and_phones:
     fields:
       tts_message:
-        example: "test"
+        default: 'Home Assistant Test Message Body'
+      tts_message_title:
+        default: 'Home Assistant Test Message Title'
       alexa_speaker_list:
         default: no
         example: "- media_player.kitchen_echo"
@@ -23,10 +29,10 @@ script:
         example: "yes"
       notify_ke:
         default: no
-        example: "yes"
-      notify_alvaro:
+      notify_guest_room_tenant:
         default: no
-        example: "yes"
+      notify_en_suite_room_tenant:
+        default: no
     sequence:
       - parallel:
           - if:
@@ -43,27 +49,96 @@ script:
           - if:
               - "{{notify_kes_dad == 'yes'}}"
             then:
-              - service: notify.mobile_app_ke_ba_ba_shou_ji
-                data:
-                  message: "{{tts_message}}"
-                  data:
-                    push:
-                      name: default
-                      critical: 1
-                      volume: 1
+              - if:
+                  - condition: state
+                    entity_id: input_boolean.kes_dad_notification_enable
+                    state: "on"
+                then:
+                  - service: notify.mobile_app_ke_ba_ba_shou_ji
+                    data:
+                      message: "{{tts_message}}"
+                      data:
+                        push:
+                          name: default
+                          critical: 1
+                          volume: 1
           - if:
               - "{{notify_kes_mom == 'yes'}}"
             then:
-              - service: notify.mobile_app_ke_ma_ma_shou_ji
-                data:
-                  message: "{{tts_message}}"
-                  data:
-                    push:
-                      name: default
-                      critical: 1
-                      volume: 1
+              - if:
+                  - condition: state
+                    entity_id: input_boolean.kes_notification_enable
+                    state: "on"
+                then:
+                  - service: notify.mobile_app_ke_ma_ma_shou_ji
+                    data:
+                      message: "{{tts_message}}"
+                      data:
+                        push:
+                          name: default
+                          critical: 1
+                          volume: 1
           - if:
               - "{{notify_tai == 'yes'}}"
+            then:
+              - if:
+                  - condition: state
+                    entity_id: input_boolean.tais_notification_enable
+                    state: "on"
+                then:
+                  - service: notify.mobile_app_tais_vivo_x_fold3_pro
+                    data:
+                      message: "{{tts_message}}"
+                      title: "{{tts_message_title}}"
+                      data:
+                        push:
+                          name: default
+                          critical: 1
+                          volume: 1
+                  - service: notify.mobile_app_tais_ipad_mini_7
+                    data:
+                      message: "{{tts_message}}"
+                      title: "{{tts_message_title}}"
+                      data:
+                        push:
+                          name: default
+                          critical: 1
+                          volume: 1
+                  - service: notify.mobile_app_tais_gt_pro
+                    data:
+                      message: "{{tts_message}}"
+                      title: "{{tts_message_title}}"
+                      data:
+                        push:
+                          name: default
+                          critical: 1
+                          volume: 1
+          - if:
+              - "{{notify_ke == 'yes'}}"
+            then:
+              - if:
+                  - condition: state
+                    entity_id: input_boolean.kes_notification_enable
+                    state: "on"
+                then:
+                  - service: notify.mobile_app_kes_iphone_15_plus
+                    data:
+                      message: "{{tts_message}}"
+                      data:
+                        push:
+                          name: default
+                          critical: 1
+                          volume: 1
+                  - service: notify.mobile_app_tais_ipad_pro_m1
+                    data:
+                      message: "{{tts_message}}"
+                      data:
+                        push:
+                          name: default
+                          critical: 1
+                          volume: 1
+          - if:
+              - "{{notify_guest_room_tenant == 'yes'}}"
             then:
               - service: notify.mobile_app_tais_iphone_14_pro_max
                 data:
@@ -74,9 +149,9 @@ script:
                       critical: 1
                       volume: 1
           - if:
-              - "{{notify_ke == 'yes'}}"
+              - "{{notify_en_suite_room_tenant == 'yes'}}"
             then:
-              - service: notify.mobile_app_kes_iphone_14_pro_max
+              - service: notify.mobile_app_sm_s918b
                 data:
                   message: "{{tts_message}}"
                   data:
@@ -84,17 +159,8 @@ script:
                       name: default
                       critical: 1
                       volume: 1
-          - if:
-              - "{{notify_alvaro == 'yes'}}"
-            then:
-              - service: notify.mobile_app_iphone_alvaro
-                data:
-                  message: "{{tts_message}}"
-                  data:
-                    push:
-                      name: default
-                      critical: 1
-                      volume: 1
+
+
 
 automation:
   - alias: "N- Reminding Washing Machine Completed - Tai/Ke/Amazon Speaker"
@@ -113,11 +179,13 @@ automation:
     action:
       - service: script.notify_alexa_speakers_and_phones
         data:
-          tts_message: 洗衣机里的衣服洗好了。Washing machine cycle completed!
+          tts_message: Washing machine cycle completed! 洗衣机里的衣服洗好了。
           notify_tai: "yes"
           notify_kes_dad: "yes"
           notify_kes_mom: "yes"
           notify_ke: "yes"
+          notify_guest_room_tenant: "yes"
+          notify_en_suite_room_tenant: "yes"
           alexa_speaker_list:
             - media_player.kitchen_echo
     mode: single
@@ -138,13 +206,14 @@ automation:
       - service: script.notify_alexa_speakers_and_phones
         data:
           tts_message: 暖奶器已经工作了20分钟。已经自动关闭。如果需要长时间暖奶，不需要自动关闭，和李泰说让他只提醒你但不关闭。
+          tts_message_tilte: abc
           notify_tai: "yes"
-          notify_kes_dad: "yes"
+          #notify_kes_dad: "yes"
           #notify_kes_mom: "yes"
           notify_ke: "yes"
       - service: switch.turn_off
         entity_id: switch.feeding_bottle_warmer
-      - delay: "00:00:01"  
+      - delay: "00:00:01"
       - service: switch.turn_on
         entity_id: switch.feeding_bottle_warmer
     mode: single
@@ -161,11 +230,13 @@ automation:
     action:
       - service: script.notify_alexa_speakers_and_phones
         data:
-          tts_message: 门铃电量低于20%。Ring Doorbell Baterry Low! Please charge it.
+          tts_message: 门铃电量低于20%。Ring Doorbell Baterry Is Lower Than 20%! 
           notify_tai: "yes"
           notify_kes_dad: "yes"
           notify_kes_mom: "yes"
           notify_ke: "yes"
+          #notify_guest_room_tenant: "yes"
+          #notify_en_suite_room_tenant: "yes"
           #alexa_speaker_list:
           #  - media_player.master_room_echo
     mode: single
@@ -196,11 +267,13 @@ automation:
     action:
       - service: script.notify_alexa_speakers_and_phones
         data:
-          tts_message: 有人按门铃。Someone rang the doorbell.
-          notify_tai: "yes"
+          tts_message: Someone rang the doorbell. 有人按门铃。
+          #notify_tai: "yes"
           notify_kes_dad: "yes"
           notify_kes_mom: "yes"
           notify_ke: "yes"
+          notify_guest_room_tenant: "yes"
+          notify_en_suite_room_tenant: "yes"
     mode: single
 
   - alias: "N- Alert - Hot water schedule is not working - Tai"
@@ -235,10 +308,14 @@ automation:
         event: start
         offset: "-12:0:0"
         entity_id: calendar.bins_schedule
+      - platform: calendar
+        event: start
+        offset: "-6:0:0"
+        entity_id: calendar.bins_schedule        
     condition: []
     action:
       - wait_for_trigger:
-          - platform: state
+          - trigger: state
             entity_id:
               - group.corridor_motion_group
               - group.master_room_motion_group
@@ -254,14 +331,16 @@ automation:
       - service: script.notify_alexa_speakers_and_phones
         data:
           tts_message: |
-            明天是{% if state_attr('calendar.bins_schedule', 'message') == 'Black Bin Collection' %}黑色不可回收垃圾桶回收日{% else %}蓝色可回收垃圾桶回收日{% endif %}。Tomorrow is {{state_attr('calendar.bins_schedule', 'message')}} date.
+            Tomorrow is {{state_attr('calendar.bins_schedule', 'message')}} date. 明天是{% if state_attr('calendar.bins_schedule', 'message') == 'Black Bin Collection' %}黑色不可回收垃圾桶回收日{% else %}蓝色可回收垃圾桶回收日{% endif %}。
           notify_tai: "yes"
           notify_kes_dad: "yes"
           notify_kes_mom: "yes"
           notify_ke: "yes"
+          notify_guest_room_tenant: "yes"
+          notify_en_suite_room_tenant: "yes"
           alexa_speaker_list:
             - media_player.kitchen_echo
             - media_player.living_room_echo
             - media_player.master_room_echo
             - media_player.master_toilet_echo
-    mode: single
+    mode: restart

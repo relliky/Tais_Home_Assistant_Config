@@ -2,9 +2,258 @@
 # DO NOT MODIFY. This is an automatically generated file.                   # 
 # Please modify the python source code under python_templates directory.    #
 #############################################################################
+input_select:
+  en_suite_toilet_scene:
+    name: En Suite Toilet Scene
+    options:
+    - Idle
+    - All White
+    - Ceiling Light White
+    - All Off
+  en_suite_toilet_occupancy:
+    name: En Suite Toilet Occupancy
+    options:
+    - Outside
+    - Just Entered
+    - Stayed Inside
+    - In Sleep
+sensor:
+- platform: history_stats
+  name: En-suite Toilet Motion On Ratio For Last 4 Minutes
+  entity_id: group.en_suite_toilet_motion_group
+  state: 'on'
+  type: ratio
+  duration:
+    minutes: '4'
+  end: '{{ (now() | as_timestamp) | as_datetime | as_local }}'
+- platform: history_stats
+  name: En-suite Toilet Motion On Ratio For Last 8 Minutes
+  entity_id: group.en_suite_toilet_motion_group
+  state: 'on'
+  type: ratio
+  duration:
+    minutes: '8'
+  end: '{{ (now() | as_timestamp) | as_datetime | as_local }}'
+- name: En Suite Toilet Min Battery
+  platform: min_max
+  type: min
+  entity_ids:
+  - sensor.en_suite_toilet_motion_sensor_battery
+  - sensor.en_suite_toilet_occupancy_sensor_battery
+  - sensor.en_suite_toilet_temperature_sensor_battery
+input_boolean:
+  en_suite_toilet_heating_override:
+    name: En Suite Toilet Heating Override
+    initial: 'off'
+  curtain_control_when_left_en_suite_toilet:
+    name: Curtain Control When Left En Suite Toilet
+    initial: 'off'
+  curtain_control_bright_morning_when_left_en_suite_toilet:
+    name: Curtain Control Bright Morning When Left En Suite Toilet
+    initial: 'off'
+  curtain_control_bright_afternoon_when_left_en_suite_toilet:
+    name: Curtain Control Bright Afternoon When Left En Suite Toilet
+    initial: 'off'
+  curtain_control_dark_when_left_en_suite_toilet:
+    name: Curtain Control Dark When Left En Suite Toilet
+    initial: 'off'
+  ceiling_light_control_bright_morning_en_suite_toilet:
+    name: Ceiling Light Control Bright Morning En Suite Toilet
+  lamp_control_bright_morning_en_suite_toilet:
+    name: Lamp Control Bright Morning En Suite Toilet
+    initial: 'off'
+  led_control_bright_morning_en_suite_toilet:
+    name: Led Control Bright Morning En Suite Toilet
+    initial: 'off'
+  curtain_control_bright_morning_en_suite_toilet:
+    name: Curtain Control Bright Morning En Suite Toilet
+    initial: 'off'
+  ceiling_light_control_bright_afternoon_en_suite_toilet:
+    name: Ceiling Light Control Bright Afternoon En Suite Toilet
+  lamp_control_bright_afternoon_en_suite_toilet:
+    name: Lamp Control Bright Afternoon En Suite Toilet
+    initial: 'off'
+  led_control_bright_afternoon_en_suite_toilet:
+    name: Led Control Bright Afternoon En Suite Toilet
+    initial: 'off'
+  curtain_control_bright_afternoon_en_suite_toilet:
+    name: Curtain Control Bright Afternoon En Suite Toilet
+    initial: 'off'
+  ceiling_light_control_dark_en_suite_toilet:
+    name: Ceiling Light Control Dark En Suite Toilet
+  lamp_control_dark_en_suite_toilet:
+    name: Lamp Control Dark En Suite Toilet
+    initial: 'off'
+  led_control_dark_en_suite_toilet:
+    name: Led Control Dark En Suite Toilet
+    initial: 'off'
+  curtain_control_dark_en_suite_toilet:
+    name: Curtain Control Dark En Suite Toilet
+    initial: 'off'
+  en_suite_toilet_tado_heater:
+    name: En Suite Toilet Tado Heater
+input_datetime:
+  morning_start_time_en_suite_toilet:
+    name: Morning Start Time En Suite Toilet
+    has_date: false
+    has_time: true
+  morning_end_time_en_suite_toilet:
+    name: Morning End Time En Suite Toilet
+    has_date: false
+    has_time: true
+  afternoon_start_time_en_suite_toilet:
+    name: Afternoon Start Time En Suite Toilet
+    has_date: false
+    has_time: true
+  afternoon_end_time_en_suite_toilet:
+    name: Afternoon End Time En Suite Toilet
+    has_date: false
+    has_time: true
+input_number:
+  en_suite_toilet_min_value_as_bright:
+    name: En Suite Toilet Min Value As Bright
+    min: 0
+    max: 4000
+    step: 1
+    mode: box
+switch:
+- platform: group
+  name: 'En-suite Toilet Wall Switch '
+  entities: switch.0x00158d000522d90c_switch
+cover: []
+climate:
+- platform: generic_thermostat
+  name: En-suite Toilet
+  heater: input_boolean.en_suite_toilet_tado_heater
+  target_sensor: sensor.en_suite_toilet_temperature_sensor
+  min_temp: 16
+  max_temp: 27
+  ac_mode: false
+  cold_tolerance: 0
+  precision: 0.1
+  target_temp_step: 0.5
+  min_cycle_duration: 00:01:30
+template:
+- sensor:
+  - name: En-suite Toilet Motion Sensor Battery
+    unit_of_measurement: '%'
+    state: '{{states.sensor["0x00158d000572839f_battery"].state}}'
+- binary_sensor:
+  - name: En-suite Toilet Occupancy Sensor Occupancy
+    state: '{% if states.sensor["403059d9505f_no_one_duration"].state == ''unavailable'' or states.sensor["403059d9505f_no_one_duration"].state  == ''unknown''%}
+
+      {{states.binary_sensor["403059d9505f_occupancy"].state}}
+
+      {% elif states.sensor["403059d9505f_no_one_duration"].state == ''0'' %}
+
+      {{states.binary_sensor["403059d9505f_occupancy"].state}}
+
+      {# else is equivilence to elif states.sensor["403059d9505f_no_one_duration"].state > "0" #}
+
+      {% else %}
+
+      off
+
+      {% endif %}
+
+      '
+- sensor:
+  - name: En-suite Toilet Occupancy Sensor Battery
+    unit_of_measurement: '%'
+    state: '{{states.sensor["403059d9505f_battery"].state}}'
+- sensor:
+  - name: En-suite Toilet Wall Button
+    state: '{{states.sensor["0x00158d000522d90c_action"].state}}'
+- sensor:
+  - name: En-suite Toilet Temperature Sensor
+    unit_of_measurement: "\xB0C"
+    state: '{{states.sensor["582d34828cc6_temperature"].state | float | round(1)}}'
+- sensor:
+  - name: En-suite Toilet Temperature Sensor Battery
+    unit_of_measurement: '%'
+    state: '{{states.sensor["582d34828cc6_battery"].state}}'
+- sensor:
+  - name: En-suite Toilet Tado Availiabity
+    unit_of_measurement: "\xB0C"
+    state: '{{states("sensor.tado_smart_radiator_thermostat_va0429069312_current_temperature") | float | round(1)}}'
+- binary_sensor:
+  - name: En-suite Toilet Heating Required
+    state: '{% set climate = "climate.tado_smart_radiator_thermostat_va0429069312" %}{% if states(climate) == "unavailable" or states(climate) == "off" or (state_attr(climate, "temperature") <= state_attr(climate, "current_temperature"))  %}off{% else %} on{% endif %}'
+- binary_sensor:
+  - name: En Suite Toilet Unavailable Entities
+    state: '{% set added_device_entities =  [''sensor.en_suite_toilet_motion_sensor_battery'', ''binary_sensor.en_suite_toilet_occupancy_sensor_occupancy'', ''sensor.en_suite_toilet_occupancy_sensor_battery'', ''sensor.en_suite_toilet_wall_button'', ''sensor.en_suite_toilet_temperature_sensor'', ''sensor.en_suite_toilet_temperature_sensor_battery'', ''sensor.en_suite_toilet_tado_availiabity'', ''binary_sensor.en_suite_toilet_heating_required'', ''binary_sensor.en_suite_toilet_motion_sensor_motion'', ''binary_sensor.en_suite_toilet_xiaomi_home_occupancy_sensor_occupancy'', ''switch.en_suite_toilet_wall_switch''] %}{% set ns = namespace() %}{% set ns.num_unavail_devices = 0 %}{% for device in added_device_entities %}   {% if states(device) in [''unavailable'', ''unknown'', ''none''] %}      {% set ns.num_unavail_devices = ns.num_unavail_devices + 1 %}   {% endif %}{% endfor %}{% if ns.num_unavail_devices > 0%}  on  {% else %}  off {% endif %}'
+    attributes:
+      value: '{% set added_device_entities =  [''sensor.en_suite_toilet_motion_sensor_battery'', ''binary_sensor.en_suite_toilet_occupancy_sensor_occupancy'', ''sensor.en_suite_toilet_occupancy_sensor_battery'', ''sensor.en_suite_toilet_wall_button'', ''sensor.en_suite_toilet_temperature_sensor'', ''sensor.en_suite_toilet_temperature_sensor_battery'', ''sensor.en_suite_toilet_tado_availiabity'', ''binary_sensor.en_suite_toilet_heating_required'', ''binary_sensor.en_suite_toilet_motion_sensor_motion'', ''binary_sensor.en_suite_toilet_xiaomi_home_occupancy_sensor_occupancy'', ''switch.en_suite_toilet_wall_switch''] %}{% set ns = namespace() %}{% set ns.unavail_devices = '''' %}{% for device in added_device_entities %}   {% if states(device) in [''unavailable'', ''unknown'', ''none''] %}   {% set ns.unavail_devices = ns.unavail_devices + ''
+
+        '' +device %} {% endif %}{% endfor %}{{ns.unavail_devices}}'
+- binary_sensor:
+  - name: En Suite Toilet Low Battery
+    state: '{% set state = states("sensor.en_suite_toilet_min_battery") %} {% if state == "unavailable" or state == "unknown" or int(state) > 20 %} off {% else%} on {% endif %}'
+binary_sensor:
+- platform: group
+  name: En-suite Toilet Motion Sensor Motion
+  entities: binary_sensor.0x00158d000572839f_motion
+- platform: group
+  name: En-suite Toilet Xiaomi Home Occupancy Sensor Occupancy
+  entities: binary_sensor.xiaomi_cn_blt_3_1kfc8s5c0kc00_03_occupancy_status_p_2_1078
+event: []
+lock: []
+light: []
+adaptive_lighting:
+- name: En-suite Toilet
+  lights:
+  - light.en_suite_toilet_ceiling_light
+  prefer_rgb_color: false
+  transition: 45
+  initial_transition: 1
+  interval: 90
+  min_brightness: 50
+  max_brightness: 100
+  min_color_temp: 2700
+  max_color_temp: 4000
+  sleep_brightness: 20
+  sleep_color_temp: 2200
+  take_over_control: true
+  autoreset_control_seconds: 86400
+  detect_non_ha_changes: false
+  only_once: false
+  adapt_only_on_bare_turn_on: true
+  separate_turn_on_commands: false
+  send_split_delay: 500
+  adapt_delay: 0.5
+  intercept: true
+  multi_light_intercept: true
+  include_config_in_attributes: false
 automation:
-- alias: ZL-ET Ceiling Lights On Or Open Curtains If Entering to Room-En-suite Toilet
-  id: automation.zl_et_ceiling_lights_on_or_open_curtains_if_entering_to_room_en_suite_toilet
+- alias: ZH-ET Set Radiator Valve Target Temperature Based on External Sensor Temperature Difference-En-suite Toilet
+  triggers:
+  - trigger: state
+    entity_id: input_boolean.en_suite_toilet_tado_heater
+  - trigger: state
+    entity_id: climate.tado_smart_radiator_thermostat_va0429069312
+    attribute: temperature
+  - minutes: /30
+    seconds: '20'
+    platform: time_pattern
+  actions:
+  - if:
+    - condition: state
+      entity_id: input_boolean.en_suite_toilet_tado_heater
+      state: 'on'
+    then:
+    - action: climate.set_temperature
+      data:
+        hvac_mode: heat
+        temperature: '{%set room_helper_entity = ''climate.en_suite_toilet'' %}{%set tado_valve_entity  = ''climate.tado_smart_radiator_thermostat_va0429069312'' %}  {%set room_cur_temp      = state_attr(room_helper_entity, ''current_temperature'') | float %}  {%set room_target_temp   = state_attr(room_helper_entity, ''temperature'')         | float %}  {%set tado_cur_temp      = state_attr(tado_valve_entity,  ''current_temperature'') | float %}  {#diff = room_target_temp - room_cur_temp = tado_target_temp_nxt - tado_cur_temp #}{% set tado_target_temp_nxt = ((room_target_temp - room_cur_temp + tado_cur_temp) * 2) | float | round / 2 %} {# round to 0.5 #}{%set tado_target_temp_nxt_sat = [[tado_target_temp_nxt, 25]|min,5]|max %} {# set lower and upper limit to [5,25] #}{{tado_target_temp_nxt_sat}}'
+      target:
+        entity_id: climate.tado_smart_radiator_thermostat_va0429069312
+    else:
+    - action: climate.turn_off
+      target:
+        entity_id: climate.tado_smart_radiator_thermostat_va0429069312
+  id: automation.zh_et_set_radiator_valve_target_temperature_based_on_external_sensor_temperature_difference_en_suite_toilet
+- alias: ZL-ET Lights and Curtain On If Entering to Room-En-suite Toilet
+  id: automation.zl_et_lights_and_curtain_on_if_entering_to_room_en_suite_toilet
   trigger:
     entity_id:
     - group.en_suite_toilet_motion_group
@@ -12,44 +261,56 @@ automation:
     to: 'on'
   action:
   - service: automation.turn_off
-    entity_id: automation.zl_et_ceiling_lights_on_or_open_curtains_if_entering_to_room_en_suite_toilet
+    entity_id: automation.zl_et_lights_and_curtain_on_if_entering_to_room_en_suite_toilet
     data:
       stop_actions: false
   - service: script.call_room_scene
     data:
       room_scene_select: input_select.en_suite_toilet_scene
       scene: Idle
-  - if:
-    - condition: numeric_state
-      entity_id: sensor.met_office_cambridge_city_airport_temperature_3_hourly
-      above: '18'
-    - condition: time
-      after: 06:00:00
-      before: '16:00:00'
-    - condition: template
-      value_template: '{{ now().month > 4 and now().month < 9 }}'
-    - condition: state
-      entity_id: input_boolean.always_off_constant
-      state: 'on'
+  - alias: If it is bright morning
+    if:
+    - alias: Bright morning
+      condition: and
+      conditions:
+      - condition: or
+        conditions:
+        - condition: numeric_state
+          entity_id: sensor.master_room_west_side_light_sensor
+          above: input_number.en_suite_toilet_min_value_as_bright
+        - condition: state
+          entity_id: sensor.master_room_west_side_light_sensor
+          state:
+          - unavailable
+          - unknown
+      - condition: or
+        conditions:
+        - condition: state
+          entity_id: sun.sun
+          state: above_horizon
+        - condition: state
+          entity_id: sun.sun
+          state:
+          - unavailable
+          - unknown
+      - condition: time
+        after: input_datetime.morning_start_time_en_suite_toilet
+        before: input_datetime.morning_end_time_en_suite_toilet
     then:
-      alias: Lights on in hot sunshine
+      alias: States when bright morning
       if:
-        condition: state
-        entity_id: input_boolean.always_on_constant
-        state: 'on'
+      - '{{ 1 == 1 }}'
       then:
       - parallel:
         - parallel:
           - if:
               condition: state
-              entity_id: input_boolean.ceiling_light_control_in_hot_sunshine_en_suite_toilet
+              entity_id: input_boolean.ceiling_light_control_bright_morning_en_suite_toilet
               state: 'on'
             then:
               alias: Turn light.en_suite_toilet_ceiling_light state=on
               if:
-                condition: state
-                entity_id: input_boolean.always_on_constant
-                state: 'on'
+              - '{{ 1 == 1 }}'
               then:
                 service: light.turn_on
                 entity_id:
@@ -57,16 +318,14 @@ automation:
             else:
               alias: Turn light.en_suite_toilet_ceiling_light state=off
               if:
-                condition: state
-                entity_id: input_boolean.always_on_constant
-                state: 'on'
+              - '{{ 1 == 1 }}'
               then:
                 service: light.turn_off
                 entity_id:
                 - light.en_suite_toilet_ceiling_light
           - if:
               condition: state
-              entity_id: input_boolean.lamp_control_in_hot_sunshine_en_suite_toilet
+              entity_id: input_boolean.lamp_control_bright_morning_en_suite_toilet
               state: 'on'
             then:
               service: script.do_nothing
@@ -74,7 +333,7 @@ automation:
               service: script.do_nothing
           - if:
               condition: state
-              entity_id: input_boolean.led_control_in_hot_sunshine_en_suite_toilet
+              entity_id: input_boolean.led_control_bright_morning_en_suite_toilet
               state: 'on'
             then:
               service: script.do_nothing
@@ -82,36 +341,56 @@ automation:
               service: script.do_nothing
           - if:
               condition: state
-              entity_id: input_boolean.curtain_control_in_hot_sunshine_en_suite_toilet
+              entity_id: input_boolean.curtain_control_bright_morning_en_suite_toilet
               state: 'on'
             then:
               service: script.do_nothing
             else:
               service: script.do_nothing
     else:
+      alias: If it is dark
       if:
-      - condition: state
-        entity_id: sun.sun
-        state: above_horizon
+      - alias: Bright afternoon
+        condition: and
+        conditions:
+        - condition: or
+          conditions:
+          - condition: numeric_state
+            entity_id: sensor.master_room_west_side_light_sensor
+            above: input_number.en_suite_toilet_min_value_as_bright
+          - condition: state
+            entity_id: sensor.master_room_west_side_light_sensor
+            state:
+            - unavailable
+            - unknown
+        - condition: or
+          conditions:
+          - condition: state
+            entity_id: sun.sun
+            state: above_horizon
+          - condition: state
+            entity_id: sun.sun
+            state:
+            - unavailable
+            - unknown
+        - condition: time
+          after: input_datetime.afternoon_start_time_en_suite_toilet
+          before: input_datetime.afternoon_end_time_en_suite_toilet
       then:
-        alias: Lights on when bright outdoor
+        alias: States when bright afternoon
         if:
-          condition: state
-          entity_id: input_boolean.always_on_constant
-          state: 'on'
+        - '{{ 1 == 1 }}'
         then:
         - parallel:
           - parallel:
             - if:
                 condition: state
-                entity_id: input_boolean.ceiling_light_control_when_bright_outdoor_en_suite_toilet
+                entity_id: input_boolean.ceiling_light_control_bright_afternoon_en_suite_toilet
                 state: 'on'
               then:
                 alias: Turn light.en_suite_toilet_ceiling_light state=on
                 if:
-                  condition: state
-                  entity_id: input_boolean.always_on_constant
-                  state: 'on'
+                - '{{ 1 == 1 }}'
                 then:
                   service: light.turn_on
                   entity_id:
@@ -119,16 +398,14 @@ automation:
               else:
                 alias: Turn light.en_suite_toilet_ceiling_light state=off
                 if:
-                  condition: state
-                  entity_id: input_boolean.always_on_constant
-                  state: 'on'
+                - '{{ 1 == 1 }}'
                 then:
                   service: light.turn_off
                   entity_id:
                   - light.en_suite_toilet_ceiling_light
             - if:
                 condition: state
-                entity_id: input_boolean.lamp_control_when_bright_outdoor_en_suite_toilet
+                entity_id: input_boolean.lamp_control_bright_afternoon_en_suite_toilet
                 state: 'on'
               then:
                 service: script.do_nothing
@@ -136,7 +413,7 @@ automation:
                 service: script.do_nothing
             - if:
                 condition: state
-                entity_id: input_boolean.led_control_when_bright_outdoor_en_suite_toilet
+                entity_id: input_boolean.led_control_bright_afternoon_en_suite_toilet
                 state: 'on'
               then:
                 service: script.do_nothing
@@ -144,31 +421,27 @@ automation:
                 service: script.do_nothing
             - if:
                 condition: state
-                entity_id: input_boolean.curtain_control_when_bright_outdoor_en_suite_toilet
+                entity_id: input_boolean.curtain_control_bright_afternoon_en_suite_toilet
                 state: 'on'
               then:
                 service: script.do_nothing
               else:
                 service: script.do_nothing
       else:
-        alias: Lights on when dark outdoor
+        alias: States when dark
         if:
-          condition: state
-          entity_id: input_boolean.always_on_constant
-          state: 'on'
+        - '{{ 1 == 1 }}'
         then:
         - parallel:
           - parallel:
             - if:
                 condition: state
-                entity_id: input_boolean.ceiling_light_control_when_dark_outdoor_en_suite_toilet
+                entity_id: input_boolean.ceiling_light_control_dark_en_suite_toilet
                 state: 'on'
               then:
                 alias: Turn light.en_suite_toilet_ceiling_light state=on
                 if:
-                  condition: state
-                  entity_id: input_boolean.always_on_constant
-                  state: 'on'
+                - '{{ 1 == 1 }}'
                 then:
                   service: light.turn_on
                   entity_id:
@@ -176,16 +449,14 @@ automation:
               else:
                 alias: Turn light.en_suite_toilet_ceiling_light state=off
                 if:
-                  condition: state
-                  entity_id: input_boolean.always_on_constant
-                  state: 'on'
+                - '{{ 1 == 1 }}'
                 then:
                   service: light.turn_off
                   entity_id:
                   - light.en_suite_toilet_ceiling_light
             - if:
                 condition: state
-                entity_id: input_boolean.lamp_control_when_dark_outdoor_en_suite_toilet
+                entity_id: input_boolean.lamp_control_dark_en_suite_toilet
                 state: 'on'
               then:
                 service: script.do_nothing
@@ -193,7 +464,7 @@ automation:
                 service: script.do_nothing
             - if:
                 condition: state
-                entity_id: input_boolean.led_control_when_dark_outdoor_en_suite_toilet
+                entity_id: input_boolean.led_control_dark_en_suite_toilet
                 state: 'on'
               then:
                 service: script.do_nothing
@@ -201,7 +472,7 @@ automation:
                 service: script.do_nothing
             - if:
                 condition: state
-                entity_id: input_boolean.curtain_control_when_dark_outdoor_en_suite_toilet
+                entity_id: input_boolean.curtain_control_dark_en_suite_toilet
                 state: 'on'
               then:
                 service: script.do_nothing
@@ -213,7 +484,8 @@ automation:
   - platform: state
     entity_id: input_select.en_suite_toilet_occupancy
     to: Outside
-  - minutes: /5
+  - minutes: /30
+    seconds: '16'
     platform: time_pattern
   condition:
   - condition: state
@@ -225,35 +497,127 @@ automation:
     for: 00:01:00
   action:
     parallel:
-    - alias: Turn automation.zl_et_ceiling_lights_on_or_open_curtains_if_entering_to_room_en_suite_toilet state=on
+    - alias: Turn automation.zl_et_lights_and_curtain_on_if_entering_to_room_en_suite_toilet state=on
       if:
-        condition: state
-        entity_id: input_boolean.always_on_constant
-        state: 'on'
+      - '{{ 1 == 1 }}'
       then:
         service: homeassistant.turn_on
-        entity_id: automation.zl_et_ceiling_lights_on_or_open_curtains_if_entering_to_room_en_suite_toilet
-    - if:
-        condition: state
-        entity_id: input_boolean.curtain_control_when_left_en_suite_toilet
-        state: 'on'
+        entity_id: automation.zl_et_lights_and_curtain_on_if_entering_to_room_en_suite_toilet
+    - service: script.call_room_scene
+      data:
+        room_scene_select: input_select.en_suite_toilet_scene
+        scene: Idle
+    - alias: If it is bright morning
+      if:
+      - alias: Bright morning
+        condition: and
+        conditions:
+        - condition: or
+          conditions:
+          - condition: numeric_state
+            entity_id: sensor.master_room_west_side_light_sensor
+            above: input_number.en_suite_toilet_min_value_as_bright
+          - condition: state
+            entity_id: sensor.master_room_west_side_light_sensor
+            state:
+            - unavailable
+            - unknown
+        - condition: or
+          conditions:
+          - condition: state
+            entity_id: sun.sun
+            state: above_horizon
+          - condition: state
+            entity_id: sun.sun
+            state:
+            - unavailable
+            - unknown
+        - condition: time
+          after: input_datetime.morning_start_time_en_suite_toilet
+          before: input_datetime.morning_end_time_en_suite_toilet
       then:
-        service: script.do_nothing
+        alias: States when left in bright morning
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+        - parallel:
+          - parallel:
+            - if:
+                condition: state
+                entity_id: input_boolean.curtain_control_bright_morning_when_left_en_suite_toilet
+                state: 'on'
+              then:
+                service: script.do_nothing
+              else:
+                service: script.do_nothing
       else:
-        service: script.do_nothing
+        alias: If it is dark
+        if:
+        - alias: Bright afternoon
+          condition: and
+          conditions:
+          - condition: or
+            conditions:
+            - condition: numeric_state
+              entity_id: sensor.master_room_west_side_light_sensor
+              above: input_number.en_suite_toilet_min_value_as_bright
+            - condition: state
+              entity_id: sensor.master_room_west_side_light_sensor
+              state:
+              - unavailable
+              - unknown
+          - condition: or
+            conditions:
+            - condition: state
+              entity_id: sun.sun
+              state: above_horizon
+            - condition: state
+              entity_id: sun.sun
+              state:
+              - unavailable
+              - unknown
+          - condition: time
+            after: input_datetime.afternoon_start_time_en_suite_toilet
+            before: input_datetime.afternoon_end_time_en_suite_toilet
+        then:
+          alias: States when left in bright afternoon
+          if:
+          - '{{ 1 == 1 }}'
+          then:
+          - parallel:
+            - parallel:
+              - if:
+                  condition: state
+                  entity_id: input_boolean.curtain_control_bright_afternoon_when_left_en_suite_toilet
+                  state: 'on'
+                then:
+                  service: script.do_nothing
+                else:
+                  service: script.do_nothing
+        else:
+          alias: States when left in dark
+          if:
+          - '{{ 1 == 1 }}'
+          then:
+          - parallel:
+            - parallel:
+              - if:
+                  condition: state
+                  entity_id: input_boolean.curtain_control_dark_when_left_en_suite_toilet
+                  state: 'on'
+                then:
+                  service: script.do_nothing
+                else:
+                  service: script.do_nothing
     - service: script.do_nothing
     - alias: All Off
       if:
-        condition: state
-        entity_id: input_boolean.always_on_constant
-        state: 'on'
+      - '{{ 1 == 1 }}'
       then:
       - parallel:
         - alias: Turn light.en_suite_toilet_ceiling_light state=off
           if:
-            condition: state
-            entity_id: input_boolean.always_on_constant
-            state: 'on'
+          - '{{ 1 == 1 }}'
           then:
             service: light.turn_off
             entity_id:
@@ -261,6 +625,7 @@ automation:
         - service: script.do_nothing
         - service: script.do_nothing
         - service: script.do_nothing
+    - service: script.do_nothing
 - alias: ZL-ET Disable Entering Lights-on Automation If any People are in the Room-En-suite Toilet
   trigger:
   - platform: state
@@ -272,7 +637,7 @@ automation:
   action:
   - delay: 00:00:10
   - service: automation.turn_off
-    entity_id: automation.zl_et_ceiling_lights_on_or_open_curtains_if_entering_to_room_en_suite_toilet
+    entity_id: automation.zl_et_lights_and_curtain_on_if_entering_to_room_en_suite_toilet
     data:
       stop_actions: 'false'
   id: automation.zl_et_disable_entering_lights_on_automation_if_any_people_are_in_the_room_en_suite_toilet
@@ -284,7 +649,9 @@ automation:
     from:
     - Just Entered
     - Outside
-    to: Stayed Inside
+    to:
+    - Stayed Inside
+    - In Sleep
   action:
   - if:
     - condition: not
@@ -295,21 +662,15 @@ automation:
     then:
       alias: Turn heating state=on
       if:
-        condition: state
-        entity_id: input_boolean.always_on_constant
-        state: 'on'
+      - '{{ 1 == 1 }}'
       then:
         alias: ''
         if:
-          condition: state
-          entity_id: input_boolean.always_on_constant
-          state: 'on'
+        - '{{ 1 == 1 }}'
         then:
         - alias: Turn climate.en_suite_toilet state=on
           if:
-            condition: state
-            entity_id: input_boolean.always_on_constant
-            state: 'on'
+          - '{{ 1 == 1 }}'
           then:
             service: climate.set_hvac_mode
             data:
@@ -317,9 +678,7 @@ automation:
             entity_id: climate.en_suite_toilet
         - alias: Turn switch.schedule_en_suite_toilet_temperature state=on
           if:
-            condition: state
-            entity_id: input_boolean.always_on_constant
-            state: 'on'
+          - '{{ 1 == 1 }}'
           then:
             service: homeassistant.turn_on
             entity_id: switch.schedule_en_suite_toilet_temperature
@@ -329,7 +688,8 @@ automation:
   - platform: state
     entity_id: input_select.en_suite_toilet_occupancy
     to: Outside
-  - minutes: /5
+  - minutes: /30
+    seconds: '22'
     platform: time_pattern
   action:
   - condition: state
@@ -340,21 +700,15 @@ automation:
     state: 'off'
   - alias: Turn heating state=off
     if:
-      condition: state
-      entity_id: input_boolean.always_on_constant
-      state: 'on'
+    - '{{ 1 == 1 }}'
     then:
       alias: ''
       if:
-        condition: state
-        entity_id: input_boolean.always_on_constant
-        state: 'on'
+      - '{{ 1 == 1 }}'
       then:
       - alias: Turn climate.en_suite_toilet state=off
         if:
-          condition: state
-          entity_id: input_boolean.always_on_constant
-          state: 'on'
+        - '{{ 1 == 1 }}'
         then:
           service: climate.set_hvac_mode
           data:
@@ -362,9 +716,7 @@ automation:
           entity_id: climate.en_suite_toilet
       - alias: Turn switch.schedule_en_suite_toilet_temperature state=off
         if:
-          condition: state
-          entity_id: input_boolean.always_on_constant
-          state: 'on'
+        - '{{ 1 == 1 }}'
         then:
           service: homeassistant.turn_off
           entity_id: switch.schedule_en_suite_toilet_temperature
@@ -387,7 +739,7 @@ automation:
       entity_id:
       - automation.zh_et_heating_schedule_on_if_staying_in_the_room_en_suite_toilet
     - delay:
-        hours: 2
+        hours: 4
     - service: homeassistant.turn_off
       entity_id: input_boolean.en_suite_toilet_heating_override
     - service: automation.trigger
@@ -408,17 +760,13 @@ automation:
       sequence:
         alias: All White
         if:
-          condition: state
-          entity_id: input_boolean.always_on_constant
-          state: 'on'
+        - '{{ 1 == 1 }}'
         then:
         - parallel:
           - service: script.do_nothing
           - alias: Turn light.en_suite_toilet_ceiling_light state=on
             if:
-              condition: state
-              entity_id: input_boolean.always_on_constant
-              state: 'on'
+            - '{{ 1 == 1 }}'
             then:
               service: light.turn_on
               entity_id:
@@ -432,18 +780,14 @@ automation:
       sequence:
         alias: Ceiling Light White
         if:
-          condition: state
-          entity_id: input_boolean.always_on_constant
-          state: 'on'
+        - '{{ 1 == 1 }}'
         then:
         - parallel:
           - service: script.do_nothing
           - service: script.do_nothing
           - alias: Turn light.en_suite_toilet_ceiling_light state=on
             if:
-              condition: state
-              entity_id: input_boolean.always_on_constant
-              state: 'on'
+            - '{{ 1 == 1 }}'
             then:
               service: light.turn_on
               entity_id:
@@ -456,21 +800,16 @@ automation:
       sequence:
         alias: Lamp LED White
         if:
-          condition: state
-          entity_id: input_boolean.always_on_constant
-          state: 'on'
+        - '{{ 1 == 1 }}'
         then:
         - parallel:
           - alias: Turn light.en_suite_toilet_ceiling_light state=off
             if:
-              condition: state
-              entity_id: input_boolean.always_on_constant
-              state: 'on'
+            - '{{ 1 == 1 }}'
             then:
               service: light.turn_off
               entity_id:
               - light.en_suite_toilet_ceiling_light
-          - service: script.do_nothing
           - service: script.do_nothing
           - service: script.do_nothing
     - conditions:
@@ -480,22 +819,9 @@ automation:
       sequence:
         alias: LED White
         if:
-          condition: state
-          entity_id: input_boolean.always_on_constant
-          state: 'on'
+        - '{{ 1 == 1 }}'
         then:
         - parallel:
-          - alias: Turn light.en_suite_toilet_ceiling_light state=off
-            if:
-              condition: state
-              entity_id: input_boolean.always_on_constant
-              state: 'on'
-            then:
-              service: light.turn_off
-              entity_id:
-              - light.en_suite_toilet_ceiling_light
-          - service: script.do_nothing
-          - service: script.do_nothing
           - service: script.do_nothing
     - conditions:
       - condition: state
@@ -504,9 +830,7 @@ automation:
       sequence:
         alias: Hue
         if:
-          condition: state
-          entity_id: input_boolean.always_on_constant
-          state: 'on'
+        - '{{ 1 == 1 }}'
         then:
         - service: pyscript.turn_rgb_light
           data:
@@ -526,9 +850,7 @@ automation:
       sequence:
         alias: Night Mode
         if:
-          condition: state
-          entity_id: input_boolean.always_on_constant
-          state: 'on'
+        - '{{ 1 == 1 }}'
         then:
         - parallel:
           - service: homeassistant.turn_on
@@ -541,9 +863,7 @@ automation:
       sequence:
         alias: Dark Night Mode
         if:
-          condition: state
-          entity_id: input_boolean.always_on_constant
-          state: 'on'
+        - '{{ 1 == 1 }}'
         then:
         - parallel:
           - service: homeassistant.turn_on
@@ -556,9 +876,7 @@ automation:
       sequence:
         alias: Sleep Mode
         if:
-          condition: state
-          entity_id: input_boolean.always_on_constant
-          state: 'on'
+        - '{{ 1 == 1 }}'
         then:
         - parallel:
           - service: homeassistant.turn_on
@@ -570,16 +888,12 @@ automation:
       sequence:
         alias: All Off
         if:
-          condition: state
-          entity_id: input_boolean.always_on_constant
-          state: 'on'
+        - '{{ 1 == 1 }}'
         then:
         - parallel:
           - alias: Turn light.en_suite_toilet_ceiling_light state=off
             if:
-              condition: state
-              entity_id: input_boolean.always_on_constant
-              state: 'on'
+            - '{{ 1 == 1 }}'
             then:
               service: light.turn_off
               entity_id:
@@ -590,26 +904,22 @@ automation:
     - conditions:
       - condition: state
         entity_id: input_select.en_suite_toilet_scene
-        state: Lights on in hot sunshine
+        state: States when bright morning
       sequence:
-        alias: Lights on in hot sunshine
+        alias: States when bright morning
         if:
-          condition: state
-          entity_id: input_boolean.always_on_constant
-          state: 'on'
+        - '{{ 1 == 1 }}'
         then:
         - parallel:
           - parallel:
             - if:
                 condition: state
-                entity_id: input_boolean.ceiling_light_control_in_hot_sunshine_en_suite_toilet
+                entity_id: input_boolean.ceiling_light_control_bright_morning_en_suite_toilet
                 state: 'on'
               then:
                 alias: Turn light.en_suite_toilet_ceiling_light state=on
                 if:
-                  condition: state
-                  entity_id: input_boolean.always_on_constant
-                  state: 'on'
+                - '{{ 1 == 1 }}'
                 then:
                   service: light.turn_on
                   entity_id:
@@ -617,16 +927,14 @@ automation:
               else:
                 alias: Turn light.en_suite_toilet_ceiling_light state=off
                 if:
-                  condition: state
-                  entity_id: input_boolean.always_on_constant
-                  state: 'on'
+                - '{{ 1 == 1 }}'
                 then:
                   service: light.turn_off
                   entity_id:
                   - light.en_suite_toilet_ceiling_light
             - if:
                 condition: state
-                entity_id: input_boolean.lamp_control_in_hot_sunshine_en_suite_toilet
+                entity_id: input_boolean.lamp_control_bright_morning_en_suite_toilet
                 state: 'on'
               then:
                 service: script.do_nothing
@@ -634,7 +942,7 @@ automation:
                 service: script.do_nothing
             - if:
                 condition: state
-                entity_id: input_boolean.led_control_in_hot_sunshine_en_suite_toilet
+                entity_id: input_boolean.led_control_bright_morning_en_suite_toilet
                 state: 'on'
               then:
                 service: script.do_nothing
@@ -642,7 +950,7 @@ automation:
                 service: script.do_nothing
             - if:
                 condition: state
-                entity_id: input_boolean.curtain_control_in_hot_sunshine_en_suite_toilet
+                entity_id: input_boolean.curtain_control_bright_morning_en_suite_toilet
                 state: 'on'
               then:
                 service: script.do_nothing
@@ -651,26 +959,22 @@ automation:
     - conditions:
       - condition: state
         entity_id: input_select.en_suite_toilet_scene
-        state: Lights on when bright outdoor
+        state: States when bright afternoon
       sequence:
-        alias: Lights on when bright outdoor
+        alias: States when bright afternoon
         if:
-          condition: state
-          entity_id: input_boolean.always_on_constant
-          state: 'on'
+        - '{{ 1 == 1 }}'
         then:
         - parallel:
           - parallel:
             - if:
                 condition: state
-                entity_id: input_boolean.ceiling_light_control_when_bright_outdoor_en_suite_toilet
+                entity_id: input_boolean.ceiling_light_control_bright_afternoon_en_suite_toilet
                 state: 'on'
               then:
                 alias: Turn light.en_suite_toilet_ceiling_light state=on
                 if:
-                  condition: state
-                  entity_id: input_boolean.always_on_constant
-                  state: 'on'
+                - '{{ 1 == 1 }}'
                 then:
                   service: light.turn_on
                   entity_id:
@@ -678,16 +982,14 @@ automation:
               else:
                 alias: Turn light.en_suite_toilet_ceiling_light state=off
                 if:
-                  condition: state
-                  entity_id: input_boolean.always_on_constant
-                  state: 'on'
+                - '{{ 1 == 1 }}'
                 then:
                   service: light.turn_off
                   entity_id:
                   - light.en_suite_toilet_ceiling_light
             - if:
                 condition: state
-                entity_id: input_boolean.lamp_control_when_bright_outdoor_en_suite_toilet
+                entity_id: input_boolean.lamp_control_bright_afternoon_en_suite_toilet
                 state: 'on'
               then:
                 service: script.do_nothing
@@ -695,7 +997,7 @@ automation:
                 service: script.do_nothing
             - if:
                 condition: state
-                entity_id: input_boolean.led_control_when_bright_outdoor_en_suite_toilet
+                entity_id: input_boolean.led_control_bright_afternoon_en_suite_toilet
                 state: 'on'
               then:
                 service: script.do_nothing
@@ -703,7 +1005,7 @@ automation:
                 service: script.do_nothing
             - if:
                 condition: state
-                entity_id: input_boolean.curtain_control_when_bright_outdoor_en_suite_toilet
+                entity_id: input_boolean.curtain_control_bright_afternoon_en_suite_toilet
                 state: 'on'
               then:
                 service: script.do_nothing
@@ -712,26 +1014,22 @@ automation:
     - conditions:
       - condition: state
         entity_id: input_select.en_suite_toilet_scene
-        state: Lights on when dark outdoor
+        state: States when dark
       sequence:
-        alias: Lights on when dark outdoor
+        alias: States when dark
         if:
-          condition: state
-          entity_id: input_boolean.always_on_constant
-          state: 'on'
+        - '{{ 1 == 1 }}'
         then:
         - parallel:
           - parallel:
             - if:
                 condition: state
-                entity_id: input_boolean.ceiling_light_control_when_dark_outdoor_en_suite_toilet
+                entity_id: input_boolean.ceiling_light_control_dark_en_suite_toilet
                 state: 'on'
               then:
                 alias: Turn light.en_suite_toilet_ceiling_light state=on
                 if:
-                  condition: state
-                  entity_id: input_boolean.always_on_constant
-                  state: 'on'
+                - '{{ 1 == 1 }}'
                 then:
                   service: light.turn_on
                   entity_id:
@@ -739,16 +1037,14 @@ automation:
               else:
                 alias: Turn light.en_suite_toilet_ceiling_light state=off
                 if:
-                  condition: state
-                  entity_id: input_boolean.always_on_constant
-                  state: 'on'
+                - '{{ 1 == 1 }}'
                 then:
                   service: light.turn_off
                   entity_id:
                   - light.en_suite_toilet_ceiling_light
             - if:
                 condition: state
-                entity_id: input_boolean.lamp_control_when_dark_outdoor_en_suite_toilet
+                entity_id: input_boolean.lamp_control_dark_en_suite_toilet
                 state: 'on'
               then:
                 service: script.do_nothing
@@ -756,7 +1052,7 @@ automation:
                 service: script.do_nothing
             - if:
                 condition: state
-                entity_id: input_boolean.led_control_when_dark_outdoor_en_suite_toilet
+                entity_id: input_boolean.led_control_dark_en_suite_toilet
                 state: 'on'
               then:
                 service: script.do_nothing
@@ -764,7 +1060,7 @@ automation:
                 service: script.do_nothing
             - if:
                 condition: state
-                entity_id: input_boolean.curtain_control_when_dark_outdoor_en_suite_toilet
+                entity_id: input_boolean.curtain_control_dark_en_suite_toilet
                 state: 'on'
               then:
                 service: script.do_nothing
@@ -789,9 +1085,7 @@ automation:
   action:
   - alias: Turn light.en_suite_toilet_ceiling_light state=toggle
     if:
-      condition: state
-      entity_id: input_boolean.always_on_constant
-      state: 'on'
+    - '{{ 1 == 1 }}'
     then:
       if:
       - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
@@ -803,9 +1097,7 @@ automation:
       then:
         alias: Turn light.en_suite_toilet_ceiling_light state=off
         if:
-          condition: state
-          entity_id: input_boolean.always_on_constant
-          state: 'on'
+        - '{{ 1 == 1 }}'
         then:
           service: light.turn_off
           entity_id:
@@ -813,9 +1105,7 @@ automation:
       else:
         alias: Turn light.en_suite_toilet_ceiling_light state=on
         if:
-          condition: state
-          entity_id: input_boolean.always_on_constant
-          state: 'on'
+        - '{{ 1 == 1 }}'
         then:
           service: light.turn_on
           entity_id:
@@ -855,148 +1145,41 @@ automation:
     to: 'on'
   - entity_id: group.en_suite_toilet_motion_group
     platform: state
+    to: 'on'
+    for:
+      seconds: 150
+  - entity_id: group.en_suite_toilet_motion_group
+    platform: state
+    to: 'on'
+    for:
+      seconds: 1800
+  - entity_id: group.en_suite_toilet_motion_group
+    platform: state
     to: 'off'
-    for: 05:00:00
+  - entity_id: group.en_suite_toilet_motion_group
+    platform: state
+    to: 'off'
+    for:
+      seconds: 300
+  - entity_id: group.en_suite_toilet_motion_group
+    platform: state
+    to: 'off'
+    for:
+      seconds: 3600
   - minutes: /5
+    seconds: '3'
     platform: time_pattern
   action:
     service: pyscript.room_occupancy_state_machine
     data:
       occupancy_entity_str: input_select.en_suite_toilet_occupancy
       motion_str: group.en_suite_toilet_motion_group
-      motion_on_ratio_for_x_min_str: sensor.en_suite_toilet_motion_on_ratio_for_last_4_minutes
-      motion_on_ratio_for_2x_min_str: sensor.en_suite_toilet_motion_on_ratio_for_last_8_minutes
-      room_type: toilet
-      sleep_time: input_boolean.master_room_sleep_time
-input_select:
-  en_suite_toilet_scene:
-    name: En Suite Toilet Scene
-    options:
-    - Idle
-    - All White
-    - Ceiling Light White
-    - All Off
-  en_suite_toilet_occupancy:
-    name: En Suite Toilet Occupancy
-    options:
-    - Outside
-    - Just Entered
-    - Stayed Inside
-    - In Sleep
-sensor:
-- platform: history_stats
-  name: En-suite Toilet Motion On Ratio For Last 4 Minutes
-  entity_id: group.en_suite_toilet_motion_group
-  state: 'on'
-  type: ratio
-  duration:
-    minutes: '4'
-  end: '{{ (now() | as_timestamp) | as_datetime | as_local }}'
-- platform: history_stats
-  name: En-suite Toilet Motion On Ratio For Last 8 Minutes
-  entity_id: group.en_suite_toilet_motion_group
-  state: 'on'
-  type: ratio
-  duration:
-    minutes: '8'
-  end: '{{ (now() | as_timestamp) | as_datetime | as_local }}'
-input_boolean:
-  master_room_sleep_time:
-    name: Master Room Sleep Time
-    initial: 'off'
-  en_suite_toilet_heating_override:
-    name: En Suite Toilet Heating Override
-    initial: 'off'
-  curtain_control_when_left_en_suite_toilet:
-    name: Curtain Control When Left En Suite Toilet
-    initial: 'off'
-  ceiling_light_control_in_hot_sunshine_en_suite_toilet:
-    name: Ceiling Light Control In Hot Sunshine En Suite Toilet
-    initial: 'off'
-  lamp_control_in_hot_sunshine_en_suite_toilet:
-    name: Lamp Control In Hot Sunshine En Suite Toilet
-    initial: 'off'
-  led_control_in_hot_sunshine_en_suite_toilet:
-    name: Led Control In Hot Sunshine En Suite Toilet
-    initial: 'off'
-  curtain_control_in_hot_sunshine_en_suite_toilet:
-    name: Curtain Control In Hot Sunshine En Suite Toilet
-    initial: 'off'
-  ceiling_light_control_when_bright_outdoor_en_suite_toilet:
-    name: Ceiling Light Control When Bright Outdoor En Suite Toilet
-  lamp_control_when_bright_outdoor_en_suite_toilet:
-    name: Lamp Control When Bright Outdoor En Suite Toilet
-    initial: 'off'
-  led_control_when_bright_outdoor_en_suite_toilet:
-    name: Led Control When Bright Outdoor En Suite Toilet
-    initial: 'off'
-  curtain_control_when_bright_outdoor_en_suite_toilet:
-    name: Curtain Control When Bright Outdoor En Suite Toilet
-    initial: 'off'
-  ceiling_light_control_when_dark_outdoor_en_suite_toilet:
-    name: Ceiling Light Control When Dark Outdoor En Suite Toilet
-  lamp_control_when_dark_outdoor_en_suite_toilet:
-    name: Lamp Control When Dark Outdoor En Suite Toilet
-    initial: 'off'
-  led_control_when_dark_outdoor_en_suite_toilet:
-    name: Led Control When Dark Outdoor En Suite Toilet
-    initial: 'off'
-  curtain_control_when_dark_outdoor_en_suite_toilet:
-    name: Curtain Control When Dark Outdoor En Suite Toilet
-    initial: 'off'
-switch:
-- platform: group
-  name: 'En-suite Toilet Wall Switch '
-  entities: switch.0x00158d000522d90c_switch
-cover: []
-template:
-- binary_sensor:
-  - name: En-suite Toilet Heating Required
-    state: '{% set climate = "climate.en_suite_toilet" %}{% if states(climate) == "unavailable" %}off{% else %} {{ ((state_attr(climate, "temperature")  > state_attr(climate, "current_temperature"))  and  (states(climate) != "off"))  }}{% endif %}'
-- sensor:
-  - name: En-suite Toilet Motion Sensor Light
-    unit_of_measurement: lx
-    state: '{{states.sensor["0x00158d000572839f_illuminance"].state}}'
-- sensor:
-  - name: En-suite Toilet Motion Sensor Battery
-    unit_of_measurement: '%'
-    state: '{{states.sensor["0x00158d000572839f_battery"].state}}'
-- sensor:
-  - name: En-suite Toilet Wall Button
-    state: '{{states.sensor["0x00158d000522d90c_action"].state}}'
-binary_sensor:
-- platform: group
-  name: En-suite Toilet Door
-  entities: binary_sensor.0x00158d00053fdaba_contact
-- platform: group
-  name: En-suite Toilet Motion Sensor Motion
-  entities: binary_sensor.0x00158d000572839f_motion
-light: []
-adaptive_lighting:
-- name: En-suite Toilet
-  lights:
-  - light.en_suite_toilet_ceiling_light
-  prefer_rgb_color: false
-  transition: 45
-  initial_transition: 1
-  interval: 90
-  min_brightness: 50
-  max_brightness: 100
-  min_color_temp: 2700
-  max_color_temp: 4000
-  sleep_brightness: 20
-  sleep_color_temp: 2200
-  take_over_control: true
-  autoreset_control_seconds: 86400
-  detect_non_ha_changes: false
-  only_once: false
-  adapt_only_on_bare_turn_on: true
-  separate_turn_on_commands: false
-  send_split_delay: 500
-  adapt_delay: 0.5
-  intercept: true
-  multi_light_intercept: true
-  include_config_in_attributes: false
+      sleep_time: input_boolean.always_off_constant
+      turn_to_outside_when_no_motion: 'no'
+      entered_to_inside_timeout: 150
+      inside_to_outside_timeout: 300
+      sleep_to_outside_timesout: 3600
+      inside_to_sleep_timeout: 1800
 group:
   en_suite_toilet_occupancy_group:
     name: En Suite Toilet Occupancy Group
@@ -1004,11 +1187,13 @@ group:
     - input_select.en_suite_toilet_occupancy
     - group.en_suite_toilet_motion_group
     - binary_sensor.en_suite_toilet_motion_sensor_motion
+    - binary_sensor.en_suite_toilet_occupancy_sensor_occupancy
     - automation.zoc_et_occupancy_update_en_suite_toilet
   en_suite_toilet_motion_group:
     name: En Suite Toilet Motion Group
     entities:
     - binary_sensor.en_suite_toilet_motion_sensor_motion
+    - binary_sensor.en_suite_toilet_occupancy_sensor_occupancy
   en_suite_toilet_light_group:
     name: En Suite Toilet Light Group
     entities:
@@ -1016,15 +1201,27 @@ group:
   en_suite_toilet_window_group:
     name: En Suite Toilet Window Group
     entities: []
+  en_suite_toilet_timeout_window_group:
+    name: En Suite Toilet Timeout Window Group
+    entities: []
   en_suite_toilet_curtain_group:
     name: En Suite Toilet Curtain Group
     entities: []
+  en_suite_toilet_battery:
+    name: En Suite Toilet Battery
+    entities:
+    - sensor.en_suite_toilet_motion_sensor_battery
+    - sensor.en_suite_toilet_occupancy_sensor_battery
+    - sensor.en_suite_toilet_temperature_sensor_battery
   en_suite_toilet_auto_gen_automations:
     name: En Suite Toilet Auto Gen Automations
     entities:
-    - input_boolean.ceiling_light_control_when_bright_outdoor_en_suite_toilet
-    - input_boolean.ceiling_light_control_when_dark_outdoor_en_suite_toilet
-    - automation.zl_et_ceiling_lights_on_or_open_curtains_if_entering_to_room_en_suite_toilet
+    - climate.tado_smart_radiator_thermostat_va0429069312
+    - input_boolean.ceiling_light_control_bright_morning_en_suite_toilet
+    - input_boolean.ceiling_light_control_bright_afternoon_en_suite_toilet
+    - input_boolean.ceiling_light_control_dark_en_suite_toilet
+    - automation.zh_et_set_radiator_valve_target_temperature_based_on_external_sensor_temperature_difference_en_suite_toilet
+    - automation.zl_et_lights_and_curtain_on_if_entering_to_room_en_suite_toilet
     - automation.zl_et_lights_off_if_no_person_en_suite_toilet
     - automation.zl_et_disable_entering_lights_on_automation_if_any_people_are_in_the_room_en_suite_toilet
     - automation.zh_et_heating_schedule_on_if_staying_in_the_room_en_suite_toilet
@@ -1037,3 +1234,10 @@ group:
     - switch.0x00158d000522d90c_switch
     - switch.0x00158d000522d90c_wireless
     - switch.adaptive_lighting_sleep_mode_en_suite_toilet
+    - input_datetime.morning_start_time_en_suite_toilet
+    - input_datetime.morning_end_time_en_suite_toilet
+    - input_datetime.afternoon_start_time_en_suite_toilet
+    - input_datetime.afternoon_end_time_en_suite_toilet
+    - sensor.master_room_west_side_light_sensor
+    - input_number.en_suite_toilet_min_value_as_bright
+    - group.en_suite_toilet_battery

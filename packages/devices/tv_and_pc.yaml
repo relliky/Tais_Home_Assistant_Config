@@ -7,6 +7,15 @@
 #  host: 192.168.1.37
 #  token: "12D7C7899B9F80FFFFFF3043524B544D"
 
+# Kitchen 50-inch tv
+#media_player:
+#  - platform: samsungtv_tizen
+#    name: Kitchen TV
+#    host: 192.168.1.30
+#    mac: d0:03:df:db:89:ac
+#    api_key: !secret smart_things_api_token
+#    device_id: !secret samsung_tv_50_device_id
+
 # WOL switch on PCs
 switch:
   - platform: wake_on_lan
@@ -34,43 +43,43 @@ switch:
     name: HP Printer
     host: 192.168.1.117
 
-
 timer:
   gaming_pc_shutdown_timer:
     name: "Gaming PC Shutdown Timer"
     duration: "08:00:00"
 
 # Detection if Fire TV is streaming Moonlight/Parsec
-template:
-  - binary_sensor:
-      - name: "Master Room Fire TV Streaming PC Contents"
-        state: >
-          {{        (states.media_player.master_room_fire_tv.state == 'paused') 
-            and (   (states.media_player.master_room_fire_tv.attributes.source == 'tv.parsec.client') 
-                 or (states.media_player.master_room_fire_tv.attributes.source == 'com.limelight'   )   )}}
-
-      - name: "Living Room Fire TV Streaming PC Contents"
-        state: >
-          {{        (states.media_player.living_room_fire_tv.state == 'paused') 
-            and (   (states.media_player.living_room_fire_tv.attributes.source == 'tv.parsec.client') 
-                 or (states.media_player.living_room_fire_tv.attributes.source == 'com.limelight'   )   )}}
-
-      # Kitchen Fire TV is constantly offline. Use Kitchen TV to replace instead
-      #- name: "Kitchen Fire TV Streaming PC Contents"
-      #  state: >
-      #    {{        (states.media_player.kitchen_tv.state == 'on') }}
-
-      - name: "Portable Fire TV Streaming PC Contents"
-        state: >
-          {{        (states.media_player.portable_fire_tv.state == 'paused') 
-            and (   (states.media_player.portable_fire_tv.attributes.source == 'tv.parsec.client') 
-                 or (states.media_player.portable_fire_tv.attributes.source == 'com.limelight'   )   )}}
-
-      - name: " Balcony Fire TV Streaming PC Contents"
-        state: >
-          {{        (states.media_player.balcony_fire_tv.state == 'paused') 
-            and (   (states.media_player.balcony_fire_tv.attributes.source == 'tv.parsec.client') 
-                 or (states.media_player.balcony_fire_tv.attributes.source == 'com.limelight'   )   )}}
+# Runaway template
+# template:
+#   - binary_sensor:
+#       - name: "Master Room Fire TV Streaming PC Contents"
+#         state: >
+#           {{        (states.media_player.master_room_fire_tv.state == 'paused') 
+#             and (   (states.media_player.master_room_fire_tv.attributes.source == 'tv.parsec.client') 
+#                  or (states.media_player.master_room_fire_tv.attributes.source == 'com.limelight'   )   )}}
+# 
+#       - name: "Living Room Fire TV Streaming PC Contents"
+#         state: >
+#           {{        (states.media_player.living_room_fire_tv.state == 'paused') 
+#             and (   (states.media_player.living_room_fire_tv.attributes.source == 'tv.parsec.client') 
+#                  or (states.media_player.living_room_fire_tv.attributes.source == 'com.limelight'   )   )}}
+# 
+#       # Kitchen Fire TV is constantly offline. Use Kitchen TV to replace instead
+#       #- name: "Kitchen Fire TV Streaming PC Contents"
+#       #  state: >
+#       #    {{        (states.media_player.kitchen_tv.state == 'on') }}
+# 
+#       - name: "Portable Fire TV Streaming PC Contents"
+#         state: >
+#           {{        (states.media_player.portable_fire_tv.state == 'paused') 
+#             and (   (states.media_player.portable_fire_tv.attributes.source == 'tv.parsec.client') 
+#                  or (states.media_player.portable_fire_tv.attributes.source == 'com.limelight'   )   )}}
+# 
+#       - name: " Balcony Fire TV Streaming PC Contents"
+#         state: >
+#           {{        (states.media_player.balcony_fire_tv.state == 'paused') 
+#             and (   (states.media_player.balcony_fire_tv.attributes.source == 'tv.parsec.client') 
+#                  or (states.media_player.balcony_fire_tv.attributes.source == 'com.limelight'   )   )}}
 
 binary_sensor:
   - platform: group
@@ -213,7 +222,7 @@ automation:
     id: automation.n_pc_has_been_on_for_a_while
     trigger:
       - platform: time_pattern
-        hours: "2"
+        hours: /2
       - platform: state
         entity_id: switch.gaming_pc
         for: "02:00:00"
@@ -222,8 +231,8 @@ automation:
       - condition: state
         state: "on"
         entity_id: switch.gaming_pc
-        for: "02:00:00"
+        for: "12:00:00"
       - service: script.notify_alexa_speakers_and_phones
         data:
-          tts_message: PC has been turned on for more than 2 hours. Is that expected?
+          tts_message: PC has been turned on for more than 12 hours. Is that expected?
           notify_tai: "yes"

@@ -8,6 +8,20 @@ logger:
     custom_components.pyscript: info
     #custom_components.pyscript.file.my_scripts.z_alexa_set_tv_brightness: debug
 
+script system:
+  reload_autogen_entity:
+    alias: Reload Auto-generated Entities # take about 12 seconds
+    sequence:
+      - service: min_max.reload
+      - service: filter.reload
+      - service: input_boolean.reload
+      - service: input_select.reload
+      - service: input_number.reload
+      - service: script.reload
+      - service: automation.reload
+      - service: group.reload
+      - service: template.reload
+
 # System Sensors
 sensor:
   # This sensor capture DNS public IP
@@ -37,15 +51,16 @@ sensor:
       - "date"
 
   # Note taking app
-  - platform: google_keep
-    username: !secret google_keep_username
-    password: !secret google_keep_password
+#  - platform: google_keep
+#    username: !secret google_keep_username
+#    password: !secret google_keep_password
 
 # Custom Variables
 input_boolean:
   log_enable:
     name: "Log Enable"
-
+    initial: 'on'
+    
   always_off_constant:
     name: "Always Off Constant"
     initial: "off"
@@ -58,6 +73,18 @@ input_boolean:
     name: "Placeholder"
     initial: "off"
 
+
+automation placeholder:
+  - alias: H- Always Turn Off Placeholder Input Boolean
+    id: "167906535942ffdsafdsafdsfds1"
+    trigger:
+      - entity_id: input_boolean.placeholder
+        platform: state
+    action:
+      - delay: '00:00:01'
+      - service: homeassistant.turn_off
+        entity_id: input_boolean.placeholder
+
 input_select:
   indoor_brightness:
     name: Indoor Brightness
@@ -65,6 +92,24 @@ input_select:
       - dark
       - dimmed
       - bright
+
+automation indoor_brightness:
+  - alias: L- Set up Indoor Brightness Based On Sun
+    id: "1679065359421"
+    trigger:
+      - entity_id: sun.sun
+        platform: state
+    action:
+      - service: input_select.select_option
+        target:
+          entity_id: input_select.indoor_brightness
+        data:
+          option: >
+            {% if states('sun.sun') == 'below_horizon' %}
+              dark
+            {% else %}
+              bright
+            {% endif %}
 
 #shell_command:
 #  # PVE CPU Temperature
@@ -123,9 +168,21 @@ template:
 http:
   ssl_certificate: /ssl/fullchain.pem
   ssl_key: /ssl/privkey.pem
-  ip_ban_enabled: true
+  #ip_ban_enabled: true
   login_attempts_threshold: 20
   use_x_frame_options: false
+
+# Remote access via reverse proxy
+#http:
+#    trusted_proxies: 
+#    - 127.0.0.1
+#    - 192.168.1.0/24
+#    - 192.168.5.0/24
+#    #ip_ban_enabled: true
+#    login_attempts_threshold: 20
+#    use_x_frame_options: false
+#    use_x_forwarded_for: true
+#
   
 # Main DDNS - DuckDNS (if auto-renew fails, needs to renew every 3 months)
 # Alt. DDNS - FreeDNS (no need to renew mannually)
@@ -140,12 +197,12 @@ freedns:
 
 # Database logging config
 recorder:
-  #purge_keep_days: 5
-  auto_purge: false
+  purge_keep_days: 90
+  auto_purge: true
   commit_interval: 5 # updates log every 5s
   # Use local database to diognise performance issue
   # Use synology docker mariadb container
-  db_url: mysql://root:mariadb_pass@192.168.1.11/ha_1?charset=utf8mb4
+  #db_url: mysql://root:mariadb_pass@192.168.1.11/ha_1?charset=utf8mb4
   # Use HA supervisor mariadb container
   #db_url: mysql://mariadb_user:mariadb_pass@core-mariadb/homeassistant?charset=utf8mb4
 
@@ -198,7 +255,11 @@ script:
     alias: Do nothing
     sequence:
       - service: script.do_nothing
-
+  restart_ha:
+    alias: Restart HA
+    sequence:
+      - service: homeassistant.restart    
+      
 ###############################################
 #
 # Automations:
@@ -223,15 +284,28 @@ automation:
     id: "1602722452776"
     description: ""
     trigger:
-      - at: 04:00:00
+      - at: 03:01:00
+        platform: time
+    action:
+      - service: homeassistant.restart
+
+  - alias: Restart addons at midnight
+    id: "1602722452432423342532"
+    description: ""
+    trigger:
+      - at: 04:10:00
         platform: time
     action:
       # restart Z2M to reduce the chance of experiencing pairing devices accidentally
       - service: hassio.addon_restart
         data:
-          addon: 45df7312_zigbee2mqtt 
+          addon: 8c77aaed_zigbee2mqtt 
+      - delay: 00:01:00
+      #- service: hassio.addon_restart
+      #  data:
+      #    addon: a0d7b954_vscode
+      #- delay: 00:01:00
       # Restart HA          
-      - service: homeassistant.restart
       # Generate report
       #- service: watchman.report
       # Restart hubs in other rooms
@@ -243,7 +317,7 @@ automation:
       #- delay: "00:01:00"
 
   # - Starts Log Enable and set timeout
-  - alias: Enable/Disable Logging By The State of The Log Enable and Set Timeout for 48 Hours
+  - alias: Enable/Disable Logging By The State of The Log Enable
     id: "1607918439986"
     trigger:
       - platform: state
@@ -252,12 +326,6 @@ automation:
           - "on"
           - "off"
     action:
-      - service: >
-          {% if states('input_boolean.log_enable') == 'on' %}
-            recorder.enable
-          {% else %}
-            recorder.disable
-          {% endif %}
       # Reset the Timer
       - service: input_datetime.set_datetime
         entity_id: input_datetime.log_disable_time
@@ -272,84 +340,91 @@ automation:
         entity_id: input_datetime.log_disable_time
         data_template:
           datetime: "{{ (now().timestamp() + 60*60*24)| timestamp_custom('%Y-%m-%d %H:%M:%S', true) }}"
+      # Enable/Disable recorder
+      - delay: '00:00:10'
+      - service: >
+          {% if states('input_boolean.log_enable') == 'on' %}
+            recorder.enable
+          {% else %}
+            recorder.disable
+          {% endif %}
 
-  - alias: Turn Off Logging By The Timeout
-    id: "1607918439987"
+#  - alias: Turn Off Logging By The Timeout
+#    id: "1607918439987"
+#    trigger:
+#      - platform: time_pattern
+#        minutes: "/5"
+#    action:
+#      # Time condition does not work with input_datetime so have to use template to work aorund
+#      - condition: template
+#        value_template: "{{now().timestamp() > state_attr('input_datetime.log_disable_time', 'timestamp')}}"
+#      - service: input_boolean.turn_off
+#        entity_id: input_boolean.log_enable
+#      - service: recorder.disable
+
+  - alias: 多模网关重启自动开启蓝牙插件开关
+    id: actions_on_system_bootup
+    description: ""
     trigger:
-      - platform: time_pattern
-        minutes: "/5"
+      - platform: homeassistant
+        event: start
     action:
-      # Time condition does not work with input_datetime so have to use template to work aorund
-      - condition: template
-        value_template: "{{now().timestamp() > state_attr('input_datetime.log_disable_time', 'timestamp')}}"
-      - service: input_boolean.turn_off
-        entity_id: input_boolean.log_enable
-      - service: recorder.disable
+      - service: switch.turn_on
+        target:
+          entity_id: switch.esp_restart
+      - delay: '00:01:00'
+      - service: switch.turn_on
+        target:
+          entity_id: switch.esp_green_led
 
   ####################################################
   #
   # Restart HA if certain entities becomes unavailable
   #
   ####################################################
-  - alias: T- Restart HA When Some Devices Are Offline
-    id: "1599910317895"
-    description: ""
-    trigger:
-      - minutes: /10
-        platform: time_pattern
-    action:
-      - choose:
-          # Check LR Zigbee
-          - conditions:
-              - condition: state
-                entity_id: binary_sensor.ground_toilet_motion_sensor_motion
-                state: "unavailable"
-            sequence:
-              - service: notify.notify
-                data:
-                  title: "Restarting HA in 1 Min"
-                  message: "LR Ground Toilet Sensor Is Offline. Restarting HA"
-              - delay: "00:01:00"
-              - service: homeassistant.restart
-          # Check MR Zigbee
-          - conditions:
-              - condition: state
-                entity_id: binary_sensor.master_toilet_basin_motion_sensor_motion
-                state: "unavailable"
-            sequence:
-              - service: notify.notify
-                data:
-                  title: "Restarting HA in 1 Min"
-                  message: "MR Master Toilet Sensor Is Offline. Restarting HA"
-              - delay: "00:01:00"
-              - service: homeassistant.restart
-          # Check BLE devices
-          - conditions:
-              - condition: state
-                entity_id: light.master_room_entrance_led_light
-                state: "unavailable"
-            sequence:
-              - service: notify.notify
-                data:
-                  title: "Restarting HA in 1 Min"
-                  message: "BLE Master Room Entrance Light Is Offline. Restarting HA"
-              - delay: "00:01:00"
-              - service: homeassistant.restart
+#  - alias: T- Restart HA When Some Devices Are Offline
+#    id: "1599910317895"
+#    description: ""
+#    trigger:
+#      - minutes: /10
+#        platform: time_pattern
+#    action:
+#      - choose:
+#          # Check LR Zigbee
+#          - conditions:
+#              - condition: state
+#                entity_id: binary_sensor.ground_toilet_motion_sensor_motion
+#                state: "unavailable"
+#            sequence:
+#              - service: notify.notify
+#                data:
+#                  title: "Restarting HA in 1 Min"
+#                  message: "LR Ground Toilet Sensor Is Offline. Restarting HA"
+#              - delay: "00:01:00"
+#              - service: homeassistant.restart
+#          # Check MR Zigbee
+#          - conditions:
+#              - condition: state
+#                entity_id: binary_sensor.master_toilet_basin_motion_sensor_motion
+#                state: "unavailable"
+#            sequence:
+#              - service: notify.notify
+#                data:
+#                  title: "Restarting HA in 1 Min"
+#                  message: "MR Master Toilet Sensor Is Offline. Restarting HA"
+#              - delay: "00:01:00"
+#              - service: homeassistant.restart
+#          # Check BLE devices
+#          - conditions:
+#              - condition: state
+#                entity_id: light.master_room_entrance_led_light
+#                state: "unavailable"
+#            sequence:
+#              - service: notify.notify
+#                data:
+#                  title: "Restarting HA in 1 Min"
+#                  message: "BLE Master Room Entrance Light Is Offline. Restarting HA"
+#              - delay: "00:01:00"
+#              - service: homeassistant.restart
 
-automation brightness:
-  - alias: L- Set up Indoor Brightness Based On Sun
-    id: "1679065359421"
-    trigger:
-      - entity_id: sun.sun
-        platform: state
-    action:
-      - service: input_select.select_option
-        target:
-          entity_id: input_select.indoor_brightness
-        data:
-          option: >
-            {% if states('sun.sun') == 'below_horizon' %}
-              dark
-            {% else %}
-              bright
-            {% endif %}
+

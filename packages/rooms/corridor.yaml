@@ -14,15 +14,12 @@ group:
   corridor_appliances:
     name: Corridor Appliances
     entities:
-    - light.corridor_ceiling_light
-    - climate.corridor
+      - light.corridor_ceiling_light
+      - climate.corridor
 
 input_boolean:
   home_alarm:
     name: "Home Alarm"
-
-
-
 
 ###############################################
 #
@@ -37,13 +34,13 @@ automation:
     id: downstairs_zone_heating_on
     trigger:
       - platform: state
-        entity_id: 
-        - group.downstairs_heating_required
+        entity_id:
+          - group.downstairs_heating_required
       - minutes: /5
-        platform: time_pattern        
-    condition:    
+        platform: time_pattern
+    condition:
       - condition: state
-        entity_id: group.downstairs_heating_required      
+        entity_id: group.downstairs_heating_required
         state: "on"
     action:
       - service: switch.turn_on
@@ -53,58 +50,108 @@ automation:
     id: downstairs_zone_heating_off
     trigger:
       - platform: state
-        entity_id: 
-        - group.downstairs_heating_required
+        entity_id:
+          - group.downstairs_heating_required
       - minutes: /5
-        platform: time_pattern        
-    condition:    
-    - condition: and
-      conditions:
-      - condition: state
-        entity_id: group.downstairs_heating_required      
-        state: "off"
+        platform: time_pattern
+    condition:
+      - condition: and
+        conditions:
+          - condition: state
+            entity_id: group.downstairs_heating_required
+            state: "off"
+            # Reduce the frequency of turning off the valve - to increase lifetime of the valve
+            for: '00:05:00'
     action:
       - service: switch.turn_off
         entity_id: switch.downstairs_heating
-      # Reduce the frequency of turning off the valve - to increase lifetime of the valve
-      - delay: "00:12:00"
 
   - alias: H-Upstairs Zone Heating On When Heating Required
     id: upstairs_zone_heating_on
     trigger:
       - platform: state
-        entity_id: 
-        - group.upstairs_heating_required
+        entity_id:
+          - group.upstairs_heating_required
       - minutes: /5
-        platform: time_pattern        
-    condition:    
+        platform: time_pattern
+    condition:
       - condition: state
-        entity_id: group.upstairs_heating_required      
+        entity_id: group.upstairs_heating_required
         state: "on"
     action:
       - service: switch.turn_on
         entity_id: switch.upstairs_heating
-      
+
   - alias: H-Upstairs Zone Heating Off When No Heating Required
     id: upstairs_zone_heating_off
     trigger:
       - platform: state
-        entity_id: 
-        - group.upstairs_heating_required
+        entity_id:
+          - group.upstairs_heating_required
       - minutes: /5
-        platform: time_pattern        
-    condition:    
-    - condition: and
-      conditions:
-      - condition: state
-        entity_id: group.upstairs_heating_required      
-        state: "off"
+        platform: time_pattern
+    condition:
+      - condition: and
+        conditions:
+          - condition: state
+            entity_id: group.upstairs_heating_required
+            state: "off"
+            # Reduce the frequency of turning off the valve - to increase lifetime of the valve
+            for: '00:05:00'
     action:
       - service: switch.turn_off
         entity_id: switch.upstairs_heating
-      # Reduce the frequency of turning off the valve - to increase lifetime of the valve
-      - delay: "00:12:00"
-      
+
+  #  - alias: H-Workaround Upstairs/Downstair Zone Heating Off When No Heating Required
+  #    id: workaround_zone_heating_off
+  #    trigger:
+  #      - platform: state
+  #        entity_id:
+  #        - group.upstairs_heating_required
+  #        - group.downstairs_heating_required
+  #      - minutes: /5
+  #        platform: time_pattern
+  #    condition:
+  #    - condition: and
+  #      conditions:
+  #      - condition: state
+  #        entity_id:
+  #          - group.downstairs_heating_required
+  #        state: "off"
+  #        # Reduce the frequency of turning off the valve - to increase lifetime of the valve
+  #        for: '00:05:00'  
+  #      - condition: state
+  #        entity_id:
+  #          - group.upstairs_heating_required
+  #        state: "off"
+  #        # Reduce the frequency of turning off the valve - to increase lifetime of the valve
+  #        for: '00:05:00'  
+  #    action:
+  #      - service: switch.turn_off
+  #        entity_id: switch.downstairs_heating
+  #
+  #  - alias: H-Workaround Upstairs/Downstair Zone Heating On When Heating Required
+  #    id: workaround_zone_heating_on
+  #    trigger:
+  #      - platform: state
+  #        entity_id:
+  #        - group.upstairs_heating_required
+  #        - group.downstairs_heating_required
+  #      - minutes: /5
+  #        platform: time_pattern
+  #    condition:
+  #    - condition: or
+  #      conditions:
+  #      - condition: state
+  #        entity_id: group.upstairs_heating_required
+  #        state: "on"
+  #      - condition: state
+  #        entity_id: group.downstairs_heating_required
+  #        state: "on"
+  #    action:
+  #      - service: switch.turn_on
+  #        entity_id: switch.downstairs_heating
+
   ###############################################
   # Water Heating Automation based on motion sensors
   ###############################################
@@ -141,7 +188,7 @@ automation:
     condition:
       - condition: state
         state: "off"
-        for: 24:00:00
+        for: 23:30:00
         entity_id: group.indoor_motion
     action:
       - service: switch.turn_off
@@ -163,7 +210,7 @@ automation:
     action:
       - service: light.turn_on
         entity_id: light.corridor_ceiling_light
-        
+
   - alias: L-GC Ground Corridor Lights Off If No Person For 2 Min
     description: ""
     trigger:
@@ -183,14 +230,13 @@ automation:
       - service: light.turn_off
         entity_id: light.corridor_ceiling_light
 
-
   ###############################################
   # Actions based on buttons
   ###############################################
 
   - alias: B-GC Ground Corridor Wall Switch - Doulbe Press - Turn Off Ground Floor Lights
     trigger:
-      - entity_id: 
+      - entity_id:
           - sensor.ground_corrdior_switch_wall_button
         platform: state
         to:
@@ -280,4 +326,3 @@ automation:
   #     - service: script.pause_sonos_if_sole_speaker_group
   #       data:
   #         target_player: media_player.first_corridor_sonos
-

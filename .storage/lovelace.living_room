@@ -72,7 +72,8 @@
                       "show_temperature_control": true,
                       "collapsible_controls": false,
                       "primary_info": "name",
-                      "secondary_info": "state"
+                      "secondary_info": "state",
+                      "name": "Radiator"
                     }
                   ]
                 }
@@ -140,7 +141,7 @@
                 {
                   "features": [
                     {
-                      "type": "cover-open-close"
+                      "type": "cover-position"
                     }
                   ],
                   "type": "tile",
@@ -148,16 +149,23 @@
                   "entity": "cover.living_room_curtain_1",
                   "icon": "mdi:curtains-closed",
                   "tap_action": {
-                    "action": "toggle"
+                    "action": "perform-action",
+                    "perform_action": "cover.toggle",
+                    "target": {
+                      "entity_id": "cover.living_room_curtain_1"
+                    },
+                    "data": {}
                   },
                   "icon_tap_action": {
                     "action": "more-info"
-                  }
+                  },
+                  "features_position": "bottom",
+                  "vertical": false
                 },
                 {
                   "features": [
                     {
-                      "type": "cover-open-close"
+                      "type": "cover-position"
                     }
                   ],
                   "type": "tile",
@@ -165,23 +173,16 @@
                   "entity": "cover.living_room_curtain_2",
                   "icon": "mdi:curtains-closed",
                   "tap_action": {
+                    "action": "perform-action",
+                    "perform_action": "cover.toggle",
+                    "target": {
+                      "entity_id": "cover.living_room_curtain_2"
+                    }
+                  },
+                  "features_position": "bottom",
+                  "vertical": false,
+                  "icon_tap_action": {
                     "action": "more-info"
-                  }
-                },
-                {
-                  "type": "custom:mushroom-light-card",
-                  "fill_container": false,
-                  "use_light_color": false,
-                  "show_brightness_control": true,
-                  "show_color_control": false,
-                  "show_color_temp_control": true,
-                  "collapsible_controls": false,
-                  "entity": "light.living_room_led",
-                  "name": "LEDs",
-                  "icon": "hass:led-strip-variant",
-                  "double_tap_action": {
-                    "action": "navigate",
-                    "navigation_path": "living-room-leds"
                   }
                 },
                 {
@@ -202,19 +203,9 @@
                   "tap_action": {
                     "action": "toggle"
                   },
-                  "entity": "switch.tais_desk_screen_led",
+                  "entity": "switch.living_room_desk_screen_led",
                   "icon": "mdi:monitor",
-                  "name": "Tais Screen LED"
-                },
-                {
-                  "type": "custom:mushroom-entity-card",
-                  "tap_action": {
-                    "action": "toggle"
-                  },
-                  "fill_container": true,
-                  "layout": "horizontal",
-                  "entity": "switch.air_conditioner",
-                  "icon": "mdi:air-conditioner"
+                  "name": "Desk Screen LED"
                 },
                 {
                   "type": "custom:mushroom-entity-card",
@@ -229,10 +220,49 @@
                   "icon_color": "red"
                 },
                 {
+                  "type": "tile",
+                  "features_position": "bottom",
+                  "vertical": false,
+                  "entity": "binary_sensor.living_room_window",
+                  "icon": "mdi:window-closed-variant",
+                  "name": "window"
+                },
+                {
                   "type": "sensor",
                   "entity": "sensor.living_room_temperature_sensor",
                   "graph": "line",
                   "name": "Temperature"
+                },
+                {
+                  "type": "custom:mushroom-lock-card",
+                  "entity": "lock.garden_door_lock",
+                  "name": "Garden Door"
+                },
+                {
+                  "type": "tile",
+                  "entity": "binary_sensor.garden_door_handle_down",
+                  "features_position": "bottom",
+                  "vertical": false,
+                  "icon": "mdi:door-closed-cancel",
+                  "name": "Handle Down"
+                },
+                {
+                  "type": "tile",
+                  "entity": "binary_sensor.living_room_sliding_door",
+                  "features_position": "bottom",
+                  "vertical": false,
+                  "icon": "mdi:door-sliding-open",
+                  "name": "Sliding Door",
+                  "show_entity_picture": false,
+                  "hide_state": false
+                },
+                {
+                  "type": "tile",
+                  "entity": "sensor.garden_door_lock_battery",
+                  "features_position": "bottom",
+                  "vertical": false,
+                  "name": "Lock Battery",
+                  "icon": "mdi:battery-70"
                 }
               ]
             },
@@ -244,7 +274,9 @@
                 "input_boolean.guest_room_sleep_time",
                 "input_boolean.living_room_sleep_time",
                 "input_boolean.master_room_sleep_time",
-                "switch.adaptive_lighting_sleep_mode_living_room"
+                "switch.adaptive_lighting_sleep_mode_living_room",
+                "switch.living_room_sonos_night_sound",
+                "switch.living_room_sonos_speech_enhancement"
               ],
               "exclude": [],
               "title": false,
@@ -265,6 +297,21 @@
                     "group": "group.living_room_auto_gen_automations"
                   }
                 ]
+              }
+            },
+            {
+              "type": "conditional",
+              "conditions": [
+                {
+                  "condition": "state",
+                  "entity": "binary_sensor.living_room_unavailable_entities",
+                  "state": "on"
+                }
+              ],
+              "card": {
+                "type": "custom:mushroom-title-card",
+                "title": "Devices offline:",
+                "subtitle": "{{ states.binary_sensor.living_room_unavailable_entities.attributes.value}} \n\nIt's likely due to running out of battery. Try to ask Tai to replace battery."
               }
             }
           ]
@@ -337,6 +384,8 @@
               "type": "grid",
               "cards": [
                 {
+                  "show_name": true,
+                  "show_icon": true,
                   "type": "button",
                   "tap_action": {
                     "action": "call-service",
@@ -349,10 +398,8 @@
                   },
                   "entity": "input_boolean.placeholder",
                   "icon": "mdi:home",
-                  "name": " ",
+                  "name": "TV Home",
                   "show_state": false,
-                  "show_icon": true,
-                  "show_name": true,
                   "hold_action": {
                     "action": "more-info"
                   }
@@ -524,66 +571,6 @@
                   "name": " "
                 },
                 {
-                  "type": "button",
-                  "tap_action": {
-                    "action": "call-service",
-                    "service": "androidtv.adb_command",
-                    "service_data": {
-                      "entity_id": "media_player.living_room_fire_tv",
-                      "command": "HOME"
-                    }
-                  },
-                  "entity": "input_boolean.placeholder",
-                  "icon": "mdi:home",
-                  "name": "Fire TV Home",
-                  "show_state": false,
-                  "show_icon": true,
-                  "show_name": true,
-                  "hold_action": {
-                    "action": "more-info"
-                  }
-                },
-                {
-                  "show_name": true,
-                  "show_icon": true,
-                  "type": "button",
-                  "tap_action": {
-                    "action": "call-service",
-                    "service": "androidtv.adb_command",
-                    "service_data": {
-                      "entity_id": "media_player.living_room_fire_tv",
-                      "command": "CENTER"
-                    }
-                  },
-                  "entity": "input_boolean.placeholder",
-                  "icon": "mdi:checkbox-blank-circle",
-                  "name": "Fire TV Center",
-                  "show_state": false,
-                  "hold_action": {
-                    "action": "more-info"
-                  }
-                },
-                {
-                  "type": "button",
-                  "tap_action": {
-                    "action": "call-service",
-                    "service": "androidtv.adb_command",
-                    "service_data": {
-                      "entity_id": "media_player.living_room_fire_tv",
-                      "command": "MENU"
-                    }
-                  },
-                  "entity": "input_boolean.placeholder",
-                  "icon": "mdi:menu",
-                  "name": "Fire TV Menu",
-                  "show_state": false,
-                  "show_icon": true,
-                  "show_name": true,
-                  "hold_action": {
-                    "action": "more-info"
-                  }
-                },
-                {
                   "show_name": true,
                   "show_icon": true,
                   "type": "button",
@@ -607,41 +594,31 @@
                   "entity": "switch.living_room_sonos_speech_enhancement",
                   "name": "Speech Enhance",
                   "icon": "mdi:account-tie-voice"
-                },
+                }
+              ]
+            },
+            {
+              "type": "custom:mini-media-player",
+              "entity": "media_player.living_room_sonos",
+              "name": "Sonos"
+            },
+            {
+              "type": "grid",
+              "cards": [
                 {
                   "type": "button",
                   "tap_action": {
                     "action": "call-service",
-                    "service": "script.fire_tv_starts_app",
+                    "service": "androidtv.adb_command",
                     "service_data": {
-                      "room": "living_room",
-                      "app": "bilibili"
-                    }
-                  },
-                  "entity": "input_boolean.placeholder",
-                  "icon": "mdi:alpha-b-circle",
-                  "name": "Bilibili",
-                  "show_state": false,
-                  "show_icon": true,
-                  "show_name": true,
-                  "hold_action": {
-                    "action": "more-info"
-                  }
-                },
-                {
-                  "type": "button",
-                  "tap_action": {
-                    "action": "call-service",
-                    "service": "script.fire_tv_starts_app",
-                    "service_data": {
-                      "room": "living_room",
-                      "app": "smart_youtube"
+                      "entity_id": "media_player.living_room_fire_tv",
+                      "command": "HOME"
                     },
                     "target": {}
                   },
                   "entity": "input_boolean.placeholder",
-                  "icon": "mdi:youtube",
-                  "name": "Youtube",
+                  "icon": "mdi:home",
+                  "name": "Fire TV Home",
                   "show_state": false,
                   "show_icon": true,
                   "show_name": true,
@@ -653,15 +630,16 @@
                   "type": "button",
                   "tap_action": {
                     "action": "call-service",
-                    "service": "script.fire_tv_starts_app",
+                    "service": "androidtv.adb_command",
                     "service_data": {
-                      "room": "living_room",
-                      "app": "plex"
-                    }
+                      "entity_id": "media_player.living_room_fire_tv",
+                      "command": "DPAD_UP"
+                    },
+                    "target": {}
                   },
                   "entity": "input_boolean.placeholder",
-                  "icon": "mdi:plex",
-                  "name": "Plex",
+                  "icon": "mdi:chevron-up-box-outline",
+                  "name": " ",
                   "show_state": false,
                   "show_icon": true,
                   "show_name": true,
@@ -673,15 +651,162 @@
                   "type": "button",
                   "tap_action": {
                     "action": "call-service",
-                    "service": "script.fire_tv_starts_app",
+                    "service": "androidtv.adb_command",
                     "service_data": {
-                      "room": "living_room",
-                      "app": "netflix"
+                      "entity_id": "media_player.living_room_fire_tv",
+                      "command": "VOLUME_UP"
+                    },
+                    "target": {}
+                  },
+                  "entity": "input_boolean.placeholder",
+                  "icon": "mdi:volume-plus",
+                  "show_state": false,
+                  "show_icon": true,
+                  "show_name": true,
+                  "hold_action": {
+                    "action": "more-info"
+                  },
+                  "name": " "
+                },
+                {
+                  "type": "button",
+                  "tap_action": {
+                    "action": "call-service",
+                    "service": "androidtv.adb_command",
+                    "service_data": {
+                      "entity_id": "media_player.living_room_fire_tv",
+                      "command": "DPAD_LEFT"
+                    },
+                    "target": {}
+                  },
+                  "entity": "input_boolean.placeholder",
+                  "icon": "mdi:chevron-left-box-outline",
+                  "name": " ",
+                  "show_state": false,
+                  "show_icon": true,
+                  "show_name": true,
+                  "hold_action": {
+                    "action": "more-info"
+                  }
+                },
+                {
+                  "type": "button",
+                  "tap_action": {
+                    "action": "call-service",
+                    "service": "androidtv.adb_command",
+                    "service_data": {
+                      "entity_id": "media_player.living_room_fire_tv",
+                      "command": "DPAD_CENTER"
+                    },
+                    "target": {}
+                  },
+                  "entity": "input_boolean.placeholder",
+                  "icon": "mdi:checkbox-blank-circle-outline",
+                  "name": " ",
+                  "show_state": false,
+                  "show_icon": true,
+                  "show_name": true,
+                  "hold_action": {
+                    "action": "more-info"
+                  }
+                },
+                {
+                  "type": "button",
+                  "tap_action": {
+                    "action": "call-service",
+                    "service": "androidtv.adb_command",
+                    "service_data": {
+                      "entity_id": "media_player.living_room_fire_tv",
+                      "command": "DPAD_RIGHT"
+                    },
+                    "target": {}
+                  },
+                  "entity": "input_boolean.placeholder",
+                  "icon": "mdi:chevron-right-box-outline",
+                  "name": " ",
+                  "show_state": false,
+                  "show_icon": true,
+                  "show_name": true,
+                  "hold_action": {
+                    "action": "more-info"
+                  }
+                },
+                {
+                  "type": "button",
+                  "tap_action": {
+                    "action": "call-service",
+                    "service": "androidtv.adb_command",
+                    "service_data": {
+                      "entity_id": "media_player.living_room_fire_tv",
+                      "command": "BACK"
+                    },
+                    "target": {}
+                  },
+                  "entity": "input_boolean.placeholder",
+                  "icon": "mdi:undo",
+                  "name": " ",
+                  "show_state": false,
+                  "show_icon": true,
+                  "show_name": true,
+                  "hold_action": {
+                    "action": "more-info"
+                  }
+                },
+                {
+                  "type": "button",
+                  "tap_action": {
+                    "action": "call-service",
+                    "service": "androidtv.adb_command",
+                    "service_data": {
+                      "entity_id": "media_player.living_room_fire_tv",
+                      "command": "DPAD_DOWN"
+                    },
+                    "target": {}
+                  },
+                  "entity": "input_boolean.placeholder",
+                  "icon": "mdi:chevron-down-box-outline",
+                  "name": " ",
+                  "show_state": false,
+                  "show_icon": true,
+                  "show_name": true,
+                  "hold_action": {
+                    "action": "more-info"
+                  }
+                },
+                {
+                  "type": "button",
+                  "tap_action": {
+                    "action": "call-service",
+                    "service": "androidtv.adb_command",
+                    "service_data": {
+                      "entity_id": "media_player.living_room_fire_tv",
+                      "command": "VOLUME_DOWN"
+                    },
+                    "target": {}
+                  },
+                  "entity": "input_boolean.placeholder",
+                  "icon": "mdi:volume-minus",
+                  "show_state": false,
+                  "show_icon": true,
+                  "show_name": true,
+                  "hold_action": {
+                    "action": "more-info"
+                  },
+                  "name": " "
+                },
+                {
+                  "type": "button",
+                  "tap_action": {
+                    "action": "call-service",
+                    "service": "androidtv.adb_command",
+                    "service_data": {
+                      "entity_id": "media_player.living_room_fire_tv",
+                      "command": "MENU"
                     }
                   },
                   "entity": "input_boolean.placeholder",
-                  "icon": "mdi:netflix",
-                  "name": "Netflix",
+                  "icon": "mdi:menu",
+                  "name": "Fire TV Menu",
                   "show_state": false,
                   "show_icon": true,
                   "show_name": true,
@@ -702,23 +827,6 @@
               "artwork": "none",
               "info": "short",
               "sound_mode": "icon"
-            },
-            {
-              "type": "custom:mini-media-player",
-              "entity": "media_player.living_room_sonos",
-              "name": "Sonos"
-            },
-            {
-              "type": "custom:firemote-card",
-              "entity": "media_player.living_room_fire_tv",
-              "device_type": "fire_tv_cube_second_gen",
-              "compatibility_mode": "default",
-              "app_launch_1": "plex",
-              "app_launch_2": "youtube",
-              "app_launch_3": "disney-plus",
-              "app_launch_4": "netflix",
-              "device_family": "amazon-fire",
-              "name_position": "bottom"
             }
           ]
         },

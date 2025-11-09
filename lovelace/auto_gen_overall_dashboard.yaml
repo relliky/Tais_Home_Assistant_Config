@@ -31,7 +31,10 @@ views:
             mdi:youtube-tv'
           tap_action:
             action: navigate
-            navigation_path: /dashboard-mobile/living-room
+            navigation_path: /living-room/living-room
+          icon_tap_action:
+            action: navigate
+            navigation_path: /living-room/living-room
           entity: input_boolean.placeholder
           layout: horizontal
           fill_container: true
@@ -47,35 +50,63 @@ views:
           type: custom:stack-in-card
           mode: horizontal
           cards:
-          - type: custom:mushroom-template-card
-            icon: "{% set entity = 'input_select.living_room_occupancy' %}\n{% if   is_state(entity, 'Outside') %}\n  mdi:door-closed\n{% elif is_state(entity, 'Just Entered') %}\n  mdi:arrow-right-circle\n{% elif is_state(entity, 'In Sleep') %}\n  mdi:sleep\n{% else %}\n  mdi:account-multiple\n{% endif %}"
-            tap_action:
-              action: more-info
-            entity: input_select.living_room_occupancy
-            layout: horizontal
-            fill_container: true
-            icon_color: "{% set entity = 'input_select.living_room_occupancy' %}\n{% if   is_state(entity, 'Outside') %} {% elif is_state(entity, 'Just Entered')%}\n  green\n{% elif is_state(entity, 'In Sleep') %}\n  blue            \n{% else %}\n  purple\n{% endif %}"
           - type: conditional
             conditions:
-            - entity: climate.living_room
-              state: heat
+            - entity: lock.garden_door_lock
+              state: unlocked
             card:
               type: custom:mushroom-template-card
-              icon: "{% set entity = 'climate.living_room' %}\n{% if is_state(entity, 'heat') %}\n  mdi:heating-coil\n{% else %}\n  mdi:snowflake\n{% endif %}"
+              icon: '{% set entity = ''lock.garden_door_lock'' %}
+
+                mdi:lock-open-variant-outline'
               tap_action:
                 action: more-info
-              entity: climate.living_room
+              icon_tap_action:
+                action: more-info
+              entity: lock.garden_door_lock
               layout: horizontal
               fill_container: true
-              icon_color: "{% set entity = 'climate.living_room' %}\n{% if is_state(entity, 'heat') %}\n  {% if state_attr(entity, 'temperature') > state_attr(entity, 'current_temperature') %}\n  red\n {% else %}\n blue\n  {% endif %}\n {% endif %}\n"
-          - type: custom:mushroom-template-card
-            icon: "{% set entity = 'group.living_room_light_group' %}\n{% if is_state(entity, 'on') %}\n  mdi:floor-lamp\n{% else %}\n  mdi:floor-lamp-outline\n{% endif %}"
-            tap_action:
-              action: more-info
-            entity: group.living_room_light_group
-            layout: horizontal
-            fill_container: true
-            icon_color: "{% set entity = 'group.living_room_light_group' %}\n{% if is_state(entity, 'on') %}\n  amber\n{% endif %}"
+              icon_color: '{% set entity = ''lock.garden_door_lock'' %}
+
+                red'
+          - type: conditional
+            conditions:
+            - entity: binary_sensor.living_room_unavailable_entities
+              state: 'on'
+            card:
+              type: custom:mushroom-template-card
+              icon: '{% set entity = ''binary_sensor.living_room_unavailable_entities'' %}
+
+                mdi:battery-charging-outline'
+              tap_action:
+                action: more-info
+              icon_tap_action:
+                action: more-info
+              entity: binary_sensor.living_room_unavailable_entities
+              layout: horizontal
+              fill_container: true
+              icon_color: '{% set entity = ''binary_sensor.living_room_unavailable_entities'' %}
+
+                red'
+          - type: conditional
+            conditions:
+            - entity: binary_sensor.living_room_low_battery
+              state: 'on'
+            card:
+              type: custom:mushroom-template-card
+              icon: '{% set entity = ''group.living_room_battery'' %}
+
+                mdi:battery-20-bluetooth'
+              tap_action:
+                action: more-info
+              icon_tap_action:
+                action: more-info
+              entity: group.living_room_battery
+              layout: horizontal
+              fill_container: true
+              icon_color: '{% set entity = ''group.living_room_battery'' %}
+
+                orange'
           - type: conditional
             conditions:
             - entity: group.living_room_window_group
@@ -85,20 +116,29 @@ views:
               icon: "{% set entity = 'group.living_room_window_group' %}\n{% if is_state(entity, 'on') %}\n  mdi:window-open-variant\n{% else %}\n  mdi:window-closed-variant\n{% endif %}"
               tap_action:
                 action: more-info
+              icon_tap_action:
+                action: more-info
               entity: group.living_room_window_group
               layout: horizontal
               fill_container: true
               icon_color: "{% set entity = 'group.living_room_window_group' %}\n{% if is_state(entity, 'on') %}\n  lime\n{% endif %}"
-          - type: custom:mushroom-template-card
-            icon: '{% set entity = ''media_player.living_room_tv'' %}
+          - type: conditional
+            conditions:
+            - entity: media_player.living_room_tv
+              state: 'on'
+            card:
+              type: custom:mushroom-template-card
+              icon: '{% set entity = ''media_player.living_room_tv'' %}
 
-              mdi:television-classic'
-            tap_action:
-              action: more-info
-            entity: media_player.living_room_tv
-            layout: horizontal
-            fill_container: true
-            icon_color: "{% set entity = 'media_player.living_room_tv' %}\n{% if is_state(entity, 'on') %}\n  deep-orange\n{% endif %}"
+                mdi:television-classic'
+              tap_action:
+                action: more-info
+              icon_tap_action:
+                action: more-info
+              entity: media_player.living_room_tv
+              layout: horizontal
+              fill_container: true
+              icon_color: "{% set entity = 'media_player.living_room_tv' %}\n{% if is_state(entity, 'on') %}\n  deep-orange\n{% endif %}"
           - type: conditional
             conditions:
             - entity: group.living_room_curtain_group
@@ -108,10 +148,47 @@ views:
               icon: "{% set entity = 'group.living_room_curtain_group' %}\n{% if is_state(entity, 'open') %}\n  mdi:curtains\n{% else %}\n  mdi:curtains-closed\n{% endif %}"
               tap_action:
                 action: more-info
+              icon_tap_action:
+                action: more-info
               entity: group.living_room_curtain_group
               layout: horizontal
               fill_container: true
               icon_color: "{% set entity = 'group.living_room_curtain_group' %}\n{% if is_state(entity, 'open') %}\n  green       \n{% endif %}"
+          - type: custom:mushroom-template-card
+            icon: "{% set entity = 'group.living_room_light_group' %}\n{% if is_state(entity, 'on') %}\n  mdi:floor-lamp\n{% else %}\n  mdi:floor-lamp-outline\n{% endif %}"
+            tap_action:
+              action: more-info
+            icon_tap_action:
+              action: more-info
+            entity: group.living_room_light_group
+            layout: horizontal
+            fill_container: true
+            icon_color: "{% set entity = 'group.living_room_light_group' %}\n{% if is_state(entity, 'on') %}\n  amber\n{% endif %}"
+          - type: custom:mushroom-template-card
+            icon: "{% set entity = 'input_select.living_room_occupancy' %}\n{% if   is_state(entity, 'Outside') %}\n  mdi:door-closed\n{% elif is_state(entity, 'Just Entered') %}\n  mdi:arrow-right-circle\n{% elif is_state(entity, 'In Sleep') %}\n  mdi:sleep\n{% else %}\n  mdi:account-multiple\n{% endif %}"
+            tap_action:
+              action: more-info
+            icon_tap_action:
+              action: more-info
+            entity: input_select.living_room_occupancy
+            layout: horizontal
+            fill_container: true
+            icon_color: "{% set entity = 'input_select.living_room_occupancy' %}\n{% if   is_state(entity, 'Outside') %}                     {% elif is_state(entity, 'Just Entered') %}\n  green\n                 {% elif is_state(entity, 'In Sleep') %}\n  blue\n     {% else %}\n  purple\n              {% endif %}"
+          - type: conditional
+            conditions:
+            - entity: climate.living_room
+              state: heat
+            card:
+              type: custom:mushroom-template-card
+              icon: "{% set entity = 'climate.living_room' %}\n{% if is_state(entity, 'heat') %}\n  mdi:heating-coil\n    {% else %}   \n  mdi:snowflake\n      {% endif %}"
+              tap_action:
+                action: more-info
+              icon_tap_action:
+                action: more-info
+              entity: climate.living_room
+              layout: horizontal
+              fill_container: true
+              icon_color: "{% set entity = 'climate.living_room' %}\n{% if is_state(entity, 'heat') %}\n  {% if state_attr(entity, 'temperature') > state_attr(entity, 'current_temperature') %}\n  red\n {% else %}\n blue\n  {% endif %}\n {% endif %}\n"
     - type: custom:restriction-card
       restrictions:
         hide:
@@ -133,7 +210,10 @@ views:
             mdi:silverware-clean'
           tap_action:
             action: navigate
-            navigation_path: /dashboard-mobile/kitchen
+            navigation_path: /lovelace-kitchen/kitchen
+          icon_tap_action:
+            action: navigate
+            navigation_path: /lovelace-kitchen/kitchen
           entity: input_boolean.placeholder
           layout: horizontal
           fill_container: true
@@ -149,71 +229,6 @@ views:
           type: custom:stack-in-card
           mode: horizontal
           cards:
-          - type: custom:mushroom-template-card
-            icon: "{% set entity = 'input_select.kitchen_occupancy' %}\n{% if   is_state(entity, 'Outside') %}\n  mdi:door-closed\n{% elif is_state(entity, 'Just Entered') %}\n  mdi:arrow-right-circle\n{% elif is_state(entity, 'In Sleep') %}\n  mdi:sleep\n{% else %}\n  mdi:account-multiple\n{% endif %}"
-            tap_action:
-              action: more-info
-            entity: input_select.kitchen_occupancy
-            layout: horizontal
-            fill_container: true
-            icon_color: "{% set entity = 'input_select.kitchen_occupancy' %}\n{% if   is_state(entity, 'Outside') %} {% elif is_state(entity, 'Just Entered')%}\n  green\n{% elif is_state(entity, 'In Sleep') %}\n  blue            \n{% else %}\n  purple\n{% endif %}"
-          - type: conditional
-            conditions:
-            - entity: climate.kitchen
-              state: heat
-            card:
-              type: custom:mushroom-template-card
-              icon: "{% set entity = 'climate.kitchen' %}\n{% if is_state(entity, 'heat') %}\n  mdi:heating-coil\n{% else %}\n  mdi:snowflake\n{% endif %}"
-              tap_action:
-                action: more-info
-              entity: climate.kitchen
-              layout: horizontal
-              fill_container: true
-              icon_color: "{% set entity = 'climate.kitchen' %}\n{% if is_state(entity, 'heat') %}\n  {% if state_attr(entity, 'temperature') > state_attr(entity, 'current_temperature') %}\n  red\n {% else %}\n blue\n  {% endif %}\n {% endif %}\n"
-          - type: custom:mushroom-template-card
-            icon: "{% set entity = 'group.kitchen_light_group' %}\n{% if is_state(entity, 'on') %}\n  mdi:floor-lamp\n{% else %}\n  mdi:floor-lamp-outline\n{% endif %}"
-            tap_action:
-              action: more-info
-            entity: group.kitchen_light_group
-            layout: horizontal
-            fill_container: true
-            icon_color: "{% set entity = 'group.kitchen_light_group' %}\n{% if is_state(entity, 'on') %}\n  amber\n{% endif %}"
-          - type: conditional
-            conditions:
-            - entity: group.kitchen_window_group
-              state: 'on'
-            card:
-              type: custom:mushroom-template-card
-              icon: "{% set entity = 'group.kitchen_window_group' %}\n{% if is_state(entity, 'on') %}\n  mdi:window-open-variant\n{% else %}\n  mdi:window-closed-variant\n{% endif %}"
-              tap_action:
-                action: more-info
-              entity: group.kitchen_window_group
-              layout: horizontal
-              fill_container: true
-              icon_color: "{% set entity = 'group.kitchen_window_group' %}\n{% if is_state(entity, 'on') %}\n  lime\n{% endif %}"
-          - type: custom:mushroom-template-card
-            icon: '{% set entity = ''media_player.kitchen_tv'' %}
-
-              mdi:television-classic'
-            tap_action:
-              action: more-info
-            entity: media_player.kitchen_tv
-            layout: horizontal
-            fill_container: true
-            icon_color: "{% set entity = 'media_player.kitchen_tv' %}\n{% if is_state(entity, 'on') %}\n  deep-orange\n{% endif %}"
-          - type: conditional
-            conditions:
-            - entity: group.kitchen_curtain_group
-              state: open
-            card:
-              type: custom:mushroom-template-card
-              icon: "{% set entity = 'group.kitchen_curtain_group' %}\n{% if is_state(entity, 'open') %}\n  mdi:curtains\n{% else %}\n  mdi:curtains-closed\n{% endif %}"
-              tap_action:
-                action: more-info
-              entity: group.kitchen_curtain_group
-              layout: horizontal
-              fill_container: true
-              icon_color: "{% set entity = 'group.kitchen_curtain_group' %}\n{% if is_state(entity, 'open') %}\n  green       \n{% endif %}"
           - type: conditional
             conditions:
             - entity: binary_sensor.rice_cooker_power
@@ -225,10 +240,33 @@ views:
                 mdi:rice'
               tap_action:
                 action: more-info
+              icon_tap_action:
+                action: more-info
               entity: binary_sensor.rice_cooker_power
               layout: horizontal
               fill_container: true
-              icon_color: "{% set entity = 'binary_sensor.rice_cooker_power' %}\n{% if is_state(entity, 'on') %}\n  red       \n{% endif %}"
+              icon_color: '{% set entity = ''binary_sensor.rice_cooker_power'' %}
+
+                red'
+          - type: conditional
+            conditions:
+            - entity: vacuum.x1
+              state: cleaning
+            card:
+              type: custom:mushroom-template-card
+              icon: '{% set entity = ''vacuum.x1'' %}
+
+                mdi:robot-vacuum'
+              tap_action:
+                action: more-info
+              icon_tap_action:
+                action: more-info
+              entity: vacuum.x1
+              layout: horizontal
+              fill_container: true
+              icon_color: '{% set entity = ''vacuum.x1'' %}
+
+                purple'
           - type: conditional
             conditions:
             - entity: binary_sensor.washing_machine_power
@@ -240,10 +278,33 @@ views:
                 mdi:washing-machine'
               tap_action:
                 action: more-info
+              icon_tap_action:
+                action: more-info
               entity: binary_sensor.washing_machine_power
               layout: horizontal
               fill_container: true
-              icon_color: "{% set entity = 'binary_sensor.washing_machine_power' %}\n{% if is_state(entity, 'on') %}\n  blue       \n{% endif %}"
+              icon_color: '{% set entity = ''binary_sensor.washing_machine_power'' %}
+
+                light-blue'
+          - type: conditional
+            conditions:
+            - entity: binary_sensor.dish_washer_power
+              state: 'on'
+            card:
+              type: custom:mushroom-template-card
+              icon: '{% set entity = ''binary_sensor.dish_washer_power'' %}
+
+                mdi:dishwasher'
+              tap_action:
+                action: more-info
+              icon_tap_action:
+                action: more-info
+              entity: binary_sensor.dish_washer_power
+              layout: horizontal
+              fill_container: true
+              icon_color: '{% set entity = ''binary_sensor.dish_washer_power'' %}
+
+                pink'
           - type: conditional
             conditions:
             - entity: switch.kitchen_ice_maker
@@ -255,10 +316,14 @@ views:
                 mdi:ice-cream'
               tap_action:
                 action: more-info
+              icon_tap_action:
+                action: more-info
               entity: switch.kitchen_ice_maker
               layout: horizontal
               fill_container: true
-              icon_color: "{% set entity = 'switch.kitchen_ice_maker' %}\n{% if is_state(entity, 'on') %}\n  yellow       \n{% endif %}"
+              icon_color: '{% set entity = ''switch.kitchen_ice_maker'' %}
+
+                yellow'
           - type: conditional
             conditions:
             - entity: switch.kitchen_extractor
@@ -270,25 +335,117 @@ views:
                 hass:fan'
               tap_action:
                 action: more-info
+              icon_tap_action:
+                action: more-info
               entity: switch.kitchen_extractor
               layout: horizontal
               fill_container: true
-              icon_color: "{% set entity = 'switch.kitchen_extractor' %}\n{% if is_state(entity, 'on') %}\n  cyan       \n{% endif %}"
+              icon_color: '{% set entity = ''switch.kitchen_extractor'' %}
+
+                cyan'
           - type: conditional
             conditions:
-            - entity: vacuum.x1
-              state: cleaning
+            - entity: binary_sensor.kitchen_unavailable_entities
+              state: 'on'
             card:
               type: custom:mushroom-template-card
-              icon: '{% set entity = ''vacuum.x1'' %}
+              icon: '{% set entity = ''binary_sensor.kitchen_unavailable_entities'' %}
 
-                hass:fan'
+                mdi:battery-charging-outline'
               tap_action:
                 action: more-info
-              entity: vacuum.x1
+              icon_tap_action:
+                action: more-info
+              entity: binary_sensor.kitchen_unavailable_entities
               layout: horizontal
               fill_container: true
-              icon_color: "{% set entity = 'vacuum.x1' %}\n{% if is_state(entity, 'cleaning') %}\n  cyan       \n{% endif %}"
+              icon_color: '{% set entity = ''binary_sensor.kitchen_unavailable_entities'' %}
+
+                red'
+          - type: conditional
+            conditions:
+            - entity: binary_sensor.kitchen_low_battery
+              state: 'on'
+            card:
+              type: custom:mushroom-template-card
+              icon: '{% set entity = ''group.kitchen_battery'' %}
+
+                mdi:battery-20-bluetooth'
+              tap_action:
+                action: more-info
+              icon_tap_action:
+                action: more-info
+              entity: group.kitchen_battery
+              layout: horizontal
+              fill_container: true
+              icon_color: '{% set entity = ''group.kitchen_battery'' %}
+
+                orange'
+          - type: conditional
+            conditions:
+            - entity: group.kitchen_window_group
+              state: 'on'
+            card:
+              type: custom:mushroom-template-card
+              icon: "{% set entity = 'group.kitchen_window_group' %}\n{% if is_state(entity, 'on') %}\n  mdi:window-open-variant\n{% else %}\n  mdi:window-closed-variant\n{% endif %}"
+              tap_action:
+                action: more-info
+              icon_tap_action:
+                action: more-info
+              entity: group.kitchen_window_group
+              layout: horizontal
+              fill_container: true
+              icon_color: "{% set entity = 'group.kitchen_window_group' %}\n{% if is_state(entity, 'on') %}\n  lime\n{% endif %}"
+          - type: conditional
+            conditions:
+            - entity: group.kitchen_curtain_group
+              state: open
+            card:
+              type: custom:mushroom-template-card
+              icon: "{% set entity = 'group.kitchen_curtain_group' %}\n{% if is_state(entity, 'open') %}\n  mdi:curtains\n{% else %}\n  mdi:curtains-closed\n{% endif %}"
+              tap_action:
+                action: more-info
+              icon_tap_action:
+                action: more-info
+              entity: group.kitchen_curtain_group
+              layout: horizontal
+              fill_container: true
+              icon_color: "{% set entity = 'group.kitchen_curtain_group' %}\n{% if is_state(entity, 'open') %}\n  green       \n{% endif %}"
+          - type: custom:mushroom-template-card
+            icon: "{% set entity = 'group.kitchen_light_group' %}\n{% if is_state(entity, 'on') %}\n  mdi:floor-lamp\n{% else %}\n  mdi:floor-lamp-outline\n{% endif %}"
+            tap_action:
+              action: more-info
+            icon_tap_action:
+              action: more-info
+            entity: group.kitchen_light_group
+            layout: horizontal
+            fill_container: true
+            icon_color: "{% set entity = 'group.kitchen_light_group' %}\n{% if is_state(entity, 'on') %}\n  amber\n{% endif %}"
+          - type: custom:mushroom-template-card
+            icon: "{% set entity = 'input_select.kitchen_occupancy' %}\n{% if   is_state(entity, 'Outside') %}\n  mdi:door-closed\n{% elif is_state(entity, 'Just Entered') %}\n  mdi:arrow-right-circle\n{% elif is_state(entity, 'In Sleep') %}\n  mdi:sleep\n{% else %}\n  mdi:account-multiple\n{% endif %}"
+            tap_action:
+              action: more-info
+            icon_tap_action:
+              action: more-info
+            entity: input_select.kitchen_occupancy
+            layout: horizontal
+            fill_container: true
+            icon_color: "{% set entity = 'input_select.kitchen_occupancy' %}\n{% if   is_state(entity, 'Outside') %}                     {% elif is_state(entity, 'Just Entered') %}\n  green\n                 {% elif is_state(entity, 'In Sleep') %}\n  blue\n     {% else %}\n  purple\n              {% endif %}"
+          - type: conditional
+            conditions:
+            - entity: climate.kitchen
+              state: heat
+            card:
+              type: custom:mushroom-template-card
+              icon: "{% set entity = 'climate.kitchen' %}\n{% if is_state(entity, 'heat') %}\n  mdi:heating-coil\n    {% else %}   \n  mdi:snowflake\n      {% endif %}"
+              tap_action:
+                action: more-info
+              icon_tap_action:
+                action: more-info
+              entity: climate.kitchen
+              layout: horizontal
+              fill_container: true
+              icon_color: "{% set entity = 'climate.kitchen' %}\n{% if is_state(entity, 'heat') %}\n  {% if state_attr(entity, 'temperature') > state_attr(entity, 'current_temperature') %}\n  red\n {% else %}\n blue\n  {% endif %}\n {% endif %}\n"
     - type: custom:restriction-card
       restrictions:
         hide:
@@ -310,7 +467,10 @@ views:
             mdi:bed-king-outline'
           tap_action:
             action: navigate
-            navigation_path: /dashboard-mobile/master-room
+            navigation_path: /master-room/master-room
+          icon_tap_action:
+            action: navigate
+            navigation_path: /master-room/master-room
           entity: input_boolean.placeholder
           layout: horizontal
           fill_container: true
@@ -326,35 +486,44 @@ views:
           type: custom:stack-in-card
           mode: horizontal
           cards:
-          - type: custom:mushroom-template-card
-            icon: "{% set entity = 'input_select.master_room_occupancy' %}\n{% if   is_state(entity, 'Outside') %}\n  mdi:door-closed\n{% elif is_state(entity, 'Just Entered') %}\n  mdi:arrow-right-circle\n{% elif is_state(entity, 'In Sleep') %}\n  mdi:sleep\n{% else %}\n  mdi:account-multiple\n{% endif %}"
-            tap_action:
-              action: more-info
-            entity: input_select.master_room_occupancy
-            layout: horizontal
-            fill_container: true
-            icon_color: "{% set entity = 'input_select.master_room_occupancy' %}\n{% if   is_state(entity, 'Outside') %} {% elif is_state(entity, 'Just Entered')%}\n  green\n{% elif is_state(entity, 'In Sleep') %}\n  blue            \n{% else %}\n  purple\n{% endif %}"
           - type: conditional
             conditions:
-            - entity: climate.master_room
-              state: heat
+            - entity: binary_sensor.master_room_unavailable_entities
+              state: 'on'
             card:
               type: custom:mushroom-template-card
-              icon: "{% set entity = 'climate.master_room' %}\n{% if is_state(entity, 'heat') %}\n  mdi:heating-coil\n{% else %}\n  mdi:snowflake\n{% endif %}"
+              icon: '{% set entity = ''binary_sensor.master_room_unavailable_entities'' %}
+
+                mdi:battery-charging-outline'
               tap_action:
                 action: more-info
-              entity: climate.master_room
+              icon_tap_action:
+                action: more-info
+              entity: binary_sensor.master_room_unavailable_entities
               layout: horizontal
               fill_container: true
-              icon_color: "{% set entity = 'climate.master_room' %}\n{% if is_state(entity, 'heat') %}\n  {% if state_attr(entity, 'temperature') > state_attr(entity, 'current_temperature') %}\n  red\n {% else %}\n blue\n  {% endif %}\n {% endif %}\n"
-          - type: custom:mushroom-template-card
-            icon: "{% set entity = 'group.master_room_light_group' %}\n{% if is_state(entity, 'on') %}\n  mdi:floor-lamp\n{% else %}\n  mdi:floor-lamp-outline\n{% endif %}"
-            tap_action:
-              action: more-info
-            entity: group.master_room_light_group
-            layout: horizontal
-            fill_container: true
-            icon_color: "{% set entity = 'group.master_room_light_group' %}\n{% if is_state(entity, 'on') %}\n  amber\n{% endif %}"
+              icon_color: '{% set entity = ''binary_sensor.master_room_unavailable_entities'' %}
+
+                red'
+          - type: conditional
+            conditions:
+            - entity: binary_sensor.master_room_low_battery
+              state: 'on'
+            card:
+              type: custom:mushroom-template-card
+              icon: '{% set entity = ''group.master_room_battery'' %}
+
+                mdi:battery-20-bluetooth'
+              tap_action:
+                action: more-info
+              icon_tap_action:
+                action: more-info
+              entity: group.master_room_battery
+              layout: horizontal
+              fill_container: true
+              icon_color: '{% set entity = ''group.master_room_battery'' %}
+
+                orange'
           - type: conditional
             conditions:
             - entity: group.master_room_window_group
@@ -364,20 +533,29 @@ views:
               icon: "{% set entity = 'group.master_room_window_group' %}\n{% if is_state(entity, 'on') %}\n  mdi:window-open-variant\n{% else %}\n  mdi:window-closed-variant\n{% endif %}"
               tap_action:
                 action: more-info
+              icon_tap_action:
+                action: more-info
               entity: group.master_room_window_group
               layout: horizontal
               fill_container: true
               icon_color: "{% set entity = 'group.master_room_window_group' %}\n{% if is_state(entity, 'on') %}\n  lime\n{% endif %}"
-          - type: custom:mushroom-template-card
-            icon: '{% set entity = ''media_player.master_room_tv'' %}
+          - type: conditional
+            conditions:
+            - entity: media_player.master_room_tv
+              state: 'on'
+            card:
+              type: custom:mushroom-template-card
+              icon: '{% set entity = ''media_player.master_room_tv'' %}
 
-              mdi:television-classic'
-            tap_action:
-              action: more-info
-            entity: media_player.master_room_tv
-            layout: horizontal
-            fill_container: true
-            icon_color: "{% set entity = 'media_player.master_room_tv' %}\n{% if is_state(entity, 'on') %}\n  deep-orange\n{% endif %}"
+                mdi:television-classic'
+              tap_action:
+                action: more-info
+              icon_tap_action:
+                action: more-info
+              entity: media_player.master_room_tv
+              layout: horizontal
+              fill_container: true
+              icon_color: "{% set entity = 'media_player.master_room_tv' %}\n{% if is_state(entity, 'on') %}\n  deep-orange\n{% endif %}"
           - type: conditional
             conditions:
             - entity: group.master_room_curtain_group
@@ -387,10 +565,47 @@ views:
               icon: "{% set entity = 'group.master_room_curtain_group' %}\n{% if is_state(entity, 'open') %}\n  mdi:curtains\n{% else %}\n  mdi:curtains-closed\n{% endif %}"
               tap_action:
                 action: more-info
+              icon_tap_action:
+                action: more-info
               entity: group.master_room_curtain_group
               layout: horizontal
               fill_container: true
               icon_color: "{% set entity = 'group.master_room_curtain_group' %}\n{% if is_state(entity, 'open') %}\n  green       \n{% endif %}"
+          - type: custom:mushroom-template-card
+            icon: "{% set entity = 'group.master_room_light_group' %}\n{% if is_state(entity, 'on') %}\n  mdi:floor-lamp\n{% else %}\n  mdi:floor-lamp-outline\n{% endif %}"
+            tap_action:
+              action: more-info
+            icon_tap_action:
+              action: more-info
+            entity: group.master_room_light_group
+            layout: horizontal
+            fill_container: true
+            icon_color: "{% set entity = 'group.master_room_light_group' %}\n{% if is_state(entity, 'on') %}\n  amber\n{% endif %}"
+          - type: custom:mushroom-template-card
+            icon: "{% set entity = 'input_select.master_room_occupancy' %}\n{% if   is_state(entity, 'Outside') %}\n  mdi:door-closed\n{% elif is_state(entity, 'Just Entered') %}\n  mdi:arrow-right-circle\n{% elif is_state(entity, 'In Sleep') %}\n  mdi:sleep\n{% else %}\n  mdi:account-multiple\n{% endif %}"
+            tap_action:
+              action: more-info
+            icon_tap_action:
+              action: more-info
+            entity: input_select.master_room_occupancy
+            layout: horizontal
+            fill_container: true
+            icon_color: "{% set entity = 'input_select.master_room_occupancy' %}\n{% if   is_state(entity, 'Outside') %}                     {% elif is_state(entity, 'Just Entered') %}\n  green\n                 {% elif is_state(entity, 'In Sleep') %}\n  blue\n     {% else %}\n  purple\n              {% endif %}"
+          - type: conditional
+            conditions:
+            - entity: climate.master_room
+              state: heat
+            card:
+              type: custom:mushroom-template-card
+              icon: "{% set entity = 'climate.master_room' %}\n{% if is_state(entity, 'heat') %}\n  mdi:heating-coil\n    {% else %}   \n  mdi:snowflake\n      {% endif %}"
+              tap_action:
+                action: more-info
+              icon_tap_action:
+                action: more-info
+              entity: climate.master_room
+              layout: horizontal
+              fill_container: true
+              icon_color: "{% set entity = 'climate.master_room' %}\n{% if is_state(entity, 'heat') %}\n  {% if state_attr(entity, 'temperature') > state_attr(entity, 'current_temperature') %}\n  red\n {% else %}\n blue\n  {% endif %}\n {% endif %}\n"
     - type: custom:restriction-card
       restrictions:
         hide:
@@ -412,7 +627,10 @@ views:
             mdi:shower-head'
           tap_action:
             action: navigate
-            navigation_path: /dashboard-mobile/master-toilet
+            navigation_path: /master-room/master-toilet
+          icon_tap_action:
+            action: navigate
+            navigation_path: /master-room/master-toilet
           entity: input_boolean.placeholder
           layout: horizontal
           fill_container: true
@@ -428,35 +646,44 @@ views:
           type: custom:stack-in-card
           mode: horizontal
           cards:
-          - type: custom:mushroom-template-card
-            icon: "{% set entity = 'input_select.master_toilet_occupancy' %}\n{% if   is_state(entity, 'Outside') %}\n  mdi:door-closed\n{% elif is_state(entity, 'Just Entered') %}\n  mdi:arrow-right-circle\n{% elif is_state(entity, 'In Sleep') %}\n  mdi:sleep\n{% else %}\n  mdi:account-multiple\n{% endif %}"
-            tap_action:
-              action: more-info
-            entity: input_select.master_toilet_occupancy
-            layout: horizontal
-            fill_container: true
-            icon_color: "{% set entity = 'input_select.master_toilet_occupancy' %}\n{% if   is_state(entity, 'Outside') %} {% elif is_state(entity, 'Just Entered')%}\n  green\n{% elif is_state(entity, 'In Sleep') %}\n  blue            \n{% else %}\n  purple\n{% endif %}"
           - type: conditional
             conditions:
-            - entity: climate.master_toilet
-              state: heat
+            - entity: binary_sensor.master_toilet_unavailable_entities
+              state: 'on'
             card:
               type: custom:mushroom-template-card
-              icon: "{% set entity = 'climate.master_toilet' %}\n{% if is_state(entity, 'heat') %}\n  mdi:heating-coil\n{% else %}\n  mdi:snowflake\n{% endif %}"
+              icon: '{% set entity = ''binary_sensor.master_toilet_unavailable_entities'' %}
+
+                mdi:battery-charging-outline'
               tap_action:
                 action: more-info
-              entity: climate.master_toilet
+              icon_tap_action:
+                action: more-info
+              entity: binary_sensor.master_toilet_unavailable_entities
               layout: horizontal
               fill_container: true
-              icon_color: "{% set entity = 'climate.master_toilet' %}\n{% if is_state(entity, 'heat') %}\n  {% if state_attr(entity, 'temperature') > state_attr(entity, 'current_temperature') %}\n  red\n {% else %}\n blue\n  {% endif %}\n {% endif %}\n"
-          - type: custom:mushroom-template-card
-            icon: "{% set entity = 'group.master_toilet_light_group' %}\n{% if is_state(entity, 'on') %}\n  mdi:floor-lamp\n{% else %}\n  mdi:floor-lamp-outline\n{% endif %}"
-            tap_action:
-              action: more-info
-            entity: group.master_toilet_light_group
-            layout: horizontal
-            fill_container: true
-            icon_color: "{% set entity = 'group.master_toilet_light_group' %}\n{% if is_state(entity, 'on') %}\n  amber\n{% endif %}"
+              icon_color: '{% set entity = ''binary_sensor.master_toilet_unavailable_entities'' %}
+
+                red'
+          - type: conditional
+            conditions:
+            - entity: binary_sensor.master_toilet_low_battery
+              state: 'on'
+            card:
+              type: custom:mushroom-template-card
+              icon: '{% set entity = ''group.master_toilet_battery'' %}
+
+                mdi:battery-20-bluetooth'
+              tap_action:
+                action: more-info
+              icon_tap_action:
+                action: more-info
+              entity: group.master_toilet_battery
+              layout: horizontal
+              fill_container: true
+              icon_color: '{% set entity = ''group.master_toilet_battery'' %}
+
+                orange'
           - type: conditional
             conditions:
             - entity: group.master_toilet_curtain_group
@@ -466,10 +693,47 @@ views:
               icon: "{% set entity = 'group.master_toilet_curtain_group' %}\n{% if is_state(entity, 'open') %}\n  mdi:curtains\n{% else %}\n  mdi:curtains-closed\n{% endif %}"
               tap_action:
                 action: more-info
+              icon_tap_action:
+                action: more-info
               entity: group.master_toilet_curtain_group
               layout: horizontal
               fill_container: true
               icon_color: "{% set entity = 'group.master_toilet_curtain_group' %}\n{% if is_state(entity, 'open') %}\n  green       \n{% endif %}"
+          - type: custom:mushroom-template-card
+            icon: "{% set entity = 'group.master_toilet_light_group' %}\n{% if is_state(entity, 'on') %}\n  mdi:floor-lamp\n{% else %}\n  mdi:floor-lamp-outline\n{% endif %}"
+            tap_action:
+              action: more-info
+            icon_tap_action:
+              action: more-info
+            entity: group.master_toilet_light_group
+            layout: horizontal
+            fill_container: true
+            icon_color: "{% set entity = 'group.master_toilet_light_group' %}\n{% if is_state(entity, 'on') %}\n  amber\n{% endif %}"
+          - type: custom:mushroom-template-card
+            icon: "{% set entity = 'input_select.master_toilet_occupancy' %}\n{% if   is_state(entity, 'Outside') %}\n  mdi:door-closed\n{% elif is_state(entity, 'Just Entered') %}\n  mdi:arrow-right-circle\n{% elif is_state(entity, 'In Sleep') %}\n  mdi:sleep\n{% else %}\n  mdi:account-multiple\n{% endif %}"
+            tap_action:
+              action: more-info
+            icon_tap_action:
+              action: more-info
+            entity: input_select.master_toilet_occupancy
+            layout: horizontal
+            fill_container: true
+            icon_color: "{% set entity = 'input_select.master_toilet_occupancy' %}\n{% if   is_state(entity, 'Outside') %}                     {% elif is_state(entity, 'Just Entered') %}\n  green\n                 {% elif is_state(entity, 'In Sleep') %}\n  blue\n     {% else %}\n  purple\n              {% endif %}"
+          - type: conditional
+            conditions:
+            - entity: climate.master_toilet
+              state: heat
+            card:
+              type: custom:mushroom-template-card
+              icon: "{% set entity = 'climate.master_toilet' %}\n{% if is_state(entity, 'heat') %}\n  mdi:heating-coil\n    {% else %}   \n  mdi:snowflake\n      {% endif %}"
+              tap_action:
+                action: more-info
+              icon_tap_action:
+                action: more-info
+              entity: climate.master_toilet
+              layout: horizontal
+              fill_container: true
+              icon_color: "{% set entity = 'climate.master_toilet' %}\n{% if is_state(entity, 'heat') %}\n  {% if state_attr(entity, 'temperature') > state_attr(entity, 'current_temperature') %}\n  red\n {% else %}\n blue\n  {% endif %}\n {% endif %}\n"
     - type: custom:restriction-card
       restrictions:
         hide:
@@ -491,7 +755,10 @@ views:
             mdi:desk'
           tap_action:
             action: navigate
-            navigation_path: /dashboard-mobile/study
+            navigation_path: /lovelace-misc/study
+          icon_tap_action:
+            action: navigate
+            navigation_path: /lovelace-misc/study
           entity: input_boolean.placeholder
           layout: horizontal
           fill_container: true
@@ -507,35 +774,44 @@ views:
           type: custom:stack-in-card
           mode: horizontal
           cards:
-          - type: custom:mushroom-template-card
-            icon: "{% set entity = 'input_select.study_occupancy' %}\n{% if   is_state(entity, 'Outside') %}\n  mdi:door-closed\n{% elif is_state(entity, 'Just Entered') %}\n  mdi:arrow-right-circle\n{% elif is_state(entity, 'In Sleep') %}\n  mdi:sleep\n{% else %}\n  mdi:account-multiple\n{% endif %}"
-            tap_action:
-              action: more-info
-            entity: input_select.study_occupancy
-            layout: horizontal
-            fill_container: true
-            icon_color: "{% set entity = 'input_select.study_occupancy' %}\n{% if   is_state(entity, 'Outside') %} {% elif is_state(entity, 'Just Entered')%}\n  green\n{% elif is_state(entity, 'In Sleep') %}\n  blue            \n{% else %}\n  purple\n{% endif %}"
           - type: conditional
             conditions:
-            - entity: climate.study
-              state: heat
+            - entity: binary_sensor.study_unavailable_entities
+              state: 'on'
             card:
               type: custom:mushroom-template-card
-              icon: "{% set entity = 'climate.study' %}\n{% if is_state(entity, 'heat') %}\n  mdi:heating-coil\n{% else %}\n  mdi:snowflake\n{% endif %}"
+              icon: '{% set entity = ''binary_sensor.study_unavailable_entities'' %}
+
+                mdi:battery-charging-outline'
               tap_action:
                 action: more-info
-              entity: climate.study
+              icon_tap_action:
+                action: more-info
+              entity: binary_sensor.study_unavailable_entities
               layout: horizontal
               fill_container: true
-              icon_color: "{% set entity = 'climate.study' %}\n{% if is_state(entity, 'heat') %}\n  {% if state_attr(entity, 'temperature') > state_attr(entity, 'current_temperature') %}\n  red\n {% else %}\n blue\n  {% endif %}\n {% endif %}\n"
-          - type: custom:mushroom-template-card
-            icon: "{% set entity = 'group.study_light_group' %}\n{% if is_state(entity, 'on') %}\n  mdi:floor-lamp\n{% else %}\n  mdi:floor-lamp-outline\n{% endif %}"
-            tap_action:
-              action: more-info
-            entity: group.study_light_group
-            layout: horizontal
-            fill_container: true
-            icon_color: "{% set entity = 'group.study_light_group' %}\n{% if is_state(entity, 'on') %}\n  amber\n{% endif %}"
+              icon_color: '{% set entity = ''binary_sensor.study_unavailable_entities'' %}
+
+                red'
+          - type: conditional
+            conditions:
+            - entity: binary_sensor.study_low_battery
+              state: 'on'
+            card:
+              type: custom:mushroom-template-card
+              icon: '{% set entity = ''group.study_battery'' %}
+
+                mdi:battery-20-bluetooth'
+              tap_action:
+                action: more-info
+              icon_tap_action:
+                action: more-info
+              entity: group.study_battery
+              layout: horizontal
+              fill_container: true
+              icon_color: '{% set entity = ''group.study_battery'' %}
+
+                orange'
           - type: conditional
             conditions:
             - entity: group.study_curtain_group
@@ -545,10 +821,47 @@ views:
               icon: "{% set entity = 'group.study_curtain_group' %}\n{% if is_state(entity, 'open') %}\n  mdi:curtains\n{% else %}\n  mdi:curtains-closed\n{% endif %}"
               tap_action:
                 action: more-info
+              icon_tap_action:
+                action: more-info
               entity: group.study_curtain_group
               layout: horizontal
               fill_container: true
               icon_color: "{% set entity = 'group.study_curtain_group' %}\n{% if is_state(entity, 'open') %}\n  green       \n{% endif %}"
+          - type: custom:mushroom-template-card
+            icon: "{% set entity = 'group.study_light_group' %}\n{% if is_state(entity, 'on') %}\n  mdi:floor-lamp\n{% else %}\n  mdi:floor-lamp-outline\n{% endif %}"
+            tap_action:
+              action: more-info
+            icon_tap_action:
+              action: more-info
+            entity: group.study_light_group
+            layout: horizontal
+            fill_container: true
+            icon_color: "{% set entity = 'group.study_light_group' %}\n{% if is_state(entity, 'on') %}\n  amber\n{% endif %}"
+          - type: custom:mushroom-template-card
+            icon: "{% set entity = 'input_select.study_occupancy' %}\n{% if   is_state(entity, 'Outside') %}\n  mdi:door-closed\n{% elif is_state(entity, 'Just Entered') %}\n  mdi:arrow-right-circle\n{% elif is_state(entity, 'In Sleep') %}\n  mdi:sleep\n{% else %}\n  mdi:account-multiple\n{% endif %}"
+            tap_action:
+              action: more-info
+            icon_tap_action:
+              action: more-info
+            entity: input_select.study_occupancy
+            layout: horizontal
+            fill_container: true
+            icon_color: "{% set entity = 'input_select.study_occupancy' %}\n{% if   is_state(entity, 'Outside') %}                     {% elif is_state(entity, 'Just Entered') %}\n  green\n                 {% elif is_state(entity, 'In Sleep') %}\n  blue\n     {% else %}\n  purple\n              {% endif %}"
+          - type: conditional
+            conditions:
+            - entity: climate.study
+              state: heat
+            card:
+              type: custom:mushroom-template-card
+              icon: "{% set entity = 'climate.study' %}\n{% if is_state(entity, 'heat') %}\n  mdi:heating-coil\n    {% else %}   \n  mdi:snowflake\n      {% endif %}"
+              tap_action:
+                action: more-info
+              icon_tap_action:
+                action: more-info
+              entity: climate.study
+              layout: horizontal
+              fill_container: true
+              icon_color: "{% set entity = 'climate.study' %}\n{% if is_state(entity, 'heat') %}\n  {% if state_attr(entity, 'temperature') > state_attr(entity, 'current_temperature') %}\n  red\n {% else %}\n blue\n  {% endif %}\n {% endif %}\n"
     - type: custom:restriction-card
       restrictions:
         hide:
@@ -575,6 +888,9 @@ views:
           tap_action:
             action: navigate
             navigation_path: /lovelace-system/system
+          icon_tap_action:
+            action: navigate
+            navigation_path: /lovelace-system/system
         - card_mod:
             style: ':host { --ha-card-background:rgba(245, 245, 245, 0);}
 
@@ -588,6 +904,8 @@ views:
               mdi:desktop-classic'
             tap_action:
               action: more-info
+            icon_tap_action:
+              action: more-info
             entity: switch.gaming_pc
             layout: horizontal
             fill_container: true
@@ -599,6 +917,8 @@ views:
 
               mdi:car'
             tap_action:
+              action: more-info
+            icon_tap_action:
               action: more-info
             entity: binary_sensor.car_s_unlocked
             layout: horizontal
@@ -614,15 +934,17 @@ views:
               type: custom:mushroom-template-card
               icon: '{% set entity = ''switch.downstairs_heating'' %}
 
-                mdi:home-floor-l'
+                mdi:home-floor-g'
               tap_action:
+                action: more-info
+              icon_tap_action:
                 action: more-info
               entity: switch.downstairs_heating
               layout: horizontal
               fill_container: true
               icon_color: '{% set entity = ''switch.downstairs_heating'' %}
 
-                red'
+                deep-orange'
           - type: conditional
             conditions:
             - entity: switch.upstairs_heating
@@ -634,12 +956,14 @@ views:
                 mdi:home-floor-1'
               tap_action:
                 action: more-info
+              icon_tap_action:
+                action: more-info
               entity: switch.upstairs_heating
               layout: horizontal
               fill_container: true
               icon_color: '{% set entity = ''switch.upstairs_heating'' %}
 
-                red'
+                deep-orange'
           - type: conditional
             conditions:
             - entity: switch.water_heater
@@ -651,12 +975,14 @@ views:
                 mdi:water-boiler'
               tap_action:
                 action: more-info
+              icon_tap_action:
+                action: more-info
               entity: switch.water_heater
               layout: horizontal
               fill_container: true
               icon_color: '{% set entity = ''switch.water_heater'' %}
 
-                red'
+                deep-orange'
     - type: custom:restriction-card
       restrictions:
         hide:
@@ -678,7 +1004,10 @@ views:
             mdi:toilet'
           tap_action:
             action: navigate
-            navigation_path: /dashboard-mobile/ground-toilet
+            navigation_path: /lovelace-misc/ground-toilet
+          icon_tap_action:
+            action: navigate
+            navigation_path: /lovelace-misc/ground-toilet
           entity: input_boolean.placeholder
           layout: horizontal
           fill_container: true
@@ -694,35 +1023,79 @@ views:
           type: custom:stack-in-card
           mode: horizontal
           cards:
+          - type: conditional
+            conditions:
+            - entity: binary_sensor.ground_toilet_unavailable_entities
+              state: 'on'
+            card:
+              type: custom:mushroom-template-card
+              icon: '{% set entity = ''binary_sensor.ground_toilet_unavailable_entities'' %}
+
+                mdi:battery-charging-outline'
+              tap_action:
+                action: more-info
+              icon_tap_action:
+                action: more-info
+              entity: binary_sensor.ground_toilet_unavailable_entities
+              layout: horizontal
+              fill_container: true
+              icon_color: '{% set entity = ''binary_sensor.ground_toilet_unavailable_entities'' %}
+
+                red'
+          - type: conditional
+            conditions:
+            - entity: binary_sensor.ground_toilet_low_battery
+              state: 'on'
+            card:
+              type: custom:mushroom-template-card
+              icon: '{% set entity = ''group.ground_toilet_battery'' %}
+
+                mdi:battery-20-bluetooth'
+              tap_action:
+                action: more-info
+              icon_tap_action:
+                action: more-info
+              entity: group.ground_toilet_battery
+              layout: horizontal
+              fill_container: true
+              icon_color: '{% set entity = ''group.ground_toilet_battery'' %}
+
+                orange'
+          - type: custom:mushroom-template-card
+            icon: "{% set entity = 'group.ground_toilet_light_group' %}\n{% if is_state(entity, 'on') %}\n  mdi:floor-lamp\n{% else %}\n  mdi:floor-lamp-outline\n{% endif %}"
+            tap_action:
+              action: more-info
+            icon_tap_action:
+              action: more-info
+            entity: group.ground_toilet_light_group
+            layout: horizontal
+            fill_container: true
+            icon_color: "{% set entity = 'group.ground_toilet_light_group' %}\n{% if is_state(entity, 'on') %}\n  amber\n{% endif %}"
           - type: custom:mushroom-template-card
             icon: "{% set entity = 'input_select.ground_toilet_occupancy' %}\n{% if   is_state(entity, 'Outside') %}\n  mdi:door-closed\n{% elif is_state(entity, 'Just Entered') %}\n  mdi:arrow-right-circle\n{% elif is_state(entity, 'In Sleep') %}\n  mdi:sleep\n{% else %}\n  mdi:account-multiple\n{% endif %}"
             tap_action:
               action: more-info
+            icon_tap_action:
+              action: more-info
             entity: input_select.ground_toilet_occupancy
             layout: horizontal
             fill_container: true
-            icon_color: "{% set entity = 'input_select.ground_toilet_occupancy' %}\n{% if   is_state(entity, 'Outside') %} {% elif is_state(entity, 'Just Entered')%}\n  green\n{% elif is_state(entity, 'In Sleep') %}\n  blue            \n{% else %}\n  purple\n{% endif %}"
+            icon_color: "{% set entity = 'input_select.ground_toilet_occupancy' %}\n{% if   is_state(entity, 'Outside') %}                     {% elif is_state(entity, 'Just Entered') %}\n  green\n                 {% elif is_state(entity, 'In Sleep') %}\n  blue\n     {% else %}\n  purple\n              {% endif %}"
           - type: conditional
             conditions:
             - entity: climate.ground_toilet
               state: heat
             card:
               type: custom:mushroom-template-card
-              icon: "{% set entity = 'climate.ground_toilet' %}\n{% if is_state(entity, 'heat') %}\n  mdi:heating-coil\n{% else %}\n  mdi:snowflake\n{% endif %}"
+              icon: "{% set entity = 'climate.ground_toilet' %}\n{% if is_state(entity, 'heat') %}\n  mdi:heating-coil\n    {% else %}   \n  mdi:snowflake\n      {% endif %}"
               tap_action:
+                action: more-info
+              icon_tap_action:
                 action: more-info
               entity: climate.ground_toilet
               layout: horizontal
               fill_container: true
               icon_color: "{% set entity = 'climate.ground_toilet' %}\n{% if is_state(entity, 'heat') %}\n  {% if state_attr(entity, 'temperature') > state_attr(entity, 'current_temperature') %}\n  red\n {% else %}\n blue\n  {% endif %}\n {% endif %}\n"
-          - type: custom:mushroom-template-card
-            icon: "{% set entity = 'group.ground_toilet_light_group' %}\n{% if is_state(entity, 'on') %}\n  mdi:floor-lamp\n{% else %}\n  mdi:floor-lamp-outline\n{% endif %}"
-            tap_action:
-              action: more-info
-            entity: group.ground_toilet_light_group
-            layout: horizontal
-            fill_container: true
-            icon_color: "{% set entity = 'group.ground_toilet_light_group' %}\n{% if is_state(entity, 'on') %}\n  amber\n{% endif %}"
     - type: custom:restriction-card
       restrictions:
         hide:
@@ -744,12 +1117,15 @@ views:
             mdi:toilet'
           tap_action:
             action: navigate
-            navigation_path: /dashboard-mobile/corridor
+            navigation_path: /lovelace-misc/corridor
+          icon_tap_action:
+            action: navigate
+            navigation_path: /lovelace-misc/corridor
           entity: input_boolean.placeholder
           layout: horizontal
           fill_container: true
           primary: Corridor
-          secondary: "\U0001F514 {{states.sensor.front_door_battery.state}}%{% if states.sensor.corridor_temperature_sensor.state is defined %} {{ states.sensor.corridor_temperature_sensor.state }}\xB0C {% endif %}{% set motion_postfix     = 'corridor_motion_group' %}\n{% set motion = 'group.corridor_motion_group' %}\n{% if is_state(motion, 'on') %}\n  \U0001F64B\U0001F3FB\n{% else %}\n  \U0001F9B6\U0001F3FB\n{% endif %}{{\n (as_timestamp(now()) -\n as_timestamp(states.group[motion_postfix].last_changed)) |\n timestamp_custom(\"%H:%M\", false) }} "
+          secondary: "{% if states.sensor.corridor_temperature_sensor.state is defined %} {{ states.sensor.corridor_temperature_sensor.state }}\xB0C {% endif %}{% set motion_postfix     = 'corridor_motion_group' %}\n{% set motion = 'group.corridor_motion_group' %}\n{% if is_state(motion, 'on') %}\n  \U0001F64B\U0001F3FB\n{% else %}\n  \U0001F9B6\U0001F3FB\n{% endif %}{{\n (as_timestamp(now()) -\n as_timestamp(states.group[motion_postfix].last_changed)) |\n timestamp_custom(\"%H:%M\", false) }} "
           icon_color: '{% set entity = ''input_boolean.placeholder'' %}
 
             blue'
@@ -760,35 +1136,79 @@ views:
           type: custom:stack-in-card
           mode: horizontal
           cards:
+          - type: conditional
+            conditions:
+            - entity: binary_sensor.corridor_unavailable_entities
+              state: 'on'
+            card:
+              type: custom:mushroom-template-card
+              icon: '{% set entity = ''binary_sensor.corridor_unavailable_entities'' %}
+
+                mdi:battery-charging-outline'
+              tap_action:
+                action: more-info
+              icon_tap_action:
+                action: more-info
+              entity: binary_sensor.corridor_unavailable_entities
+              layout: horizontal
+              fill_container: true
+              icon_color: '{% set entity = ''binary_sensor.corridor_unavailable_entities'' %}
+
+                red'
+          - type: conditional
+            conditions:
+            - entity: binary_sensor.corridor_low_battery
+              state: 'on'
+            card:
+              type: custom:mushroom-template-card
+              icon: '{% set entity = ''group.corridor_battery'' %}
+
+                mdi:battery-20-bluetooth'
+              tap_action:
+                action: more-info
+              icon_tap_action:
+                action: more-info
+              entity: group.corridor_battery
+              layout: horizontal
+              fill_container: true
+              icon_color: '{% set entity = ''group.corridor_battery'' %}
+
+                orange'
+          - type: custom:mushroom-template-card
+            icon: "{% set entity = 'group.corridor_light_group' %}\n{% if is_state(entity, 'on') %}\n  mdi:floor-lamp\n{% else %}\n  mdi:floor-lamp-outline\n{% endif %}"
+            tap_action:
+              action: more-info
+            icon_tap_action:
+              action: more-info
+            entity: group.corridor_light_group
+            layout: horizontal
+            fill_container: true
+            icon_color: "{% set entity = 'group.corridor_light_group' %}\n{% if is_state(entity, 'on') %}\n  amber\n{% endif %}"
           - type: custom:mushroom-template-card
             icon: "{% set entity = 'input_select.corridor_occupancy' %}\n{% if   is_state(entity, 'Outside') %}\n  mdi:door-closed\n{% elif is_state(entity, 'Just Entered') %}\n  mdi:arrow-right-circle\n{% elif is_state(entity, 'In Sleep') %}\n  mdi:sleep\n{% else %}\n  mdi:account-multiple\n{% endif %}"
             tap_action:
               action: more-info
+            icon_tap_action:
+              action: more-info
             entity: input_select.corridor_occupancy
             layout: horizontal
             fill_container: true
-            icon_color: "{% set entity = 'input_select.corridor_occupancy' %}\n{% if   is_state(entity, 'Outside') %} {% elif is_state(entity, 'Just Entered')%}\n  green\n{% elif is_state(entity, 'In Sleep') %}\n  blue            \n{% else %}\n  purple\n{% endif %}"
+            icon_color: "{% set entity = 'input_select.corridor_occupancy' %}\n{% if   is_state(entity, 'Outside') %}                     {% elif is_state(entity, 'Just Entered') %}\n  green\n                 {% elif is_state(entity, 'In Sleep') %}\n  blue\n     {% else %}\n  purple\n              {% endif %}"
           - type: conditional
             conditions:
             - entity: climate.corridor
               state: heat
             card:
               type: custom:mushroom-template-card
-              icon: "{% set entity = 'climate.corridor' %}\n{% if is_state(entity, 'heat') %}\n  mdi:heating-coil\n{% else %}\n  mdi:snowflake\n{% endif %}"
+              icon: "{% set entity = 'climate.corridor' %}\n{% if is_state(entity, 'heat') %}\n  mdi:heating-coil\n    {% else %}   \n  mdi:snowflake\n      {% endif %}"
               tap_action:
+                action: more-info
+              icon_tap_action:
                 action: more-info
               entity: climate.corridor
               layout: horizontal
               fill_container: true
               icon_color: "{% set entity = 'climate.corridor' %}\n{% if is_state(entity, 'heat') %}\n  {% if state_attr(entity, 'temperature') > state_attr(entity, 'current_temperature') %}\n  red\n {% else %}\n blue\n  {% endif %}\n {% endif %}\n"
-          - type: custom:mushroom-template-card
-            icon: "{% set entity = 'group.corridor_light_group' %}\n{% if is_state(entity, 'on') %}\n  mdi:floor-lamp\n{% else %}\n  mdi:floor-lamp-outline\n{% endif %}"
-            tap_action:
-              action: more-info
-            entity: group.corridor_light_group
-            layout: horizontal
-            fill_container: true
-            icon_color: "{% set entity = 'group.corridor_light_group' %}\n{% if is_state(entity, 'on') %}\n  amber\n{% endif %}"
     - type: custom:restriction-card
       restrictions:
         hide:
@@ -810,7 +1230,10 @@ views:
             mdi:beach'
           tap_action:
             action: navigate
-            navigation_path: /dashboard-mobile/garden
+            navigation_path: /lovelace-garden/garden
+          icon_tap_action:
+            action: navigate
+            navigation_path: /lovelace-garden/garden
           entity: input_boolean.placeholder
           layout: horizontal
           fill_container: true
@@ -826,22 +1249,64 @@ views:
           type: custom:stack-in-card
           mode: horizontal
           cards:
-          - type: custom:mushroom-template-card
-            icon: "{% set entity = 'input_select.garden_occupancy' %}\n{% if   is_state(entity, 'Outside') %}\n  mdi:door-closed\n{% elif is_state(entity, 'Just Entered') %}\n  mdi:arrow-right-circle\n{% elif is_state(entity, 'In Sleep') %}\n  mdi:sleep\n{% else %}\n  mdi:account-multiple\n{% endif %}"
-            tap_action:
-              action: more-info
-            entity: input_select.garden_occupancy
-            layout: horizontal
-            fill_container: true
-            icon_color: "{% set entity = 'input_select.garden_occupancy' %}\n{% if   is_state(entity, 'Outside') %} {% elif is_state(entity, 'Just Entered')%}\n  green\n{% elif is_state(entity, 'In Sleep') %}\n  blue            \n{% else %}\n  purple\n{% endif %}"
+          - type: conditional
+            conditions:
+            - entity: binary_sensor.garden_unavailable_entities
+              state: 'on'
+            card:
+              type: custom:mushroom-template-card
+              icon: '{% set entity = ''binary_sensor.garden_unavailable_entities'' %}
+
+                mdi:battery-charging-outline'
+              tap_action:
+                action: more-info
+              icon_tap_action:
+                action: more-info
+              entity: binary_sensor.garden_unavailable_entities
+              layout: horizontal
+              fill_container: true
+              icon_color: '{% set entity = ''binary_sensor.garden_unavailable_entities'' %}
+
+                red'
+          - type: conditional
+            conditions:
+            - entity: binary_sensor.garden_low_battery
+              state: 'on'
+            card:
+              type: custom:mushroom-template-card
+              icon: '{% set entity = ''group.garden_battery'' %}
+
+                mdi:battery-20-bluetooth'
+              tap_action:
+                action: more-info
+              icon_tap_action:
+                action: more-info
+              entity: group.garden_battery
+              layout: horizontal
+              fill_container: true
+              icon_color: '{% set entity = ''group.garden_battery'' %}
+
+                orange'
           - type: custom:mushroom-template-card
             icon: "{% set entity = 'group.garden_light_group' %}\n{% if is_state(entity, 'on') %}\n  mdi:floor-lamp\n{% else %}\n  mdi:floor-lamp-outline\n{% endif %}"
             tap_action:
+              action: more-info
+            icon_tap_action:
               action: more-info
             entity: group.garden_light_group
             layout: horizontal
             fill_container: true
             icon_color: "{% set entity = 'group.garden_light_group' %}\n{% if is_state(entity, 'on') %}\n  amber\n{% endif %}"
+          - type: custom:mushroom-template-card
+            icon: "{% set entity = 'input_select.garden_occupancy' %}\n{% if   is_state(entity, 'Outside') %}\n  mdi:door-closed\n{% elif is_state(entity, 'Just Entered') %}\n  mdi:arrow-right-circle\n{% elif is_state(entity, 'In Sleep') %}\n  mdi:sleep\n{% else %}\n  mdi:account-multiple\n{% endif %}"
+            tap_action:
+              action: more-info
+            icon_tap_action:
+              action: more-info
+            entity: input_select.garden_occupancy
+            layout: horizontal
+            fill_container: true
+            icon_color: "{% set entity = 'input_select.garden_occupancy' %}\n{% if   is_state(entity, 'Outside') %}                     {% elif is_state(entity, 'Just Entered') %}\n  green\n                 {% elif is_state(entity, 'In Sleep') %}\n  blue\n     {% else %}\n  purple\n              {% endif %}"
     - type: custom:restriction-card
       restrictions:
         hide:
@@ -863,7 +1328,10 @@ views:
             mdi:bed-queen'
           tap_action:
             action: navigate
-            navigation_path: /dashboard-mobile/en-suite-room
+            navigation_path: /en-suite-room/en-suite-room
+          icon_tap_action:
+            action: navigate
+            navigation_path: /en-suite-room/en-suite-room
           entity: input_boolean.placeholder
           layout: horizontal
           fill_container: true
@@ -879,45 +1347,44 @@ views:
           type: custom:stack-in-card
           mode: horizontal
           cards:
-          - type: custom:mushroom-template-card
-            icon: "{% set entity = 'input_select.en_suite_room_occupancy' %}\n{% if   is_state(entity, 'Outside') %}\n  mdi:door-closed\n{% elif is_state(entity, 'Just Entered') %}\n  mdi:arrow-right-circle\n{% elif is_state(entity, 'In Sleep') %}\n  mdi:sleep\n{% else %}\n  mdi:account-multiple\n{% endif %}"
-            tap_action:
-              action: more-info
-            entity: input_select.en_suite_room_occupancy
-            layout: horizontal
-            fill_container: true
-            icon_color: "{% set entity = 'input_select.en_suite_room_occupancy' %}\n{% if   is_state(entity, 'Outside') %} {% elif is_state(entity, 'Just Entered')%}\n  green\n{% elif is_state(entity, 'In Sleep') %}\n  blue            \n{% else %}\n  purple\n{% endif %}"
           - type: conditional
             conditions:
-            - entity: climate.en_suite_room
-              state: heat
+            - entity: binary_sensor.en_suite_room_unavailable_entities
+              state: 'on'
             card:
               type: custom:mushroom-template-card
-              icon: "{% set entity = 'climate.en_suite_room' %}\n{% if is_state(entity, 'heat') %}\n  mdi:heating-coil\n{% else %}\n  mdi:snowflake\n{% endif %}"
+              icon: '{% set entity = ''binary_sensor.en_suite_room_unavailable_entities'' %}
+
+                mdi:battery-charging-outline'
               tap_action:
                 action: more-info
-              entity: climate.en_suite_room
+              icon_tap_action:
+                action: more-info
+              entity: binary_sensor.en_suite_room_unavailable_entities
               layout: horizontal
               fill_container: true
-              icon_color: "{% set entity = 'climate.en_suite_room' %}\n{% if is_state(entity, 'heat') %}\n  {% if state_attr(entity, 'temperature') > state_attr(entity, 'current_temperature') %}\n  red\n {% else %}\n blue\n  {% endif %}\n {% endif %}\n"
-          - type: custom:mushroom-template-card
-            icon: "{% set entity = 'group.en_suite_room_light_group' %}\n{% if is_state(entity, 'on') %}\n  mdi:floor-lamp\n{% else %}\n  mdi:floor-lamp-outline\n{% endif %}"
-            tap_action:
-              action: more-info
-            entity: group.en_suite_room_light_group
-            layout: horizontal
-            fill_container: true
-            icon_color: "{% set entity = 'group.en_suite_room_light_group' %}\n{% if is_state(entity, 'on') %}\n  amber\n{% endif %}"
-          - type: custom:mushroom-template-card
-            icon: '{% set entity = ''media_player.portable_tv'' %}
+              icon_color: '{% set entity = ''binary_sensor.en_suite_room_unavailable_entities'' %}
 
-              mdi:television-classic'
-            tap_action:
-              action: more-info
-            entity: media_player.portable_tv
-            layout: horizontal
-            fill_container: true
-            icon_color: "{% set entity = 'media_player.portable_tv' %}\n{% if is_state(entity, 'on') %}\n  deep-orange\n{% endif %}"
+                red'
+          - type: conditional
+            conditions:
+            - entity: binary_sensor.en_suite_room_low_battery
+              state: 'on'
+            card:
+              type: custom:mushroom-template-card
+              icon: '{% set entity = ''group.en_suite_room_battery'' %}
+
+                mdi:battery-20-bluetooth'
+              tap_action:
+                action: more-info
+              icon_tap_action:
+                action: more-info
+              entity: group.en_suite_room_battery
+              layout: horizontal
+              fill_container: true
+              icon_color: '{% set entity = ''group.en_suite_room_battery'' %}
+
+                orange'
           - type: conditional
             conditions:
             - entity: group.en_suite_room_curtain_group
@@ -927,10 +1394,47 @@ views:
               icon: "{% set entity = 'group.en_suite_room_curtain_group' %}\n{% if is_state(entity, 'open') %}\n  mdi:curtains\n{% else %}\n  mdi:curtains-closed\n{% endif %}"
               tap_action:
                 action: more-info
+              icon_tap_action:
+                action: more-info
               entity: group.en_suite_room_curtain_group
               layout: horizontal
               fill_container: true
               icon_color: "{% set entity = 'group.en_suite_room_curtain_group' %}\n{% if is_state(entity, 'open') %}\n  green       \n{% endif %}"
+          - type: custom:mushroom-template-card
+            icon: "{% set entity = 'group.en_suite_room_light_group' %}\n{% if is_state(entity, 'on') %}\n  mdi:floor-lamp\n{% else %}\n  mdi:floor-lamp-outline\n{% endif %}"
+            tap_action:
+              action: more-info
+            icon_tap_action:
+              action: more-info
+            entity: group.en_suite_room_light_group
+            layout: horizontal
+            fill_container: true
+            icon_color: "{% set entity = 'group.en_suite_room_light_group' %}\n{% if is_state(entity, 'on') %}\n  amber\n{% endif %}"
+          - type: custom:mushroom-template-card
+            icon: "{% set entity = 'input_select.en_suite_room_occupancy' %}\n{% if   is_state(entity, 'Outside') %}\n  mdi:door-closed\n{% elif is_state(entity, 'Just Entered') %}\n  mdi:arrow-right-circle\n{% elif is_state(entity, 'In Sleep') %}\n  mdi:sleep\n{% else %}\n  mdi:account-multiple\n{% endif %}"
+            tap_action:
+              action: more-info
+            icon_tap_action:
+              action: more-info
+            entity: input_select.en_suite_room_occupancy
+            layout: horizontal
+            fill_container: true
+            icon_color: "{% set entity = 'input_select.en_suite_room_occupancy' %}\n{% if   is_state(entity, 'Outside') %}                     {% elif is_state(entity, 'Just Entered') %}\n  green\n                 {% elif is_state(entity, 'In Sleep') %}\n  blue\n     {% else %}\n  purple\n              {% endif %}"
+          - type: conditional
+            conditions:
+            - entity: climate.en_suite_room
+              state: heat
+            card:
+              type: custom:mushroom-template-card
+              icon: "{% set entity = 'climate.en_suite_room' %}\n{% if is_state(entity, 'heat') %}\n  mdi:heating-coil\n    {% else %}   \n  mdi:snowflake\n      {% endif %}"
+              tap_action:
+                action: more-info
+              icon_tap_action:
+                action: more-info
+              entity: climate.en_suite_room
+              layout: horizontal
+              fill_container: true
+              icon_color: "{% set entity = 'climate.en_suite_room' %}\n{% if is_state(entity, 'heat') %}\n  {% if state_attr(entity, 'temperature') > state_attr(entity, 'current_temperature') %}\n  red\n {% else %}\n blue\n  {% endif %}\n {% endif %}\n"
     - type: custom:restriction-card
       restrictions:
         hide:
@@ -952,7 +1456,10 @@ views:
             mdi:shower-head'
           tap_action:
             action: navigate
-            navigation_path: /dashboard-mobile/en-suite-toilet
+            navigation_path: /en-suite-room/en-suite-toilet
+          icon_tap_action:
+            action: navigate
+            navigation_path: /en-suite-room/en-suite-toilet
           entity: input_boolean.placeholder
           layout: horizontal
           fill_container: true
@@ -968,35 +1475,79 @@ views:
           type: custom:stack-in-card
           mode: horizontal
           cards:
+          - type: conditional
+            conditions:
+            - entity: binary_sensor.en_suite_toilet_unavailable_entities
+              state: 'on'
+            card:
+              type: custom:mushroom-template-card
+              icon: '{% set entity = ''binary_sensor.en_suite_toilet_unavailable_entities'' %}
+
+                mdi:battery-charging-outline'
+              tap_action:
+                action: more-info
+              icon_tap_action:
+                action: more-info
+              entity: binary_sensor.en_suite_toilet_unavailable_entities
+              layout: horizontal
+              fill_container: true
+              icon_color: '{% set entity = ''binary_sensor.en_suite_toilet_unavailable_entities'' %}
+
+                red'
+          - type: conditional
+            conditions:
+            - entity: binary_sensor.en_suite_toilet_low_battery
+              state: 'on'
+            card:
+              type: custom:mushroom-template-card
+              icon: '{% set entity = ''group.en_suite_toilet_battery'' %}
+
+                mdi:battery-20-bluetooth'
+              tap_action:
+                action: more-info
+              icon_tap_action:
+                action: more-info
+              entity: group.en_suite_toilet_battery
+              layout: horizontal
+              fill_container: true
+              icon_color: '{% set entity = ''group.en_suite_toilet_battery'' %}
+
+                orange'
+          - type: custom:mushroom-template-card
+            icon: "{% set entity = 'group.en_suite_toilet_light_group' %}\n{% if is_state(entity, 'on') %}\n  mdi:floor-lamp\n{% else %}\n  mdi:floor-lamp-outline\n{% endif %}"
+            tap_action:
+              action: more-info
+            icon_tap_action:
+              action: more-info
+            entity: group.en_suite_toilet_light_group
+            layout: horizontal
+            fill_container: true
+            icon_color: "{% set entity = 'group.en_suite_toilet_light_group' %}\n{% if is_state(entity, 'on') %}\n  amber\n{% endif %}"
           - type: custom:mushroom-template-card
             icon: "{% set entity = 'input_select.en_suite_toilet_occupancy' %}\n{% if   is_state(entity, 'Outside') %}\n  mdi:door-closed\n{% elif is_state(entity, 'Just Entered') %}\n  mdi:arrow-right-circle\n{% elif is_state(entity, 'In Sleep') %}\n  mdi:sleep\n{% else %}\n  mdi:account-multiple\n{% endif %}"
             tap_action:
               action: more-info
+            icon_tap_action:
+              action: more-info
             entity: input_select.en_suite_toilet_occupancy
             layout: horizontal
             fill_container: true
-            icon_color: "{% set entity = 'input_select.en_suite_toilet_occupancy' %}\n{% if   is_state(entity, 'Outside') %} {% elif is_state(entity, 'Just Entered')%}\n  green\n{% elif is_state(entity, 'In Sleep') %}\n  blue            \n{% else %}\n  purple\n{% endif %}"
+            icon_color: "{% set entity = 'input_select.en_suite_toilet_occupancy' %}\n{% if   is_state(entity, 'Outside') %}                     {% elif is_state(entity, 'Just Entered') %}\n  green\n                 {% elif is_state(entity, 'In Sleep') %}\n  blue\n     {% else %}\n  purple\n              {% endif %}"
           - type: conditional
             conditions:
             - entity: climate.en_suite_toilet
               state: heat
             card:
               type: custom:mushroom-template-card
-              icon: "{% set entity = 'climate.en_suite_toilet' %}\n{% if is_state(entity, 'heat') %}\n  mdi:heating-coil\n{% else %}\n  mdi:snowflake\n{% endif %}"
+              icon: "{% set entity = 'climate.en_suite_toilet' %}\n{% if is_state(entity, 'heat') %}\n  mdi:heating-coil\n    {% else %}   \n  mdi:snowflake\n      {% endif %}"
               tap_action:
+                action: more-info
+              icon_tap_action:
                 action: more-info
               entity: climate.en_suite_toilet
               layout: horizontal
               fill_container: true
               icon_color: "{% set entity = 'climate.en_suite_toilet' %}\n{% if is_state(entity, 'heat') %}\n  {% if state_attr(entity, 'temperature') > state_attr(entity, 'current_temperature') %}\n  red\n {% else %}\n blue\n  {% endif %}\n {% endif %}\n"
-          - type: custom:mushroom-template-card
-            icon: "{% set entity = 'group.en_suite_toilet_light_group' %}\n{% if is_state(entity, 'on') %}\n  mdi:floor-lamp\n{% else %}\n  mdi:floor-lamp-outline\n{% endif %}"
-            tap_action:
-              action: more-info
-            entity: group.en_suite_toilet_light_group
-            layout: horizontal
-            fill_container: true
-            icon_color: "{% set entity = 'group.en_suite_toilet_light_group' %}\n{% if is_state(entity, 'on') %}\n  amber\n{% endif %}"
     - type: custom:restriction-card
       restrictions:
         hide:
@@ -1018,7 +1569,10 @@ views:
             mdi:bed-queen-outline'
           tap_action:
             action: navigate
-            navigation_path: /dashboard-mobile/guest-room
+            navigation_path: /guest-room/guest-room
+          icon_tap_action:
+            action: navigate
+            navigation_path: /guest-room/guest-room
           entity: input_boolean.placeholder
           layout: horizontal
           fill_container: true
@@ -1034,35 +1588,44 @@ views:
           type: custom:stack-in-card
           mode: horizontal
           cards:
-          - type: custom:mushroom-template-card
-            icon: "{% set entity = 'input_select.guest_room_occupancy' %}\n{% if   is_state(entity, 'Outside') %}\n  mdi:door-closed\n{% elif is_state(entity, 'Just Entered') %}\n  mdi:arrow-right-circle\n{% elif is_state(entity, 'In Sleep') %}\n  mdi:sleep\n{% else %}\n  mdi:account-multiple\n{% endif %}"
-            tap_action:
-              action: more-info
-            entity: input_select.guest_room_occupancy
-            layout: horizontal
-            fill_container: true
-            icon_color: "{% set entity = 'input_select.guest_room_occupancy' %}\n{% if   is_state(entity, 'Outside') %} {% elif is_state(entity, 'Just Entered')%}\n  green\n{% elif is_state(entity, 'In Sleep') %}\n  blue            \n{% else %}\n  purple\n{% endif %}"
           - type: conditional
             conditions:
-            - entity: climate.guest_room
-              state: heat
+            - entity: binary_sensor.guest_room_unavailable_entities
+              state: 'on'
             card:
               type: custom:mushroom-template-card
-              icon: "{% set entity = 'climate.guest_room' %}\n{% if is_state(entity, 'heat') %}\n  mdi:heating-coil\n{% else %}\n  mdi:snowflake\n{% endif %}"
+              icon: '{% set entity = ''binary_sensor.guest_room_unavailable_entities'' %}
+
+                mdi:battery-charging-outline'
               tap_action:
                 action: more-info
-              entity: climate.guest_room
+              icon_tap_action:
+                action: more-info
+              entity: binary_sensor.guest_room_unavailable_entities
               layout: horizontal
               fill_container: true
-              icon_color: "{% set entity = 'climate.guest_room' %}\n{% if is_state(entity, 'heat') %}\n  {% if state_attr(entity, 'temperature') > state_attr(entity, 'current_temperature') %}\n  red\n {% else %}\n blue\n  {% endif %}\n {% endif %}\n"
-          - type: custom:mushroom-template-card
-            icon: "{% set entity = 'group.guest_room_light_group' %}\n{% if is_state(entity, 'on') %}\n  mdi:floor-lamp\n{% else %}\n  mdi:floor-lamp-outline\n{% endif %}"
-            tap_action:
-              action: more-info
-            entity: group.guest_room_light_group
-            layout: horizontal
-            fill_container: true
-            icon_color: "{% set entity = 'group.guest_room_light_group' %}\n{% if is_state(entity, 'on') %}\n  amber\n{% endif %}"
+              icon_color: '{% set entity = ''binary_sensor.guest_room_unavailable_entities'' %}
+
+                red'
+          - type: conditional
+            conditions:
+            - entity: binary_sensor.guest_room_low_battery
+              state: 'on'
+            card:
+              type: custom:mushroom-template-card
+              icon: '{% set entity = ''group.guest_room_battery'' %}
+
+                mdi:battery-20-bluetooth'
+              tap_action:
+                action: more-info
+              icon_tap_action:
+                action: more-info
+              entity: group.guest_room_battery
+              layout: horizontal
+              fill_container: true
+              icon_color: '{% set entity = ''group.guest_room_battery'' %}
+
+                orange'
           - type: conditional
             conditions:
             - entity: group.guest_room_curtain_group
@@ -1072,10 +1635,47 @@ views:
               icon: "{% set entity = 'group.guest_room_curtain_group' %}\n{% if is_state(entity, 'open') %}\n  mdi:curtains\n{% else %}\n  mdi:curtains-closed\n{% endif %}"
               tap_action:
                 action: more-info
+              icon_tap_action:
+                action: more-info
               entity: group.guest_room_curtain_group
               layout: horizontal
               fill_container: true
               icon_color: "{% set entity = 'group.guest_room_curtain_group' %}\n{% if is_state(entity, 'open') %}\n  green       \n{% endif %}"
+          - type: custom:mushroom-template-card
+            icon: "{% set entity = 'group.guest_room_light_group' %}\n{% if is_state(entity, 'on') %}\n  mdi:floor-lamp\n{% else %}\n  mdi:floor-lamp-outline\n{% endif %}"
+            tap_action:
+              action: more-info
+            icon_tap_action:
+              action: more-info
+            entity: group.guest_room_light_group
+            layout: horizontal
+            fill_container: true
+            icon_color: "{% set entity = 'group.guest_room_light_group' %}\n{% if is_state(entity, 'on') %}\n  amber\n{% endif %}"
+          - type: custom:mushroom-template-card
+            icon: "{% set entity = 'input_select.guest_room_occupancy' %}\n{% if   is_state(entity, 'Outside') %}\n  mdi:door-closed\n{% elif is_state(entity, 'Just Entered') %}\n  mdi:arrow-right-circle\n{% elif is_state(entity, 'In Sleep') %}\n  mdi:sleep\n{% else %}\n  mdi:account-multiple\n{% endif %}"
+            tap_action:
+              action: more-info
+            icon_tap_action:
+              action: more-info
+            entity: input_select.guest_room_occupancy
+            layout: horizontal
+            fill_container: true
+            icon_color: "{% set entity = 'input_select.guest_room_occupancy' %}\n{% if   is_state(entity, 'Outside') %}                     {% elif is_state(entity, 'Just Entered') %}\n  green\n                 {% elif is_state(entity, 'In Sleep') %}\n  blue\n     {% else %}\n  purple\n              {% endif %}"
+          - type: conditional
+            conditions:
+            - entity: climate.guest_room
+              state: heat
+            card:
+              type: custom:mushroom-template-card
+              icon: "{% set entity = 'climate.guest_room' %}\n{% if is_state(entity, 'heat') %}\n  mdi:heating-coil\n    {% else %}   \n  mdi:snowflake\n      {% endif %}"
+              tap_action:
+                action: more-info
+              icon_tap_action:
+                action: more-info
+              entity: climate.guest_room
+              layout: horizontal
+              fill_container: true
+              icon_color: "{% set entity = 'climate.guest_room' %}\n{% if is_state(entity, 'heat') %}\n  {% if state_attr(entity, 'temperature') > state_attr(entity, 'current_temperature') %}\n  red\n {% else %}\n blue\n  {% endif %}\n {% endif %}\n"
     - type: custom:restriction-card
       restrictions:
         hide:
@@ -1097,7 +1697,10 @@ views:
             mdi:shower'
           tap_action:
             action: navigate
-            navigation_path: /dashboard-mobile/guest-toilet
+            navigation_path: /guest-room/guest-toilet
+          icon_tap_action:
+            action: navigate
+            navigation_path: /guest-room/guest-toilet
           entity: input_boolean.placeholder
           layout: horizontal
           fill_container: true
@@ -1113,36 +1716,80 @@ views:
           type: custom:stack-in-card
           mode: horizontal
           cards:
+          - type: conditional
+            conditions:
+            - entity: binary_sensor.guest_toilet_unavailable_entities
+              state: 'on'
+            card:
+              type: custom:mushroom-template-card
+              icon: '{% set entity = ''binary_sensor.guest_toilet_unavailable_entities'' %}
+
+                mdi:battery-charging-outline'
+              tap_action:
+                action: more-info
+              icon_tap_action:
+                action: more-info
+              entity: binary_sensor.guest_toilet_unavailable_entities
+              layout: horizontal
+              fill_container: true
+              icon_color: '{% set entity = ''binary_sensor.guest_toilet_unavailable_entities'' %}
+
+                red'
+          - type: conditional
+            conditions:
+            - entity: binary_sensor.guest_toilet_low_battery
+              state: 'on'
+            card:
+              type: custom:mushroom-template-card
+              icon: '{% set entity = ''group.guest_toilet_battery'' %}
+
+                mdi:battery-20-bluetooth'
+              tap_action:
+                action: more-info
+              icon_tap_action:
+                action: more-info
+              entity: group.guest_toilet_battery
+              layout: horizontal
+              fill_container: true
+              icon_color: '{% set entity = ''group.guest_toilet_battery'' %}
+
+                orange'
+          - type: custom:mushroom-template-card
+            icon: "{% set entity = 'group.guest_toilet_light_group' %}\n{% if is_state(entity, 'on') %}\n  mdi:floor-lamp\n{% else %}\n  mdi:floor-lamp-outline\n{% endif %}"
+            tap_action:
+              action: more-info
+            icon_tap_action:
+              action: more-info
+            entity: group.guest_toilet_light_group
+            layout: horizontal
+            fill_container: true
+            icon_color: "{% set entity = 'group.guest_toilet_light_group' %}\n{% if is_state(entity, 'on') %}\n  amber\n{% endif %}"
           - type: custom:mushroom-template-card
             icon: "{% set entity = 'input_select.guest_toilet_occupancy' %}\n{% if   is_state(entity, 'Outside') %}\n  mdi:door-closed\n{% elif is_state(entity, 'Just Entered') %}\n  mdi:arrow-right-circle\n{% elif is_state(entity, 'In Sleep') %}\n  mdi:sleep\n{% else %}\n  mdi:account-multiple\n{% endif %}"
             tap_action:
               action: more-info
+            icon_tap_action:
+              action: more-info
             entity: input_select.guest_toilet_occupancy
             layout: horizontal
             fill_container: true
-            icon_color: "{% set entity = 'input_select.guest_toilet_occupancy' %}\n{% if   is_state(entity, 'Outside') %} {% elif is_state(entity, 'Just Entered')%}\n  green\n{% elif is_state(entity, 'In Sleep') %}\n  blue            \n{% else %}\n  purple\n{% endif %}"
+            icon_color: "{% set entity = 'input_select.guest_toilet_occupancy' %}\n{% if   is_state(entity, 'Outside') %}                     {% elif is_state(entity, 'Just Entered') %}\n  green\n                 {% elif is_state(entity, 'In Sleep') %}\n  blue\n     {% else %}\n  purple\n              {% endif %}"
           - type: conditional
             conditions:
             - entity: climate.guest_toilet
               state: heat
             card:
               type: custom:mushroom-template-card
-              icon: "{% set entity = 'climate.guest_toilet' %}\n{% if is_state(entity, 'heat') %}\n  mdi:heating-coil\n{% else %}\n  mdi:snowflake\n{% endif %}"
+              icon: "{% set entity = 'climate.guest_toilet' %}\n{% if is_state(entity, 'heat') %}\n  mdi:heating-coil\n    {% else %}   \n  mdi:snowflake\n      {% endif %}"
               tap_action:
+                action: more-info
+              icon_tap_action:
                 action: more-info
               entity: climate.guest_toilet
               layout: horizontal
               fill_container: true
               icon_color: "{% set entity = 'climate.guest_toilet' %}\n{% if is_state(entity, 'heat') %}\n  {% if state_attr(entity, 'temperature') > state_attr(entity, 'current_temperature') %}\n  red\n {% else %}\n blue\n  {% endif %}\n {% endif %}\n"
-          - type: custom:mushroom-template-card
-            icon: "{% set entity = 'group.guest_toilet_light_group' %}\n{% if is_state(entity, 'on') %}\n  mdi:floor-lamp\n{% else %}\n  mdi:floor-lamp-outline\n{% endif %}"
-            tap_action:
-              action: more-info
-            entity: group.guest_toilet_light_group
-            layout: horizontal
-            fill_container: true
-            icon_color: "{% set entity = 'group.guest_toilet_light_group' %}\n{% if is_state(entity, 'on') %}\n  amber\n{% endif %}"
-- theme: ios-dark-mode-dark-blue
+- theme: ios-dark-mode-red
   title: Living Room
   path: living-room
   subview: true
@@ -1163,7 +1810,10 @@ views:
         action: toggle
       tap_action:
         action: navigate
-        navigation_path: dashboard-mobile/home
+        navigation_path: living-room/home
+      icon_tap_action:
+        action: navigate
+        navigation_path: living-room/home
       card_mod:
         style:
           mushroom-state-info$: ".primary {\n  font-size: 16px !important;\n  position: relative;\n  top: 0px;\n  left: 0px;\n  overflow: visible !important;\n  white-space:  \n}\n"
@@ -1175,7 +1825,7 @@ views:
         action: more-info
       icon: ''
       secondary_info: none
-      name: ' Scene'
+      name: ''
       entity: input_select.living_room_scene
   - square: false
     columns: 2
@@ -1202,7 +1852,7 @@ views:
       fill_container: true
       tap_action:
         action: toggle
-      name: ' Floor Light 3'
+      name: ''
       icon: ''
       entity: switch.living_room_floor_light_3
     - type: custom:mushroom-light-card
@@ -1212,7 +1862,7 @@ views:
       show_color_control: false
       show_color_temp_control: true
       collapsible_controls: false
-      name: ' Floor Light 1'
+      name: ''
       icon: ''
       entity: light.living_room_floor_light_1
       card_mod:
@@ -1224,9 +1874,9 @@ views:
       show_color_control: false
       show_color_temp_control: true
       collapsible_controls: false
-      name: ' 3 Head Lamp 1'
+      name: ''
       icon: ''
-      entity: light.living_room_3_head_lamp_1
+      entity: light.living_room_floor_light_2
       card_mod:
         style: ":host {\n--ha-card-background:    {% if (states(config.entity) in ['on']) and (states('sun.sun') != 'below_horizon')%} rgba(245, 245, 245, 0.9)  {% else  %} rgba(10, 10, 10, 0.4)  {% endif %};\n--primary-text-color:    {% if (states(config.entity) in ['on']) and (states('sun.sun') != 'below_horizon')%} black                                            {% else  %} white                                           {% endif %};\n--secondary-text-color : {% if (states(config.entity) in ['on']) and (states('sun.sun') != 'below_horizon')%} rgba(100, 100, 100, 1){% else  %} rgba(220, 220, 220, 1) {% endif %};\n;}\nha-card > mushroom-card > mushroom-state-item > mushroom-shape-icon > ha-state-icon {\n--mdc-icon-size: 0.6em;;}\nha-card > mushroom-card > mushroom-state-item > mushroom-shape-icon { \n--icon-color-disabled:   rgba(253,204,0,1);\n--shape-color-disabled:  rgba(10, 10, 10, 0.4);\n--icon-color:            white;\n--shape-color:            {% if state_attr(config.entity, 'color_mode') == 'color_temp' %} \nrgba(253,204,0,1) \n{% else  %} \n   rgb{{state_attr(config.entity, 'rgb_color')}} \n{% endif%};\n}\nha-card > mushroom-card > div > mushroom-light-brightness-control { \n--slider-color:           {% if state_attr(config.entity, 'color_mode') == 'color_temp' %} \nrgba(253,204,0,1) \n{% else  %} \n   rgb{{state_attr(config.entity, 'rgb_color')}} \n{% endif%};\n--slider-bg-color:        {% if state_attr(config.entity, 'color_mode') == 'color_temp' %} \n{{ 'rgba(253,204,0,1)' | regex_replace(',([\\d\\.])+\\)$', ',0.2)') }} \n{% else  %} \n   rgba{{(state_attr(config.entity, 'rgb_color')|string)[0:-1]}}, 0.2) \n{% endif%};\n}\nha-card > mushroom-card > div > mushroom-button:nth-child(2) {  --bg-color: {% if  (states(config.entity) in ['on']) and (states('sun.sun') != 'below_horizon') %} rgba(245, 245, 245, 0.9) {% else %} rgba(var(--rgb-primary-text-color), 0.05) {% endif %};}\nha-card > mushroom-card > div > mushroom-button:nth-child(3) {  --bg-color: {% if  (states(config.entity) in ['on']) and (states('sun.sun') != 'below_horizon') %} rgba(245, 245, 245, 0.9) {% else %} rgba(var(--rgb-primary-text-color), 0.05) {% endif %};}\n"
     - type: custom:mushroom-light-card
@@ -1236,31 +1886,7 @@ views:
       show_color_control: false
       show_color_temp_control: true
       collapsible_controls: false
-      name: ' 3 Head Lamp 2'
-      icon: ''
-      entity: light.living_room_3_head_lamp_2
-      card_mod:
-        style: ":host {\n--ha-card-background:    {% if (states(config.entity) in ['on']) and (states('sun.sun') != 'below_horizon')%} rgba(245, 245, 245, 0.9)  {% else  %} rgba(10, 10, 10, 0.4)  {% endif %};\n--primary-text-color:    {% if (states(config.entity) in ['on']) and (states('sun.sun') != 'below_horizon')%} black                                            {% else  %} white                                           {% endif %};\n--secondary-text-color : {% if (states(config.entity) in ['on']) and (states('sun.sun') != 'below_horizon')%} rgba(100, 100, 100, 1){% else  %} rgba(220, 220, 220, 1) {% endif %};\n;}\nha-card > mushroom-card > mushroom-state-item > mushroom-shape-icon > ha-state-icon {\n--mdc-icon-size: 0.6em;;}\nha-card > mushroom-card > mushroom-state-item > mushroom-shape-icon { \n--icon-color-disabled:   rgba(253,204,0,1);\n--shape-color-disabled:  rgba(10, 10, 10, 0.4);\n--icon-color:            white;\n--shape-color:            {% if state_attr(config.entity, 'color_mode') == 'color_temp' %} \nrgba(253,204,0,1) \n{% else  %} \n   rgb{{state_attr(config.entity, 'rgb_color')}} \n{% endif%};\n}\nha-card > mushroom-card > div > mushroom-light-brightness-control { \n--slider-color:           {% if state_attr(config.entity, 'color_mode') == 'color_temp' %} \nrgba(253,204,0,1) \n{% else  %} \n   rgb{{state_attr(config.entity, 'rgb_color')}} \n{% endif%};\n--slider-bg-color:        {% if state_attr(config.entity, 'color_mode') == 'color_temp' %} \n{{ 'rgba(253,204,0,1)' | regex_replace(',([\\d\\.])+\\)$', ',0.2)') }} \n{% else  %} \n   rgba{{(state_attr(config.entity, 'rgb_color')|string)[0:-1]}}, 0.2) \n{% endif%};\n}\nha-card > mushroom-card > div > mushroom-button:nth-child(2) {  --bg-color: {% if  (states(config.entity) in ['on']) and (states('sun.sun') != 'below_horizon') %} rgba(245, 245, 245, 0.9) {% else %} rgba(var(--rgb-primary-text-color), 0.05) {% endif %};}\nha-card > mushroom-card > div > mushroom-button:nth-child(3) {  --bg-color: {% if  (states(config.entity) in ['on']) and (states('sun.sun') != 'below_horizon') %} rgba(245, 245, 245, 0.9) {% else %} rgba(var(--rgb-primary-text-color), 0.05) {% endif %};}\n"
-    - type: custom:mushroom-light-card
-      fill_container: true
-      use_light_color: false
-      show_brightness_control: true
-      show_color_control: false
-      show_color_temp_control: true
-      collapsible_controls: false
-      name: ' 3 Head Lamp 3'
-      icon: ''
-      entity: light.living_room_3_head_lamp_3
-      card_mod:
-        style: ":host {\n--ha-card-background:    {% if (states(config.entity) in ['on']) and (states('sun.sun') != 'below_horizon')%} rgba(245, 245, 245, 0.9)  {% else  %} rgba(10, 10, 10, 0.4)  {% endif %};\n--primary-text-color:    {% if (states(config.entity) in ['on']) and (states('sun.sun') != 'below_horizon')%} black                                            {% else  %} white                                           {% endif %};\n--secondary-text-color : {% if (states(config.entity) in ['on']) and (states('sun.sun') != 'below_horizon')%} rgba(100, 100, 100, 1){% else  %} rgba(220, 220, 220, 1) {% endif %};\n;}\nha-card > mushroom-card > mushroom-state-item > mushroom-shape-icon > ha-state-icon {\n--mdc-icon-size: 0.6em;;}\nha-card > mushroom-card > mushroom-state-item > mushroom-shape-icon { \n--icon-color-disabled:   rgba(253,204,0,1);\n--shape-color-disabled:  rgba(10, 10, 10, 0.4);\n--icon-color:            white;\n--shape-color:            {% if state_attr(config.entity, 'color_mode') == 'color_temp' %} \nrgba(253,204,0,1) \n{% else  %} \n   rgb{{state_attr(config.entity, 'rgb_color')}} \n{% endif%};\n}\nha-card > mushroom-card > div > mushroom-light-brightness-control { \n--slider-color:           {% if state_attr(config.entity, 'color_mode') == 'color_temp' %} \nrgba(253,204,0,1) \n{% else  %} \n   rgb{{state_attr(config.entity, 'rgb_color')}} \n{% endif%};\n--slider-bg-color:        {% if state_attr(config.entity, 'color_mode') == 'color_temp' %} \n{{ 'rgba(253,204,0,1)' | regex_replace(',([\\d\\.])+\\)$', ',0.2)') }} \n{% else  %} \n   rgba{{(state_attr(config.entity, 'rgb_color')|string)[0:-1]}}, 0.2) \n{% endif%};\n}\nha-card > mushroom-card > div > mushroom-button:nth-child(2) {  --bg-color: {% if  (states(config.entity) in ['on']) and (states('sun.sun') != 'below_horizon') %} rgba(245, 245, 245, 0.9) {% else %} rgba(var(--rgb-primary-text-color), 0.05) {% endif %};}\nha-card > mushroom-card > div > mushroom-button:nth-child(3) {  --bg-color: {% if  (states(config.entity) in ['on']) and (states('sun.sun') != 'below_horizon') %} rgba(245, 245, 245, 0.9) {% else %} rgba(var(--rgb-primary-text-color), 0.05) {% endif %};}\n"
-    - type: custom:mushroom-light-card
-      fill_container: true
-      use_light_color: false
-      show_brightness_control: true
-      show_color_control: false
-      show_color_temp_control: true
-      collapsible_controls: false
-      name: ' Ceiling Light'
+      name: ''
       icon: ''
       entity: light.living_room_ceiling_light
       card_mod:
@@ -1275,22 +1901,9 @@ views:
         action: more-info
       show_position_control: true
       show_buttons_control: true
-      name: ' Curtain 1'
+      name: ''
       icon: ''
       entity: cover.living_room_curtain_1
-    - type: custom:mushroom-cover-card
-      fill_container: true
-      tap_action:
-        action: toggle
-      double_tap_action:
-        action: more-info
-      hold_action:
-        action: more-info
-      show_position_control: true
-      show_buttons_control: true
-      name: ' Curtain 2'
-      icon: ''
-      entity: cover.living_room_curtain_2
     - type: custom:mushroom-entity-card
       fill_container: true
       tap_action:
@@ -1372,7 +1985,7 @@ views:
     filter:
       include:
       - group: group.living_room_auto_gen_automations
-- theme: ios-dark-mode-red
+- theme: ios-dark-mode-dark-blue
   title: Kitchen
   path: kitchen
   subview: true
@@ -1393,7 +2006,10 @@ views:
         action: toggle
       tap_action:
         action: navigate
-        navigation_path: dashboard-mobile/home
+        navigation_path: lovelace-kitchen/home
+      icon_tap_action:
+        action: navigate
+        navigation_path: lovelace-kitchen/home
       card_mod:
         style:
           mushroom-state-info$: ".primary {\n  font-size: 16px !important;\n  position: relative;\n  top: 0px;\n  left: 0px;\n  overflow: visible !important;\n  white-space:  \n}\n"
@@ -1405,23 +2021,12 @@ views:
         action: more-info
       icon: ''
       secondary_info: none
-      name: ' Scene'
+      name: ''
       entity: input_select.kitchen_scene
   - square: false
     columns: 2
     type: grid
     cards:
-    - type: custom:mushroom-media-player-card
-      fill_container: true
-      tap_action:
-        action: more-info
-      volume_controls:
-      - volume_set
-      - volume_buttons
-      show_volume_level: false
-      name: TV
-      icon: ''
-      entity: media_player.kitchen_tv
     - type: custom:mushroom-climate-card
       show_temperature_control: true
       collapsible_controls: false
@@ -1432,7 +2037,7 @@ views:
       fill_container: true
       tap_action:
         action: toggle
-      name: ' Floor Led'
+      name: ''
       icon: ''
       entity: switch.kitchen_floor_led
     - type: custom:mushroom-light-card
@@ -1442,7 +2047,7 @@ views:
       show_color_control: false
       show_color_temp_control: true
       collapsible_controls: false
-      name: ' Tv Led'
+      name: ''
       icon: ''
       entity: light.kitchen_tv_led
       card_mod:
@@ -1454,7 +2059,7 @@ views:
       show_color_control: false
       show_color_temp_control: true
       collapsible_controls: false
-      name: ' Ceiling Light'
+      name: ''
       icon: ''
       entity: light.kitchen_ceiling_light
       card_mod:
@@ -1466,7 +2071,7 @@ views:
       show_color_control: false
       show_color_temp_control: true
       collapsible_controls: false
-      name: ' Dining Light'
+      name: ''
       icon: ''
       entity: light.kitchen_dining_light
       card_mod:
@@ -1481,7 +2086,7 @@ views:
         action: more-info
       show_position_control: true
       show_buttons_control: true
-      name: ' Curtain'
+      name: ''
       icon: ''
       entity: cover.kitchen_curtain
     - type: custom:mushroom-entity-card
@@ -1565,7 +2170,7 @@ views:
     filter:
       include:
       - group: group.kitchen_auto_gen_automations
-- theme: ios-dark-mode-light-green
+- theme: ios-dark-mode-light-blue
   title: Master Room
   path: master-room
   subview: true
@@ -1586,7 +2191,10 @@ views:
         action: toggle
       tap_action:
         action: navigate
-        navigation_path: dashboard-mobile/home
+        navigation_path: master-room/home
+      icon_tap_action:
+        action: navigate
+        navigation_path: master-room/home
       card_mod:
         style:
           mushroom-state-info$: ".primary {\n  font-size: 16px !important;\n  position: relative;\n  top: 0px;\n  left: 0px;\n  overflow: visible !important;\n  white-space:  \n}\n"
@@ -1598,7 +2206,7 @@ views:
         action: more-info
       icon: ''
       secondary_info: none
-      name: ' Scene'
+      name: ''
       entity: input_select.master_room_scene
   - square: false
     columns: 2
@@ -1628,7 +2236,7 @@ views:
       show_color_control: false
       show_color_temp_control: true
       collapsible_controls: false
-      name: ' Bed Ceiling Light'
+      name: ''
       icon: ''
       entity: light.master_room_bed_ceiling_light
       card_mod:
@@ -1640,7 +2248,7 @@ views:
       show_color_control: false
       show_color_temp_control: true
       collapsible_controls: false
-      name: ' Drawer Ceiling Light'
+      name: ''
       icon: ''
       entity: light.master_room_drawer_ceiling_light
       card_mod:
@@ -1652,7 +2260,7 @@ views:
       show_color_control: false
       show_color_temp_control: true
       collapsible_controls: false
-      name: ' Lamp 1'
+      name: ''
       icon: ''
       entity: light.master_room_lamp_1
       card_mod:
@@ -1664,7 +2272,7 @@ views:
       show_color_control: false
       show_color_temp_control: true
       collapsible_controls: false
-      name: ' Lamp 2'
+      name: ''
       icon: ''
       entity: light.master_room_lamp_2
       card_mod:
@@ -1676,49 +2284,18 @@ views:
       show_color_control: false
       show_color_temp_control: true
       collapsible_controls: false
-      name: ' Drawer Led'
-      icon: ''
-      entity: light.master_room_drawer_led
-      card_mod:
-        style: ":host {\n--ha-card-background:    {% if (states(config.entity) in ['on']) and (states('sun.sun') != 'below_horizon')%} rgba(245, 245, 245, 0.9)  {% else  %} rgba(10, 10, 10, 0.4)  {% endif %};\n--primary-text-color:    {% if (states(config.entity) in ['on']) and (states('sun.sun') != 'below_horizon')%} black                                            {% else  %} white                                           {% endif %};\n--secondary-text-color : {% if (states(config.entity) in ['on']) and (states('sun.sun') != 'below_horizon')%} rgba(100, 100, 100, 1){% else  %} rgba(220, 220, 220, 1) {% endif %};\n;}\nha-card > mushroom-card > mushroom-state-item > mushroom-shape-icon > ha-state-icon {\n--mdc-icon-size: 0.6em;;}\nha-card > mushroom-card > mushroom-state-item > mushroom-shape-icon { \n--icon-color-disabled:   rgba(253,204,0,1);\n--shape-color-disabled:  rgba(10, 10, 10, 0.4);\n--icon-color:            white;\n--shape-color:            {% if state_attr(config.entity, 'color_mode') == 'color_temp' %} \nrgba(253,204,0,1) \n{% else  %} \n   rgb{{state_attr(config.entity, 'rgb_color')}} \n{% endif%};\n}\nha-card > mushroom-card > div > mushroom-light-brightness-control { \n--slider-color:           {% if state_attr(config.entity, 'color_mode') == 'color_temp' %} \nrgba(253,204,0,1) \n{% else  %} \n   rgb{{state_attr(config.entity, 'rgb_color')}} \n{% endif%};\n--slider-bg-color:        {% if state_attr(config.entity, 'color_mode') == 'color_temp' %} \n{{ 'rgba(253,204,0,1)' | regex_replace(',([\\d\\.])+\\)$', ',0.2)') }} \n{% else  %} \n   rgba{{(state_attr(config.entity, 'rgb_color')|string)[0:-1]}}, 0.2) \n{% endif%};\n}\nha-card > mushroom-card > div > mushroom-button:nth-child(2) {  --bg-color: {% if  (states(config.entity) in ['on']) and (states('sun.sun') != 'below_horizon') %} rgba(245, 245, 245, 0.9) {% else %} rgba(var(--rgb-primary-text-color), 0.05) {% endif %};}\nha-card > mushroom-card > div > mushroom-button:nth-child(3) {  --bg-color: {% if  (states(config.entity) in ['on']) and (states('sun.sun') != 'below_horizon') %} rgba(245, 245, 245, 0.9) {% else %} rgba(var(--rgb-primary-text-color), 0.05) {% endif %};}\n"
-    - type: custom:mushroom-light-card
-      fill_container: true
-      use_light_color: false
-      show_brightness_control: true
-      show_color_control: false
-      show_color_temp_control: true
-      collapsible_controls: false
-      name: ' Tv Led'
+      name: ''
       icon: ''
       entity: light.master_room_tv_led
       card_mod:
         style: ":host {\n--ha-card-background:    {% if (states(config.entity) in ['on']) and (states('sun.sun') != 'below_horizon')%} rgba(245, 245, 245, 0.9)  {% else  %} rgba(10, 10, 10, 0.4)  {% endif %};\n--primary-text-color:    {% if (states(config.entity) in ['on']) and (states('sun.sun') != 'below_horizon')%} black                                            {% else  %} white                                           {% endif %};\n--secondary-text-color : {% if (states(config.entity) in ['on']) and (states('sun.sun') != 'below_horizon')%} rgba(100, 100, 100, 1){% else  %} rgba(220, 220, 220, 1) {% endif %};\n;}\nha-card > mushroom-card > mushroom-state-item > mushroom-shape-icon > ha-state-icon {\n--mdc-icon-size: 0.6em;;}\nha-card > mushroom-card > mushroom-state-item > mushroom-shape-icon { \n--icon-color-disabled:   rgba(253,204,0,1);\n--shape-color-disabled:  rgba(10, 10, 10, 0.4);\n--icon-color:            white;\n--shape-color:            {% if state_attr(config.entity, 'color_mode') == 'color_temp' %} \nrgba(253,204,0,1) \n{% else  %} \n   rgb{{state_attr(config.entity, 'rgb_color')}} \n{% endif%};\n}\nha-card > mushroom-card > div > mushroom-light-brightness-control { \n--slider-color:           {% if state_attr(config.entity, 'color_mode') == 'color_temp' %} \nrgba(253,204,0,1) \n{% else  %} \n   rgb{{state_attr(config.entity, 'rgb_color')}} \n{% endif%};\n--slider-bg-color:        {% if state_attr(config.entity, 'color_mode') == 'color_temp' %} \n{{ 'rgba(253,204,0,1)' | regex_replace(',([\\d\\.])+\\)$', ',0.2)') }} \n{% else  %} \n   rgba{{(state_attr(config.entity, 'rgb_color')|string)[0:-1]}}, 0.2) \n{% endif%};\n}\nha-card > mushroom-card > div > mushroom-button:nth-child(2) {  --bg-color: {% if  (states(config.entity) in ['on']) and (states('sun.sun') != 'below_horizon') %} rgba(245, 245, 245, 0.9) {% else %} rgba(var(--rgb-primary-text-color), 0.05) {% endif %};}\nha-card > mushroom-card > div > mushroom-button:nth-child(3) {  --bg-color: {% if  (states(config.entity) in ['on']) and (states('sun.sun') != 'below_horizon') %} rgba(245, 245, 245, 0.9) {% else %} rgba(var(--rgb-primary-text-color), 0.05) {% endif %};}\n"
-    - type: custom:mushroom-light-card
-      fill_container: true
-      use_light_color: false
-      show_brightness_control: true
-      show_color_control: false
-      show_color_temp_control: true
-      collapsible_controls: false
-      name: ' Bed Led'
-      icon: ''
-      entity: light.master_room_bed_led
-      card_mod:
-        style: ":host {\n--ha-card-background:    {% if (states(config.entity) in ['on']) and (states('sun.sun') != 'below_horizon')%} rgba(245, 245, 245, 0.9)  {% else  %} rgba(10, 10, 10, 0.4)  {% endif %};\n--primary-text-color:    {% if (states(config.entity) in ['on']) and (states('sun.sun') != 'below_horizon')%} black                                            {% else  %} white                                           {% endif %};\n--secondary-text-color : {% if (states(config.entity) in ['on']) and (states('sun.sun') != 'below_horizon')%} rgba(100, 100, 100, 1){% else  %} rgba(220, 220, 220, 1) {% endif %};\n;}\nha-card > mushroom-card > mushroom-state-item > mushroom-shape-icon > ha-state-icon {\n--mdc-icon-size: 0.6em;;}\nha-card > mushroom-card > mushroom-state-item > mushroom-shape-icon { \n--icon-color-disabled:   rgba(253,204,0,1);\n--shape-color-disabled:  rgba(10, 10, 10, 0.4);\n--icon-color:            white;\n--shape-color:            {% if state_attr(config.entity, 'color_mode') == 'color_temp' %} \nrgba(253,204,0,1) \n{% else  %} \n   rgb{{state_attr(config.entity, 'rgb_color')}} \n{% endif%};\n}\nha-card > mushroom-card > div > mushroom-light-brightness-control { \n--slider-color:           {% if state_attr(config.entity, 'color_mode') == 'color_temp' %} \nrgba(253,204,0,1) \n{% else  %} \n   rgb{{state_attr(config.entity, 'rgb_color')}} \n{% endif%};\n--slider-bg-color:        {% if state_attr(config.entity, 'color_mode') == 'color_temp' %} \n{{ 'rgba(253,204,0,1)' | regex_replace(',([\\d\\.])+\\)$', ',0.2)') }} \n{% else  %} \n   rgba{{(state_attr(config.entity, 'rgb_color')|string)[0:-1]}}, 0.2) \n{% endif%};\n}\nha-card > mushroom-card > div > mushroom-button:nth-child(2) {  --bg-color: {% if  (states(config.entity) in ['on']) and (states('sun.sun') != 'below_horizon') %} rgba(245, 245, 245, 0.9) {% else %} rgba(var(--rgb-primary-text-color), 0.05) {% endif %};}\nha-card > mushroom-card > div > mushroom-button:nth-child(3) {  --bg-color: {% if  (states(config.entity) in ['on']) and (states('sun.sun') != 'below_horizon') %} rgba(245, 245, 245, 0.9) {% else %} rgba(var(--rgb-primary-text-color), 0.05) {% endif %};}\n"
     - type: custom:mushroom-entity-card
       fill_container: true
       tap_action:
         action: toggle
-      name: ' Entrance Wall Switch'
+      name: ''
       icon: ''
       entity: switch.master_room_entrance_wall_switch
-    - type: custom:mushroom-entity-card
-      fill_container: true
-      tap_action:
-        action: toggle
-      name: ' Dressing Table Light'
-      icon: ''
-      entity: switch.master_room_dressing_table_light
     - type: custom:mushroom-cover-card
       fill_container: true
       tap_action:
@@ -1729,7 +2306,7 @@ views:
         action: more-info
       show_position_control: true
       show_buttons_control: true
-      name: ' Curtain'
+      name: ''
       icon: ''
       entity: cover.master_room_curtain
     - type: custom:mushroom-entity-card
@@ -1813,7 +2390,7 @@ views:
     filter:
       include:
       - group: group.master_room_auto_gen_automations
-- theme: ios-dark-mode-orange
+- theme: ios-dark-mode-light-blue
   title: Master Toilet
   path: master-toilet
   subview: true
@@ -1834,7 +2411,10 @@ views:
         action: toggle
       tap_action:
         action: navigate
-        navigation_path: dashboard-mobile/home
+        navigation_path: master-room/home
+      icon_tap_action:
+        action: navigate
+        navigation_path: master-room/home
       card_mod:
         style:
           mushroom-state-info$: ".primary {\n  font-size: 16px !important;\n  position: relative;\n  top: 0px;\n  left: 0px;\n  overflow: visible !important;\n  white-space:  \n}\n"
@@ -1846,7 +2426,7 @@ views:
         action: more-info
       icon: ''
       secondary_info: none
-      name: ' Scene'
+      name: ''
       entity: input_select.master_toilet_scene
   - square: false
     columns: 2
@@ -1862,7 +2442,7 @@ views:
       fill_container: true
       tap_action:
         action: toggle
-      name: ' Floor Led'
+      name: ''
       icon: ''
       entity: switch.master_toilet_floor_led
     - type: custom:mushroom-light-card
@@ -1872,9 +2452,21 @@ views:
       show_color_control: false
       show_color_temp_control: true
       collapsible_controls: false
-      name: ' Ceiling Light'
+      name: ''
       icon: ''
       entity: light.master_toilet_ceiling_light
+      card_mod:
+        style: ":host {\n--ha-card-background:    {% if (states(config.entity) in ['on']) and (states('sun.sun') != 'below_horizon')%} rgba(245, 245, 245, 0.9)  {% else  %} rgba(10, 10, 10, 0.4)  {% endif %};\n--primary-text-color:    {% if (states(config.entity) in ['on']) and (states('sun.sun') != 'below_horizon')%} black                                            {% else  %} white                                           {% endif %};\n--secondary-text-color : {% if (states(config.entity) in ['on']) and (states('sun.sun') != 'below_horizon')%} rgba(100, 100, 100, 1){% else  %} rgba(220, 220, 220, 1) {% endif %};\n;}\nha-card > mushroom-card > mushroom-state-item > mushroom-shape-icon > ha-state-icon {\n--mdc-icon-size: 0.6em;;}\nha-card > mushroom-card > mushroom-state-item > mushroom-shape-icon { \n--icon-color-disabled:   rgba(253,204,0,1);\n--shape-color-disabled:  rgba(10, 10, 10, 0.4);\n--icon-color:            white;\n--shape-color:            {% if state_attr(config.entity, 'color_mode') == 'color_temp' %} \nrgba(253,204,0,1) \n{% else  %} \n   rgb{{state_attr(config.entity, 'rgb_color')}} \n{% endif%};\n}\nha-card > mushroom-card > div > mushroom-light-brightness-control { \n--slider-color:           {% if state_attr(config.entity, 'color_mode') == 'color_temp' %} \nrgba(253,204,0,1) \n{% else  %} \n   rgb{{state_attr(config.entity, 'rgb_color')}} \n{% endif%};\n--slider-bg-color:        {% if state_attr(config.entity, 'color_mode') == 'color_temp' %} \n{{ 'rgba(253,204,0,1)' | regex_replace(',([\\d\\.])+\\)$', ',0.2)') }} \n{% else  %} \n   rgba{{(state_attr(config.entity, 'rgb_color')|string)[0:-1]}}, 0.2) \n{% endif%};\n}\nha-card > mushroom-card > div > mushroom-button:nth-child(2) {  --bg-color: {% if  (states(config.entity) in ['on']) and (states('sun.sun') != 'below_horizon') %} rgba(245, 245, 245, 0.9) {% else %} rgba(var(--rgb-primary-text-color), 0.05) {% endif %};}\nha-card > mushroom-card > div > mushroom-button:nth-child(3) {  --bg-color: {% if  (states(config.entity) in ['on']) and (states('sun.sun') != 'below_horizon') %} rgba(245, 245, 245, 0.9) {% else %} rgba(var(--rgb-primary-text-color), 0.05) {% endif %};}\n"
+    - type: custom:mushroom-light-card
+      fill_container: true
+      use_light_color: false
+      show_brightness_control: true
+      show_color_control: false
+      show_color_temp_control: true
+      collapsible_controls: false
+      name: ''
+      icon: ''
+      entity: light.master_toilet_dressing_room_light
       card_mod:
         style: ":host {\n--ha-card-background:    {% if (states(config.entity) in ['on']) and (states('sun.sun') != 'below_horizon')%} rgba(245, 245, 245, 0.9)  {% else  %} rgba(10, 10, 10, 0.4)  {% endif %};\n--primary-text-color:    {% if (states(config.entity) in ['on']) and (states('sun.sun') != 'below_horizon')%} black                                            {% else  %} white                                           {% endif %};\n--secondary-text-color : {% if (states(config.entity) in ['on']) and (states('sun.sun') != 'below_horizon')%} rgba(100, 100, 100, 1){% else  %} rgba(220, 220, 220, 1) {% endif %};\n;}\nha-card > mushroom-card > mushroom-state-item > mushroom-shape-icon > ha-state-icon {\n--mdc-icon-size: 0.6em;;}\nha-card > mushroom-card > mushroom-state-item > mushroom-shape-icon { \n--icon-color-disabled:   rgba(253,204,0,1);\n--shape-color-disabled:  rgba(10, 10, 10, 0.4);\n--icon-color:            white;\n--shape-color:            {% if state_attr(config.entity, 'color_mode') == 'color_temp' %} \nrgba(253,204,0,1) \n{% else  %} \n   rgb{{state_attr(config.entity, 'rgb_color')}} \n{% endif%};\n}\nha-card > mushroom-card > div > mushroom-light-brightness-control { \n--slider-color:           {% if state_attr(config.entity, 'color_mode') == 'color_temp' %} \nrgba(253,204,0,1) \n{% else  %} \n   rgb{{state_attr(config.entity, 'rgb_color')}} \n{% endif%};\n--slider-bg-color:        {% if state_attr(config.entity, 'color_mode') == 'color_temp' %} \n{{ 'rgba(253,204,0,1)' | regex_replace(',([\\d\\.])+\\)$', ',0.2)') }} \n{% else  %} \n   rgba{{(state_attr(config.entity, 'rgb_color')|string)[0:-1]}}, 0.2) \n{% endif%};\n}\nha-card > mushroom-card > div > mushroom-button:nth-child(2) {  --bg-color: {% if  (states(config.entity) in ['on']) and (states('sun.sun') != 'below_horizon') %} rgba(245, 245, 245, 0.9) {% else %} rgba(var(--rgb-primary-text-color), 0.05) {% endif %};}\nha-card > mushroom-card > div > mushroom-button:nth-child(3) {  --bg-color: {% if  (states(config.entity) in ['on']) and (states('sun.sun') != 'below_horizon') %} rgba(245, 245, 245, 0.9) {% else %} rgba(var(--rgb-primary-text-color), 0.05) {% endif %};}\n"
     - type: custom:mushroom-cover-card
@@ -1887,7 +2479,7 @@ views:
         action: more-info
       show_position_control: true
       show_buttons_control: true
-      name: ' Dressing Room Blind'
+      name: ''
       icon: ''
       entity: cover.master_toilet_dressing_room_blind
     - type: custom:mushroom-entity-card
@@ -1992,7 +2584,10 @@ views:
         action: toggle
       tap_action:
         action: navigate
-        navigation_path: dashboard-mobile/home
+        navigation_path: lovelace-misc/home
+      icon_tap_action:
+        action: navigate
+        navigation_path: lovelace-misc/home
       card_mod:
         style:
           mushroom-state-info$: ".primary {\n  font-size: 16px !important;\n  position: relative;\n  top: 0px;\n  left: 0px;\n  overflow: visible !important;\n  white-space:  \n}\n"
@@ -2004,7 +2599,7 @@ views:
         action: more-info
       icon: ''
       secondary_info: none
-      name: ' Scene'
+      name: ''
       entity: input_select.study_scene
   - square: false
     columns: 2
@@ -2020,16 +2615,9 @@ views:
       fill_container: true
       tap_action:
         action: toggle
-      name: ' Screen Led'
+      name: ''
       icon: ''
-      entity: switch.study_screen_led
-    - type: custom:mushroom-entity-card
-      fill_container: true
-      tap_action:
-        action: toggle
-      name: ' Studio Lamp'
-      icon: ''
-      entity: switch.study_studio_lamp
+      entity: switch.study_screen_light
     - type: custom:mushroom-light-card
       fill_container: true
       use_light_color: false
@@ -2037,7 +2625,19 @@ views:
       show_color_control: false
       show_color_temp_control: true
       collapsible_controls: false
-      name: ' Ceiling Light'
+      name: ''
+      icon: ''
+      entity: light.study_lamp
+      card_mod:
+        style: ":host {\n--ha-card-background:    {% if (states(config.entity) in ['on']) and (states('sun.sun') != 'below_horizon')%} rgba(245, 245, 245, 0.9)  {% else  %} rgba(10, 10, 10, 0.4)  {% endif %};\n--primary-text-color:    {% if (states(config.entity) in ['on']) and (states('sun.sun') != 'below_horizon')%} black                                            {% else  %} white                                           {% endif %};\n--secondary-text-color : {% if (states(config.entity) in ['on']) and (states('sun.sun') != 'below_horizon')%} rgba(100, 100, 100, 1){% else  %} rgba(220, 220, 220, 1) {% endif %};\n;}\nha-card > mushroom-card > mushroom-state-item > mushroom-shape-icon > ha-state-icon {\n--mdc-icon-size: 0.6em;;}\nha-card > mushroom-card > mushroom-state-item > mushroom-shape-icon { \n--icon-color-disabled:   rgba(253,204,0,1);\n--shape-color-disabled:  rgba(10, 10, 10, 0.4);\n--icon-color:            white;\n--shape-color:            {% if state_attr(config.entity, 'color_mode') == 'color_temp' %} \nrgba(253,204,0,1) \n{% else  %} \n   rgb{{state_attr(config.entity, 'rgb_color')}} \n{% endif%};\n}\nha-card > mushroom-card > div > mushroom-light-brightness-control { \n--slider-color:           {% if state_attr(config.entity, 'color_mode') == 'color_temp' %} \nrgba(253,204,0,1) \n{% else  %} \n   rgb{{state_attr(config.entity, 'rgb_color')}} \n{% endif%};\n--slider-bg-color:        {% if state_attr(config.entity, 'color_mode') == 'color_temp' %} \n{{ 'rgba(253,204,0,1)' | regex_replace(',([\\d\\.])+\\)$', ',0.2)') }} \n{% else  %} \n   rgba{{(state_attr(config.entity, 'rgb_color')|string)[0:-1]}}, 0.2) \n{% endif%};\n}\nha-card > mushroom-card > div > mushroom-button:nth-child(2) {  --bg-color: {% if  (states(config.entity) in ['on']) and (states('sun.sun') != 'below_horizon') %} rgba(245, 245, 245, 0.9) {% else %} rgba(var(--rgb-primary-text-color), 0.05) {% endif %};}\nha-card > mushroom-card > div > mushroom-button:nth-child(3) {  --bg-color: {% if  (states(config.entity) in ['on']) and (states('sun.sun') != 'below_horizon') %} rgba(245, 245, 245, 0.9) {% else %} rgba(var(--rgb-primary-text-color), 0.05) {% endif %};}\n"
+    - type: custom:mushroom-light-card
+      fill_container: true
+      use_light_color: false
+      show_brightness_control: true
+      show_color_control: false
+      show_color_temp_control: true
+      collapsible_controls: false
+      name: ''
       icon: ''
       entity: light.study_ceiling_light
       card_mod:
@@ -2052,7 +2652,7 @@ views:
         action: more-info
       show_position_control: true
       show_buttons_control: true
-      name: ' Blind'
+      name: ''
       icon: ''
       entity: cover.study_blind
     - type: custom:mushroom-entity-card
@@ -2136,7 +2736,7 @@ views:
     filter:
       include:
       - group: group.study_auto_gen_automations
-- theme: ios-dark-mode-blue-red
+- theme: ios-dark-mode-orange
   title: System
   path: system
   subview: true
@@ -2157,7 +2757,10 @@ views:
         action: toggle
       tap_action:
         action: navigate
-        navigation_path: dashboard-mobile/home
+        navigation_path: lovelace-system/home
+      icon_tap_action:
+        action: navigate
+        navigation_path: lovelace-system/home
       card_mod:
         style:
           mushroom-state-info$: ".primary {\n  font-size: 16px !important;\n  position: relative;\n  top: 0px;\n  left: 0px;\n  overflow: visible !important;\n  white-space:  \n}\n"
@@ -2169,7 +2772,7 @@ views:
         action: more-info
       icon: ''
       secondary_info: none
-      name: ' Scene'
+      name: ''
       entity: input_select.system_scene
   - square: false
     columns: 2
@@ -2188,7 +2791,7 @@ views:
       show_color_control: false
       show_color_temp_control: true
       collapsible_controls: false
-      name: ' Ceiling Light'
+      name: ''
       icon: ''
       entity: light.system_ceiling_light
       card_mod:
@@ -2246,7 +2849,7 @@ views:
             fill: fade
           card_mod:
             style: "ha-card {\n  background: none;\n  box-shadow: none;\n  --ha-card-border-width: 0;\n}"
-- theme: ios-dark-mode-dark-blue
+- theme: ios-dark-mode-light-green
   title: Ground Toilet
   path: ground-toilet
   subview: true
@@ -2267,7 +2870,10 @@ views:
         action: toggle
       tap_action:
         action: navigate
-        navigation_path: dashboard-mobile/home
+        navigation_path: lovelace-misc/home
+      icon_tap_action:
+        action: navigate
+        navigation_path: lovelace-misc/home
       card_mod:
         style:
           mushroom-state-info$: ".primary {\n  font-size: 16px !important;\n  position: relative;\n  top: 0px;\n  left: 0px;\n  overflow: visible !important;\n  white-space:  \n}\n"
@@ -2279,7 +2885,7 @@ views:
         action: more-info
       icon: ''
       secondary_info: none
-      name: ' Scene'
+      name: ''
       entity: input_select.ground_toilet_scene
   - square: false
     columns: 2
@@ -2298,7 +2904,7 @@ views:
       show_color_control: false
       show_color_temp_control: true
       collapsible_controls: false
-      name: ' Ceiling Light'
+      name: ''
       icon: ''
       entity: light.ground_toilet_ceiling_light
       card_mod:
@@ -2384,7 +2990,7 @@ views:
     filter:
       include:
       - group: group.ground_toilet_auto_gen_automations
-- theme: ios-dark-mode-red
+- theme: ios-dark-mode-dark-blue
   title: Corridor
   path: corridor
   subview: true
@@ -2405,7 +3011,10 @@ views:
         action: toggle
       tap_action:
         action: navigate
-        navigation_path: dashboard-mobile/home
+        navigation_path: lovelace-misc/home
+      icon_tap_action:
+        action: navigate
+        navigation_path: lovelace-misc/home
       card_mod:
         style:
           mushroom-state-info$: ".primary {\n  font-size: 16px !important;\n  position: relative;\n  top: 0px;\n  left: 0px;\n  overflow: visible !important;\n  white-space:  \n}\n"
@@ -2417,7 +3026,7 @@ views:
         action: more-info
       icon: ''
       secondary_info: none
-      name: ' Scene'
+      name: ''
       entity: input_select.corridor_scene
   - square: false
     columns: 2
@@ -2436,7 +3045,7 @@ views:
       show_color_control: false
       show_color_temp_control: true
       collapsible_controls: false
-      name: ' Ceiling Light'
+      name: ''
       icon: ''
       entity: light.corridor_ceiling_light
       card_mod:
@@ -2522,7 +3131,7 @@ views:
     filter:
       include:
       - group: group.corridor_auto_gen_automations
-- theme: ios-dark-mode-light-blue
+- theme: ios-dark-mode-dark-blue
   title: Garden
   path: garden
   subview: true
@@ -2543,7 +3152,10 @@ views:
         action: toggle
       tap_action:
         action: navigate
-        navigation_path: dashboard-mobile/home
+        navigation_path: lovelace-garden/home
+      icon_tap_action:
+        action: navigate
+        navigation_path: lovelace-garden/home
       card_mod:
         style:
           mushroom-state-info$: ".primary {\n  font-size: 16px !important;\n  position: relative;\n  top: 0px;\n  left: 0px;\n  overflow: visible !important;\n  white-space:  \n}\n"
@@ -2555,7 +3167,7 @@ views:
         action: more-info
       icon: ''
       secondary_info: none
-      name: ' Scene'
+      name: ''
       entity: input_select.garden_scene
   - square: false
     columns: 2
@@ -2574,7 +3186,7 @@ views:
       show_color_control: false
       show_color_temp_control: true
       collapsible_controls: false
-      name: ' Ceiling Light'
+      name: ''
       icon: ''
       entity: light.garden_ceiling_light
       card_mod:
@@ -2646,7 +3258,7 @@ views:
     filter:
       include:
       - group: group.garden_auto_gen_automations
-- theme: ios-dark-mode-dark-blue
+- theme: ios-dark-mode-dark-green
   title: En-suite Room
   path: en-suite-room
   subview: true
@@ -2667,7 +3279,10 @@ views:
         action: toggle
       tap_action:
         action: navigate
-        navigation_path: dashboard-mobile/home
+        navigation_path: en-suite-room/home
+      icon_tap_action:
+        action: navigate
+        navigation_path: en-suite-room/home
       card_mod:
         style:
           mushroom-state-info$: ".primary {\n  font-size: 16px !important;\n  position: relative;\n  top: 0px;\n  left: 0px;\n  overflow: visible !important;\n  white-space:  \n}\n"
@@ -2679,23 +3294,12 @@ views:
         action: more-info
       icon: ''
       secondary_info: none
-      name: En Suite Room Scene
+      name: ''
       entity: input_select.en_suite_room_scene
   - square: false
     columns: 2
     type: grid
     cards:
-    - type: custom:mushroom-media-player-card
-      fill_container: true
-      tap_action:
-        action: more-info
-      volume_controls:
-      - volume_set
-      - volume_buttons
-      show_volume_level: false
-      name: TV
-      icon: ''
-      entity: media_player.portable_tv
     - type: custom:mushroom-climate-card
       show_temperature_control: true
       collapsible_controls: false
@@ -2709,7 +3313,7 @@ views:
       show_color_control: false
       show_color_temp_control: true
       collapsible_controls: false
-      name: En Suite Room Bed Led
+      name: ''
       icon: ''
       entity: light.en_suite_room_bed_led
       card_mod:
@@ -2721,7 +3325,7 @@ views:
       show_color_control: false
       show_color_temp_control: true
       collapsible_controls: false
-      name: En Suite Room Lamp 1
+      name: ''
       icon: ''
       entity: light.en_suite_room_lamp_1
       card_mod:
@@ -2733,7 +3337,7 @@ views:
       show_color_control: false
       show_color_temp_control: true
       collapsible_controls: false
-      name: En Suite Room Lamp 2
+      name: ''
       icon: ''
       entity: light.en_suite_room_lamp_2
       card_mod:
@@ -2745,7 +3349,7 @@ views:
       show_color_control: false
       show_color_temp_control: true
       collapsible_controls: false
-      name: En Suite Room Ceiling Light
+      name: ''
       icon: ''
       entity: light.en_suite_room_ceiling_light
       card_mod:
@@ -2760,7 +3364,7 @@ views:
         action: more-info
       show_position_control: true
       show_buttons_control: true
-      name: En Suite Room Curtain
+      name: ''
       icon: ''
       entity: cover.en_suite_room_curtain
     - type: custom:mushroom-entity-card
@@ -2844,7 +3448,7 @@ views:
     filter:
       include:
       - group: group.en_suite_room_auto_gen_automations
-- theme: ios-dark-mode-light-green
+- theme: ios-dark-mode-dark-blue
   title: En-suite Toilet
   path: en-suite-toilet
   subview: true
@@ -2865,7 +3469,10 @@ views:
         action: toggle
       tap_action:
         action: navigate
-        navigation_path: dashboard-mobile/home
+        navigation_path: en-suite-room/home
+      icon_tap_action:
+        action: navigate
+        navigation_path: en-suite-room/home
       card_mod:
         style:
           mushroom-state-info$: ".primary {\n  font-size: 16px !important;\n  position: relative;\n  top: 0px;\n  left: 0px;\n  overflow: visible !important;\n  white-space:  \n}\n"
@@ -2877,7 +3484,7 @@ views:
         action: more-info
       icon: ''
       secondary_info: none
-      name: En Suite Toilet Scene
+      name: ''
       entity: input_select.en_suite_toilet_scene
   - square: false
     columns: 2
@@ -2896,7 +3503,7 @@ views:
       show_color_control: false
       show_color_temp_control: true
       collapsible_controls: false
-      name: En Suite Toilet Ceiling Light
+      name: ''
       icon: ''
       entity: light.en_suite_toilet_ceiling_light
       card_mod:
@@ -2982,7 +3589,7 @@ views:
     filter:
       include:
       - group: group.en_suite_toilet_auto_gen_automations
-- theme: ios-dark-mode-red
+- theme: ios-dark-mode-orange
   title: Guest Room
   path: guest-room
   subview: true
@@ -3003,7 +3610,10 @@ views:
         action: toggle
       tap_action:
         action: navigate
-        navigation_path: dashboard-mobile/home
+        navigation_path: guest-room/home
+      icon_tap_action:
+        action: navigate
+        navigation_path: guest-room/home
       card_mod:
         style:
           mushroom-state-info$: ".primary {\n  font-size: 16px !important;\n  position: relative;\n  top: 0px;\n  left: 0px;\n  overflow: visible !important;\n  white-space:  \n}\n"
@@ -3015,7 +3625,7 @@ views:
         action: more-info
       icon: ''
       secondary_info: none
-      name: ' Scene'
+      name: ''
       entity: input_select.guest_room_scene
   - square: false
     columns: 2
@@ -3034,9 +3644,9 @@ views:
       show_color_control: false
       show_color_temp_control: true
       collapsible_controls: false
-      name: ' Lamp 1'
+      name: ''
       icon: ''
-      entity: light.guest_room_lamp_1
+      entity: light.guest_room_lamp
       card_mod:
         style: ":host {\n--ha-card-background:    {% if (states(config.entity) in ['on']) and (states('sun.sun') != 'below_horizon')%} rgba(245, 245, 245, 0.9)  {% else  %} rgba(10, 10, 10, 0.4)  {% endif %};\n--primary-text-color:    {% if (states(config.entity) in ['on']) and (states('sun.sun') != 'below_horizon')%} black                                            {% else  %} white                                           {% endif %};\n--secondary-text-color : {% if (states(config.entity) in ['on']) and (states('sun.sun') != 'below_horizon')%} rgba(100, 100, 100, 1){% else  %} rgba(220, 220, 220, 1) {% endif %};\n;}\nha-card > mushroom-card > mushroom-state-item > mushroom-shape-icon > ha-state-icon {\n--mdc-icon-size: 0.6em;;}\nha-card > mushroom-card > mushroom-state-item > mushroom-shape-icon { \n--icon-color-disabled:   rgba(253,204,0,1);\n--shape-color-disabled:  rgba(10, 10, 10, 0.4);\n--icon-color:            white;\n--shape-color:            {% if state_attr(config.entity, 'color_mode') == 'color_temp' %} \nrgba(253,204,0,1) \n{% else  %} \n   rgb{{state_attr(config.entity, 'rgb_color')}} \n{% endif%};\n}\nha-card > mushroom-card > div > mushroom-light-brightness-control { \n--slider-color:           {% if state_attr(config.entity, 'color_mode') == 'color_temp' %} \nrgba(253,204,0,1) \n{% else  %} \n   rgb{{state_attr(config.entity, 'rgb_color')}} \n{% endif%};\n--slider-bg-color:        {% if state_attr(config.entity, 'color_mode') == 'color_temp' %} \n{{ 'rgba(253,204,0,1)' | regex_replace(',([\\d\\.])+\\)$', ',0.2)') }} \n{% else  %} \n   rgba{{(state_attr(config.entity, 'rgb_color')|string)[0:-1]}}, 0.2) \n{% endif%};\n}\nha-card > mushroom-card > div > mushroom-button:nth-child(2) {  --bg-color: {% if  (states(config.entity) in ['on']) and (states('sun.sun') != 'below_horizon') %} rgba(245, 245, 245, 0.9) {% else %} rgba(var(--rgb-primary-text-color), 0.05) {% endif %};}\nha-card > mushroom-card > div > mushroom-button:nth-child(3) {  --bg-color: {% if  (states(config.entity) in ['on']) and (states('sun.sun') != 'below_horizon') %} rgba(245, 245, 245, 0.9) {% else %} rgba(var(--rgb-primary-text-color), 0.05) {% endif %};}\n"
     - type: custom:mushroom-light-card
@@ -3046,19 +3656,7 @@ views:
       show_color_control: false
       show_color_temp_control: true
       collapsible_controls: false
-      name: ' Lamp 2'
-      icon: ''
-      entity: light.guest_room_lamp_2
-      card_mod:
-        style: ":host {\n--ha-card-background:    {% if (states(config.entity) in ['on']) and (states('sun.sun') != 'below_horizon')%} rgba(245, 245, 245, 0.9)  {% else  %} rgba(10, 10, 10, 0.4)  {% endif %};\n--primary-text-color:    {% if (states(config.entity) in ['on']) and (states('sun.sun') != 'below_horizon')%} black                                            {% else  %} white                                           {% endif %};\n--secondary-text-color : {% if (states(config.entity) in ['on']) and (states('sun.sun') != 'below_horizon')%} rgba(100, 100, 100, 1){% else  %} rgba(220, 220, 220, 1) {% endif %};\n;}\nha-card > mushroom-card > mushroom-state-item > mushroom-shape-icon > ha-state-icon {\n--mdc-icon-size: 0.6em;;}\nha-card > mushroom-card > mushroom-state-item > mushroom-shape-icon { \n--icon-color-disabled:   rgba(253,204,0,1);\n--shape-color-disabled:  rgba(10, 10, 10, 0.4);\n--icon-color:            white;\n--shape-color:            {% if state_attr(config.entity, 'color_mode') == 'color_temp' %} \nrgba(253,204,0,1) \n{% else  %} \n   rgb{{state_attr(config.entity, 'rgb_color')}} \n{% endif%};\n}\nha-card > mushroom-card > div > mushroom-light-brightness-control { \n--slider-color:           {% if state_attr(config.entity, 'color_mode') == 'color_temp' %} \nrgba(253,204,0,1) \n{% else  %} \n   rgb{{state_attr(config.entity, 'rgb_color')}} \n{% endif%};\n--slider-bg-color:        {% if state_attr(config.entity, 'color_mode') == 'color_temp' %} \n{{ 'rgba(253,204,0,1)' | regex_replace(',([\\d\\.])+\\)$', ',0.2)') }} \n{% else  %} \n   rgba{{(state_attr(config.entity, 'rgb_color')|string)[0:-1]}}, 0.2) \n{% endif%};\n}\nha-card > mushroom-card > div > mushroom-button:nth-child(2) {  --bg-color: {% if  (states(config.entity) in ['on']) and (states('sun.sun') != 'below_horizon') %} rgba(245, 245, 245, 0.9) {% else %} rgba(var(--rgb-primary-text-color), 0.05) {% endif %};}\nha-card > mushroom-card > div > mushroom-button:nth-child(3) {  --bg-color: {% if  (states(config.entity) in ['on']) and (states('sun.sun') != 'below_horizon') %} rgba(245, 245, 245, 0.9) {% else %} rgba(var(--rgb-primary-text-color), 0.05) {% endif %};}\n"
-    - type: custom:mushroom-light-card
-      fill_container: true
-      use_light_color: false
-      show_brightness_control: true
-      show_color_control: false
-      show_color_temp_control: true
-      collapsible_controls: false
-      name: ' Ceiling Light'
+      name: ''
       icon: ''
       entity: light.guest_room_ceiling_light
       card_mod:
@@ -3073,7 +3671,7 @@ views:
         action: more-info
       show_position_control: true
       show_buttons_control: true
-      name: ' Curtain'
+      name: ''
       icon: ''
       entity: cover.guest_room_curtain
     - type: custom:mushroom-entity-card
@@ -3157,7 +3755,7 @@ views:
     filter:
       include:
       - group: group.guest_room_auto_gen_automations
-- theme: ios-dark-mode-light-green
+- theme: ios-dark-mode-light-blue
   title: Guest Toilet
   path: guest-toilet
   subview: true
@@ -3178,7 +3776,10 @@ views:
         action: toggle
       tap_action:
         action: navigate
-        navigation_path: dashboard-mobile/home
+        navigation_path: guest-room/home
+      icon_tap_action:
+        action: navigate
+        navigation_path: guest-room/home
       card_mod:
         style:
           mushroom-state-info$: ".primary {\n  font-size: 16px !important;\n  position: relative;\n  top: 0px;\n  left: 0px;\n  overflow: visible !important;\n  white-space:  \n}\n"
@@ -3190,7 +3791,7 @@ views:
         action: more-info
       icon: ''
       secondary_info: none
-      name: ' Scene'
+      name: ''
       entity: input_select.guest_toilet_scene
   - square: false
     columns: 2
@@ -3206,7 +3807,7 @@ views:
       fill_container: true
       tap_action:
         action: toggle
-      name: ' Floor Led'
+      name: ''
       icon: ''
       entity: switch.guest_toilet_floor_led
     - type: custom:mushroom-light-card
@@ -3216,7 +3817,7 @@ views:
       show_color_control: false
       show_color_temp_control: true
       collapsible_controls: false
-      name: ' Ceiling Light'
+      name: ''
       icon: ''
       entity: light.guest_toilet_ceiling_light
       card_mod:

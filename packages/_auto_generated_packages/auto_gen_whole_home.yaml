@@ -2,28 +2,6 @@
 # DO NOT MODIFY. This is an automatically generated file.                   # 
 # Please modify the python source code under python_templates directory.    #
 #############################################################################
-automation:
-- alias: ZOc-WH Occupancy Update-Whole Home
-  id: automation.zoc_wh_occupancy_update_whole_home
-  trigger:
-  - entity_id: group.whole_home_motion_group
-    platform: state
-    to: 'on'
-  - entity_id: group.whole_home_motion_group
-    platform: state
-    to: 'off'
-    for: 05:00:00
-  - minutes: /5
-    platform: time_pattern
-  action:
-    service: pyscript.room_occupancy_state_machine
-    data:
-      occupancy_entity_str: input_select.whole_home_occupancy
-      motion_str: group.whole_home_motion_group
-      motion_on_ratio_for_x_min_str: sensor.whole_home_motion_on_ratio_for_last_4_minutes
-      motion_on_ratio_for_2x_min_str: sensor.whole_home_motion_on_ratio_for_last_8_minutes
-      room_type: common_area
-      sleep_time: input_boolean.master_room_sleep_time
 input_select:
   whole_home_occupancy:
     name: Whole Home Occupancy
@@ -49,53 +27,143 @@ sensor:
   duration:
     minutes: '8'
   end: '{{ (now() | as_timestamp) | as_datetime | as_local }}'
+- name: Whole Home Min Battery
+  platform: min_max
+  type: min
+  entity_ids: []
 input_boolean:
-  master_room_sleep_time:
-    name: Master Room Sleep Time
-    initial: 'off'
   curtain_control_when_left_whole_home:
     name: Curtain Control When Left Whole Home
     initial: 'off'
-  ceiling_light_control_in_hot_sunshine_whole_home:
-    name: Ceiling Light Control In Hot Sunshine Whole Home
+  curtain_control_bright_morning_when_left_whole_home:
+    name: Curtain Control Bright Morning When Left Whole Home
     initial: 'off'
-  lamp_control_in_hot_sunshine_whole_home:
-    name: Lamp Control In Hot Sunshine Whole Home
+  curtain_control_bright_afternoon_when_left_whole_home:
+    name: Curtain Control Bright Afternoon When Left Whole Home
     initial: 'off'
-  led_control_in_hot_sunshine_whole_home:
-    name: Led Control In Hot Sunshine Whole Home
+  curtain_control_dark_when_left_whole_home:
+    name: Curtain Control Dark When Left Whole Home
     initial: 'off'
-  curtain_control_in_hot_sunshine_whole_home:
-    name: Curtain Control In Hot Sunshine Whole Home
+  ceiling_light_control_bright_morning_whole_home:
+    name: Ceiling Light Control Bright Morning Whole Home
+  lamp_control_bright_morning_whole_home:
+    name: Lamp Control Bright Morning Whole Home
     initial: 'off'
-  ceiling_light_control_when_bright_outdoor_whole_home:
-    name: Ceiling Light Control When Bright Outdoor Whole Home
-  lamp_control_when_bright_outdoor_whole_home:
-    name: Lamp Control When Bright Outdoor Whole Home
+  led_control_bright_morning_whole_home:
+    name: Led Control Bright Morning Whole Home
     initial: 'off'
-  led_control_when_bright_outdoor_whole_home:
-    name: Led Control When Bright Outdoor Whole Home
+  curtain_control_bright_morning_whole_home:
+    name: Curtain Control Bright Morning Whole Home
     initial: 'off'
-  curtain_control_when_bright_outdoor_whole_home:
-    name: Curtain Control When Bright Outdoor Whole Home
+  ceiling_light_control_bright_afternoon_whole_home:
+    name: Ceiling Light Control Bright Afternoon Whole Home
+  lamp_control_bright_afternoon_whole_home:
+    name: Lamp Control Bright Afternoon Whole Home
     initial: 'off'
-  ceiling_light_control_when_dark_outdoor_whole_home:
-    name: Ceiling Light Control When Dark Outdoor Whole Home
-  lamp_control_when_dark_outdoor_whole_home:
-    name: Lamp Control When Dark Outdoor Whole Home
+  led_control_bright_afternoon_whole_home:
+    name: Led Control Bright Afternoon Whole Home
     initial: 'off'
-  led_control_when_dark_outdoor_whole_home:
-    name: Led Control When Dark Outdoor Whole Home
+  curtain_control_bright_afternoon_whole_home:
+    name: Curtain Control Bright Afternoon Whole Home
     initial: 'off'
-  curtain_control_when_dark_outdoor_whole_home:
-    name: Curtain Control When Dark Outdoor Whole Home
+  ceiling_light_control_dark_whole_home:
+    name: Ceiling Light Control Dark Whole Home
+  lamp_control_dark_whole_home:
+    name: Lamp Control Dark Whole Home
     initial: 'off'
+  led_control_dark_whole_home:
+    name: Led Control Dark Whole Home
+    initial: 'off'
+  curtain_control_dark_whole_home:
+    name: Curtain Control Dark Whole Home
+    initial: 'off'
+input_datetime:
+  morning_start_time_whole_home:
+    name: Morning Start Time Whole Home
+    has_date: false
+    has_time: true
+  morning_end_time_whole_home:
+    name: Morning End Time Whole Home
+    has_date: false
+    has_time: true
+  afternoon_start_time_whole_home:
+    name: Afternoon Start Time Whole Home
+    has_date: false
+    has_time: true
+  afternoon_end_time_whole_home:
+    name: Afternoon End Time Whole Home
+    has_date: false
+    has_time: true
+input_number:
+  whole_home_min_value_as_bright:
+    name: Whole Home Min Value As Bright
+    min: 0
+    max: 4000
+    step: 1
+    mode: box
 switch: []
 cover: []
-template: []
+climate: []
+template:
+- binary_sensor:
+  - name: Whole Home Unavailable Entities
+    state: '{% set added_device_entities =  [] %}{% set ns = namespace() %}{% set ns.num_unavail_devices = 0 %}{% for device in added_device_entities %}   {% if states(device) in [''unavailable'', ''unknown'', ''none''] %}      {% set ns.num_unavail_devices = ns.num_unavail_devices + 1 %}   {% endif %}{% endfor %}{% if ns.num_unavail_devices > 0%}  on  {% else %}  off {% endif %}'
+    attributes:
+      value: '{% set added_device_entities =  [] %}{% set ns = namespace() %}{% set ns.unavail_devices = '''' %}{% for device in added_device_entities %}   {% if states(device) in [''unavailable'', ''unknown'', ''none''] %}   {% set ns.unavail_devices = ns.unavail_devices + ''
+
+        '' +device %} {% endif %}{% endfor %}{{ns.unavail_devices}}'
+- binary_sensor:
+  - name: Whole Home Low Battery
+    state: '{% set state = states("sensor.whole_home_min_battery") %} {% if state == "unavailable" or state == "unknown" or int(state) > 20 %} off {% else%} on {% endif %}'
 binary_sensor: []
+event: []
+lock: []
 light: []
 adaptive_lighting: []
+automation:
+- alias: ZOc-WH Occupancy Update-Whole Home
+  id: automation.zoc_wh_occupancy_update_whole_home
+  trigger:
+  - entity_id: group.whole_home_motion_group
+    platform: state
+    to: 'on'
+  - entity_id: group.whole_home_motion_group
+    platform: state
+    to: 'on'
+    for:
+      seconds: 150
+  - entity_id: group.whole_home_motion_group
+    platform: state
+    to: 'on'
+    for:
+      seconds: 1800
+  - entity_id: group.whole_home_motion_group
+    platform: state
+    to: 'off'
+  - entity_id: group.whole_home_motion_group
+    platform: state
+    to: 'off'
+    for:
+      seconds: 300
+  - entity_id: group.whole_home_motion_group
+    platform: state
+    to: 'off'
+    for:
+      seconds: 3600
+  - minutes: /5
+    seconds: '23'
+    platform: time_pattern
+  action:
+    service: pyscript.room_occupancy_state_machine
+    data:
+      occupancy_entity_str: input_select.whole_home_occupancy
+      motion_str: group.whole_home_motion_group
+      sleep_time: input_boolean.always_off_constant
+      turn_to_outside_when_no_motion: 'no'
+      entered_to_inside_timeout: 150
+      inside_to_outside_timeout: 300
+      sleep_to_outside_timesout: 3600
+      inside_to_sleep_timeout: 1800
 group:
   whole_home_occupancy_group:
     name: Whole Home Occupancy Group
@@ -135,6 +203,12 @@ group:
   whole_home_window_group:
     name: Whole Home Window Group
     entities: []
+  whole_home_timeout_window_group:
+    name: Whole Home Timeout Window Group
+    entities: []
   whole_home_curtain_group:
     name: Whole Home Curtain Group
+    entities: []
+  whole_home_battery:
+    name: Whole Home Battery
     entities: []

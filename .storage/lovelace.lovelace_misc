@@ -32,14 +32,20 @@
               "type": "grid",
               "cards": [
                 {
-                  "type": "custom:thermostat-card",
                   "entity": "climate.corridor",
-                  "title": "Corridor"
+                  "type": "custom:mushroom-climate-card",
+                  "show_temperature_control": true,
+                  "collapsible_controls": false,
+                  "primary_info": "name",
+                  "secondary_info": "state"
                 },
                 {
-                  "type": "custom:thermostat-card",
                   "entity": "climate.ground_toilet",
-                  "title": "Ground Toilet"
+                  "type": "custom:mushroom-climate-card",
+                  "show_temperature_control": true,
+                  "collapsible_controls": false,
+                  "primary_info": "name",
+                  "secondary_info": "state"
                 }
               ],
               "columns": 2
@@ -204,46 +210,6 @@
               "columns": 3
             },
             {
-              "type": "custom:restriction-card",
-              "restrictions": {
-                "hide": {
-                  "exemptions": [
-                    {
-                      "user": "72e8e305715145febff1ba701fd78954"
-                    },
-                    {
-                      "user": "60652445f3d14a8f822054569404b643"
-                    },
-                    {
-                      "user": "317c743e4c8348b8a70d671db917dbe8"
-                    }
-                  ]
-                }
-              },
-              "exemptions": [
-                {
-                  "user": "72e8e305715145febff1ba701fd78954"
-                },
-                {
-                  "user": "60652445f3d14a8f822054569404b643"
-                },
-                {
-                  "user": "317c743e4c8348b8a70d671db917dbe8"
-                }
-              ],
-              "duration": 60,
-              "max_retries": 10,
-              "max_retries_delay": 600,
-              "card": {
-                "type": "custom:group-card",
-                "card": {
-                  "type": "entities",
-                  "title": "Ground Toilet Occupancy"
-                },
-                "group": "group.ground_toilet_occupancy_group"
-              }
-            },
-            {
               "type": "custom:scheduler-card",
               "include": [
                 "climate.corridor",
@@ -254,53 +220,16 @@
               "exclude": []
             },
             {
-              "type": "custom:restriction-card",
-              "restrictions": {
-                "hide": {
-                  "exemptions": [
-                    {
-                      "user": "72e8e305715145febff1ba701fd78954"
-                    },
-                    {
-                      "user": "60652445f3d14a8f822054569404b643"
-                    },
-                    {
-                      "user": "317c743e4c8348b8a70d671db917dbe8"
-                    }
-                  ]
-                }
-              },
-              "exemptions": [
-                {
-                  "user": "72e8e305715145febff1ba701fd78954"
-                },
-                {
-                  "user": "60652445f3d14a8f822054569404b643"
-                },
-                {
-                  "user": "317c743e4c8348b8a70d671db917dbe8"
-                }
-              ],
-              "duration": 60,
-              "max_retries": 10,
-              "max_retries_delay": 600,
-              "card": {
-                "type": "custom:group-card",
-                "card": {
-                  "type": "entities",
-                  "title": "Corridor Occupancy"
-                },
-                "group": "group.corridor_occupancy_group"
-              }
-            },
-            {
               "type": "custom:auto-entities",
               "card": {
                 "type": "entities",
-                "title": "Extra Controls"
+                "title": "Ground Toilet Extra Controls"
               },
               "filter": {
                 "include": [
+                  {
+                    "group": "group.ground_toilet_occupancy_group"
+                  },
                   {
                     "group": "group.ground_toilet_auto_gen_automations"
                   }
@@ -311,10 +240,13 @@
               "type": "custom:auto-entities",
               "card": {
                 "type": "entities",
-                "title": "Extra Controls"
+                "title": "Corridor Extra Controls"
               },
               "filter": {
                 "include": [
+                  {
+                    "group": "group.corridor_occupancy_group"
+                  },
                   {
                     "group": "group.corridor_auto_gen_automations"
                   }
@@ -322,194 +254,271 @@
               }
             },
             {
-              "type": "entities",
-              "entities": [
+              "type": "conditional",
+              "conditions": [
                 {
-                  "entity": "switch.ground_toilet_wall_switch_left"
-                },
-                {
-                  "entity": "switch.ground_toilet_wall_switch_right"
-                },
-                {
-                  "entity": "switch.ground_corridor_wall_switch_left"
-                },
-                {
-                  "entity": "switch.ground_corridor_wall_switch_right"
-                },
-                {
-                  "entity": "switch.first_corridor_wall_switch_left"
-                },
-                {
-                  "entity": "switch.first_corridor_wall_switch_right"
+                  "condition": "state",
+                  "entity": "binary_sensor.ground_toilet_unavailable_entities",
+                  "state": "on"
                 }
               ],
-              "title": "Wall Switches"
+              "card": {
+                "type": "custom:mushroom-title-card",
+                "title": "Devices offline:",
+                "subtitle": "{{ states.binary_sensor.ground_toilet_unavailable_entities.attributes.value}} \n\nIt's likely due to running out of battery. Try to ask Tai to replace battery."
+              }
+            },
+            {
+              "type": "conditional",
+              "conditions": [
+                {
+                  "condition": "state",
+                  "entity": "binary_sensor.corrdior_unavailable_entities",
+                  "state": "on"
+                }
+              ],
+              "card": {
+                "type": "custom:mushroom-title-card",
+                "title": "Devices offline:",
+                "subtitle": "{{ states.binary_sensor.corridor_unavailable_entities.attributes.value}} \n\nIt's likely due to running out of battery. Try to ask Tai to replace battery."
+              }
             }
           ]
         },
         {
-          "theme": "ios-dark-mode-dark-blue",
+          "type": "sections",
+          "max_columns": 4,
           "title": "Study",
           "path": "study",
-          "subview": true,
-          "badges": [],
-          "cards": [
+          "theme": "ios-dark-mode-dark-blue",
+          "sections": [
             {
+              "square": false,
               "type": "grid",
               "cards": [
                 {
-                  "type": "button",
+                  "type": "tile",
                   "tap_action": {
                     "action": "navigate",
                     "navigation_path": "/lovelace/home"
                   },
                   "entity": "input_boolean.placeholder",
                   "icon": "mdi:keyboard-return",
-                  "name": "Home"
+                  "name": "Home",
+                  "features_position": "bottom",
+                  "vertical": false,
+                  "color": "yellow"
                 },
                 {
-                  "type": "custom:thermostat-card",
+                  "name": "Heating Override",
+                  "icon": "mdi:heating-coil",
+                  "type": "tile",
+                  "entity": "input_boolean.study_heating_override",
+                  "features_position": "bottom",
+                  "vertical": false,
+                  "show_entity_picture": false,
+                  "hide_state": false,
+                  "tap_action": {
+                    "action": "toggle"
+                  },
+                  "hold_action": {
+                    "action": "more-info"
+                  },
+                  "icon_tap_action": {
+                    "action": "toggle"
+                  }
+                },
+                {
                   "entity": "climate.study",
-                  "title": "Thermostat"
-                }
-              ],
-              "columns": 2
-            },
-            {
-              "square": true,
-              "type": "grid",
-              "cards": [
-                {
-                  "type": "light",
-                  "entity": "light.study_ceiling_light",
-                  "name": "Ceiling Light",
-                  "icon": "mdi:ceiling-light"
+                  "type": "custom:mushroom-climate-card",
+                  "show_temperature_control": true,
+                  "collapsible_controls": false,
+                  "primary_info": "name",
+                  "secondary_info": "state",
+                  "name": "Radiator"
                 },
                 {
+                  "type": "tile",
+                  "entity": "cover.study_blind",
+                  "features_position": "bottom",
+                  "vertical": false,
+                  "show_entity_picture": false,
+                  "hide_state": false,
+                  "name": "Blind",
                   "features": [
                     {
                       "type": "cover-open-close"
                     }
                   ],
+                  "tap_action": {
+                    "action": "toggle"
+                  },
+                  "hold_action": {
+                    "action": "more-info"
+                  },
+                  "icon_tap_action": {
+                    "action": "toggle"
+                  }
+                },
+                {
+                  "features": [
+                    {
+                      "type": "light-brightness"
+                    }
+                  ],
+                  "entity": "light.study_ceiling_light",
+                  "name": "Ceiling Light",
+                  "icon": "mdi:ceiling-light",
                   "type": "tile",
-                  "name": "Blind",
-                  "entity": "cover.study_blind",
-                  "icon": "mdi:curtains-closed",
-                  "vertical": true
-                },
-                {
-                  "show_name": true,
-                  "show_icon": true,
-                  "type": "button",
+                  "features_position": "bottom",
+                  "vertical": false,
+                  "show_entity_picture": false,
+                  "hide_state": false,
                   "tap_action": {
                     "action": "toggle"
                   },
-                  "entity": "input_boolean.study_heating_override",
-                  "name": "Heating Override",
-                  "icon": "mdi:heating-coil"
+                  "hold_action": {
+                    "action": "more-info"
+                  },
+                  "icon_tap_action": {
+                    "action": "toggle"
+                  }
                 },
                 {
-                  "show_name": true,
-                  "show_icon": true,
-                  "type": "button",
-                  "tap_action": {
-                    "action": "toggle"
-                  },
-                  "entity": "switch.study_studio_lamp",
+                  "type": "custom:mushroom-light-card",
+                  "fill_container": true,
+                  "use_light_color": false,
+                  "show_brightness_control": true,
+                  "show_color_control": false,
+                  "show_color_temp_control": true,
+                  "collapsible_controls": false,
+                  "name": " Lamp",
+                  "icon": "mdi:lamp",
+                  "entity": "light.study_lamp",
+                  "card_mod": {
+                    "style": ":host {\n--ha-card-background:    {% if (states(config.entity) in ['on']) and (states('sun.sun') != 'below_horizon')%} rgba(245, 245, 245, 0.9)  {% else  %} rgba(10, 10, 10, 0.4)  {% endif %};\n--primary-text-color:    {% if (states(config.entity) in ['on']) and (states('sun.sun') != 'below_horizon')%} black                                            {% else  %} white                                           {% endif %};\n--secondary-text-color : {% if (states(config.entity) in ['on']) and (states('sun.sun') != 'below_horizon')%} rgba(100, 100, 100, 1){% else  %} rgba(220, 220, 220, 1) {% endif %};\n;}\nha-card > mushroom-card > mushroom-state-item > mushroom-shape-icon > ha-state-icon {\n--mdc-icon-size: 0.6em;;}\nha-card > mushroom-card > mushroom-state-item > mushroom-shape-icon { \n--icon-color-disabled:   rgba(253,204,0,1);\n--shape-color-disabled:  rgba(10, 10, 10, 0.4);\n--icon-color:            white;\n--shape-color:            {% if state_attr(config.entity, 'color_mode') == 'color_temp' %} \nrgba(253,204,0,1) \n{% else  %} \n   rgb{{state_attr(config.entity, 'rgb_color')}} \n{% endif%};\n}\nha-card > mushroom-card > div > mushroom-light-brightness-control { \n--slider-color:           {% if state_attr(config.entity, 'color_mode') == 'color_temp' %} \nrgba(253,204,0,1) \n{% else  %} \n   rgb{{state_attr(config.entity, 'rgb_color')}} \n{% endif%};\n--slider-bg-color:        {% if state_attr(config.entity, 'color_mode') == 'color_temp' %} \n{{ 'rgba(253,204,0,1)' | regex_replace(',([\\d\\.])+\\)$', ',0.2)') }} \n{% else  %} \n   rgba{{(state_attr(config.entity, 'rgb_color')|string)[0:-1]}}, 0.2) \n{% endif%};\n}\nha-card > mushroom-card > div > mushroom-button:nth-child(2) {  --bg-color: {% if  (states(config.entity) in ['on']) and (states('sun.sun') != 'below_horizon') %} rgba(245, 245, 245, 0.9) {% else %} rgba(var(--rgb-primary-text-color), 0.05) {% endif %};}\nha-card > mushroom-card > div > mushroom-button:nth-child(3) {  --bg-color: {% if  (states(config.entity) in ['on']) and (states('sun.sun') != 'below_horizon') %} rgba(245, 245, 245, 0.9) {% else %} rgba(var(--rgb-primary-text-color), 0.05) {% endif %};}\n"
+                  }
+                },
+                {
+                  "entity": "switch.study_screen_light",
                   "icon": "mdi:crop-square",
-                  "name": "Studio Lamp"
-                },
-                {
-                  "show_name": true,
-                  "show_icon": true,
-                  "type": "button",
+                  "name": "Screen Light",
+                  "type": "tile",
+                  "features_position": "bottom",
+                  "vertical": false,
+                  "show_entity_picture": false,
+                  "hide_state": false,
                   "tap_action": {
                     "action": "toggle"
                   },
-                  "entity": "switch.study_screen_led",
-                  "icon": "mdi:monitor",
-                  "name": "Screen LED"
+                  "hold_action": {
+                    "action": "more-info"
+                  },
+                  "icon_tap_action": {
+                    "action": "toggle"
+                  }
                 },
                 {
-                  "type": "sensor",
+                  "type": "tile",
                   "entity": "sensor.study_temperature_sensor",
-                  "graph": "line",
-                  "name": "Temperature"
-                }
-              ],
-              "columns": 3
-            },
-            {
-              "type": "custom:restriction-card",
-              "restrictions": {
-                "hide": {
-                  "exemptions": [
+                  "name": "Temperature",
+                  "features_position": "bottom",
+                  "vertical": false,
+                  "features": [
                     {
-                      "user": "72e8e305715145febff1ba701fd78954"
-                    },
-                    {
-                      "user": "60652445f3d14a8f822054569404b643"
-                    },
-                    {
-                      "user": "317c743e4c8348b8a70d671db917dbe8"
+                      "type": "trend-graph"
                     }
                   ]
                 }
-              },
-              "exemptions": [
-                {
-                  "user": "72e8e305715145febff1ba701fd78954"
-                },
-                {
-                  "user": "60652445f3d14a8f822054569404b643"
-                },
-                {
-                  "user": "317c743e4c8348b8a70d671db917dbe8"
-                }
               ],
-              "duration": 60,
-              "max_retries": 10,
-              "max_retries_delay": 600,
-              "card": {
-                "type": "custom:group-card",
-                "card": {
-                  "type": "entities",
-                  "title": "Occupancy"
-                },
-                "group": "group.study_occupancy_group"
-              }
+              "columns": 2
             },
             {
-              "type": "custom:scheduler-card",
-              "include": [
-                "climate.study"
-              ],
-              "exclude": [],
-              "title": false,
-              "time_step": 30
-            },
-            {
-              "type": "entities",
-              "entities": [
+              "type": "grid",
+              "cards": [
                 {
-                  "entity": "switch.study_wall_switch"
-                }
-              ],
-              "title": "Wall Switches"
-            },
-            {
-              "type": "custom:auto-entities",
-              "card": {
-                "type": "entities",
-                "title": "Extra Controls"
-              },
-              "filter": {
-                "include": [
-                  {
-                    "group": "group.study_auto_gen_automations"
+                  "type": "custom:scheduler-card",
+                  "include": [
+                    "climate.study"
+                  ],
+                  "exclude": [],
+                  "title": false,
+                  "time_step": 30
+                },
+                {
+                  "type": "custom:auto-entities",
+                  "card": {
+                    "type": "entities",
+                    "title": "Extra Controls"
+                  },
+                  "filter": {
+                    "include": [
+                      {
+                        "group": "group.study_occupancy_group"
+                      },
+                      {
+                        "group": "group.study_auto_gen_automations"
+                      }
+                    ]
                   }
-                ]
-              }
+                },
+                {
+                  "type": "grid",
+                  "cards": [
+                    {
+                      "type": "heading",
+                      "heading_style": "title"
+                    },
+                    {
+                      "type": "conditional",
+                      "conditions": [
+                        {
+                          "condition": "state",
+                          "entity": "binary_sensor.study_unavailable_entities",
+                          "state": "on"
+                        }
+                      ],
+                      "card": {
+                        "type": "custom:mushroom-title-card",
+                        "title": "Devices offline:",
+                        "subtitle": "{{ states.binary_sensor.study_unavailable_entities.attributes.value}} \n\nIt's likely due to running out of battery. Try to ask Tai to replace battery.              "
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "background": {
+            "opacity": 33,
+            "alignment": "center",
+            "size": "contain",
+            "repeat": "repeat",
+            "attachment": "fixed"
+          },
+          "cards": []
+        },
+        {
+          "type": "sections",
+          "max_columns": 4,
+          "title": "abc",
+          "path": "abc",
+          "sections": [
+            {
+              "type": "grid",
+              "cards": [
+                {
+                  "type": "heading",
+                  "heading": "New section"
+                },
+                {
+                  "type": "tile",
+                  "entity": "sensor.home_assistant_core_cpu_percent",
+                  "features_position": "bottom",
+                  "vertical": false
+                }
+              ],
+              "column_span": 2
             }
           ]
         }

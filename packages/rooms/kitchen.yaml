@@ -34,49 +34,44 @@ input_select:
 #        turn_off:
 #          - service: script.kitchen_tv_turn_off
 
-# Ecovacs X1 battery sensor
-template:
-  - sensor:
-      - name: "X1 Battery"
-        state: "{{states.vacuum.x1.attributes.battery_level}}"
-        unit_of_measurement: "%"
 
-  - sensor:
-      - name: Max Temperature Out Of All Rooms
-        unit_of_measurement: "\xB0C"
-        state: >
-          {% if states.sensor.living_room_temperature_sensor.state != 'unavailable' %}
-            {% set temp1 = states.sensor.living_room_temperature_sensor.state %}
-          {% else  %}
-            {% set temp1 = 5 %}
-          {% endif %}
 
-          {% if states.sensor.master_room_temperature_sensor.state != 'unavailable' %}
-            {% set temp2 = states.sensor.master_room_temperature_sensor.state %}
-          {% else  %}
-            {% set temp2 = 5 %}
-          {% endif %}
-
-          {% if states.sensor.en_suite_room_temperature_sensor.state != 'unavailable' %}
-            {% set temp3 = states.sensor.en_suite_room_temperature_sensor.state %}
-          {% else  %}
-            {% set temp2 = 5 %}
-          {% endif %}
-
-          {{([float(temp1), float(temp2), float(temp3)]|max) }}
-
+#  - sensor:
+#      - name: Max Temperature Out Of All Rooms
+#        unit_of_measurement: "\xB0C"
+#        state: >
+#          {% if states.sensor.living_room_temperature_sensor.state != 'unavailable' %}
+#            {% set temp1 = states.sensor.living_room_temperature_sensor.state %}
+#          {% else  %}
+#            {% set temp1 = 5 %}
+#          {% endif %}
+#
+#          {% if states.sensor.master_room_temperature_sensor.state != 'unavailable' %}
+#            {% set temp2 = states.sensor.master_room_temperature_sensor.state %}
+#          {% else  %}
+#            {% set temp2 = 5 %}
+#          {% endif %}
+#
+#          {% if states.sensor.en_suite_room_temperature_sensor.state != 'unavailable' %}
+#            {% set temp3 = states.sensor.en_suite_room_temperature_sensor.state %}
+#          {% else  %}
+#            {% set temp2 = 5 %}
+#          {% endif %}
+#
+#          {{([float(temp1), float(temp2), float(temp3)]|max) }}
+#
 # Ice maker thermostat, turning on ice marker above certain temperature
-climate:
-  - platform: generic_thermostat
-    name: Ice Maker Turn On When Any Room Over Certain Temperature
-    heater: switch.kitchen_ice_maker
-    target_sensor: sensor.max_temperature_out_of_all_rooms
-    min_temp: 10
-    max_temp: 35
-    ac_mode: true
-    target_temp: 35
-    initial_hvac_mode: "off"
-    precision: 0.5
+# climate:
+#   - platform: generic_thermostat
+#     name: Ice Maker Turn On When Any Room Over Certain Temperature
+#     heater: switch.kitchen_ice_maker
+#     target_sensor: sensor.max_temperature_out_of_all_rooms
+#     min_temp: 10
+#     max_temp: 35
+#     ac_mode: true
+#     target_temp: 35
+#     initial_hvac_mode: "off"
+#    precision: 0.5
 
 ###############################################
 #
@@ -84,6 +79,71 @@ climate:
 #
 ###############################################
 script:
+  kitchen_camera_pointing_to_dining_table:
+    alias: Kitchen Camera Pointing To Dining Table
+    sequence:
+      - action: button.press
+        target:
+          entity_id: button.kitchen_camera_ptz_right
+      - delay:
+          seconds: 4
+          milliseconds: 500
+      - action: button.press
+        target:
+          entity_id: button.kitchen_camera_ptz_left
+      - delay:
+          seconds: 3
+          milliseconds: 500
+      - action: button.press
+        target:
+          entity_id:
+            - button.kitchen_camera_ptz_down
+      - delay:
+          seconds: 3
+          milliseconds: 0
+      - action: button.press
+        target:
+          entity_id: button.kitchen_camera_ptz_stop
+
+  kitchen_camera_pointing_to_door:
+    alias: Kitchen Camera Pointing To Door
+    sequence:
+      - alias: Check if camera is already pointing to door, if not, then point it to the door
+        condition: not
+        conditions:
+          - condition: and
+            conditions:
+              - condition: numeric_state
+                entity_id: sensor.kitchen_camera_ptz_pan_position
+                above: 1300
+                below: 1500
+              - condition: numeric_state
+                entity_id: sensor.kitchen_camera_ptz_tilt_position
+                above: 1200
+                below: 1300
+      - action: button.press
+        target:
+          entity_id: button.kitchen_camera_ptz_right
+      - delay:
+          seconds: 4
+          milliseconds: 500
+      - action: button.press
+        target:
+          entity_id: button.kitchen_camera_ptz_left
+      - delay:
+          seconds: 1
+          milliseconds: 100
+      - action: button.press
+        target:
+          entity_id:
+            - button.kitchen_camera_ptz_down
+      - delay:
+          seconds: 3
+          milliseconds: 0
+      - action: button.press
+        target:
+          entity_id: button.kitchen_camera_ptz_stop
+
   kitchen_tv_turn_on:
     alias: Kitchen Turn On TV
     sequence:
@@ -166,6 +226,56 @@ automation tv:
 # - Vacuum based on time
 #
 ###############################################
+automation rice_cooker:
+  - alias: P-KC Kitchen Rice Cooker Runs 2 Hours and Shutoff
+    id: "fjdaksfldjasklfkdlaskl2wru3982"
+    mode: single
+    triggers:
+      - trigger: state
+        entity_id:
+          - binary_sensor.rice_cooker_power
+        from: "off"
+        to: "on"
+        for:
+          hours: 2
+    actions:
+      - action: switch.turn_off
+        target:
+          entity_id: switch.rice_cooker_switch
+      - delay:
+          seconds: 5
+      - action: switch.turn_on
+        target:
+          entity_id: switch.rice_cooker_switch
+      - service: script.notify_alexa_speakers_and_phones
+        data:
+          tts_message: "Rice cooker is on for 2 hours. Turning it off."
+          notify_tai: "yes"
+          notify_ke: "yes"
+          notify_guest_room_tenant: "yes"
+          notify_en_suite_room_tenant: "yes"
+
+  - alias: N-KC Plate Warmr is On For 2 Hours
+    id: "fdasjklfdslak3284fdsjkl"
+    mode: single
+    triggers:
+      - trigger: state
+        entity_id:
+          - binary_sensor.plate_warmer_power
+        from: "off"
+        to: "on"
+        for:
+          hours: 2
+    actions:
+      - service: script.notify_alexa_speakers_and_phones
+        data:
+          tts_message: "Plate warmer is on for 2 hour. Is that expected?"
+          notify_tai: "yes"
+          notify_ke: "yes"
+          notify_guest_room_tenant: "yes"
+          notify_en_suite_room_tenant: "yes"
+
+
 automation:
   ###############################################
   # Lighting Automation based on motion sensors
@@ -355,18 +465,19 @@ automation:
   - alias: S-KC Kitchen Ungroup/Pause Its Speaker If No People
     id: "1560305343072"
     trigger:
-      - platform: state
-        from: "on"
-        to: "off"
-        for: 00:02:00
-        entity_id: group.kitchen_motion_group
-      - minutes: /5
-        platform: time_pattern
+    - platform: state
+      entity_id: input_select.kitchen_occupancy
+      to: Outside
+    - minutes: /30
+      platform: time_pattern
     condition:
-      - condition: state
-        entity_id: group.kitchen_motion_group
-        for: 00:10:00
-        state: "off"
+    - condition: state
+      entity_id: input_select.kitchen_occupancy
+      state: Outside
+    - condition: state
+      entity_id: group.kitchen_motion_group
+      state: 'off'
+      for: 00:01:00
     action:
       - choose:
           # IF - music follower is on
@@ -384,8 +495,8 @@ automation:
       - service: script.pause_sonos_if_sole_speaker_group
         data:
           target_player: media_player.kitchen_sonos
-      - service: automation.turn_on
-        entity_id: automation.s_kc_kitchen_group_its_speaker_if_people_present
+      #- service: automation.turn_on
+      #  entity_id: automation.s_kc_kitchen_group_its_speaker_if_people_present
 
   ###############################################
   # Vacuum based on time
@@ -450,15 +561,5 @@ automation:
 #          entity_id: vacuum.x1
 #    mode: single
 #
-##automation window:
-#  - alias: W-KC Kitchen Window Left Open, Push Notification
-#    id: "1603148420051"
-#    description: ""
-#    trigger:
-#      - at: 04:00:00
-#        platform: time
-#    condition:
-#    action:
-#      - service: vacuum.start
-#        entity_id: vacuum.xiaomi_vacuum_cleaner
+
 
