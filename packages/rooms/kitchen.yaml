@@ -191,7 +191,7 @@ script:
         data:
           entity_id: media_player.kitchen_tv
           picture_mode: >
-            {% if states('input_select.indoor_brightness') != dark %}  
+            {% if states('input_select.indoor_brightness') != dark %}
               Standard
             {% else %}
               Natural
@@ -226,27 +226,64 @@ automation tv:
 # - Vacuum based on time
 #
 ###############################################
-automation rice_cooker:
+
+template:
+  - switch:
+      - name: Rice Cooker
+        state: "{{ is_state('binary_sensor.rice_cooker_power', 'on') }}"
+        turn_on:
+          action: switch.turn_on
+          target:
+            entity_id: switch.rice_cooker_switch
+        turn_off:
+          - action: switch.turn_off
+            target:
+              entity_id: switch.rice_cooker_switch
+          - delay: '00:00:03'
+          - action: switch.turn_on
+            target:
+              entity_id: switch.rice_cooker_switch
+
+  - switch:
+      - name: Plate Warmer
+        state: "{{ is_state('binary_sensor.plate_warmer_power', 'on') }}"
+        turn_on:
+          action: switch.turn_on
+          target:
+            entity_id: switch.plate_warmer_switch
+        turn_off:
+          - action: switch.turn_off
+            target:
+              entity_id: switch.plate_warmer_switch
+
+  - switch:
+      - name: Baby Food Cooker
+        state: "{{ is_state('binary_sensor.baby_food_cooker_power', 'on') }}"
+        turn_on:
+          action: switch.turn_on
+          target:
+            entity_id: switch.baby_food_cooker_switch
+        turn_off:
+          - action: switch.turn_off
+            target:
+              entity_id: switch.baby_food_cooker_switch
+
+
+automation power:
   - alias: P-KC Kitchen Rice Cooker Runs 2 Hours and Shutoff
     id: "fjdaksfldjasklfkdlaskl2wru3982"
     mode: single
     triggers:
       - trigger: state
         entity_id:
-          - binary_sensor.rice_cooker_power
-        from: "off"
+          - switch.rice_cooker
         to: "on"
         for:
           hours: 2
     actions:
       - action: switch.turn_off
         target:
-          entity_id: switch.rice_cooker_switch
-      - delay:
-          seconds: 5
-      - action: switch.turn_on
-        target:
-          entity_id: switch.rice_cooker_switch
+          entity_id: switch.rice_cooker
       - service: script.notify_alexa_speakers_and_phones
         data:
           tts_message: "Rice cooker is on for 2 hours. Turning it off."
@@ -255,26 +292,65 @@ automation rice_cooker:
           notify_guest_room_tenant: "yes"
           notify_en_suite_room_tenant: "yes"
 
-  - alias: N-KC Plate Warmr is On For 2 Hours
-    id: "fdasjklfdslak3284fdsjkl"
+  - alias: P-KC Kitchen Baby Food Cooker Runs 1 Hour and Shutoff
+    id: "fjdaksfldjasklfkdlaskl2wru3982fdasfdsafdsa"
     mode: single
     triggers:
       - trigger: state
         entity_id:
-          - binary_sensor.plate_warmer_power
-        from: "off"
+          - switch.baby_food_cooker
         to: "on"
         for:
           hours: 2
     actions:
+      - action: switch.turn_off
+        target:
+          entity_id: switch.baby_food_cooker
       - service: script.notify_alexa_speakers_and_phones
         data:
-          tts_message: "Plate warmer is on for 2 hour. Is that expected?"
+          tts_message: "Baby Food Cooker is on for 1 hour. Turning it off."
+          notify_tai: "yes"
+          notify_ke: "yes"
+          #notify_guest_room_tenant: "yes"
+          #notify_en_suite_room_tenant: "yes"
+
+  - alias: N-KC Plate Warmer Is on for a While
+    id: "fdasjklfdslak3284fdsjkl"
+    mode: single
+    triggers:
+      - platform: time_pattern
+        hours: /1
+      - platform: state
+        entity_id: switch.plate_warmer
+        for: "02:00:00"
+        to: "on"
+    condition:
+      - condition: state
+        state: "on"
+        entity_id: switch.plate_warmer
+        for: "02:00:00"
+    actions:
+      - service: script.notify_alexa_speakers_and_phones
+        data:
+          tts_message: "Plate warmer is on for at least 2 hours. Is that expected?"
           notify_tai: "yes"
           notify_ke: "yes"
           notify_guest_room_tenant: "yes"
           notify_en_suite_room_tenant: "yes"
-
+      - condition: state
+        state: "on"
+        entity_id: switch.plate_warmer
+        for: "05:00:00"
+      - action: switch.turn_off
+        target:
+          entity_id: switch.plate_warmer
+      - service: script.notify_alexa_speakers_and_phones
+        data:
+          tts_message: "Plate warmer is on for 5 hours. Turning it off."
+          notify_tai: "yes"
+          notify_ke: "yes"
+          notify_guest_room_tenant: "yes"
+          notify_en_suite_room_tenant: "yes"
 
 automation:
   ###############################################
@@ -416,13 +492,13 @@ automation:
               ture
             {% else %}
               false
-            {% endif %}  
+            {% endif %}
           {% else %}
             {% if states('sensor.mi_temperature_kitchen_hob_temperature_sensor')|float > ((states('sensor.cambridge_city_airport_temperature')|int - 6)/4 + 25) %}
               ture
             {% else %}
               false
-            {% endif %}  
+            {% endif %}
           {% endif %}
     action:
       - service: switch.turn_on

@@ -1,0 +1,35 @@
+automation:
+  # Tais Desk
+  # Lighting Automation based on motion sensors
+  - alias: L-GR Guest Room Tai's Desk light On If People Present Sits In the Chair
+    id: "1676066351420"
+    trigger:
+      - entity_id: binary_sensor.guest_room_desk_occupancy_sensor_occupancy
+        platform: state
+        from: "off"
+        to: "on"
+    action:
+      - condition: time
+        after: "06:00:00"
+        before: "20:00:00"
+      - service: switch.turn_on
+        entity_id: switch.guest_room_desk_screen_led
+
+  - alias: L-GR Guest Room Tai's Desk light Off If Person Left the Chair
+    id: "1636063351125"
+    trigger:
+      - entity_id:
+          - binary_sensor.guest_room_desk_occupancy_sensor_occupancy
+        platform: state
+        to: "off"
+      - minutes: /5
+        platform: time_pattern
+    condition:
+      - entity_id:
+          - binary_sensor.guest_room_desk_occupancy_sensor_occupancy
+        condition: state
+        state: "off"
+        for: 00:01:00
+    action:
+      - service: switch.turn_off
+        entity_id: switch.guest_room_desk_screen_led

@@ -1,389 +1,6 @@
 #############################################################################
 # DO NOT MODIFY. This is an automatically generated file.                   # 
-# Please modify the python source code under python_templates directory.    #
 #############################################################################
-input_select:
-  living_room_scene:
-    name: Living Room Scene
-    options:
-    - Idle
-    - Hue
-    - Lamp LED White
-    - LED White
-    - All White
-    - Ceiling Light White
-    - All Off
-  living_room_occupancy:
-    name: Living Room Occupancy
-    options:
-    - Outside
-    - Just Entered
-    - Stayed Inside
-    - In Sleep
-sensor:
-- platform: history_stats
-  name: Living Room Motion On Ratio For Last 4 Minutes
-  entity_id: group.living_room_motion_group
-  state: 'on'
-  type: ratio
-  duration:
-    minutes: '4'
-  end: '{{ (now() | as_timestamp) | as_datetime | as_local }}'
-- platform: history_stats
-  name: Living Room Motion On Ratio For Last 8 Minutes
-  entity_id: group.living_room_motion_group
-  state: 'on'
-  type: ratio
-  duration:
-    minutes: '8'
-  end: '{{ (now() | as_timestamp) | as_datetime | as_local }}'
-- name: Living Room Min Battery
-  platform: min_max
-  type: min
-  entity_ids:
-  - sensor.living_room_tv_occupancy_sensor_battery
-  - sensor.living_room_sofa_occupancy_sensor_battery
-  - sensor.living_room_tv_xiaomi_home_occupancy_sensor_battery
-  - sensor.living_room_sofa_xiaomi_home_occupancy_sensor_battery
-  - sensor.living_room_entrance_motion_sensor_battery
-  - sensor.living_room_temperature_sensor_battery_1
-  - sensor.living_room_east_side_light_sensor_battery
-  - sensor.living_room_button_battery
-  - sensor.living_room_desk_occupancy_sensor_battery
-  - sensor.living_room_desk_xiaomi_home_occupancy_sensor_battery
-  - sensor.boiler_room_motion_sensor_battery
-  - sensor.garden_door_lock_battery
-input_boolean:
-  living_room_heating_override:
-    name: Living Room Heating Override
-    initial: 'off'
-  living_room_sleep_time:
-    name: Living Room Sleep Time
-  curtain_control_when_left_living_room:
-    name: Curtain Control When Left Living Room
-  curtain_control_bright_morning_when_left_living_room:
-    name: Curtain Control Bright Morning When Left Living Room
-  curtain_control_bright_afternoon_when_left_living_room:
-    name: Curtain Control Bright Afternoon When Left Living Room
-  curtain_control_dark_when_left_living_room:
-    name: Curtain Control Dark When Left Living Room
-  ceiling_light_control_bright_morning_living_room:
-    name: Ceiling Light Control Bright Morning Living Room
-  lamp_control_bright_morning_living_room:
-    name: Lamp Control Bright Morning Living Room
-  led_control_bright_morning_living_room:
-    name: Led Control Bright Morning Living Room
-  curtain_control_bright_morning_living_room:
-    name: Curtain Control Bright Morning Living Room
-  ceiling_light_control_bright_afternoon_living_room:
-    name: Ceiling Light Control Bright Afternoon Living Room
-  lamp_control_bright_afternoon_living_room:
-    name: Lamp Control Bright Afternoon Living Room
-  led_control_bright_afternoon_living_room:
-    name: Led Control Bright Afternoon Living Room
-  curtain_control_bright_afternoon_living_room:
-    name: Curtain Control Bright Afternoon Living Room
-  ceiling_light_control_dark_living_room:
-    name: Ceiling Light Control Dark Living Room
-  lamp_control_dark_living_room:
-    name: Lamp Control Dark Living Room
-  led_control_dark_living_room:
-    name: Led Control Dark Living Room
-  curtain_control_dark_living_room:
-    name: Curtain Control Dark Living Room
-  living_room_tado_heater:
-    name: Living Room Tado Heater
-input_datetime:
-  morning_start_time_living_room:
-    name: Morning Start Time Living Room
-    has_date: false
-    has_time: true
-  morning_end_time_living_room:
-    name: Morning End Time Living Room
-    has_date: false
-    has_time: true
-  afternoon_start_time_living_room:
-    name: Afternoon Start Time Living Room
-    has_date: false
-    has_time: true
-  afternoon_end_time_living_room:
-    name: Afternoon End Time Living Room
-    has_date: false
-    has_time: true
-input_number:
-  living_room_min_value_as_bright:
-    name: Living Room Min Value As Bright
-    min: 0
-    max: 4000
-    step: 1
-    mode: box
-switch:
-- platform: group
-  name: 'Living Room Wall Switch '
-  entities: switch.0x00158d0008d8ead8_switch
-- platform: group
-  name: Living Room Gateway Power
-  entities: switch.sonoff_1001e49906_1
-- platform: group
-  name: Living Room Desk Screen LED
-  entities: switch.sonoff_1001e49dd9_1
-- platform: group
-  name: Living Room Floor Light 3
-  entities: switch.ef0f_29831979_mss210_main_channel
-cover:
-- platform: group
-  name: Living Room Curtain 1
-  entities: cover.0x54ef441000452fd8_motor
-climate:
-- platform: generic_thermostat
-  name: Living Room
-  heater: input_boolean.living_room_tado_heater
-  target_sensor: sensor.living_room_temperature_sensor
-  min_temp: 16
-  max_temp: 27
-  ac_mode: false
-  cold_tolerance: 0
-  precision: 0.1
-  target_temp_step: 0.5
-  min_cycle_duration: 00:01:30
-template:
-- binary_sensor:
-  - name: Living Room TV Occupancy Sensor Occupancy
-    state: '{% if states.sensor["a4c138c69e9f_no_one_duration"].state == ''unavailable'' or states.sensor["a4c138c69e9f_no_one_duration"].state  == ''unknown''%}
-
-      {{states.binary_sensor["a4c138c69e9f_occupancy"].state}}
-
-      {% elif states.sensor["a4c138c69e9f_no_one_duration"].state == ''0'' %}
-
-      {{states.binary_sensor["a4c138c69e9f_occupancy"].state}}
-
-      {# else is equivilence to elif states.sensor["a4c138c69e9f_no_one_duration"].state > "0" #}
-
-      {% else %}
-
-      off
-
-      {% endif %}
-
-      '
-- sensor:
-  - name: Living Room TV Occupancy Sensor Battery
-    unit_of_measurement: '%'
-    state: '{{states.sensor["a4c138c69e9f_battery"].state}}'
-- binary_sensor:
-  - name: Living Room Sofa Occupancy Sensor Occupancy
-    state: '{% if states.sensor["a4c1381b8035_no_one_duration"].state == ''unavailable'' or states.sensor["a4c1381b8035_no_one_duration"].state  == ''unknown''%}
-
-      {{states.binary_sensor["a4c1381b8035_occupancy"].state}}
-
-      {% elif states.sensor["a4c1381b8035_no_one_duration"].state == ''0'' %}
-
-      {{states.binary_sensor["a4c1381b8035_occupancy"].state}}
-
-      {# else is equivilence to elif states.sensor["a4c1381b8035_no_one_duration"].state > "0" #}
-
-      {% else %}
-
-      off
-
-      {% endif %}
-
-      '
-- sensor:
-  - name: Living Room Sofa Occupancy Sensor Battery
-    unit_of_measurement: '%'
-    state: '{{states.sensor["a4c1381b8035_battery"].state}}'
-- binary_sensor:
-  - name: Living Room TV Xiaomi Home Occupancy Sensor Occupancy
-    state: '{% if states.sensor["linp_cn_blt_3_1kdf3f5aokk00_es2_no_one_duration_p_2_1079"].state == ''unavailable'' or states.sensor["linp_cn_blt_3_1kdf3f5aokk00_es2_no_one_duration_p_2_1079"].state  == ''unknown''%}
-
-      {{states.binary_sensor["linp_cn_blt_3_1kdf3f5aokk00_es2_occupancy_status_p_2_1078"].state}}
-
-      {% elif states.sensor["linp_cn_blt_3_1kdf3f5aokk00_es2_no_one_duration_p_2_1079"].state == ''0'' %}
-
-      {{states.binary_sensor["linp_cn_blt_3_1kdf3f5aokk00_es2_occupancy_status_p_2_1078"].state}}
-
-      {# else is equivilence to elif states.sensor["linp_cn_blt_3_1kdf3f5aokk00_es2_no_one_duration_p_2_1079"].state > "0" #}
-
-      {% else %}
-
-      off
-
-      {% endif %}
-
-      '
-- sensor:
-  - name: Living Room TV Xiaomi Home Occupancy Sensor Battery
-    unit_of_measurement: '%'
-    state: '{{states.sensor["linp_cn_blt_3_1kdf3f5aokk00_es2_battery_level_p_4_1003"].state}}'
-- binary_sensor:
-  - name: Living Room Sofa Xiaomi Home Occupancy Sensor Occupancy
-    state: '{% if states.sensor["linp_cn_blt_3_1kdf02hpkk400_es2_no_one_duration_p_2_1079"].state == ''unavailable'' or states.sensor["linp_cn_blt_3_1kdf02hpkk400_es2_no_one_duration_p_2_1079"].state  == ''unknown''%}
-
-      {{states.binary_sensor["linp_cn_blt_3_1kdf02hpkk400_es2_occupancy_status_p_2_1078"].state}}
-
-      {% elif states.sensor["linp_cn_blt_3_1kdf02hpkk400_es2_no_one_duration_p_2_1079"].state == ''0'' %}
-
-      {{states.binary_sensor["linp_cn_blt_3_1kdf02hpkk400_es2_occupancy_status_p_2_1078"].state}}
-
-      {# else is equivilence to elif states.sensor["linp_cn_blt_3_1kdf02hpkk400_es2_no_one_duration_p_2_1079"].state > "0" #}
-
-      {% else %}
-
-      off
-
-      {% endif %}
-
-      '
-- sensor:
-  - name: Living Room Sofa Xiaomi Home Occupancy Sensor Battery
-    unit_of_measurement: '%'
-    state: '{{states.sensor["linp_cn_blt_3_1kdf02hpkk400_es2_battery_level_p_4_1003"].state}}'
-- sensor:
-  - name: Living Room Entrance Motion Sensor Battery
-    unit_of_measurement: '%'
-    state: '{{states.sensor["0x00158d0003140ea8_battery"].state}}'
-- sensor:
-  - name: Living Room Temperature Sensor 1
-    unit_of_measurement: "\xB0C"
-    state: '{{states.sensor["1c34f1acbb16_temperature"].state | float | round(1)}}'
-- sensor:
-  - name: Living Room Temperature Sensor Battery 1
-    unit_of_measurement: '%'
-    state: '{{states.sensor["1c34f1acbb16_battery"].state}}'
-- sensor:
-  - name: Living Room Temperature Sensor
-    unit_of_measurement: "\xB0C"
-    state: '{% if   states(''sensor.living_room_temperature_sensor_1'') != ''unavailable'' and states(''sensor.living_room_temperature_sensor_1'') == ''unavailable'' %}{{states(''sensor.living_room_temperature_sensor_1'')}}{% elif states(''sensor.living_room_temperature_sensor_1'') == ''unavailable'' and states(''sensor.living_room_temperature_sensor_1'') != ''unavailable'' %}{{states(''sensor.living_room_temperature_sensor_1'')}}{% else %}{% set sensor_1 = states(''sensor.living_room_temperature_sensor_1'') | float | round(1) %}{% set sensor_2 = states(''sensor.living_room_temperature_sensor_1'') | float | round(1) %}{% if sensor_1 < 1.0 or sensor_2 < 1.0 or (sensor_1 + sensor_2) < 1.0 %}22.0{% else %}{{ ((sensor_1 + sensor_2) / 2) | round(1) }}{% endif %}{% endif %}'
-- sensor:
-  - name: Living Room Wall Button
-    state: '{{states.sensor["0x00158d0008d8ead8_action"].state}}'
-- sensor:
-  - name: Living Room East Side Light Sensor Battery
-    unit_of_measurement: '%'
-    state: '{{states.sensor["0x04cf8cdf3c7b560f_battery"].state}}'
-- sensor:
-  - name: Living Room East Side Light Sensor
-    state: '{{states.sensor["0x04cf8cdf3c7b560f_illuminance"].state}}'
-    unit_of_measurement: lx
-- sensor:
-  - name: Living Room Button
-    state: '{{states.sensor["0x00158d000424f995_action"].state}}'
-- sensor:
-  - name: Living Room Button Battery
-    unit_of_measurement: '%'
-    state: '{{states.sensor["0x00158d000424f995_battery"].state}}'
-- binary_sensor:
-  - name: Living Room Desk Occupancy Sensor Occupancy
-    state: '{% if states.sensor["d44867b89dd3_no_one_duration"].state == ''unavailable'' or states.sensor["d44867b89dd3_no_one_duration"].state  == ''unknown''%}
-
-      {{states.binary_sensor["d44867b89dd3_occupancy"].state}}
-
-      {% elif states.sensor["d44867b89dd3_no_one_duration"].state == ''0'' %}
-
-      {{states.binary_sensor["d44867b89dd3_occupancy"].state}}
-
-      {# else is equivilence to elif states.sensor["d44867b89dd3_no_one_duration"].state > "0" #}
-
-      {% else %}
-
-      off
-
-      {% endif %}
-
-      '
-- sensor:
-  - name: Living Room Desk Occupancy Sensor Battery
-    unit_of_measurement: '%'
-    state: '{{states.sensor["d44867b89dd3_battery"].state}}'
-- binary_sensor:
-  - name: Living Room Desk Xiaomi Home Occupancy Sensor Occupancy
-    state: '{% if states.sensor["xiaomi_cn_blt_3_1icm36tbg4s04_03_no_one_duration_p_2_1082"].state == ''unavailable'' or states.sensor["xiaomi_cn_blt_3_1icm36tbg4s04_03_no_one_duration_p_2_1082"].state  == ''unknown''%}
-
-      {{states.binary_sensor["xiaomi_cn_blt_3_1icm36tbg4s04_03_occupancy_status_p_2_1078"].state}}
-
-      {% elif states.sensor["xiaomi_cn_blt_3_1icm36tbg4s04_03_no_one_duration_p_2_1082"].state == ''0'' %}
-
-      {{states.binary_sensor["xiaomi_cn_blt_3_1icm36tbg4s04_03_occupancy_status_p_2_1078"].state}}
-
-      {# else is equivilence to elif states.sensor["xiaomi_cn_blt_3_1icm36tbg4s04_03_no_one_duration_p_2_1082"].state > "0" #}
-
-      {% else %}
-
-      off
-
-      {% endif %}
-
-      '
-- sensor:
-  - name: Living Room Desk Xiaomi Home Occupancy Sensor Battery
-    unit_of_measurement: '%'
-    state: '{{states.sensor["xiaomi_cn_blt_3_1icm36tbg4s04_03_battery_level_p_3_1003"].state}}'
-- sensor:
-  - name: Boiler Room Motion Sensor Battery
-    unit_of_measurement: '%'
-    state: '{{states.sensor["0x00158d00054d83df_battery"].state}}'
-- sensor:
-  - name: Living Room Tado Availiabity
-    unit_of_measurement: "\xB0C"
-    state: '{{states("sensor.tado_smart_radiator_thermostat_va2282557696_current_temperature") | float | round(1)}}'
-- binary_sensor:
-  - name: Living Room Heating Required
-    state: '{% set climate = "climate.tado_smart_radiator_thermostat_va2282557696" %}{% if states(climate) == "unavailable" or states(climate) == "off" or (state_attr(climate, "temperature") <= state_attr(climate, "current_temperature"))  %}off{% else %} on{% endif %}'
-- sensor:
-  - name: Garden Door Lock Battery
-    unit_of_measurement: '%'
-    state: '{{states.sensor["lock_ultra_28f8_battery"].state}}'
-- binary_sensor:
-  - name: Living Room Unavailable Entities
-    state: '{% set added_device_entities =  [''binary_sensor.living_room_tv_occupancy_sensor_occupancy'', ''sensor.living_room_tv_occupancy_sensor_battery'', ''binary_sensor.living_room_sofa_occupancy_sensor_occupancy'', ''sensor.living_room_sofa_occupancy_sensor_battery'', ''binary_sensor.living_room_tv_xiaomi_home_occupancy_sensor_occupancy'', ''sensor.living_room_tv_xiaomi_home_occupancy_sensor_battery'', ''binary_sensor.living_room_sofa_xiaomi_home_occupancy_sensor_occupancy'', ''sensor.living_room_sofa_xiaomi_home_occupancy_sensor_battery'', ''sensor.living_room_entrance_motion_sensor_battery'', ''sensor.living_room_temperature_sensor_1'', ''sensor.living_room_temperature_sensor_battery_1'', ''sensor.living_room_temperature_sensor'', ''sensor.living_room_wall_button'', ''sensor.living_room_east_side_light_sensor_battery'', ''sensor.living_room_east_side_light_sensor'', ''sensor.living_room_button'', ''sensor.living_room_button_battery'', ''binary_sensor.living_room_desk_occupancy_sensor_occupancy'', ''sensor.living_room_desk_occupancy_sensor_battery'', ''binary_sensor.living_room_desk_xiaomi_home_occupancy_sensor_occupancy'', ''sensor.living_room_desk_xiaomi_home_occupancy_sensor_battery'', ''sensor.boiler_room_motion_sensor_battery'', ''sensor.living_room_tado_availiabity'', ''binary_sensor.living_room_heating_required'', ''sensor.garden_door_lock_battery'', ''binary_sensor.living_room_entrance_motion_sensor_motion'', ''binary_sensor.living_room_window'', ''binary_sensor.living_room_sliding_door'', ''binary_sensor.boiler_room_motion_sensor_motion'', ''binary_sensor.garden_door_handle_down'', ''switch.living_room_wall_switch'', ''switch.living_room_gateway_power'', ''switch.living_room_desk_screen_led'', ''switch.living_room_floor_light_3'', ''cover.living_room_curtain_1'', ''lock.garden_door_lock'', ''light.boiler_room_light'', ''light.living_room_floor_light_1'', ''light.living_room_3_head_lamp_1'', ''light.living_room_3_head_lamp_2'', ''light.living_room_3_head_lamp_3'', ''light.living_room_ceiling_light''] %}{% set ns = namespace() %}{% set ns.num_unavail_devices = 0 %}{% for device in added_device_entities %}   {% if states(device) in [''unavailable'', ''unknown'', ''none''] %}      {% set ns.num_unavail_devices = ns.num_unavail_devices + 1 %}   {% endif %}{% endfor %}{% if ns.num_unavail_devices > 0%}  on  {% else %}  off {% endif %}'
-    attributes:
-      value: '{% set added_device_entities =  [''binary_sensor.living_room_tv_occupancy_sensor_occupancy'', ''sensor.living_room_tv_occupancy_sensor_battery'', ''binary_sensor.living_room_sofa_occupancy_sensor_occupancy'', ''sensor.living_room_sofa_occupancy_sensor_battery'', ''binary_sensor.living_room_tv_xiaomi_home_occupancy_sensor_occupancy'', ''sensor.living_room_tv_xiaomi_home_occupancy_sensor_battery'', ''binary_sensor.living_room_sofa_xiaomi_home_occupancy_sensor_occupancy'', ''sensor.living_room_sofa_xiaomi_home_occupancy_sensor_battery'', ''sensor.living_room_entrance_motion_sensor_battery'', ''sensor.living_room_temperature_sensor_1'', ''sensor.living_room_temperature_sensor_battery_1'', ''sensor.living_room_temperature_sensor'', ''sensor.living_room_wall_button'', ''sensor.living_room_east_side_light_sensor_battery'', ''sensor.living_room_east_side_light_sensor'', ''sensor.living_room_button'', ''sensor.living_room_button_battery'', ''binary_sensor.living_room_desk_occupancy_sensor_occupancy'', ''sensor.living_room_desk_occupancy_sensor_battery'', ''binary_sensor.living_room_desk_xiaomi_home_occupancy_sensor_occupancy'', ''sensor.living_room_desk_xiaomi_home_occupancy_sensor_battery'', ''sensor.boiler_room_motion_sensor_battery'', ''sensor.living_room_tado_availiabity'', ''binary_sensor.living_room_heating_required'', ''sensor.garden_door_lock_battery'', ''binary_sensor.living_room_entrance_motion_sensor_motion'', ''binary_sensor.living_room_window'', ''binary_sensor.living_room_sliding_door'', ''binary_sensor.boiler_room_motion_sensor_motion'', ''binary_sensor.garden_door_handle_down'', ''switch.living_room_wall_switch'', ''switch.living_room_gateway_power'', ''switch.living_room_desk_screen_led'', ''switch.living_room_floor_light_3'', ''cover.living_room_curtain_1'', ''lock.garden_door_lock'', ''light.boiler_room_light'', ''light.living_room_floor_light_1'', ''light.living_room_3_head_lamp_1'', ''light.living_room_3_head_lamp_2'', ''light.living_room_3_head_lamp_3'', ''light.living_room_ceiling_light''] %}{% set ns = namespace() %}{% set ns.unavail_devices = '''' %}{% for device in added_device_entities %}   {% if states(device) in [''unavailable'', ''unknown'', ''none''] %}   {% set ns.unavail_devices = ns.unavail_devices + ''
-
-        '' +device %} {% endif %}{% endfor %}{{ns.unavail_devices}}'
-- binary_sensor:
-  - name: Living Room Low Battery
-    state: '{% set state = states("sensor.living_room_min_battery") %} {% if state == "unavailable" or state == "unknown" or int(state) > 20 %} off {% else%} on {% endif %}'
-binary_sensor:
-- platform: group
-  name: Living Room Entrance Motion Sensor Motion
-  entities: binary_sensor.0x00158d0003140ea8_motion
-- platform: group
-  name: Living Room Window
-  entities: binary_sensor.e4aaec80beca_contact
-- platform: group
-  name: Living Room Sliding Door
-  entities: binary_sensor.e4aaec80bedb_contact
-- platform: group
-  name: Boiler Room Motion Sensor Motion
-  entities: binary_sensor.0x00158d00054d83df_motion
-- platform: group
-  name: Garden Door Handle Down
-  entities: binary_sensor.0x00158d00052d5691_contact_2
-event: []
-lock:
-- platform: group
-  name: Garden Door Lock
-  entities: lock.lock_ultra_28f8
-light:
-- platform: group
-  name: Boiler Room Light
-  entities: light.28d127202ef6_light
-- platform: group
-  name: Living Room Floor Light 1
-  entities: light.hue_color_lamp_1
-- platform: group
-  name: Living Room 3 Head Lamp 1
-  entities: light.hue_color_lamp_2
-- platform: group
-  name: Living Room 3 Head Lamp 2
-  entities: light.hue_color_lamp_3
-- platform: group
-  name: Living Room 3 Head Lamp 3
-  entities: light.hue_color_lamp_4
-- platform: group
-  name: Living Room Ceiling Light
-  entities: light.yeelink_cn_436905718_ceil30_s_2_light
 adaptive_lighting:
 - name: Living Room
   lights:
@@ -403,6 +20,7 @@ adaptive_lighting:
   max_color_temp: 6500
   sleep_brightness: 20
   sleep_color_temp: 2200
+  min_sunset_time: '17:30'
   take_over_control: true
   autoreset_control_seconds: 86400
   detect_non_ha_changes: false
@@ -450,9 +68,15 @@ automation:
   - trigger: state
     entity_id: climate.tado_smart_radiator_thermostat_va2282557696
     attribute: temperature
+  - trigger: state
+    entity_id: climate.tado_smart_radiator_thermostat_va2282557696
+    attribute: current_temperature
+  - trigger: homeassistant
+    event: start
   - minutes: /30
-    seconds: '0'
-    platform: time_pattern
+    seconds: '45'
+    trigger: time_pattern
+  mode: single
   actions:
   - if:
     - condition: state
@@ -462,9 +86,10 @@ automation:
     - action: climate.set_temperature
       data:
         hvac_mode: heat
-        temperature: '{%set room_helper_entity = ''climate.living_room'' %}{%set tado_valve_entity  = ''climate.tado_smart_radiator_thermostat_va2282557696'' %}  {%set room_cur_temp      = state_attr(room_helper_entity, ''current_temperature'') | float %}  {%set room_target_temp   = state_attr(room_helper_entity, ''temperature'')         | float %}  {%set tado_cur_temp      = state_attr(tado_valve_entity,  ''current_temperature'') | float %}  {#diff = room_target_temp - room_cur_temp = tado_target_temp_nxt - tado_cur_temp #}{% set tado_target_temp_nxt = ((room_target_temp - room_cur_temp + tado_cur_temp) * 2) | float | round / 2 %} {# round to 0.5 #}{%set tado_target_temp_nxt_sat = [[tado_target_temp_nxt, 25]|min,5]|max %} {# set lower and upper limit to [5,25] #}{{tado_target_temp_nxt_sat}}'
+        temperature: '{%set room_helper_entity = ''climate.living_room'' %}{%set tado_valve_entity  = ''climate.tado_smart_radiator_thermostat_va2282557696'' %}  {%set room_cur_temp      = state_attr(room_helper_entity, ''current_temperature'') | float %}  {%set room_target_temp   = state_attr(room_helper_entity, ''temperature'')         | float %}  {%set tado_cur_temp      = state_attr(tado_valve_entity,  ''current_temperature'') | float %}  {#diff = room_target_temp - room_cur_temp = tado_target_temp_nxt - tado_cur_temp #}{% set tado_target_temp_nxt = ((room_target_temp - room_cur_temp + tado_cur_temp) * 2) | float(22) | round / 2 %} {# round to 0.5 #}{%set tado_target_temp_nxt_sat = [[tado_target_temp_nxt, 25]|min,5]|max %} {# set lower and upper limit to [5,25] #}{{tado_target_temp_nxt_sat}}'
       target:
         entity_id: climate.tado_smart_radiator_thermostat_va2282557696
+    - delay: 00:05:00
     else:
     - action: climate.turn_off
       target:
@@ -513,8 +138,7 @@ automation:
           - unavailable
           - unknown
       - condition: time
-        after: input_datetime.morning_start_time_living_room
-        before: input_datetime.morning_end_time_living_room
+        before: input_datetime.noon_time_living_room
     then:
       alias: States when bright morning
       if:
@@ -645,8 +269,7 @@ automation:
             - unavailable
             - unknown
         - condition: time
-          after: input_datetime.afternoon_start_time_living_room
-          before: input_datetime.afternoon_end_time_living_room
+          after: input_datetime.noon_time_living_room
       then:
         alias: States when bright afternoon
         if:
@@ -859,9 +482,11 @@ automation:
   - platform: state
     entity_id: input_select.living_room_occupancy
     to: Outside
+  - trigger: homeassistant
+    event: start
   - minutes: /30
-    seconds: '51'
-    platform: time_pattern
+    seconds: '7'
+    trigger: time_pattern
   condition:
   - condition: state
     entity_id: input_select.living_room_occupancy
@@ -878,10 +503,6 @@ automation:
       then:
         service: homeassistant.turn_on
         entity_id: automation.zl_lr_lights_and_curtain_on_if_entering_to_room_living_room
-    - service: script.call_room_scene
-      data:
-        room_scene_select: input_select.living_room_scene
-        scene: Idle
     - alias: If it is bright morning
       if:
       - alias: Bright morning
@@ -908,8 +529,7 @@ automation:
             - unavailable
             - unknown
         - condition: time
-          after: input_datetime.morning_start_time_living_room
-          before: input_datetime.morning_end_time_living_room
+          before: input_datetime.noon_time_living_room
       then:
         alias: States when left in bright morning
         if:
@@ -978,8 +598,7 @@ automation:
               - unavailable
               - unknown
           - condition: time
-            after: input_datetime.afternoon_start_time_living_room
-            before: input_datetime.afternoon_end_time_living_room
+            after: input_datetime.noon_time_living_room
         then:
           alias: States when left in bright afternoon
           if:
@@ -1069,6 +688,10 @@ automation:
         service: homeassistant.turn_off
         entity_id:
         - media_player.living_room_tv
+    - service: script.call_room_scene
+      data:
+        room_scene_select: input_select.living_room_scene
+        scene: Idle
     - alias: All Off
       if:
       - '{{ 1 == 1 }}'
@@ -1175,9 +798,11 @@ automation:
   - platform: state
     entity_id: input_select.living_room_occupancy
     to: Outside
+  - trigger: homeassistant
+    event: start
   - minutes: /30
-    seconds: '33'
-    platform: time_pattern
+    seconds: '2'
+    trigger: time_pattern
   action:
   - condition: state
     entity_id: input_select.living_room_occupancy
@@ -1436,7 +1061,7 @@ automation:
               entity_id:
               - cover.living_room_curtain_1
             data:
-              position: '{{ [[ (state_attr(''cover.living_room_curtain_1'', ''current_position'')) + 34 ,0]|max,100]|min}}'
+              position: '{{ [[ (state_attr(''cover.living_room_curtain_1'', ''current_position'')) + 51 ,0]|max,100]|min}}'
     - conditions:
       - condition: trigger
         id: DECREMENT_CURTAINS
@@ -1457,7 +1082,7 @@ automation:
               entity_id:
               - cover.living_room_curtain_1
             data:
-              position: '{{ [[ (state_attr(''cover.living_room_curtain_1'', ''current_position'')) + -34 ,0]|max,100]|min}}'
+              position: '{{ [[ (state_attr(''cover.living_room_curtain_1'', ''current_position'')) + -51 ,0]|max,100]|min}}'
     - conditions:
       - condition: trigger
         id: INCREMENT_CURTAIN_0
@@ -1512,11 +1137,23 @@ automation:
         if:
         - '{{ 1 == 1 }}'
         then:
-          service: light.turn_on
-          target:
+          if:
+          - alias: increment brightness unless it is off, set the brightness to 1 percent
+            condition: state
             entity_id: light.living_room_floor_light_1
-          data:
-            brightness_step_pct: 25
+            state: 'off'
+          then:
+            service: light.turn_on
+            target:
+              entity_id: light.living_room_floor_light_1
+            data:
+              brightness_step_pct: 1
+          else:
+            service: light.turn_on
+            target:
+              entity_id: light.living_room_floor_light_1
+            data:
+              brightness_step_pct: 34
     - conditions:
       - condition: trigger
         id: DECREMENT_LAMP_0
@@ -1525,11 +1162,23 @@ automation:
         if:
         - '{{ 1 == 1 }}'
         then:
-          service: light.turn_on
-          target:
+          if:
+          - alias: increment brightness unless it is off, set the brightness to 1 percent
+            condition: state
             entity_id: light.living_room_floor_light_1
-          data:
-            brightness_step_pct: -25
+            state: 'off'
+          then:
+            service: light.turn_on
+            target:
+              entity_id: light.living_room_floor_light_1
+            data:
+              brightness_step_pct: 1
+          else:
+            service: light.turn_on
+            target:
+              entity_id: light.living_room_floor_light_1
+            data:
+              brightness_step_pct: -34
     - conditions:
       - condition: trigger
         id: TOGGLE_LAMP_1
@@ -1566,11 +1215,23 @@ automation:
         if:
         - '{{ 1 == 1 }}'
         then:
-          service: light.turn_on
-          target:
+          if:
+          - alias: increment brightness unless it is off, set the brightness to 1 percent
+            condition: state
             entity_id: light.living_room_floor_light_2
-          data:
-            brightness_step_pct: 25
+            state: 'off'
+          then:
+            service: light.turn_on
+            target:
+              entity_id: light.living_room_floor_light_2
+            data:
+              brightness_step_pct: 1
+          else:
+            service: light.turn_on
+            target:
+              entity_id: light.living_room_floor_light_2
+            data:
+              brightness_step_pct: 34
     - conditions:
       - condition: trigger
         id: DECREMENT_LAMP_1
@@ -1579,11 +1240,23 @@ automation:
         if:
         - '{{ 1 == 1 }}'
         then:
-          service: light.turn_on
-          target:
+          if:
+          - alias: increment brightness unless it is off, set the brightness to 1 percent
+            condition: state
             entity_id: light.living_room_floor_light_2
-          data:
-            brightness_step_pct: -25
+            state: 'off'
+          then:
+            service: light.turn_on
+            target:
+              entity_id: light.living_room_floor_light_2
+            data:
+              brightness_step_pct: 1
+          else:
+            service: light.turn_on
+            target:
+              entity_id: light.living_room_floor_light_2
+            data:
+              brightness_step_pct: -34
     - conditions:
       - condition: trigger
         id: TOGGLE_CEILING_LIGHTS
@@ -1623,12 +1296,26 @@ automation:
         if:
         - '{{ 1 == 1 }}'
         then:
-          service: light.turn_on
-          target:
+          if:
+          - alias: increment brightness unless it is off, set the brightness to 1 percent
+            condition: state
             entity_id:
             - light.living_room_ceiling_light
-          data:
-            brightness_step_pct: 25
+            state: 'off'
+          then:
+            service: light.turn_on
+            target:
+              entity_id:
+              - light.living_room_ceiling_light
+            data:
+              brightness_step_pct: 1
+          else:
+            service: light.turn_on
+            target:
+              entity_id:
+              - light.living_room_ceiling_light
+            data:
+              brightness_step_pct: 34
     - conditions:
       - condition: trigger
         id: DECREMENT_CEILING_LIGHTS
@@ -1637,12 +1324,26 @@ automation:
         if:
         - '{{ 1 == 1 }}'
         then:
-          service: light.turn_on
-          target:
+          if:
+          - alias: increment brightness unless it is off, set the brightness to 1 percent
+            condition: state
             entity_id:
             - light.living_room_ceiling_light
-          data:
-            brightness_step_pct: -25
+            state: 'off'
+          then:
+            service: light.turn_on
+            target:
+              entity_id:
+              - light.living_room_ceiling_light
+            data:
+              brightness_step_pct: 1
+          else:
+            service: light.turn_on
+            target:
+              entity_id:
+              - light.living_room_ceiling_light
+            data:
+              brightness_step_pct: -34
     - conditions:
       - condition: trigger
         id: TOGGLE_SCREEN_LED
@@ -2490,7 +2191,7 @@ automation:
               entity_id:
               - cover.living_room_curtain_1
             data:
-              position: '{{ [[ (state_attr(''cover.living_room_curtain_1'', ''current_position'')) + 34 ,0]|max,100]|min}}'
+              position: '{{ [[ (state_attr(''cover.living_room_curtain_1'', ''current_position'')) + 51 ,0]|max,100]|min}}'
     - conditions:
       - condition: trigger
         id: DECREMENT_CURTAINS
@@ -2511,7 +2212,7 @@ automation:
               entity_id:
               - cover.living_room_curtain_1
             data:
-              position: '{{ [[ (state_attr(''cover.living_room_curtain_1'', ''current_position'')) + -34 ,0]|max,100]|min}}'
+              position: '{{ [[ (state_attr(''cover.living_room_curtain_1'', ''current_position'')) + -51 ,0]|max,100]|min}}'
     - conditions:
       - condition: trigger
         id: INCREMENT_CURTAIN_0
@@ -2566,11 +2267,23 @@ automation:
         if:
         - '{{ 1 == 1 }}'
         then:
-          service: light.turn_on
-          target:
+          if:
+          - alias: increment brightness unless it is off, set the brightness to 1 percent
+            condition: state
             entity_id: light.living_room_floor_light_1
-          data:
-            brightness_step_pct: 25
+            state: 'off'
+          then:
+            service: light.turn_on
+            target:
+              entity_id: light.living_room_floor_light_1
+            data:
+              brightness_step_pct: 1
+          else:
+            service: light.turn_on
+            target:
+              entity_id: light.living_room_floor_light_1
+            data:
+              brightness_step_pct: 34
     - conditions:
       - condition: trigger
         id: DECREMENT_LAMP_0
@@ -2579,11 +2292,23 @@ automation:
         if:
         - '{{ 1 == 1 }}'
         then:
-          service: light.turn_on
-          target:
+          if:
+          - alias: increment brightness unless it is off, set the brightness to 1 percent
+            condition: state
             entity_id: light.living_room_floor_light_1
-          data:
-            brightness_step_pct: -25
+            state: 'off'
+          then:
+            service: light.turn_on
+            target:
+              entity_id: light.living_room_floor_light_1
+            data:
+              brightness_step_pct: 1
+          else:
+            service: light.turn_on
+            target:
+              entity_id: light.living_room_floor_light_1
+            data:
+              brightness_step_pct: -34
     - conditions:
       - condition: trigger
         id: TOGGLE_LAMP_1
@@ -2620,11 +2345,23 @@ automation:
         if:
         - '{{ 1 == 1 }}'
         then:
-          service: light.turn_on
-          target:
+          if:
+          - alias: increment brightness unless it is off, set the brightness to 1 percent
+            condition: state
             entity_id: light.living_room_floor_light_2
-          data:
-            brightness_step_pct: 25
+            state: 'off'
+          then:
+            service: light.turn_on
+            target:
+              entity_id: light.living_room_floor_light_2
+            data:
+              brightness_step_pct: 1
+          else:
+            service: light.turn_on
+            target:
+              entity_id: light.living_room_floor_light_2
+            data:
+              brightness_step_pct: 34
     - conditions:
       - condition: trigger
         id: DECREMENT_LAMP_1
@@ -2633,11 +2370,23 @@ automation:
         if:
         - '{{ 1 == 1 }}'
         then:
-          service: light.turn_on
-          target:
+          if:
+          - alias: increment brightness unless it is off, set the brightness to 1 percent
+            condition: state
             entity_id: light.living_room_floor_light_2
-          data:
-            brightness_step_pct: -25
+            state: 'off'
+          then:
+            service: light.turn_on
+            target:
+              entity_id: light.living_room_floor_light_2
+            data:
+              brightness_step_pct: 1
+          else:
+            service: light.turn_on
+            target:
+              entity_id: light.living_room_floor_light_2
+            data:
+              brightness_step_pct: -34
     - conditions:
       - condition: trigger
         id: TOGGLE_CEILING_LIGHTS
@@ -2677,12 +2426,26 @@ automation:
         if:
         - '{{ 1 == 1 }}'
         then:
-          service: light.turn_on
-          target:
+          if:
+          - alias: increment brightness unless it is off, set the brightness to 1 percent
+            condition: state
             entity_id:
             - light.living_room_ceiling_light
-          data:
-            brightness_step_pct: 25
+            state: 'off'
+          then:
+            service: light.turn_on
+            target:
+              entity_id:
+              - light.living_room_ceiling_light
+            data:
+              brightness_step_pct: 1
+          else:
+            service: light.turn_on
+            target:
+              entity_id:
+              - light.living_room_ceiling_light
+            data:
+              brightness_step_pct: 34
     - conditions:
       - condition: trigger
         id: DECREMENT_CEILING_LIGHTS
@@ -2691,12 +2454,26 @@ automation:
         if:
         - '{{ 1 == 1 }}'
         then:
-          service: light.turn_on
-          target:
+          if:
+          - alias: increment brightness unless it is off, set the brightness to 1 percent
+            condition: state
             entity_id:
             - light.living_room_ceiling_light
-          data:
-            brightness_step_pct: -25
+            state: 'off'
+          then:
+            service: light.turn_on
+            target:
+              entity_id:
+              - light.living_room_ceiling_light
+            data:
+              brightness_step_pct: 1
+          else:
+            service: light.turn_on
+            target:
+              entity_id:
+              - light.living_room_ceiling_light
+            data:
+              brightness_step_pct: -34
     - conditions:
       - condition: trigger
         id: TOGGLE_SCREEN_LED
@@ -3886,9 +3663,11 @@ automation:
     entity_id: input_select.living_room_occupancy
     to: Outside
     for: 00:00:01
+  - trigger: homeassistant
+    event: start
   - minutes: /30
-    seconds: '37'
-    platform: time_pattern
+    seconds: '1'
+    trigger: time_pattern
   action:
   - condition: state
     entity_id: input_select.living_room_occupancy
@@ -3953,7 +3732,7 @@ automation:
     platform: state
     to: 'on'
     for:
-      seconds: 300
+      seconds: 1800
   - entity_id: group.living_room_motion_group
     platform: state
     to: 'off'
@@ -3966,10 +3745,12 @@ automation:
     platform: state
     to: 'off'
     for:
-      seconds: 300
-  - minutes: /5
-    seconds: '58'
-    platform: time_pattern
+      seconds: 1800
+  - trigger: homeassistant
+    event: start
+  - minutes: /30
+    seconds: '22'
+    trigger: time_pattern
   action:
     service: pyscript.room_occupancy_state_machine
     data:
@@ -3979,8 +3760,78 @@ automation:
       turn_to_outside_when_no_motion: 'no'
       entered_to_inside_timeout: 150
       inside_to_outside_timeout: 120
-      sleep_to_outside_timesout: 300
-      inside_to_sleep_timeout: 300
+      sleep_to_outside_timesout: 1800
+      inside_to_sleep_timeout: 1800
+- alias: ZOc-LR Occupancy Override and sync to Timer-Living Room
+  mode: single
+  trigger:
+  - platform: state
+    entity_id: input_boolean.living_room_auto_off_suspended
+  action:
+  - choose:
+    - conditions:
+      - condition: state
+        entity_id: input_boolean.living_room_auto_off_suspended
+        state: 'on'
+      sequence:
+      - service: timer.start
+        target:
+          entity_id: timer.living_room_auto_off_suspended_timer
+      - alias: Turn automation.zoc_lr_occupancy_update_living_room state=off
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          service: homeassistant.turn_off
+          entity_id: automation.zoc_lr_occupancy_update_living_room
+      - service: input_select.select_option
+        target:
+          entity_id: input_select.living_room_occupancy
+        data:
+          option: Stayed Inside
+    - conditions:
+      - condition: state
+        entity_id: input_boolean.living_room_auto_off_suspended
+        state: 'off'
+      sequence:
+      - service: timer.cancel
+        target:
+          entity_id: timer.living_room_auto_off_suspended_timer
+      - alias: Turn automation.zoc_lr_occupancy_update_living_room state=on
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          service: homeassistant.turn_on
+          entity_id: automation.zoc_lr_occupancy_update_living_room
+  id: automation.zoc_lr_occupancy_override_and_sync_to_timer_living_room
+- alias: ZOc-LR Occupancy Override Sync from Timer-Living Room
+  mode: single
+  trigger:
+  - platform: state
+    entity_id: timer.living_room_auto_off_suspended_timer
+  action:
+  - choose:
+    - conditions:
+      - condition: state
+        entity_id: timer.living_room_auto_off_suspended_timer
+        state: active
+      sequence:
+      - service: input_boolean.turn_on
+        target:
+          entity_id: input_boolean.living_room_auto_off_suspended
+    - conditions:
+      - condition: or
+        conditions:
+        - condition: state
+          entity_id: timer.living_room_auto_off_suspended_timer
+          state: paused
+        - condition: state
+          entity_id: timer.living_room_auto_off_suspended_timer
+          state: idle
+      sequence:
+      - service: input_boolean.turn_off
+        target:
+          entity_id: input_boolean.living_room_auto_off_suspended
+  id: automation.zoc_lr_occupancy_override_sync_from_timer_living_room
 - alias: ZTV-LR Reset Picture Mode When Turning on TV-Living Room
   trigger:
   - platform: state
@@ -4056,7 +3907,7 @@ automation:
   action:
   - service: script.notify_alexa_speakers_and_phones
     data:
-      tts_message: Living Room windows are left open. But you have left home. Is that ok?
+      tts_message: Living Room windows or locks are left open. But you have left home. Is that ok?
       notify_tai: 'yes'
   id: automation.zn_lr_notify_window_left_open_when_tai_is_leaving_zone_living_room
 - alias: ZN-LR Notify Window Left Open When Ke is Leaving Zone-Living Room
@@ -4072,7 +3923,7 @@ automation:
   action:
   - service: script.notify_alexa_speakers_and_phones
     data:
-      tts_message: Living Room windows are left open. But you have left home. Is that ok?
+      tts_message: Living Room windows or locks are left open. But you have left home. Is that ok?
       notify_ke: 'yes'
   id: automation.zn_lr_notify_window_left_open_when_ke_is_leaving_zone_living_room
 - alias: ZN-LR Notify Window Left Open in Bedtime -Living Room
@@ -4080,6 +3931,7 @@ automation:
   - platform: time
     at:
     - '21:00:00'
+    - '22:00:00'
     - '23:00:00'
     - 00:00:00
     - 01:00:00
@@ -4092,10 +3944,543 @@ automation:
   action:
   - service: script.notify_alexa_speakers_and_phones
     data:
-      tts_message: Living Room windows are left open. But it's almost bedtime time. Is that ok?
+      tts_message: Living Room windows or locks are left open. But it's almost bedtime time. Is that ok?
       notify_tai: 'yes'
       notify_ke: 'yes'
   id: automation.zn_lr_notify_window_left_open_in_bedtime_living_room
+input_select:
+  living_room_scene:
+    name: Living Room Scene
+    options:
+    - Idle
+    - Hue
+    - Lamp LED White
+    - LED White
+    - All White
+    - Ceiling Light White
+    - All Off
+  living_room_occupancy:
+    name: Living Room Occupancy
+    options:
+    - Outside
+    - Just Entered
+    - Stayed Inside
+    - In Sleep
+input_boolean:
+  living_room_heating_override:
+    name: Living Room Heating Override
+    initial: 'off'
+  living_room_sleep_time:
+    name: Living Room Sleep Time
+  curtain_control_when_left_living_room:
+    name: Curtain Control When Left Living Room
+  curtain_control_bright_morning_when_left_living_room:
+    name: Curtain Control Bright Morning When Left Living Room
+  curtain_control_bright_afternoon_when_left_living_room:
+    name: Curtain Control Bright Afternoon When Left Living Room
+  curtain_control_dark_when_left_living_room:
+    name: Curtain Control Dark When Left Living Room
+  ceiling_light_control_bright_morning_living_room:
+    name: Ceiling Light Control Bright Morning Living Room
+  lamp_control_bright_morning_living_room:
+    name: Lamp Control Bright Morning Living Room
+  led_control_bright_morning_living_room:
+    name: Led Control Bright Morning Living Room
+  curtain_control_bright_morning_living_room:
+    name: Curtain Control Bright Morning Living Room
+  ceiling_light_control_bright_afternoon_living_room:
+    name: Ceiling Light Control Bright Afternoon Living Room
+  lamp_control_bright_afternoon_living_room:
+    name: Lamp Control Bright Afternoon Living Room
+  led_control_bright_afternoon_living_room:
+    name: Led Control Bright Afternoon Living Room
+  curtain_control_bright_afternoon_living_room:
+    name: Curtain Control Bright Afternoon Living Room
+  ceiling_light_control_dark_living_room:
+    name: Ceiling Light Control Dark Living Room
+  lamp_control_dark_living_room:
+    name: Lamp Control Dark Living Room
+  led_control_dark_living_room:
+    name: Led Control Dark Living Room
+  curtain_control_dark_living_room:
+    name: Curtain Control Dark Living Room
+  living_room_auto_off_suspended:
+    name: Living Room Auto Off Suspended
+    icon: mdi:timer-sand
+  living_room_tado_heater:
+    name: Living Room Tado Heater
+input_datetime:
+  noon_time_living_room:
+    name: Noon Time Living Room
+    has_date: false
+    has_time: true
+input_number:
+  living_room_min_value_as_bright:
+    name: Living Room Min Value As Bright
+    min: 0
+    max: 4000
+    step: 1
+    mode: box
+sensor:
+- platform: history_stats
+  name: Living Room Motion On Ratio For Last 4 Minutes
+  entity_id: group.living_room_motion_group
+  state: 'on'
+  type: ratio
+  duration:
+    minutes: '4'
+  end: '{{ (now() | as_timestamp) | as_datetime | as_local }}'
+- platform: history_stats
+  name: Living Room Motion On Ratio For Last 8 Minutes
+  entity_id: group.living_room_motion_group
+  state: 'on'
+  type: ratio
+  duration:
+    minutes: '8'
+  end: '{{ (now() | as_timestamp) | as_datetime | as_local }}'
+- name: A4c138c69e9f Battery Median
+  platform: statistics
+  entity_id: sensor.a4c138c69e9f_battery
+  precision: 0
+  state_characteristic: median
+  max_age:
+    hours: 24
+- name: A4c1381b8035 Battery Median
+  platform: statistics
+  entity_id: sensor.a4c1381b8035_battery
+  precision: 0
+  state_characteristic: median
+  max_age:
+    hours: 24
+- name: Linp Cn Blt 3 1kdf3f5aokk00 Es2 Battery Level P 4 1003 Median
+  platform: statistics
+  entity_id: sensor.linp_cn_blt_3_1kdf3f5aokk00_es2_battery_level_p_4_1003
+  precision: 0
+  state_characteristic: median
+  max_age:
+    hours: 24
+- name: Linp Cn Blt 3 1kdf02hpkk400 Es2 Battery Level P 4 1003 Median
+  platform: statistics
+  entity_id: sensor.linp_cn_blt_3_1kdf02hpkk400_es2_battery_level_p_4_1003
+  precision: 0
+  state_characteristic: median
+  max_age:
+    hours: 24
+- name: 0x00158d0003140ea8 Battery Median
+  platform: statistics
+  entity_id: sensor.0x00158d0003140ea8_battery
+  precision: 0
+  state_characteristic: median
+  max_age:
+    hours: 24
+- name: 1c34f1acbb16 Battery Median
+  platform: statistics
+  entity_id: sensor.1c34f1acbb16_battery
+  precision: 0
+  state_characteristic: median
+  max_age:
+    hours: 24
+- name: Xiaomi Cn Blt 3 1nu46jugl0o00 Mini Battery Level P 3 1003 Median
+  platform: statistics
+  entity_id: sensor.xiaomi_cn_blt_3_1nu46jugl0o00_mini_battery_level_p_3_1003
+  precision: 0
+  state_characteristic: median
+  max_age:
+    hours: 24
+- name: 0x04cf8cdf3c7b560f Battery Median
+  platform: statistics
+  entity_id: sensor.0x04cf8cdf3c7b560f_battery
+  precision: 0
+  state_characteristic: median
+  max_age:
+    hours: 24
+- name: 0x00158d000424f995 Battery Median
+  platform: statistics
+  entity_id: sensor.0x00158d000424f995_battery
+  precision: 0
+  state_characteristic: median
+  max_age:
+    hours: 24
+- name: D44867b89dd3 Battery Median
+  platform: statistics
+  entity_id: sensor.d44867b89dd3_battery
+  precision: 0
+  state_characteristic: median
+  max_age:
+    hours: 24
+- name: Xiaomi Cn Blt 3 1icm36tbg4s04 03 Battery Level P 3 1003 Median
+  platform: statistics
+  entity_id: sensor.xiaomi_cn_blt_3_1icm36tbg4s04_03_battery_level_p_3_1003
+  precision: 0
+  state_characteristic: median
+  max_age:
+    hours: 24
+- name: 0x00158d00054d83df Battery Median
+  platform: statistics
+  entity_id: sensor.0x00158d00054d83df_battery
+  precision: 0
+  state_characteristic: median
+  max_age:
+    hours: 24
+- name: Living Room Min Battery
+  platform: min_max
+  type: min
+  entity_ids:
+  - sensor.living_room_tv_occupancy_sensor_battery
+  - sensor.living_room_sofa_occupancy_sensor_battery
+  - sensor.living_room_tv_xiaomi_home_occupancy_sensor_battery
+  - sensor.living_room_sofa_xiaomi_home_occupancy_sensor_battery
+  - sensor.living_room_entrance_motion_sensor_battery
+  - sensor.living_room_east_side_light_sensor_battery
+  - sensor.living_room_button_battery
+  - sensor.living_room_window_battery
+  - sensor.living_room_sliding_door_battery
+  - sensor.living_room_desk_occupancy_sensor_battery
+  - sensor.living_room_desk_xiaomi_home_occupancy_sensor_battery
+  - sensor.boiler_room_motion_sensor_battery
+  - sensor.garden_door_lock_battery
+  - sensor.garden_door_handle_battery
+timer:
+  living_room_auto_off_suspended_timer:
+    name: Living Room Auto Off Suspended Timer
+    duration: 02:00:00
+button: []
+switch:
+- platform: group
+  name: 'Living Room Wall Switch '
+  entities: switch.0x00158d0008d8ead8_switch
+- platform: group
+  name: Living Room Gateway Power
+  entities: switch.sonoff_1001e49906_1
+- platform: group
+  name: Living Room Floor Light 3
+  entities: switch.mss210_ef0f_outlet
+cover:
+- platform: group
+  name: Living Room Curtain 1
+  entities: cover.0x54ef441000452fd8_motor
+- platform: group
+  name: Living Room Curtain 2
+  entities: cover.0x54ef4410001f409c_motor
+climate:
+- platform: generic_thermostat
+  name: Living Room
+  heater: input_boolean.living_room_tado_heater
+  target_sensor: sensor.living_room_temperature_sensor
+  min_temp: 16
+  max_temp: 27
+  ac_mode: false
+  cold_tolerance: 0
+  precision: 0.1
+  target_temp_step: 0.5
+  min_cycle_duration: 00:01:30
+template:
+- binary_sensor:
+  - name: Living Room TV Occupancy Sensor Occupancy
+    state: '{% if states.sensor["a4c138c69e9f_no_one_duration"].state == ''unavailable'' or states.sensor["a4c138c69e9f_no_one_duration"].state  == ''unknown''%}
+
+      {{states.binary_sensor["a4c138c69e9f_occupancy"].state}}
+
+      {% elif states.sensor["a4c138c69e9f_no_one_duration"].state == ''0'' %}
+
+      {{states.binary_sensor["a4c138c69e9f_occupancy"].state}}
+
+      {# else is equivilence to elif states.sensor["a4c138c69e9f_no_one_duration"].state > "0" #}
+
+      {% else %}
+
+      off
+
+      {% endif %}
+
+      '
+    device_class: occupancy
+- sensor:
+  - name: Living Room TV Occupancy Sensor Battery
+    unit_of_measurement: '%'
+    device_class: battery
+    state_class: measurement
+    state: '{% set s = states(''sensor.a4c138c69e9f_battery_median'') %}{{ s | int if s not in [''unknown'', ''unavailable'', ''''] else ''unknown'' }}'
+- binary_sensor:
+  - name: Living Room Sofa Occupancy Sensor Occupancy
+    state: '{% if states.sensor["a4c1381b8035_no_one_duration"].state == ''unavailable'' or states.sensor["a4c1381b8035_no_one_duration"].state  == ''unknown''%}
+
+      {{states.binary_sensor["a4c1381b8035_occupancy"].state}}
+
+      {% elif states.sensor["a4c1381b8035_no_one_duration"].state == ''0'' %}
+
+      {{states.binary_sensor["a4c1381b8035_occupancy"].state}}
+
+      {# else is equivilence to elif states.sensor["a4c1381b8035_no_one_duration"].state > "0" #}
+
+      {% else %}
+
+      off
+
+      {% endif %}
+
+      '
+    device_class: occupancy
+- sensor:
+  - name: Living Room Sofa Occupancy Sensor Battery
+    unit_of_measurement: '%'
+    device_class: battery
+    state_class: measurement
+    state: '{% set s = states(''sensor.a4c1381b8035_battery_median'') %}{{ s | int if s not in [''unknown'', ''unavailable'', ''''] else ''unknown'' }}'
+- binary_sensor:
+  - name: Living Room TV Xiaomi Home Occupancy Sensor Occupancy
+    state: '{% if states.sensor["linp_cn_blt_3_1kdf3f5aokk00_es2_no_one_duration_p_2_1079"].state == ''unavailable'' or states.sensor["linp_cn_blt_3_1kdf3f5aokk00_es2_no_one_duration_p_2_1079"].state  == ''unknown''%}
+
+      {{states.binary_sensor["linp_cn_blt_3_1kdf3f5aokk00_es2_occupancy_status_p_2_1078"].state}}
+
+      {% elif states.sensor["linp_cn_blt_3_1kdf3f5aokk00_es2_no_one_duration_p_2_1079"].state == ''0'' %}
+
+      {{states.binary_sensor["linp_cn_blt_3_1kdf3f5aokk00_es2_occupancy_status_p_2_1078"].state}}
+
+      {# else is equivilence to elif states.sensor["linp_cn_blt_3_1kdf3f5aokk00_es2_no_one_duration_p_2_1079"].state > "0" #}
+
+      {% else %}
+
+      off
+
+      {% endif %}
+
+      '
+    device_class: occupancy
+- sensor:
+  - name: Living Room TV Xiaomi Home Occupancy Sensor Battery
+    unit_of_measurement: '%'
+    device_class: battery
+    state_class: measurement
+    state: '{% set s = states(''sensor.linp_cn_blt_3_1kdf3f5aokk00_es2_battery_level_p_4_1003_median'') %}{{ s | int if s not in [''unknown'', ''unavailable'', ''''] else ''unknown'' }}'
+- binary_sensor:
+  - name: Living Room Sofa Xiaomi Home Occupancy Sensor Occupancy
+    state: '{% if states.sensor["linp_cn_blt_3_1kdf02hpkk400_es2_no_one_duration_p_2_1079"].state == ''unavailable'' or states.sensor["linp_cn_blt_3_1kdf02hpkk400_es2_no_one_duration_p_2_1079"].state  == ''unknown''%}
+
+      {{states.binary_sensor["linp_cn_blt_3_1kdf02hpkk400_es2_occupancy_status_p_2_1078"].state}}
+
+      {% elif states.sensor["linp_cn_blt_3_1kdf02hpkk400_es2_no_one_duration_p_2_1079"].state == ''0'' %}
+
+      {{states.binary_sensor["linp_cn_blt_3_1kdf02hpkk400_es2_occupancy_status_p_2_1078"].state}}
+
+      {# else is equivilence to elif states.sensor["linp_cn_blt_3_1kdf02hpkk400_es2_no_one_duration_p_2_1079"].state > "0" #}
+
+      {% else %}
+
+      off
+
+      {% endif %}
+
+      '
+    device_class: occupancy
+- sensor:
+  - name: Living Room Sofa Xiaomi Home Occupancy Sensor Battery
+    unit_of_measurement: '%'
+    device_class: battery
+    state_class: measurement
+    state: '{% set s = states(''sensor.linp_cn_blt_3_1kdf02hpkk400_es2_battery_level_p_4_1003_median'') %}{{ s | int if s not in [''unknown'', ''unavailable'', ''''] else ''unknown'' }}'
+- sensor:
+  - name: Living Room Entrance Motion Sensor Battery
+    unit_of_measurement: '%'
+    device_class: battery
+    state_class: measurement
+    state: '{% set s = states(''sensor.0x00158d0003140ea8_battery_median'') %}{{ s | int if s not in [''unknown'', ''unavailable'', ''''] else ''unknown'' }}'
+- sensor:
+  - name: Living Room Temperature Sensor 1
+    unit_of_measurement: "\xB0C"
+    state: '{{states.sensor["1c34f1acbb16_temperature"].state | float(22) | round(1)}}'
+- sensor:
+  - name: Living Room Temperature Sensor Battery 1
+    unit_of_measurement: '%'
+    device_class: battery
+    state_class: measurement
+    state: '{% set s = states(''sensor.1c34f1acbb16_battery_median'') %}{{ s | int if s not in [''unknown'', ''unavailable'', ''''] else ''unknown'' }}'
+- sensor:
+  - name: Living Room Temperature Sensor 2
+    unit_of_measurement: "\xB0C"
+    state: '{{states.sensor["xiaomi_cn_blt_3_1nu46jugl0o00_mini_temperature_p_2_1001"].state | float(22) | round(1)}}'
+- sensor:
+  - name: Living Room Temperature Sensor Battery 2
+    unit_of_measurement: '%'
+    device_class: battery
+    state_class: measurement
+    state: '{% set s = states(''sensor.xiaomi_cn_blt_3_1nu46jugl0o00_mini_battery_level_p_3_1003_median'') %}{{ s | int if s not in [''unknown'', ''unavailable'', ''''] else ''unknown'' }}'
+- sensor:
+  - name: Living Room Temperature Sensor
+    unit_of_measurement: "\xB0C"
+    state: '{% if   states(''sensor.living_room_temperature_sensor_1'') != ''unavailable'' and states(''sensor.living_room_temperature_sensor_2'') == ''unavailable'' %}{{states(''sensor.living_room_temperature_sensor_1'')}}{% elif states(''sensor.living_room_temperature_sensor_1'') == ''unavailable'' and states(''sensor.living_room_temperature_sensor_2'') != ''unavailable'' %}{{states(''sensor.living_room_temperature_sensor_2'')}}{% else %}{% set sensor_1 = states(''sensor.living_room_temperature_sensor_1'') | float(22) | round(1) %}{% set sensor_2 = states(''sensor.living_room_temperature_sensor_2'') | float(22) | round(1) %}{% if sensor_1 < 1.0 or sensor_2 < 1.0 or (sensor_1 + sensor_2) < 1.0 %}22.0{% else %}{{ ((sensor_1 + sensor_2) / 2) | round(1) }}{% endif %}{% endif %}'
+- sensor:
+  - name: Living Room Wall Button
+    state: '{{states.sensor["0x00158d0008d8ead8_action"].state}}'
+- sensor:
+  - name: Living Room East Side Light Sensor Battery
+    unit_of_measurement: '%'
+    device_class: battery
+    state_class: measurement
+    state: '{% set s = states(''sensor.0x04cf8cdf3c7b560f_battery_median'') %}{{ s | int if s not in [''unknown'', ''unavailable'', ''''] else ''unknown'' }}'
+- sensor:
+  - name: Living Room East Side Light Sensor
+    state: '{{states.sensor["0x04cf8cdf3c7b560f_illuminance"].state}}'
+    unit_of_measurement: lx
+- sensor:
+  - name: Living Room Button
+    state: '{{states.sensor["0x00158d000424f995_action"].state}}'
+- sensor:
+  - name: Living Room Button Battery
+    unit_of_measurement: '%'
+    device_class: battery
+    state_class: measurement
+    state: '{% set s = states(''sensor.0x00158d000424f995_battery_median'') %}{{ s | int if s not in [''unknown'', ''unavailable'', ''''] else ''unknown'' }}'
+- sensor:
+  - name: Living Room Window Battery
+    unit_of_measurement: '%'
+    device_class: battery
+    state_class: measurement
+    state: '{% set s = states(''sensor.e4aaec80beca_battery'') %}{{ s | int if s not in [''unknown'', ''unavailable'', ''''] else ''unknown'' }}'
+- sensor:
+  - name: Living Room Sliding Door Battery
+    unit_of_measurement: '%'
+    device_class: battery
+    state_class: measurement
+    state: '{% set s = states(''sensor.e4aaec80bedb_battery'') %}{{ s | int if s not in [''unknown'', ''unavailable'', ''''] else ''unknown'' }}'
+- binary_sensor:
+  - name: Living Room Desk Occupancy Sensor Occupancy
+    state: '{% if states.sensor["d44867b89dd3_no_one_duration"].state == ''unavailable'' or states.sensor["d44867b89dd3_no_one_duration"].state  == ''unknown''%}
+
+      {{states.binary_sensor["d44867b89dd3_occupancy"].state}}
+
+      {% elif states.sensor["d44867b89dd3_no_one_duration"].state == ''0'' %}
+
+      {{states.binary_sensor["d44867b89dd3_occupancy"].state}}
+
+      {# else is equivilence to elif states.sensor["d44867b89dd3_no_one_duration"].state > "0" #}
+
+      {% else %}
+
+      off
+
+      {% endif %}
+
+      '
+    device_class: occupancy
+- sensor:
+  - name: Living Room Desk Occupancy Sensor Battery
+    unit_of_measurement: '%'
+    device_class: battery
+    state_class: measurement
+    state: '{% set s = states(''sensor.d44867b89dd3_battery_median'') %}{{ s | int if s not in [''unknown'', ''unavailable'', ''''] else ''unknown'' }}'
+- binary_sensor:
+  - name: Living Room Desk Xiaomi Home Occupancy Sensor Occupancy
+    state: '{% if states.sensor["xiaomi_cn_blt_3_1icm36tbg4s04_03_no_one_duration_p_2_1082"].state == ''unavailable'' or states.sensor["xiaomi_cn_blt_3_1icm36tbg4s04_03_no_one_duration_p_2_1082"].state  == ''unknown''%}
+
+      {{states.binary_sensor["xiaomi_cn_blt_3_1icm36tbg4s04_03_occupancy_status_p_2_1078"].state}}
+
+      {% elif states.sensor["xiaomi_cn_blt_3_1icm36tbg4s04_03_no_one_duration_p_2_1082"].state == ''0'' %}
+
+      {{states.binary_sensor["xiaomi_cn_blt_3_1icm36tbg4s04_03_occupancy_status_p_2_1078"].state}}
+
+      {# else is equivilence to elif states.sensor["xiaomi_cn_blt_3_1icm36tbg4s04_03_no_one_duration_p_2_1082"].state > "0" #}
+
+      {% else %}
+
+      off
+
+      {% endif %}
+
+      '
+    device_class: occupancy
+- sensor:
+  - name: Living Room Desk Xiaomi Home Occupancy Sensor Battery
+    unit_of_measurement: '%'
+    device_class: battery
+    state_class: measurement
+    state: '{% set s = states(''sensor.xiaomi_cn_blt_3_1icm36tbg4s04_03_battery_level_p_3_1003_median'') %}{{ s | int if s not in [''unknown'', ''unavailable'', ''''] else ''unknown'' }}'
+- sensor:
+  - name: Boiler Room Motion Sensor Battery
+    unit_of_measurement: '%'
+    device_class: battery
+    state_class: measurement
+    state: '{% set s = states(''sensor.0x00158d00054d83df_battery_median'') %}{{ s | int if s not in [''unknown'', ''unavailable'', ''''] else ''unknown'' }}'
+- sensor:
+  - name: Living Room Tado Availiabity
+    unit_of_measurement: "\xB0C"
+    state: '{{states("sensor.tado_smart_radiator_thermostat_va2282557696_current_temperature") | float(22) | round(1)}}'
+- binary_sensor:
+  - name: Living Room Heating Required
+    state: '{% set climate = "climate.tado_smart_radiator_thermostat_va2282557696" %}{% if states(climate) == "unavailable" or states(climate) == "off" or (state_attr(climate, "temperature") <= state_attr(climate, "current_temperature"))  %}off{% else %} on{% endif %}'
+- sensor:
+  - name: Garden Door Lock Battery
+    unit_of_measurement: '%'
+    device_class: battery
+    state_class: measurement
+    state: '{% set s = states(''sensor.lock_ultra_silver_battery'') %}{{ s | int if s not in [''unknown'', ''unavailable'', ''''] else ''unknown'' }}'
+- sensor:
+  - name: Garden Door Handle Battery
+    unit_of_measurement: '%'
+    device_class: battery
+    state_class: measurement
+    state: '{% set s = states(''sensor.isa_cn_blt_3_1nu4c6j88c002_dw2hl_battery_level_p_3_1'') %}{{ s | int if s not in [''unknown'', ''unavailable'', ''''] else ''unknown'' }}'
+- binary_sensor:
+  - name: Living Room Unavailable Entities
+    state: '{% set added_device_entities =  [''binary_sensor.living_room_tv_occupancy_sensor_occupancy'', ''sensor.living_room_tv_occupancy_sensor_battery'', ''binary_sensor.living_room_sofa_occupancy_sensor_occupancy'', ''sensor.living_room_sofa_occupancy_sensor_battery'', ''binary_sensor.living_room_tv_xiaomi_home_occupancy_sensor_occupancy'', ''sensor.living_room_tv_xiaomi_home_occupancy_sensor_battery'', ''binary_sensor.living_room_sofa_xiaomi_home_occupancy_sensor_occupancy'', ''sensor.living_room_sofa_xiaomi_home_occupancy_sensor_battery'', ''sensor.living_room_entrance_motion_sensor_battery'', ''sensor.living_room_temperature_sensor_1'', ''sensor.living_room_temperature_sensor_battery_1'', ''sensor.living_room_temperature_sensor_2'', ''sensor.living_room_temperature_sensor_battery_2'', ''sensor.living_room_temperature_sensor'', ''sensor.living_room_wall_button'', ''sensor.living_room_east_side_light_sensor_battery'', ''sensor.living_room_east_side_light_sensor'', ''sensor.living_room_button'', ''sensor.living_room_button_battery'', ''sensor.living_room_window_battery'', ''sensor.living_room_sliding_door_battery'', ''binary_sensor.living_room_desk_occupancy_sensor_occupancy'', ''sensor.living_room_desk_occupancy_sensor_battery'', ''binary_sensor.living_room_desk_xiaomi_home_occupancy_sensor_occupancy'', ''sensor.living_room_desk_xiaomi_home_occupancy_sensor_battery'', ''sensor.boiler_room_motion_sensor_battery'', ''sensor.living_room_tado_availiabity'', ''binary_sensor.living_room_heating_required'', ''sensor.garden_door_lock_battery'', ''sensor.garden_door_handle_battery'', ''binary_sensor.living_room_entrance_motion_sensor_motion'', ''binary_sensor.living_room_window'', ''binary_sensor.living_room_sliding_door'', ''binary_sensor.boiler_room_motion_sensor_motion'', ''binary_sensor.garden_door_handle'', ''switch.living_room_wall_switch'', ''switch.living_room_gateway_power'', ''switch.living_room_floor_light_3'', ''cover.living_room_curtain_1'', ''cover.living_room_curtain_2'', ''lock.garden_door_lock'', ''lock.garden_door_lock_bluetooth'', ''light.boiler_room_light'', ''light.living_room_floor_light_1'', ''light.living_room_3_head_lamp_1'', ''light.living_room_3_head_lamp_2'', ''light.living_room_3_head_lamp_3'', ''light.living_room_floor_light_2'', ''light.living_room_ceiling_light''] %}{% set ns = namespace() %}{% set ns.num_unavail_devices = 0 %}{% for device in added_device_entities %}   {% if states(device) in [''unavailable'', ''unknown'', ''none''] %}      {% set ns.num_unavail_devices = ns.num_unavail_devices + 1 %}   {% endif %}{% endfor %}{% if ns.num_unavail_devices > 0%}  on  {% else %}  off {% endif %}'
+    attributes:
+      value: '{% set added_device_entities =  [''binary_sensor.living_room_tv_occupancy_sensor_occupancy'', ''sensor.living_room_tv_occupancy_sensor_battery'', ''binary_sensor.living_room_sofa_occupancy_sensor_occupancy'', ''sensor.living_room_sofa_occupancy_sensor_battery'', ''binary_sensor.living_room_tv_xiaomi_home_occupancy_sensor_occupancy'', ''sensor.living_room_tv_xiaomi_home_occupancy_sensor_battery'', ''binary_sensor.living_room_sofa_xiaomi_home_occupancy_sensor_occupancy'', ''sensor.living_room_sofa_xiaomi_home_occupancy_sensor_battery'', ''sensor.living_room_entrance_motion_sensor_battery'', ''sensor.living_room_temperature_sensor_1'', ''sensor.living_room_temperature_sensor_battery_1'', ''sensor.living_room_temperature_sensor_2'', ''sensor.living_room_temperature_sensor_battery_2'', ''sensor.living_room_temperature_sensor'', ''sensor.living_room_wall_button'', ''sensor.living_room_east_side_light_sensor_battery'', ''sensor.living_room_east_side_light_sensor'', ''sensor.living_room_button'', ''sensor.living_room_button_battery'', ''sensor.living_room_window_battery'', ''sensor.living_room_sliding_door_battery'', ''binary_sensor.living_room_desk_occupancy_sensor_occupancy'', ''sensor.living_room_desk_occupancy_sensor_battery'', ''binary_sensor.living_room_desk_xiaomi_home_occupancy_sensor_occupancy'', ''sensor.living_room_desk_xiaomi_home_occupancy_sensor_battery'', ''sensor.boiler_room_motion_sensor_battery'', ''sensor.living_room_tado_availiabity'', ''binary_sensor.living_room_heating_required'', ''sensor.garden_door_lock_battery'', ''sensor.garden_door_handle_battery'', ''binary_sensor.living_room_entrance_motion_sensor_motion'', ''binary_sensor.living_room_window'', ''binary_sensor.living_room_sliding_door'', ''binary_sensor.boiler_room_motion_sensor_motion'', ''binary_sensor.garden_door_handle'', ''switch.living_room_wall_switch'', ''switch.living_room_gateway_power'', ''switch.living_room_floor_light_3'', ''cover.living_room_curtain_1'', ''cover.living_room_curtain_2'', ''lock.garden_door_lock'', ''lock.garden_door_lock_bluetooth'', ''light.boiler_room_light'', ''light.living_room_floor_light_1'', ''light.living_room_3_head_lamp_1'', ''light.living_room_3_head_lamp_2'', ''light.living_room_3_head_lamp_3'', ''light.living_room_floor_light_2'', ''light.living_room_ceiling_light''] %}{% set ns = namespace() %}{% set ns.unavail_devices = '''' %}{% for device in added_device_entities %}   {% if states(device) in [''unavailable'', ''unknown'', ''none''] %}   {% set ns.unavail_devices = ns.unavail_devices + ''
+
+        '' +device %} {% endif %}{% endfor %}{{ns.unavail_devices}}'
+- binary_sensor:
+  - name: Living Room Low Battery
+    state: '{% set state = states("sensor.living_room_min_battery") %} {% if state == "unavailable" or state == "unknown" or int(state) > 20 %} off {% else%} on {% endif %}'
+binary_sensor:
+- platform: group
+  name: Living Room Entrance Motion Sensor Motion
+  device_class: motion
+  entities: binary_sensor.0x00158d0003140ea8_motion
+- platform: group
+  name: Living Room Window
+  entities: binary_sensor.e4aaec80beca_contact
+- platform: group
+  name: Living Room Sliding Door
+  entities: binary_sensor.e4aaec80bedb_contact
+- platform: group
+  name: Boiler Room Motion Sensor Motion
+  device_class: motion
+  entities: binary_sensor.0x00158d00054d83df_motion
+- platform: group
+  name: Garden Door Handle
+  entities: binary_sensor.isa_cn_blt_3_1nu4c6j88c002_dw2hl_contact_state_p_2_2
+event: []
+lock:
+- platform: group
+  name: Garden Door Lock
+  entities: lock.lock_ultra_f8
+- platform: group
+  name: Garden Door Lock Bluetooth
+  entities: lock.lock_ultra_28f8
+light:
+- platform: group
+  name: Boiler Room Light
+  entities: light.28d127202ef6_light
+- platform: group
+  name: Living Room Floor Light 1
+  entities: light.hue_color_lamp_1
+- platform: group
+  name: Living Room 3 Head Lamp 1
+  entities: light.hue_color_lamp_2
+- platform: group
+  name: Living Room 3 Head Lamp 2
+  entities: light.hue_color_lamp_3
+- platform: group
+  name: Living Room 3 Head Lamp 3
+  entities: light.hue_color_lamp_4
+- platform: group
+  name: Living Room Floor Light 2
+  entities:
+  - light.living_room_3_head_lamp_1
+  - light.living_room_3_head_lamp_2
+  - light.living_room_3_head_lamp_3
+- platform: group
+  name: Living Room Ceiling Light
+  entities: light.yeelink_cn_436905718_ceil30_s_2_light
 group:
   living_room_occupancy_group:
     name: Living Room Occupancy Group
@@ -4103,8 +4488,11 @@ group:
     - input_select.living_room_occupancy
     - group.living_room_motion_group
     - binary_sensor.living_room_entrance_motion_sensor_motion
+    - binary_sensor.living_room_desk_xiaomi_home_occupancy_sensor_occupancy
     - binary_sensor.living_room_desk_occupancy_sensor_occupancy
+    - binary_sensor.living_room_tv_xiaomi_home_occupancy_sensor_occupancy
     - binary_sensor.living_room_tv_occupancy_sensor_occupancy
+    - binary_sensor.living_room_sofa_xiaomi_home_occupancy_sensor_occupancy
     - binary_sensor.living_room_sofa_occupancy_sensor_occupancy
     - binary_sensor.living_room_entrance_motion_sensor_motion
     - binary_sensor.living_room_sliding_door
@@ -4113,8 +4501,11 @@ group:
     name: Living Room Motion Group
     entities:
     - binary_sensor.living_room_entrance_motion_sensor_motion
+    - binary_sensor.living_room_desk_xiaomi_home_occupancy_sensor_occupancy
     - binary_sensor.living_room_desk_occupancy_sensor_occupancy
+    - binary_sensor.living_room_tv_xiaomi_home_occupancy_sensor_occupancy
     - binary_sensor.living_room_tv_occupancy_sensor_occupancy
+    - binary_sensor.living_room_sofa_xiaomi_home_occupancy_sensor_occupancy
     - binary_sensor.living_room_sofa_occupancy_sensor_occupancy
     - binary_sensor.living_room_entrance_motion_sensor_motion
     - binary_sensor.living_room_sliding_door
@@ -4130,6 +4521,8 @@ group:
     entities:
     - binary_sensor.living_room_sliding_door
     - binary_sensor.living_room_window
+    - binary_sensor.garden_door_handle
+    - lock.garden_door_lock
   living_room_timeout_window_group:
     name: Living Room Timeout Window Group
     entities: []
@@ -4145,13 +4538,15 @@ group:
     - sensor.living_room_tv_xiaomi_home_occupancy_sensor_battery
     - sensor.living_room_sofa_xiaomi_home_occupancy_sensor_battery
     - sensor.living_room_entrance_motion_sensor_battery
-    - sensor.living_room_temperature_sensor_battery_1
     - sensor.living_room_east_side_light_sensor_battery
     - sensor.living_room_button_battery
+    - sensor.living_room_window_battery
+    - sensor.living_room_sliding_door_battery
     - sensor.living_room_desk_occupancy_sensor_battery
     - sensor.living_room_desk_xiaomi_home_occupancy_sensor_battery
     - sensor.boiler_room_motion_sensor_battery
     - sensor.garden_door_lock_battery
+    - sensor.garden_door_handle_battery
   living_room_auto_gen_automations:
     name: Living Room Auto Gen Automations
     entities:
@@ -4185,6 +4580,8 @@ group:
     - automation.zm_lr_sonos_pause_playing_after_people_left_living_room
     - automation.zlb_lr_wall_switch_double_press_leave_room_and_turn_off_everything_living_room
     - automation.zoc_lr_occupancy_update_living_room
+    - automation.zoc_lr_occupancy_override_and_sync_to_timer_living_room
+    - automation.zoc_lr_occupancy_override_sync_from_timer_living_room
     - automation.ztv_lr_reset_picture_mode_when_turning_on_tv_living_room
     - automation.zn_lr_notify_zigbee_offline_devices_living_room
     - automation.zn_lr_notify_wifi_offline_devices_living_room
@@ -4194,10 +4591,8 @@ group:
     - switch.0x00158d0008d8ead8_switch
     - switch.0x00158d0008d8ead8_wireless
     - switch.adaptive_lighting_sleep_mode_living_room
-    - input_datetime.morning_start_time_living_room
-    - input_datetime.morning_end_time_living_room
-    - input_datetime.afternoon_start_time_living_room
-    - input_datetime.afternoon_end_time_living_room
+    - input_datetime.noon_time_living_room
     - sensor.living_room_east_side_light_sensor
     - input_number.living_room_min_value_as_bright
     - group.living_room_battery
+    - group.living_room_window_group

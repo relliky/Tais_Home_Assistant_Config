@@ -74,20 +74,6 @@ group:
       - binary_sensor.master_room_entrance_motion_sensor_motion
       - binary_sensor.master_room_stair_motion_sensor_motion
 
-  master_room_appliances:
-    name: Master Room Appliances
-    entities:
-      - climate.master_room
-      - light.master_room_lamps
-      - light.master_room_leds
-      #- light.master_room_entrance_led_light
-      - switch.master_room_entrance_wall_switch
-      - switch.master_room_dressing_table_light
-      - light.master_room_ceiling_light
-      - cover.master_room_blind
-      - cover.master_room_curtain
-      - media_player.master_room_tv
-
 # Custom Thermostat
 #climate:
 #  - platform: generic_thermostat
@@ -491,8 +477,8 @@ automation light:
     action:
       - service: homeassistant.turn_on
         entity_id:
-          #- light.master_room_entrance_led_light
-          - switch.master_room_entrance_wall_switch
+          - light.master_room_entrance_light
+          #- switch.master_room_entrance_wall_switch
       - choose:
           # IF - in the nighttime, also turn on corridor lights
           - conditions:
@@ -503,6 +489,7 @@ automation light:
               - service: script.corridor_lights_turn_on
 
   - alias: L-MR-M Master Room Entrance Lights Off If No Person
+    id: fdjalsfjdlksajfldsakjfdslk
     description: ""
     trigger:
       - entity_id: group.master_room_stair_motion
@@ -520,8 +507,8 @@ automation light:
     action:
       - service: homeassistant.turn_off
         entity_id:
-          #- light.master_room_entrance_led_light
-          - switch.master_room_entrance_wall_switch
+          - light.master_room_entrance_light
+          #- switch.master_room_entrance_wall_switch
 
   - alias: L-MR-M Master Room Balcony Lights On If Door Open
     id: "1615068441570"
@@ -761,16 +748,16 @@ script curtain:
 ###############################################
 automation button:
   # Master Room
-  - alias: L-MR-B Master Room Entrance Switch - Single Press - Toggle Entrace Light
-    trigger:
-      - platform: state
-        entity_id: sensor.master_room_entrance_light_wall_button
-        to: single
-    action:
-      - service: homeassistant.toggle
-        entity_id:
-          #- light.master_room_entrance_led_light
-          - switch.master_room_entrance_wall_switch
+#  - alias: L-MR-B Master Room Entrance Switch - Single Press - Toggle Entrace Light
+#    trigger:
+#      - platform: state
+#        entity_id: sensor.master_room_entrance_light_wall_button
+#        to: single
+#    action:
+#      - service: homeassistant.toggle
+#        entity_id:
+#          #- light.master_room_entrance_led_light
+#          - switch.master_room_entrance_wall_switch
 
 ###############################################
 # TV Media Script/Automation
@@ -843,7 +830,7 @@ script tv:
         data:
           entity_id: media_player.master_room_tv
           picture_mode: >
-            {% if states('input_select.indoor_brightness') != 'dark' %}  
+            {% if states('input_select.indoor_brightness') != 'dark' %}
               Standard
             {% else %}
               Movie
@@ -1069,6 +1056,30 @@ automation tv:
               alexa_speaker_list:
                 - media_player.master_room_echo
     mode: single
+
+
+automation smart_bed:
+- alias: R-MR Smart Bed Button Timeout - Master Room
+  id: fjkdlsfnmvldsabjiowrefajklewdj8f9u320iornfjl4ihegfuiwdjfsk
+  mode: parallel
+  trigger:
+    - platform: state
+      entity_id:
+        - switch.alpha_head_up
+        - switch.alpha_head_down
+        - switch.alpha_foot_up
+        - switch.alpha_foot_down
+        - switch.beta_head_up
+        - switch.beta_head_down
+        - switch.beta_foot_up
+        - switch.beta_foot_down
+      to: "on"
+      for: "00:00:20"
+  action:
+    - service: switch.turn_off
+      target:
+        entity_id: "{{ trigger.entity_id }}"
+        
 # automation sonos:
 #   - alias: S-MR-M Master Room Group Its Speaker If People Present
 #     trigger:

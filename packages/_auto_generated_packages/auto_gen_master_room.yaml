@@ -1,357 +1,6 @@
 #############################################################################
 # DO NOT MODIFY. This is an automatically generated file.                   # 
-# Please modify the python source code under python_templates directory.    #
 #############################################################################
-input_select:
-  master_room_scene:
-    name: Master Room Scene
-    options:
-    - Idle
-    - Hue
-    - Sleep Mode
-    - Night Mode
-    - Dark Night Mode
-    - Lamp LED White
-    - LED White
-    - All White
-    - Ceiling Light White
-    - All Off
-  master_room_occupancy:
-    name: Master Room Occupancy
-    options:
-    - Outside
-    - Just Entered
-    - Stayed Inside
-    - In Sleep
-sensor:
-- platform: history_stats
-  name: Master Room Motion On Ratio For Last 4 Minutes
-  entity_id: group.master_room_motion_group
-  state: 'on'
-  type: ratio
-  duration:
-    minutes: '4'
-  end: '{{ (now() | as_timestamp) | as_datetime | as_local }}'
-- platform: history_stats
-  name: Master Room Motion On Ratio For Last 8 Minutes
-  entity_id: group.master_room_motion_group
-  state: 'on'
-  type: ratio
-  duration:
-    minutes: '8'
-  end: '{{ (now() | as_timestamp) | as_datetime | as_local }}'
-- name: Master Room Temperature Sensor
-  platform: filter
-  entity_id: sensor.master_room_average_temperature_sensor
-  filters:
-    filter: lowpass
-    time_constant: 4
-    precision: 1
-- name: Master Room Min Battery
-  platform: min_max
-  type: min
-  entity_ids:
-  - sensor.master_room_temperature_sensor_battery_new_1
-  - sensor.master_room_temperature_sensor_battery_new_2
-  - sensor.master_room_bed_occupancy_sensor_battery
-  - sensor.master_room_bed_xiaomi_home_occupancy_sensor_battery
-  - sensor.master_room_baby_occupancy_sensor_battery
-  - sensor.master_room_baby_xiaomi_home_occupancy_sensor_battery
-  - sensor.master_room_tv_motion_sensor_battery
-  - sensor.master_room_entrance_motion_sensor_battery
-  - sensor.master_room_stair_motion_sensor_battery
-  - sensor.master_room_drawer_motion_sensor_battery
-  - sensor.master_room_west_side_light_sensor_battery
-input_boolean:
-  master_room_heating_override:
-    name: Master Room Heating Override
-    initial: 'off'
-  master_room_sleep_time:
-    name: Master Room Sleep Time
-  curtain_control_when_left_master_room:
-    name: Curtain Control When Left Master Room
-  curtain_control_bright_morning_when_left_master_room:
-    name: Curtain Control Bright Morning When Left Master Room
-  curtain_control_bright_afternoon_when_left_master_room:
-    name: Curtain Control Bright Afternoon When Left Master Room
-  curtain_control_dark_when_left_master_room:
-    name: Curtain Control Dark When Left Master Room
-  ceiling_light_control_bright_morning_master_room:
-    name: Ceiling Light Control Bright Morning Master Room
-  lamp_control_bright_morning_master_room:
-    name: Lamp Control Bright Morning Master Room
-  led_control_bright_morning_master_room:
-    name: Led Control Bright Morning Master Room
-  curtain_control_bright_morning_master_room:
-    name: Curtain Control Bright Morning Master Room
-  ceiling_light_control_bright_afternoon_master_room:
-    name: Ceiling Light Control Bright Afternoon Master Room
-  lamp_control_bright_afternoon_master_room:
-    name: Lamp Control Bright Afternoon Master Room
-  led_control_bright_afternoon_master_room:
-    name: Led Control Bright Afternoon Master Room
-  curtain_control_bright_afternoon_master_room:
-    name: Curtain Control Bright Afternoon Master Room
-  ceiling_light_control_dark_master_room:
-    name: Ceiling Light Control Dark Master Room
-  lamp_control_dark_master_room:
-    name: Lamp Control Dark Master Room
-  led_control_dark_master_room:
-    name: Led Control Dark Master Room
-  curtain_control_dark_master_room:
-    name: Curtain Control Dark Master Room
-  master_room_tado_heater:
-    name: Master Room Tado Heater
-input_datetime:
-  morning_start_time_master_room:
-    name: Morning Start Time Master Room
-    has_date: false
-    has_time: true
-  morning_end_time_master_room:
-    name: Morning End Time Master Room
-    has_date: false
-    has_time: true
-  afternoon_start_time_master_room:
-    name: Afternoon Start Time Master Room
-    has_date: false
-    has_time: true
-  afternoon_end_time_master_room:
-    name: Afternoon End Time Master Room
-    has_date: false
-    has_time: true
-input_number:
-  master_room_min_value_as_bright:
-    name: Master Room Min Value As Bright
-    min: 0
-    max: 4000
-    step: 1
-    mode: box
-switch:
-- platform: group
-  name: Master Room Wall Switch 1
-  entities: switch.0x04cf8cdf3c7ad638_channel_1
-- platform: group
-  name: Master Room Wall Switch 2
-  entities: switch.0x04cf8cdf3c7ad638_channel_2
-- platform: group
-  name: Master Room Wall Switch 3
-  entities: switch.0x04cf8cdf3c7ad638_channel_3
-- platform: group
-  name: 'Master Room Entrance Wall Switch '
-  entities: switch.0x00158d00052e2124_switch
-- platform: group
-  name: Master Room Balcony Wall Light
-  entities: switch.0x04cf8cdf3c7ad638_channel_1
-- platform: group
-  name: Master Room Gateway Power
-  entities: switch.sonoff_1001e4a0a0_1
-cover:
-- platform: group
-  name: Master Room Curtain
-  entities: cover.0x04cf8cdf3c73a19b_motor
-climate:
-- platform: generic_thermostat
-  name: Master Room
-  heater: input_boolean.master_room_tado_heater
-  target_sensor: sensor.master_room_temperature_sensor
-  min_temp: 16
-  max_temp: 27
-  ac_mode: false
-  cold_tolerance: 0
-  precision: 0.1
-  target_temp_step: 0.5
-  min_cycle_duration: 00:01:30
-template:
-- sensor:
-  - name: Master Room Temperature Sensor new_1
-    unit_of_measurement: "\xB0C"
-    state: '{{states.sensor["582d34376b04_temperature"].state | float | round(1)}}'
-- sensor:
-  - name: Master Room Temperature Sensor Battery new_1
-    unit_of_measurement: '%'
-    state: '{{states.sensor["582d34376b04_battery"].state}}'
-- sensor:
-  - name: Master Room Temperature Sensor new_2
-    unit_of_measurement: "\xB0C"
-    state: '{{states.sensor["582d343b6a27_temperature"].state | float | round(1)}}'
-- sensor:
-  - name: Master Room Temperature Sensor Battery new_2
-    unit_of_measurement: '%'
-    state: '{{states.sensor["582d343b6a27_battery"].state}}'
-- sensor:
-  - name: Master Room Average Temperature Sensor
-    unit_of_measurement: "\xB0C"
-    state: '{% if   states(''sensor.master_room_temperature_sensor_new_1'') != ''unavailable'' and states(''sensor.master_room_temperature_sensor_new_2'') == ''unavailable'' %}{{states(''sensor.master_room_temperature_sensor_new_1'')}}{% elif states(''sensor.master_room_temperature_sensor_new_1'') == ''unavailable'' and states(''sensor.master_room_temperature_sensor_new_2'') != ''unavailable'' %}{{states(''sensor.master_room_temperature_sensor_new_2'')}}{% else %}{% set sensor_1 = states(''sensor.master_room_temperature_sensor_new_1'') | float | round(1) %}{% set sensor_2 = states(''sensor.master_room_temperature_sensor_new_2'') | float | round(1) %}{% if sensor_1 < 1.0 or sensor_2 < 1.0 or (sensor_1 + sensor_2) < 1.0 %}22.0{% else %}{{ ((sensor_1 + sensor_2) / 2) | round(1) }}{% endif %}{% endif %}'
-- binary_sensor:
-  - name: Master Room Bed Occupancy Sensor Occupancy
-    state: '{% if states.sensor["a4c1383dc01d_no_one_duration"].state == ''unavailable'' or states.sensor["a4c1383dc01d_no_one_duration"].state  == ''unknown''%}
-
-      {{states.binary_sensor["a4c1383dc01d_occupancy"].state}}
-
-      {% elif states.sensor["a4c1383dc01d_no_one_duration"].state == ''0'' %}
-
-      {{states.binary_sensor["a4c1383dc01d_occupancy"].state}}
-
-      {# else is equivilence to elif states.sensor["a4c1383dc01d_no_one_duration"].state > "0" #}
-
-      {% else %}
-
-      off
-
-      {% endif %}
-
-      '
-- sensor:
-  - name: Master Room Bed Occupancy Sensor Battery
-    unit_of_measurement: '%'
-    state: '{{states.sensor["a4c1383dc01d_battery"].state}}'
-- binary_sensor:
-  - name: Master Room Bed Xiaomi Home Occupancy Sensor Occupancy
-    state: '{% if states.sensor["linp_cn_blt_3_1k8ac64fskc00_es2_no_one_duration_p_2_1079"].state == ''unavailable'' or states.sensor["linp_cn_blt_3_1k8ac64fskc00_es2_no_one_duration_p_2_1079"].state  == ''unknown''%}
-
-      {{states.binary_sensor["linp_cn_blt_3_1k8ac64fskc00_es2_occupancy_status_p_2_1078"].state}}
-
-      {% elif states.sensor["linp_cn_blt_3_1k8ac64fskc00_es2_no_one_duration_p_2_1079"].state == ''0'' %}
-
-      {{states.binary_sensor["linp_cn_blt_3_1k8ac64fskc00_es2_occupancy_status_p_2_1078"].state}}
-
-      {# else is equivilence to elif states.sensor["linp_cn_blt_3_1k8ac64fskc00_es2_no_one_duration_p_2_1079"].state > "0" #}
-
-      {% else %}
-
-      off
-
-      {% endif %}
-
-      '
-- sensor:
-  - name: Master Room Bed Xiaomi Home Occupancy Sensor Battery
-    unit_of_measurement: '%'
-    state: '{{states.sensor["linp_cn_blt_3_1k8ac64fskc00_es2_battery_level_p_4_1003"].state}}'
-- binary_sensor:
-  - name: Master Room Baby Occupancy Sensor Occupancy
-    state: '{% if states.sensor["a4c138961632_no_one_duration"].state == ''unavailable'' or states.sensor["a4c138961632_no_one_duration"].state  == ''unknown''%}
-
-      {{states.binary_sensor["a4c138961632_occupancy"].state}}
-
-      {% elif states.sensor["a4c138961632_no_one_duration"].state == ''0'' %}
-
-      {{states.binary_sensor["a4c138961632_occupancy"].state}}
-
-      {# else is equivilence to elif states.sensor["a4c138961632_no_one_duration"].state > "0" #}
-
-      {% else %}
-
-      off
-
-      {% endif %}
-
-      '
-- sensor:
-  - name: Master Room Baby Occupancy Sensor Battery
-    unit_of_measurement: '%'
-    state: '{{states.sensor["a4c138961632_battery"].state}}'
-- binary_sensor:
-  - name: Master Room Baby Xiaomi Home Occupancy Sensor Occupancy
-    state: '{% if states.sensor["linp_cn_blt_3_1kfc872k0k800_es2_no_one_duration_p_2_1079"].state == ''unavailable'' or states.sensor["linp_cn_blt_3_1kfc872k0k800_es2_no_one_duration_p_2_1079"].state  == ''unknown''%}
-
-      {{states.binary_sensor["linp_cn_blt_3_1kfc872k0k800_es2_occupancy_status_p_2_1078"].state}}
-
-      {% elif states.sensor["linp_cn_blt_3_1kfc872k0k800_es2_no_one_duration_p_2_1079"].state == ''0'' %}
-
-      {{states.binary_sensor["linp_cn_blt_3_1kfc872k0k800_es2_occupancy_status_p_2_1078"].state}}
-
-      {# else is equivilence to elif states.sensor["linp_cn_blt_3_1kfc872k0k800_es2_no_one_duration_p_2_1079"].state > "0" #}
-
-      {% else %}
-
-      off
-
-      {% endif %}
-
-      '
-- sensor:
-  - name: Master Room Baby Xiaomi Home Occupancy Sensor Battery
-    unit_of_measurement: '%'
-    state: '{{states.sensor["linp_cn_blt_3_1kfc872k0k800_es2_battery_level_p_4_1003"].state}}'
-- sensor:
-  - name: Master Room TV Motion Sensor Battery
-    unit_of_measurement: '%'
-    state: '{{states.sensor["0x00158d0005228ba8_battery"].state}}'
-- sensor:
-  - name: Master Room Entrance Motion Sensor Battery
-    unit_of_measurement: '%'
-    state: '{{states.sensor["0x00158d000122393b_battery"].state}}'
-- sensor:
-  - name: Master Room Stair Motion Sensor Battery
-    unit_of_measurement: '%'
-    state: '{{states.sensor["0x00158d00054deda4_battery"].state}}'
-- sensor:
-  - name: Master Room Drawer Motion Sensor Battery
-    unit_of_measurement: '%'
-    state: '{{states.sensor["0x00158d00054a6f3a_battery"].state}}'
-- sensor:
-  - name: Master Room Wall Button
-    state: '{{states.sensor["0x04cf8cdf3c7ad638_action"].state}}'
-- sensor:
-  - name: Master Room Entrance Wall Button
-    state: '{{states.sensor["0x00158d00052e2124_action"].state}}'
-- sensor:
-  - name: Master Room West Side Light Sensor Battery
-    unit_of_measurement: '%'
-    state: '{{states.sensor["0x04cf8cdf3c7b36b1_battery"].state}}'
-- sensor:
-  - name: Master Room West Side Light Sensor
-    state: '{{states.sensor["0x04cf8cdf3c7b36b1_illuminance"].state}}'
-    unit_of_measurement: lx
-- sensor:
-  - name: Master Room Tado Availiabity
-    unit_of_measurement: "\xB0C"
-    state: '{{states("sensor.tado_smart_radiator_thermostat_va0932385792_current_temperature") | float | round(1)}}'
-- binary_sensor:
-  - name: Master Room Heating Required
-    state: '{% set climate = "climate.tado_smart_radiator_thermostat_va0932385792" %}{% if states(climate) == "unavailable" or states(climate) == "off" or (state_attr(climate, "temperature") <= state_attr(climate, "current_temperature"))  %}off{% else %} on{% endif %}'
-- binary_sensor:
-  - name: Master Room Unavailable Entities
-    state: '{% set added_device_entities =  [''sensor.master_room_temperature_sensor_new_1'', ''sensor.master_room_temperature_sensor_battery_new_1'', ''sensor.master_room_temperature_sensor_new_2'', ''sensor.master_room_temperature_sensor_battery_new_2'', ''sensor.master_room_average_temperature_sensor'', ''binary_sensor.master_room_bed_occupancy_sensor_occupancy'', ''sensor.master_room_bed_occupancy_sensor_battery'', ''binary_sensor.master_room_bed_xiaomi_home_occupancy_sensor_occupancy'', ''sensor.master_room_bed_xiaomi_home_occupancy_sensor_battery'', ''binary_sensor.master_room_baby_occupancy_sensor_occupancy'', ''sensor.master_room_baby_occupancy_sensor_battery'', ''binary_sensor.master_room_baby_xiaomi_home_occupancy_sensor_occupancy'', ''sensor.master_room_baby_xiaomi_home_occupancy_sensor_battery'', ''sensor.master_room_tv_motion_sensor_battery'', ''sensor.master_room_entrance_motion_sensor_battery'', ''sensor.master_room_stair_motion_sensor_battery'', ''sensor.master_room_drawer_motion_sensor_battery'', ''sensor.master_room_wall_button'', ''sensor.master_room_entrance_wall_button'', ''sensor.master_room_west_side_light_sensor_battery'', ''sensor.master_room_west_side_light_sensor'', ''sensor.master_room_tado_availiabity'', ''binary_sensor.master_room_heating_required'', ''binary_sensor.master_room_tv_motion_sensor_motion'', ''binary_sensor.master_room_entrance_motion_sensor_motion'', ''binary_sensor.master_room_stair_motion_sensor_motion'', ''binary_sensor.master_room_drawer_motion_sensor_motion'', ''switch.master_room_wall_switch_1'', ''switch.master_room_wall_switch_2'', ''switch.master_room_wall_switch_3'', ''switch.master_room_entrance_wall_switch'', ''switch.master_room_balcony_wall_light'', ''switch.master_room_gateway_power'', ''cover.master_room_curtain'', ''light.master_room_bed_ceiling_light'', ''light.master_room_drawer_ceiling_light'', ''light.master_room_lamp_1'', ''light.master_room_lamp_2'', ''light.master_room_tv_led''] %}{% set ns = namespace() %}{% set ns.num_unavail_devices = 0 %}{% for device in added_device_entities %}   {% if states(device) in [''unavailable'', ''unknown'', ''none''] %}      {% set ns.num_unavail_devices = ns.num_unavail_devices + 1 %}   {% endif %}{% endfor %}{% if ns.num_unavail_devices > 0%}  on  {% else %}  off {% endif %}'
-    attributes:
-      value: '{% set added_device_entities =  [''sensor.master_room_temperature_sensor_new_1'', ''sensor.master_room_temperature_sensor_battery_new_1'', ''sensor.master_room_temperature_sensor_new_2'', ''sensor.master_room_temperature_sensor_battery_new_2'', ''sensor.master_room_average_temperature_sensor'', ''binary_sensor.master_room_bed_occupancy_sensor_occupancy'', ''sensor.master_room_bed_occupancy_sensor_battery'', ''binary_sensor.master_room_bed_xiaomi_home_occupancy_sensor_occupancy'', ''sensor.master_room_bed_xiaomi_home_occupancy_sensor_battery'', ''binary_sensor.master_room_baby_occupancy_sensor_occupancy'', ''sensor.master_room_baby_occupancy_sensor_battery'', ''binary_sensor.master_room_baby_xiaomi_home_occupancy_sensor_occupancy'', ''sensor.master_room_baby_xiaomi_home_occupancy_sensor_battery'', ''sensor.master_room_tv_motion_sensor_battery'', ''sensor.master_room_entrance_motion_sensor_battery'', ''sensor.master_room_stair_motion_sensor_battery'', ''sensor.master_room_drawer_motion_sensor_battery'', ''sensor.master_room_wall_button'', ''sensor.master_room_entrance_wall_button'', ''sensor.master_room_west_side_light_sensor_battery'', ''sensor.master_room_west_side_light_sensor'', ''sensor.master_room_tado_availiabity'', ''binary_sensor.master_room_heating_required'', ''binary_sensor.master_room_tv_motion_sensor_motion'', ''binary_sensor.master_room_entrance_motion_sensor_motion'', ''binary_sensor.master_room_stair_motion_sensor_motion'', ''binary_sensor.master_room_drawer_motion_sensor_motion'', ''switch.master_room_wall_switch_1'', ''switch.master_room_wall_switch_2'', ''switch.master_room_wall_switch_3'', ''switch.master_room_entrance_wall_switch'', ''switch.master_room_balcony_wall_light'', ''switch.master_room_gateway_power'', ''cover.master_room_curtain'', ''light.master_room_bed_ceiling_light'', ''light.master_room_drawer_ceiling_light'', ''light.master_room_lamp_1'', ''light.master_room_lamp_2'', ''light.master_room_tv_led''] %}{% set ns = namespace() %}{% set ns.unavail_devices = '''' %}{% for device in added_device_entities %}   {% if states(device) in [''unavailable'', ''unknown'', ''none''] %}   {% set ns.unavail_devices = ns.unavail_devices + ''
-
-        '' +device %} {% endif %}{% endfor %}{{ns.unavail_devices}}'
-- binary_sensor:
-  - name: Master Room Low Battery
-    state: '{% set state = states("sensor.master_room_min_battery") %} {% if state == "unavailable" or state == "unknown" or int(state) > 20 %} off {% else%} on {% endif %}'
-binary_sensor:
-- platform: group
-  name: Master Room TV Motion Sensor Motion
-  entities: binary_sensor.0x00158d0005228ba8_motion
-- platform: group
-  name: Master Room Entrance Motion Sensor Motion
-  entities: binary_sensor.0x00158d000122393b_motion
-- platform: group
-  name: Master Room Stair Motion Sensor Motion
-  entities: binary_sensor.0x00158d00054deda4_motion
-- platform: group
-  name: Master Room Drawer Motion Sensor Motion
-  entities: binary_sensor.0x00158d00054a6f3a_motion
-event: []
-lock: []
-light:
-- platform: group
-  name: Master Room Bed Ceiling Light
-  entities: light.50ec50df3056_light
-- platform: group
-  name: Master Room Drawer Ceiling Light
-  entities: light.yeelink_cn_442976373_ceiling13_s_2_light
-- platform: group
-  name: Master Room Lamp 1
-  entities: light.hue_color_lamp_5
-- platform: group
-  name: Master Room Lamp 2
-  entities: light.hue_color_lamp_6
-- platform: group
-  name: Master Room TV LED
-  entities: light.master_room_tv_led_magic_home
 adaptive_lighting:
 - name: Master Room
   lights:
@@ -369,6 +18,32 @@ adaptive_lighting:
   max_color_temp: 4000
   sleep_brightness: 20
   sleep_color_temp: 2200
+  min_sunset_time: '17:30'
+  take_over_control: true
+  autoreset_control_seconds: 86400
+  detect_non_ha_changes: false
+  only_once: false
+  adapt_only_on_bare_turn_on: true
+  separate_turn_on_commands: false
+  send_split_delay: 500
+  adapt_delay: 0.5
+  intercept: true
+  multi_light_intercept: true
+  include_config_in_attributes: false
+- name: Master Room Entrance
+  lights:
+  - light.master_room_entrance_light
+  prefer_rgb_color: false
+  transition: 45
+  initial_transition: 1
+  interval: 90
+  min_brightness: 50
+  max_brightness: 100
+  min_color_temp: 2700
+  max_color_temp: 4000
+  sleep_brightness: 15
+  sleep_color_temp: 2200
+  min_sunset_time: '17:30'
   take_over_control: true
   autoreset_control_seconds: 86400
   detect_non_ha_changes: false
@@ -444,9 +119,15 @@ automation:
   - trigger: state
     entity_id: climate.tado_smart_radiator_thermostat_va0932385792
     attribute: temperature
+  - trigger: state
+    entity_id: climate.tado_smart_radiator_thermostat_va0932385792
+    attribute: current_temperature
+  - trigger: homeassistant
+    event: start
   - minutes: /30
-    seconds: '8'
-    platform: time_pattern
+    seconds: '44'
+    trigger: time_pattern
+  mode: single
   actions:
   - if:
     - condition: state
@@ -456,9 +137,10 @@ automation:
     - action: climate.set_temperature
       data:
         hvac_mode: heat
-        temperature: '{%set room_helper_entity = ''climate.master_room'' %}{%set tado_valve_entity  = ''climate.tado_smart_radiator_thermostat_va0932385792'' %}  {%set room_cur_temp      = state_attr(room_helper_entity, ''current_temperature'') | float %}  {%set room_target_temp   = state_attr(room_helper_entity, ''temperature'')         | float %}  {%set tado_cur_temp      = state_attr(tado_valve_entity,  ''current_temperature'') | float %}  {#diff = room_target_temp - room_cur_temp = tado_target_temp_nxt - tado_cur_temp #}{% set tado_target_temp_nxt = ((room_target_temp - room_cur_temp + tado_cur_temp) * 2) | float | round / 2 %} {# round to 0.5 #}{%set tado_target_temp_nxt_sat = [[tado_target_temp_nxt, 25]|min,5]|max %} {# set lower and upper limit to [5,25] #}{{tado_target_temp_nxt_sat}}'
+        temperature: '{%set room_helper_entity = ''climate.master_room'' %}{%set tado_valve_entity  = ''climate.tado_smart_radiator_thermostat_va0932385792'' %}  {%set room_cur_temp      = state_attr(room_helper_entity, ''current_temperature'') | float %}  {%set room_target_temp   = state_attr(room_helper_entity, ''temperature'')         | float %}  {%set tado_cur_temp      = state_attr(tado_valve_entity,  ''current_temperature'') | float %}  {#diff = room_target_temp - room_cur_temp = tado_target_temp_nxt - tado_cur_temp #}{% set tado_target_temp_nxt = ((room_target_temp - room_cur_temp + tado_cur_temp) * 2) | float(22) | round / 2 %} {# round to 0.5 #}{%set tado_target_temp_nxt_sat = [[tado_target_temp_nxt, 25]|min,5]|max %} {# set lower and upper limit to [5,25] #}{{tado_target_temp_nxt_sat}}'
       target:
         entity_id: climate.tado_smart_radiator_thermostat_va0932385792
+    - delay: 00:05:00
     else:
     - action: climate.turn_off
       target:
@@ -506,8 +188,7 @@ automation:
           - unavailable
           - unknown
       - condition: time
-        after: input_datetime.morning_start_time_master_room
-        before: input_datetime.morning_end_time_master_room
+        before: input_datetime.noon_time_master_room
     then:
       alias: States when bright morning
       if:
@@ -640,8 +321,7 @@ automation:
             - unavailable
             - unknown
         - condition: time
-          after: input_datetime.afternoon_start_time_master_room
-          before: input_datetime.afternoon_end_time_master_room
+          after: input_datetime.noon_time_master_room
       then:
         alias: States when bright afternoon
         if:
@@ -858,9 +538,11 @@ automation:
   - platform: state
     entity_id: input_select.master_room_occupancy
     to: Outside
+  - trigger: homeassistant
+    event: start
   - minutes: /30
-    seconds: '59'
-    platform: time_pattern
+    seconds: '58'
+    trigger: time_pattern
   condition:
   - condition: state
     entity_id: input_select.master_room_occupancy
@@ -877,10 +559,6 @@ automation:
       then:
         service: homeassistant.turn_on
         entity_id: automation.zl_mr_lights_and_curtain_on_if_entering_to_room_master_room
-    - service: script.call_room_scene
-      data:
-        room_scene_select: input_select.master_room_scene
-        scene: Idle
     - alias: If it is bright morning
       if:
       - alias: Bright morning
@@ -907,8 +585,7 @@ automation:
             - unavailable
             - unknown
         - condition: time
-          after: input_datetime.morning_start_time_master_room
-          before: input_datetime.morning_end_time_master_room
+          before: input_datetime.noon_time_master_room
       then:
         alias: States when left in bright morning
         if:
@@ -977,8 +654,7 @@ automation:
               - unavailable
               - unknown
           - condition: time
-            after: input_datetime.afternoon_start_time_master_room
-            before: input_datetime.afternoon_end_time_master_room
+            after: input_datetime.noon_time_master_room
         then:
           alias: States when left in bright afternoon
           if:
@@ -1068,6 +744,10 @@ automation:
         service: homeassistant.turn_off
         entity_id:
         - media_player.master_room_tv
+    - service: script.call_room_scene
+      data:
+        room_scene_select: input_select.master_room_scene
+        scene: Idle
     - alias: All Off
       if:
       - '{{ 1 == 1 }}'
@@ -1268,9 +948,11 @@ automation:
   - platform: state
     entity_id: input_select.master_room_occupancy
     to: Outside
+  - trigger: homeassistant
+    event: start
   - minutes: /30
-    seconds: '19'
-    platform: time_pattern
+    seconds: '23'
+    trigger: time_pattern
   action:
   - condition: state
     entity_id: input_select.master_room_occupancy
@@ -1555,7 +1237,7 @@ automation:
               entity_id:
               - cover.master_room_curtain
             data:
-              position: '{{ [[ (state_attr(''cover.master_room_curtain'', ''current_position'')) + 34 ,0]|max,100]|min}}'
+              position: '{{ [[ (state_attr(''cover.master_room_curtain'', ''current_position'')) + 51 ,0]|max,100]|min}}'
     - conditions:
       - condition: trigger
         id: DECREMENT_CURTAINS
@@ -1576,7 +1258,7 @@ automation:
               entity_id:
               - cover.master_room_curtain
             data:
-              position: '{{ [[ (state_attr(''cover.master_room_curtain'', ''current_position'')) + -34 ,0]|max,100]|min}}'
+              position: '{{ [[ (state_attr(''cover.master_room_curtain'', ''current_position'')) + -51 ,0]|max,100]|min}}'
     - conditions:
       - condition: trigger
         id: INCREMENT_CURTAIN_0
@@ -1631,11 +1313,23 @@ automation:
         if:
         - '{{ 1 == 1 }}'
         then:
-          service: light.turn_on
-          target:
+          if:
+          - alias: increment brightness unless it is off, set the brightness to 1 percent
+            condition: state
             entity_id: light.master_room_lamp_1
-          data:
-            brightness_step_pct: 25
+            state: 'off'
+          then:
+            service: light.turn_on
+            target:
+              entity_id: light.master_room_lamp_1
+            data:
+              brightness_step_pct: 1
+          else:
+            service: light.turn_on
+            target:
+              entity_id: light.master_room_lamp_1
+            data:
+              brightness_step_pct: 34
     - conditions:
       - condition: trigger
         id: DECREMENT_LAMP_0
@@ -1644,11 +1338,23 @@ automation:
         if:
         - '{{ 1 == 1 }}'
         then:
-          service: light.turn_on
-          target:
+          if:
+          - alias: increment brightness unless it is off, set the brightness to 1 percent
+            condition: state
             entity_id: light.master_room_lamp_1
-          data:
-            brightness_step_pct: -25
+            state: 'off'
+          then:
+            service: light.turn_on
+            target:
+              entity_id: light.master_room_lamp_1
+            data:
+              brightness_step_pct: 1
+          else:
+            service: light.turn_on
+            target:
+              entity_id: light.master_room_lamp_1
+            data:
+              brightness_step_pct: -34
     - conditions:
       - condition: trigger
         id: TOGGLE_LAMP_1
@@ -1685,11 +1391,23 @@ automation:
         if:
         - '{{ 1 == 1 }}'
         then:
-          service: light.turn_on
-          target:
+          if:
+          - alias: increment brightness unless it is off, set the brightness to 1 percent
+            condition: state
             entity_id: light.master_room_lamp_2
-          data:
-            brightness_step_pct: 25
+            state: 'off'
+          then:
+            service: light.turn_on
+            target:
+              entity_id: light.master_room_lamp_2
+            data:
+              brightness_step_pct: 1
+          else:
+            service: light.turn_on
+            target:
+              entity_id: light.master_room_lamp_2
+            data:
+              brightness_step_pct: 34
     - conditions:
       - condition: trigger
         id: DECREMENT_LAMP_1
@@ -1698,11 +1416,23 @@ automation:
         if:
         - '{{ 1 == 1 }}'
         then:
-          service: light.turn_on
-          target:
+          if:
+          - alias: increment brightness unless it is off, set the brightness to 1 percent
+            condition: state
             entity_id: light.master_room_lamp_2
-          data:
-            brightness_step_pct: -25
+            state: 'off'
+          then:
+            service: light.turn_on
+            target:
+              entity_id: light.master_room_lamp_2
+            data:
+              brightness_step_pct: 1
+          else:
+            service: light.turn_on
+            target:
+              entity_id: light.master_room_lamp_2
+            data:
+              brightness_step_pct: -34
     - conditions:
       - condition: trigger
         id: TOGGLE_CEILING_LIGHTS
@@ -1745,13 +1475,29 @@ automation:
         if:
         - '{{ 1 == 1 }}'
         then:
-          service: light.turn_on
-          target:
+          if:
+          - alias: increment brightness unless it is off, set the brightness to 1 percent
+            condition: state
             entity_id:
             - light.master_room_bed_ceiling_light
             - light.master_room_drawer_ceiling_light
-          data:
-            brightness_step_pct: 25
+            state: 'off'
+          then:
+            service: light.turn_on
+            target:
+              entity_id:
+              - light.master_room_bed_ceiling_light
+              - light.master_room_drawer_ceiling_light
+            data:
+              brightness_step_pct: 1
+          else:
+            service: light.turn_on
+            target:
+              entity_id:
+              - light.master_room_bed_ceiling_light
+              - light.master_room_drawer_ceiling_light
+            data:
+              brightness_step_pct: 34
     - conditions:
       - condition: trigger
         id: DECREMENT_CEILING_LIGHTS
@@ -1760,13 +1506,29 @@ automation:
         if:
         - '{{ 1 == 1 }}'
         then:
-          service: light.turn_on
-          target:
+          if:
+          - alias: increment brightness unless it is off, set the brightness to 1 percent
+            condition: state
             entity_id:
             - light.master_room_bed_ceiling_light
             - light.master_room_drawer_ceiling_light
-          data:
-            brightness_step_pct: -25
+            state: 'off'
+          then:
+            service: light.turn_on
+            target:
+              entity_id:
+              - light.master_room_bed_ceiling_light
+              - light.master_room_drawer_ceiling_light
+            data:
+              brightness_step_pct: 1
+          else:
+            service: light.turn_on
+            target:
+              entity_id:
+              - light.master_room_bed_ceiling_light
+              - light.master_room_drawer_ceiling_light
+            data:
+              brightness_step_pct: -34
     - conditions:
       - condition: trigger
         id: TOGGLE_LEDS
@@ -1806,12 +1568,26 @@ automation:
         if:
         - '{{ 1 == 1 }}'
         then:
-          service: light.turn_on
-          target:
+          if:
+          - alias: increment brightness unless it is off, set the brightness to 1 percent
+            condition: state
             entity_id:
             - light.master_room_tv_led
-          data:
-            brightness_step_pct: 25
+            state: 'off'
+          then:
+            service: light.turn_on
+            target:
+              entity_id:
+              - light.master_room_tv_led
+            data:
+              brightness_step_pct: 1
+          else:
+            service: light.turn_on
+            target:
+              entity_id:
+              - light.master_room_tv_led
+            data:
+              brightness_step_pct: 34
     - conditions:
       - condition: trigger
         id: DECREMENT_LEDS
@@ -1820,12 +1596,26 @@ automation:
         if:
         - '{{ 1 == 1 }}'
         then:
-          service: light.turn_on
-          target:
+          if:
+          - alias: increment brightness unless it is off, set the brightness to 1 percent
+            condition: state
             entity_id:
             - light.master_room_tv_led
-          data:
-            brightness_step_pct: -25
+            state: 'off'
+          then:
+            service: light.turn_on
+            target:
+              entity_id:
+              - light.master_room_tv_led
+            data:
+              brightness_step_pct: 1
+          else:
+            service: light.turn_on
+            target:
+              entity_id:
+              - light.master_room_tv_led
+            data:
+              brightness_step_pct: -34
     - conditions:
       - condition: trigger
         id: TOGGLE_TV_POWER
@@ -2627,7 +2417,7 @@ automation:
               entity_id:
               - cover.master_room_curtain
             data:
-              position: '{{ [[ (state_attr(''cover.master_room_curtain'', ''current_position'')) + 34 ,0]|max,100]|min}}'
+              position: '{{ [[ (state_attr(''cover.master_room_curtain'', ''current_position'')) + 51 ,0]|max,100]|min}}'
     - conditions:
       - condition: trigger
         id: DECREMENT_CURTAINS
@@ -2648,7 +2438,7 @@ automation:
               entity_id:
               - cover.master_room_curtain
             data:
-              position: '{{ [[ (state_attr(''cover.master_room_curtain'', ''current_position'')) + -34 ,0]|max,100]|min}}'
+              position: '{{ [[ (state_attr(''cover.master_room_curtain'', ''current_position'')) + -51 ,0]|max,100]|min}}'
     - conditions:
       - condition: trigger
         id: INCREMENT_CURTAIN_0
@@ -2703,11 +2493,23 @@ automation:
         if:
         - '{{ 1 == 1 }}'
         then:
-          service: light.turn_on
-          target:
+          if:
+          - alias: increment brightness unless it is off, set the brightness to 1 percent
+            condition: state
             entity_id: light.master_room_lamp_1
-          data:
-            brightness_step_pct: 25
+            state: 'off'
+          then:
+            service: light.turn_on
+            target:
+              entity_id: light.master_room_lamp_1
+            data:
+              brightness_step_pct: 1
+          else:
+            service: light.turn_on
+            target:
+              entity_id: light.master_room_lamp_1
+            data:
+              brightness_step_pct: 34
     - conditions:
       - condition: trigger
         id: DECREMENT_LAMP_0
@@ -2716,11 +2518,23 @@ automation:
         if:
         - '{{ 1 == 1 }}'
         then:
-          service: light.turn_on
-          target:
+          if:
+          - alias: increment brightness unless it is off, set the brightness to 1 percent
+            condition: state
             entity_id: light.master_room_lamp_1
-          data:
-            brightness_step_pct: -25
+            state: 'off'
+          then:
+            service: light.turn_on
+            target:
+              entity_id: light.master_room_lamp_1
+            data:
+              brightness_step_pct: 1
+          else:
+            service: light.turn_on
+            target:
+              entity_id: light.master_room_lamp_1
+            data:
+              brightness_step_pct: -34
     - conditions:
       - condition: trigger
         id: TOGGLE_LAMP_1
@@ -2757,11 +2571,23 @@ automation:
         if:
         - '{{ 1 == 1 }}'
         then:
-          service: light.turn_on
-          target:
+          if:
+          - alias: increment brightness unless it is off, set the brightness to 1 percent
+            condition: state
             entity_id: light.master_room_lamp_2
-          data:
-            brightness_step_pct: 25
+            state: 'off'
+          then:
+            service: light.turn_on
+            target:
+              entity_id: light.master_room_lamp_2
+            data:
+              brightness_step_pct: 1
+          else:
+            service: light.turn_on
+            target:
+              entity_id: light.master_room_lamp_2
+            data:
+              brightness_step_pct: 34
     - conditions:
       - condition: trigger
         id: DECREMENT_LAMP_1
@@ -2770,11 +2596,23 @@ automation:
         if:
         - '{{ 1 == 1 }}'
         then:
-          service: light.turn_on
-          target:
+          if:
+          - alias: increment brightness unless it is off, set the brightness to 1 percent
+            condition: state
             entity_id: light.master_room_lamp_2
-          data:
-            brightness_step_pct: -25
+            state: 'off'
+          then:
+            service: light.turn_on
+            target:
+              entity_id: light.master_room_lamp_2
+            data:
+              brightness_step_pct: 1
+          else:
+            service: light.turn_on
+            target:
+              entity_id: light.master_room_lamp_2
+            data:
+              brightness_step_pct: -34
     - conditions:
       - condition: trigger
         id: TOGGLE_CEILING_LIGHTS
@@ -2817,13 +2655,29 @@ automation:
         if:
         - '{{ 1 == 1 }}'
         then:
-          service: light.turn_on
-          target:
+          if:
+          - alias: increment brightness unless it is off, set the brightness to 1 percent
+            condition: state
             entity_id:
             - light.master_room_bed_ceiling_light
             - light.master_room_drawer_ceiling_light
-          data:
-            brightness_step_pct: 25
+            state: 'off'
+          then:
+            service: light.turn_on
+            target:
+              entity_id:
+              - light.master_room_bed_ceiling_light
+              - light.master_room_drawer_ceiling_light
+            data:
+              brightness_step_pct: 1
+          else:
+            service: light.turn_on
+            target:
+              entity_id:
+              - light.master_room_bed_ceiling_light
+              - light.master_room_drawer_ceiling_light
+            data:
+              brightness_step_pct: 34
     - conditions:
       - condition: trigger
         id: DECREMENT_CEILING_LIGHTS
@@ -2832,13 +2686,29 @@ automation:
         if:
         - '{{ 1 == 1 }}'
         then:
-          service: light.turn_on
-          target:
+          if:
+          - alias: increment brightness unless it is off, set the brightness to 1 percent
+            condition: state
             entity_id:
             - light.master_room_bed_ceiling_light
             - light.master_room_drawer_ceiling_light
-          data:
-            brightness_step_pct: -25
+            state: 'off'
+          then:
+            service: light.turn_on
+            target:
+              entity_id:
+              - light.master_room_bed_ceiling_light
+              - light.master_room_drawer_ceiling_light
+            data:
+              brightness_step_pct: 1
+          else:
+            service: light.turn_on
+            target:
+              entity_id:
+              - light.master_room_bed_ceiling_light
+              - light.master_room_drawer_ceiling_light
+            data:
+              brightness_step_pct: -34
     - conditions:
       - condition: trigger
         id: TOGGLE_LEDS
@@ -2878,12 +2748,26 @@ automation:
         if:
         - '{{ 1 == 1 }}'
         then:
-          service: light.turn_on
-          target:
+          if:
+          - alias: increment brightness unless it is off, set the brightness to 1 percent
+            condition: state
             entity_id:
             - light.master_room_tv_led
-          data:
-            brightness_step_pct: 25
+            state: 'off'
+          then:
+            service: light.turn_on
+            target:
+              entity_id:
+              - light.master_room_tv_led
+            data:
+              brightness_step_pct: 1
+          else:
+            service: light.turn_on
+            target:
+              entity_id:
+              - light.master_room_tv_led
+            data:
+              brightness_step_pct: 34
     - conditions:
       - condition: trigger
         id: DECREMENT_LEDS
@@ -2892,12 +2776,26 @@ automation:
         if:
         - '{{ 1 == 1 }}'
         then:
-          service: light.turn_on
-          target:
+          if:
+          - alias: increment brightness unless it is off, set the brightness to 1 percent
+            condition: state
             entity_id:
             - light.master_room_tv_led
-          data:
-            brightness_step_pct: -25
+            state: 'off'
+          then:
+            service: light.turn_on
+            target:
+              entity_id:
+              - light.master_room_tv_led
+            data:
+              brightness_step_pct: 1
+          else:
+            service: light.turn_on
+            target:
+              entity_id:
+              - light.master_room_tv_led
+            data:
+              brightness_step_pct: -34
     - conditions:
       - condition: trigger
         id: TOGGLE_TV_POWER
@@ -4028,9 +3926,11 @@ automation:
     entity_id: input_select.master_room_occupancy
     to: Outside
     for: 00:00:01
+  - trigger: homeassistant
+    event: start
   - minutes: /30
-    seconds: '31'
-    platform: time_pattern
+    seconds: '22'
+    trigger: time_pattern
   action:
   - condition: state
     entity_id: input_select.master_room_occupancy
@@ -4108,9 +4008,11 @@ automation:
     to: 'off'
     for:
       seconds: 300
-  - minutes: /5
-    seconds: '4'
-    platform: time_pattern
+  - trigger: homeassistant
+    event: start
+  - minutes: /30
+    seconds: '16'
+    trigger: time_pattern
   action:
     service: pyscript.room_occupancy_state_machine
     data:
@@ -4122,6 +4024,76 @@ automation:
       inside_to_outside_timeout: 120
       sleep_to_outside_timesout: 300
       inside_to_sleep_timeout: 300
+- alias: ZOc-MR Occupancy Override and sync to Timer-Master Room
+  mode: single
+  trigger:
+  - platform: state
+    entity_id: input_boolean.master_room_auto_off_suspended
+  action:
+  - choose:
+    - conditions:
+      - condition: state
+        entity_id: input_boolean.master_room_auto_off_suspended
+        state: 'on'
+      sequence:
+      - service: timer.start
+        target:
+          entity_id: timer.master_room_auto_off_suspended_timer
+      - alias: Turn automation.zoc_mr_occupancy_update_master_room state=off
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          service: homeassistant.turn_off
+          entity_id: automation.zoc_mr_occupancy_update_master_room
+      - service: input_select.select_option
+        target:
+          entity_id: input_select.master_room_occupancy
+        data:
+          option: Stayed Inside
+    - conditions:
+      - condition: state
+        entity_id: input_boolean.master_room_auto_off_suspended
+        state: 'off'
+      sequence:
+      - service: timer.cancel
+        target:
+          entity_id: timer.master_room_auto_off_suspended_timer
+      - alias: Turn automation.zoc_mr_occupancy_update_master_room state=on
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          service: homeassistant.turn_on
+          entity_id: automation.zoc_mr_occupancy_update_master_room
+  id: automation.zoc_mr_occupancy_override_and_sync_to_timer_master_room
+- alias: ZOc-MR Occupancy Override Sync from Timer-Master Room
+  mode: single
+  trigger:
+  - platform: state
+    entity_id: timer.master_room_auto_off_suspended_timer
+  action:
+  - choose:
+    - conditions:
+      - condition: state
+        entity_id: timer.master_room_auto_off_suspended_timer
+        state: active
+      sequence:
+      - service: input_boolean.turn_on
+        target:
+          entity_id: input_boolean.master_room_auto_off_suspended
+    - conditions:
+      - condition: or
+        conditions:
+        - condition: state
+          entity_id: timer.master_room_auto_off_suspended_timer
+          state: paused
+        - condition: state
+          entity_id: timer.master_room_auto_off_suspended_timer
+          state: idle
+      sequence:
+      - service: input_boolean.turn_off
+        target:
+          entity_id: input_boolean.master_room_auto_off_suspended
+  id: automation.zoc_mr_occupancy_override_sync_from_timer_master_room
 - alias: ZTV-MR Reset Picture Mode When Turning on TV-Master Room
   trigger:
   - platform: state
@@ -4197,7 +4169,7 @@ automation:
   action:
   - service: script.notify_alexa_speakers_and_phones
     data:
-      tts_message: Master Room windows are left open. But you have left home. Is that ok?
+      tts_message: Master Room windows or locks are left open. But you have left home. Is that ok?
       notify_tai: 'yes'
   id: automation.zn_mr_notify_window_left_open_when_tai_is_leaving_zone_master_room
 - alias: ZN-MR Notify Window Left Open When Ke is Leaving Zone-Master Room
@@ -4213,9 +4185,484 @@ automation:
   action:
   - service: script.notify_alexa_speakers_and_phones
     data:
-      tts_message: Master Room windows are left open. But you have left home. Is that ok?
+      tts_message: Master Room windows or locks are left open. But you have left home. Is that ok?
       notify_ke: 'yes'
   id: automation.zn_mr_notify_window_left_open_when_ke_is_leaving_zone_master_room
+input_select:
+  master_room_scene:
+    name: Master Room Scene
+    options:
+    - Idle
+    - Hue
+    - Sleep Mode
+    - Night Mode
+    - Dark Night Mode
+    - Lamp LED White
+    - LED White
+    - All White
+    - Ceiling Light White
+    - All Off
+  master_room_occupancy:
+    name: Master Room Occupancy
+    options:
+    - Outside
+    - Just Entered
+    - Stayed Inside
+    - In Sleep
+input_boolean:
+  master_room_heating_override:
+    name: Master Room Heating Override
+    initial: 'off'
+  master_room_sleep_time:
+    name: Master Room Sleep Time
+  curtain_control_when_left_master_room:
+    name: Curtain Control When Left Master Room
+  curtain_control_bright_morning_when_left_master_room:
+    name: Curtain Control Bright Morning When Left Master Room
+  curtain_control_bright_afternoon_when_left_master_room:
+    name: Curtain Control Bright Afternoon When Left Master Room
+  curtain_control_dark_when_left_master_room:
+    name: Curtain Control Dark When Left Master Room
+  ceiling_light_control_bright_morning_master_room:
+    name: Ceiling Light Control Bright Morning Master Room
+  lamp_control_bright_morning_master_room:
+    name: Lamp Control Bright Morning Master Room
+  led_control_bright_morning_master_room:
+    name: Led Control Bright Morning Master Room
+  curtain_control_bright_morning_master_room:
+    name: Curtain Control Bright Morning Master Room
+  ceiling_light_control_bright_afternoon_master_room:
+    name: Ceiling Light Control Bright Afternoon Master Room
+  lamp_control_bright_afternoon_master_room:
+    name: Lamp Control Bright Afternoon Master Room
+  led_control_bright_afternoon_master_room:
+    name: Led Control Bright Afternoon Master Room
+  curtain_control_bright_afternoon_master_room:
+    name: Curtain Control Bright Afternoon Master Room
+  ceiling_light_control_dark_master_room:
+    name: Ceiling Light Control Dark Master Room
+  lamp_control_dark_master_room:
+    name: Lamp Control Dark Master Room
+  led_control_dark_master_room:
+    name: Led Control Dark Master Room
+  curtain_control_dark_master_room:
+    name: Curtain Control Dark Master Room
+  master_room_auto_off_suspended:
+    name: Master Room Auto Off Suspended
+    icon: mdi:timer-sand
+  master_room_tado_heater:
+    name: Master Room Tado Heater
+input_datetime:
+  noon_time_master_room:
+    name: Noon Time Master Room
+    has_date: false
+    has_time: true
+input_number:
+  master_room_min_value_as_bright:
+    name: Master Room Min Value As Bright
+    min: 0
+    max: 4000
+    step: 1
+    mode: box
+sensor:
+- platform: history_stats
+  name: Master Room Motion On Ratio For Last 4 Minutes
+  entity_id: group.master_room_motion_group
+  state: 'on'
+  type: ratio
+  duration:
+    minutes: '4'
+  end: '{{ (now() | as_timestamp) | as_datetime | as_local }}'
+- platform: history_stats
+  name: Master Room Motion On Ratio For Last 8 Minutes
+  entity_id: group.master_room_motion_group
+  state: 'on'
+  type: ratio
+  duration:
+    minutes: '8'
+  end: '{{ (now() | as_timestamp) | as_datetime | as_local }}'
+- name: 582d34376b04 Battery Median
+  platform: statistics
+  entity_id: sensor.582d34376b04_battery
+  precision: 0
+  state_characteristic: median
+  max_age:
+    hours: 24
+- name: 582d343b6a27 Battery Median
+  platform: statistics
+  entity_id: sensor.582d343b6a27_battery
+  precision: 0
+  state_characteristic: median
+  max_age:
+    hours: 24
+- name: Master Room Temperature Sensor
+  platform: filter
+  entity_id: sensor.master_room_average_temperature_sensor
+  filters:
+    filter: lowpass
+    time_constant: 4
+    precision: 1
+- name: A4c1383dc01d Battery Median
+  platform: statistics
+  entity_id: sensor.a4c1383dc01d_battery
+  precision: 0
+  state_characteristic: median
+  max_age:
+    hours: 24
+- name: Linp Cn Blt 3 1k8ac64fskc00 Es2 Battery Level P 4 1003 Median
+  platform: statistics
+  entity_id: sensor.linp_cn_blt_3_1k8ac64fskc00_es2_battery_level_p_4_1003
+  precision: 0
+  state_characteristic: median
+  max_age:
+    hours: 24
+- name: Linp Cn Blt 3 1onitceoh0000 Es5b Battery Level P 7 1003 Median
+  platform: statistics
+  entity_id: sensor.linp_cn_blt_3_1onitceoh0000_es5b_battery_level_p_7_1003
+  precision: 0
+  state_characteristic: median
+  max_age:
+    hours: 24
+- name: 0x00158d0005228ba8 Battery Median
+  platform: statistics
+  entity_id: sensor.0x00158d0005228ba8_battery
+  precision: 0
+  state_characteristic: median
+  max_age:
+    hours: 24
+- name: 0x00158d000122393b Battery Median
+  platform: statistics
+  entity_id: sensor.0x00158d000122393b_battery
+  precision: 0
+  state_characteristic: median
+  max_age:
+    hours: 24
+- name: 0x00158d00054deda4 Battery Median
+  platform: statistics
+  entity_id: sensor.0x00158d00054deda4_battery
+  precision: 0
+  state_characteristic: median
+  max_age:
+    hours: 24
+- name: 0x00158d00054a6f3a Battery Median
+  platform: statistics
+  entity_id: sensor.0x00158d00054a6f3a_battery
+  precision: 0
+  state_characteristic: median
+  max_age:
+    hours: 24
+- name: 0x04cf8cdf3c7b36b1 Battery Median
+  platform: statistics
+  entity_id: sensor.0x04cf8cdf3c7b36b1_battery
+  precision: 0
+  state_characteristic: median
+  max_age:
+    hours: 24
+- name: Master Room Min Battery
+  platform: min_max
+  type: min
+  entity_ids:
+  - sensor.master_room_corridor_occupancy_sensor_battery
+  - sensor.master_room_corridor_xiaomi_home_occupancy_sensor_battery
+  - sensor.master_room_bed_xiaomi_home_occupancy_sensor_battery
+  - sensor.master_room_tv_motion_sensor_battery
+  - sensor.master_room_entrance_motion_sensor_battery
+  - sensor.master_room_stair_motion_sensor_battery
+  - sensor.master_room_drawer_motion_sensor_battery
+  - sensor.master_room_west_side_light_sensor_battery
+timer:
+  master_room_auto_off_suspended_timer:
+    name: Master Room Auto Off Suspended Timer
+    duration: 02:00:00
+button: []
+switch:
+- platform: group
+  name: Master Room Wall Switch 1
+  entities: switch.0x04cf8cdf3c7ad638_channel_1
+- platform: group
+  name: Master Room Wall Switch 2
+  entities: switch.0x04cf8cdf3c7ad638_channel_2
+- platform: group
+  name: Master Room Wall Switch 3
+  entities: switch.0x04cf8cdf3c7ad638_channel_3
+- platform: group
+  name: Master Room Balcony Wall Light
+  entities: switch.0x04cf8cdf3c7ad638_channel_1
+- platform: group
+  name: 'Master Room Entrance Wall Switch '
+  entities: switch.0x00158d00052e2124_switch
+- platform: group
+  name: Alpha Zero G Mode
+  entities: switch.giot_cn_2079716287_v84ksm_on_p_2_1
+- platform: group
+  name: Alpha TV Mode
+  entities: switch.giot_cn_2079716287_v84ksm_on_p_3_1
+- platform: group
+  name: Alpha Reading Mode
+  entities: switch.giot_cn_2079716287_v84ksm_on_p_4_1
+- platform: group
+  name: Alpha Sleep Mode
+  entities: switch.giot_cn_2079716287_v84ksm_on_p_10_1
+- platform: group
+  name: Alpha Head Up
+  entities: switch.giot_cn_2079460410_v84ksm_on_p_2_1
+- platform: group
+  name: Alpha Foot Up
+  entities: switch.giot_cn_2079460410_v84ksm_on_p_3_1
+- platform: group
+  name: Alpha Head Down
+  entities: switch.giot_cn_2079460410_v84ksm_on_p_4_1
+- platform: group
+  name: Alpha Foot Down
+  entities: switch.giot_cn_2079460410_v84ksm_on_p_10_1
+- platform: group
+  name: Beta Zero G Mode
+  entities: switch.giot_cn_2079504293_v84ksm_on_p_2_1
+- platform: group
+  name: Beta TV Mode
+  entities: switch.giot_cn_2079504293_v84ksm_on_p_3_1
+- platform: group
+  name: Beta Reading Mode
+  entities: switch.giot_cn_2079504293_v84ksm_on_p_4_1
+- platform: group
+  name: Beta Sleep Mode
+  entities: switch.giot_cn_2079504293_v84ksm_on_p_10_1
+- platform: group
+  name: Beta Head Up
+  entities: switch.giot_cn_2079484894_v84ksm_on_p_2_1
+- platform: group
+  name: Beta Foot Up
+  entities: switch.giot_cn_2079484894_v84ksm_on_p_3_1
+- platform: group
+  name: Beta Head Down
+  entities: switch.giot_cn_2079484894_v84ksm_on_p_4_1
+- platform: group
+  name: Beta Foot Down
+  entities: switch.giot_cn_2079484894_v84ksm_on_p_10_1
+cover:
+- platform: group
+  name: Master Room Curtain
+  entities: cover.0x04cf8cdf3c73a19b_motor
+climate:
+- platform: generic_thermostat
+  name: Master Room
+  heater: input_boolean.master_room_tado_heater
+  target_sensor: sensor.master_room_temperature_sensor
+  min_temp: 16
+  max_temp: 27
+  ac_mode: false
+  cold_tolerance: 0
+  precision: 0.1
+  target_temp_step: 0.5
+  min_cycle_duration: 00:01:30
+template:
+- sensor:
+  - name: Master Room Temperature Sensor new_1
+    unit_of_measurement: "\xB0C"
+    state: '{{states.sensor["582d34376b04_temperature"].state | float(22) | round(1)}}'
+- sensor:
+  - name: Master Room Temperature Sensor Battery new_1
+    unit_of_measurement: '%'
+    device_class: battery
+    state_class: measurement
+    state: '{% set s = states(''sensor.582d34376b04_battery_median'') %}{{ s | int if s not in [''unknown'', ''unavailable'', ''''] else ''unknown'' }}'
+- sensor:
+  - name: Master Room Temperature Sensor new_2
+    unit_of_measurement: "\xB0C"
+    state: '{{states.sensor["582d343b6a27_temperature"].state | float(22) | round(1)}}'
+- sensor:
+  - name: Master Room Temperature Sensor Battery new_2
+    unit_of_measurement: '%'
+    device_class: battery
+    state_class: measurement
+    state: '{% set s = states(''sensor.582d343b6a27_battery_median'') %}{{ s | int if s not in [''unknown'', ''unavailable'', ''''] else ''unknown'' }}'
+- sensor:
+  - name: Master Room Average Temperature Sensor
+    unit_of_measurement: "\xB0C"
+    state: '{% if   states(''sensor.master_room_temperature_sensor_new_1'') != ''unavailable'' and states(''sensor.master_room_temperature_sensor_new_2'') == ''unavailable'' %}{{states(''sensor.master_room_temperature_sensor_new_1'')}}{% elif states(''sensor.master_room_temperature_sensor_new_1'') == ''unavailable'' and states(''sensor.master_room_temperature_sensor_new_2'') != ''unavailable'' %}{{states(''sensor.master_room_temperature_sensor_new_2'')}}{% else %}{% set sensor_1 = states(''sensor.master_room_temperature_sensor_new_1'') | float(22) | round(1) %}{% set sensor_2 = states(''sensor.master_room_temperature_sensor_new_2'') | float(22) | round(1) %}{% if sensor_1 < 1.0 or sensor_2 < 1.0 or (sensor_1 + sensor_2) < 1.0 %}22.0{% else %}{{ ((sensor_1 + sensor_2) / 2) | round(1) }}{% endif %}{% endif %}'
+- binary_sensor:
+  - name: Master Room Corridor Occupancy Sensor Occupancy
+    state: '{% if states.sensor["a4c1383dc01d_no_one_duration"].state == ''unavailable'' or states.sensor["a4c1383dc01d_no_one_duration"].state  == ''unknown''%}
+
+      {{states.binary_sensor["a4c1383dc01d_occupancy"].state}}
+
+      {% elif states.sensor["a4c1383dc01d_no_one_duration"].state == ''0'' %}
+
+      {{states.binary_sensor["a4c1383dc01d_occupancy"].state}}
+
+      {# else is equivilence to elif states.sensor["a4c1383dc01d_no_one_duration"].state > "0" #}
+
+      {% else %}
+
+      off
+
+      {% endif %}
+
+      '
+    device_class: occupancy
+- sensor:
+  - name: Master Room Corridor Occupancy Sensor Battery
+    unit_of_measurement: '%'
+    device_class: battery
+    state_class: measurement
+    state: '{% set s = states(''sensor.a4c1383dc01d_battery_median'') %}{{ s | int if s not in [''unknown'', ''unavailable'', ''''] else ''unknown'' }}'
+- binary_sensor:
+  - name: Master Room Corridor Xiaomi Home Occupancy Sensor Occupancy
+    state: '{% if states.sensor["linp_cn_blt_3_1k8ac64fskc00_es2_no_one_duration_p_2_1079"].state == ''unavailable'' or states.sensor["linp_cn_blt_3_1k8ac64fskc00_es2_no_one_duration_p_2_1079"].state  == ''unknown''%}
+
+      {{states.binary_sensor["linp_cn_blt_3_1k8ac64fskc00_es2_occupancy_status_p_2_1078"].state}}
+
+      {% elif states.sensor["linp_cn_blt_3_1k8ac64fskc00_es2_no_one_duration_p_2_1079"].state == ''0'' %}
+
+      {{states.binary_sensor["linp_cn_blt_3_1k8ac64fskc00_es2_occupancy_status_p_2_1078"].state}}
+
+      {# else is equivilence to elif states.sensor["linp_cn_blt_3_1k8ac64fskc00_es2_no_one_duration_p_2_1079"].state > "0" #}
+
+      {% else %}
+
+      off
+
+      {% endif %}
+
+      '
+    device_class: occupancy
+- sensor:
+  - name: Master Room Corridor Xiaomi Home Occupancy Sensor Battery
+    unit_of_measurement: '%'
+    device_class: battery
+    state_class: measurement
+    state: '{% set s = states(''sensor.linp_cn_blt_3_1k8ac64fskc00_es2_battery_level_p_4_1003_median'') %}{{ s | int if s not in [''unknown'', ''unavailable'', ''''] else ''unknown'' }}'
+- binary_sensor:
+  - name: Master Room Bed Xiaomi Home Occupancy Sensor Occupancy
+    state: '{% if states.sensor["linp_cn_blt_3_1onitceoh0000_es5b_no_one_duration_p_2_1082"].state == ''unavailable'' or states.sensor["linp_cn_blt_3_1onitceoh0000_es5b_no_one_duration_p_2_1082"].state  == ''unknown''%}
+
+      {{states.binary_sensor["linp_cn_blt_3_1onitceoh0000_es5b_occupancy_status_p_2_1078"].state}}
+
+      {% elif states.sensor["linp_cn_blt_3_1onitceoh0000_es5b_no_one_duration_p_2_1082"].state == ''0'' %}
+
+      {{states.binary_sensor["linp_cn_blt_3_1onitceoh0000_es5b_occupancy_status_p_2_1078"].state}}
+
+      {# else is equivilence to elif states.sensor["linp_cn_blt_3_1onitceoh0000_es5b_no_one_duration_p_2_1082"].state > "0" #}
+
+      {% else %}
+
+      off
+
+      {% endif %}
+
+      '
+    device_class: occupancy
+- sensor:
+  - name: Master Room Bed Xiaomi Home Occupancy Sensor Battery
+    unit_of_measurement: '%'
+    device_class: battery
+    state_class: measurement
+    state: '{% set s = states(''sensor.linp_cn_blt_3_1onitceoh0000_es5b_battery_level_p_7_1003_median'') %}{{ s | int if s not in [''unknown'', ''unavailable'', ''''] else ''unknown'' }}'
+- sensor:
+  - name: Master Room TV Motion Sensor Battery
+    unit_of_measurement: '%'
+    device_class: battery
+    state_class: measurement
+    state: '{% set s = states(''sensor.0x00158d0005228ba8_battery_median'') %}{{ s | int if s not in [''unknown'', ''unavailable'', ''''] else ''unknown'' }}'
+- sensor:
+  - name: Master Room Entrance Motion Sensor Battery
+    unit_of_measurement: '%'
+    device_class: battery
+    state_class: measurement
+    state: '{% set s = states(''sensor.0x00158d000122393b_battery_median'') %}{{ s | int if s not in [''unknown'', ''unavailable'', ''''] else ''unknown'' }}'
+- sensor:
+  - name: Master Room Stair Motion Sensor Battery
+    unit_of_measurement: '%'
+    device_class: battery
+    state_class: measurement
+    state: '{% set s = states(''sensor.0x00158d00054deda4_battery_median'') %}{{ s | int if s not in [''unknown'', ''unavailable'', ''''] else ''unknown'' }}'
+- sensor:
+  - name: Master Room Drawer Motion Sensor Battery
+    unit_of_measurement: '%'
+    device_class: battery
+    state_class: measurement
+    state: '{% set s = states(''sensor.0x00158d00054a6f3a_battery_median'') %}{{ s | int if s not in [''unknown'', ''unavailable'', ''''] else ''unknown'' }}'
+- sensor:
+  - name: Master Room Wall Button
+    state: '{{states.sensor["0x04cf8cdf3c7ad638_action"].state}}'
+- sensor:
+  - name: Master Room Entrance Wall Button
+    state: '{{states.sensor["0x00158d00052e2124_action"].state}}'
+- sensor:
+  - name: Master Room West Side Light Sensor Battery
+    unit_of_measurement: '%'
+    device_class: battery
+    state_class: measurement
+    state: '{% set s = states(''sensor.0x04cf8cdf3c7b36b1_battery_median'') %}{{ s | int if s not in [''unknown'', ''unavailable'', ''''] else ''unknown'' }}'
+- sensor:
+  - name: Master Room West Side Light Sensor
+    state: '{{states.sensor["0x04cf8cdf3c7b36b1_illuminance"].state}}'
+    unit_of_measurement: lx
+- sensor:
+  - name: Master Room Tado Availiabity
+    unit_of_measurement: "\xB0C"
+    state: '{{states("sensor.tado_smart_radiator_thermostat_va0932385792_current_temperature") | float(22) | round(1)}}'
+- binary_sensor:
+  - name: Master Room Heating Required
+    state: '{% set climate = "climate.tado_smart_radiator_thermostat_va0932385792" %}{% if states(climate) == "unavailable" or states(climate) == "off" or (state_attr(climate, "temperature") <= state_attr(climate, "current_temperature"))  %}off{% else %} on{% endif %}'
+- binary_sensor:
+  - name: Master Room Unavailable Entities
+    state: '{% set added_device_entities =  [''sensor.master_room_temperature_sensor_new_1'', ''sensor.master_room_temperature_sensor_battery_new_1'', ''sensor.master_room_temperature_sensor_new_2'', ''sensor.master_room_temperature_sensor_battery_new_2'', ''sensor.master_room_average_temperature_sensor'', ''binary_sensor.master_room_corridor_occupancy_sensor_occupancy'', ''sensor.master_room_corridor_occupancy_sensor_battery'', ''binary_sensor.master_room_corridor_xiaomi_home_occupancy_sensor_occupancy'', ''sensor.master_room_corridor_xiaomi_home_occupancy_sensor_battery'', ''binary_sensor.master_room_bed_xiaomi_home_occupancy_sensor_occupancy'', ''sensor.master_room_bed_xiaomi_home_occupancy_sensor_battery'', ''sensor.master_room_tv_motion_sensor_battery'', ''sensor.master_room_entrance_motion_sensor_battery'', ''sensor.master_room_stair_motion_sensor_battery'', ''sensor.master_room_drawer_motion_sensor_battery'', ''sensor.master_room_wall_button'', ''sensor.master_room_entrance_wall_button'', ''sensor.master_room_west_side_light_sensor_battery'', ''sensor.master_room_west_side_light_sensor'', ''sensor.master_room_tado_availiabity'', ''binary_sensor.master_room_heating_required'', ''binary_sensor.master_room_tv_motion_sensor_motion'', ''binary_sensor.master_room_entrance_motion_sensor_motion'', ''binary_sensor.master_room_stair_motion_sensor_motion'', ''binary_sensor.master_room_drawer_motion_sensor_motion'', ''switch.master_room_wall_switch_1'', ''switch.master_room_wall_switch_2'', ''switch.master_room_wall_switch_3'', ''switch.master_room_balcony_wall_light'', ''switch.master_room_entrance_wall_switch'', ''switch.alpha_zero_g_mode'', ''switch.alpha_tv_mode'', ''switch.alpha_reading_mode'', ''switch.alpha_sleep_mode'', ''switch.alpha_head_up'', ''switch.alpha_foot_up'', ''switch.alpha_head_down'', ''switch.alpha_foot_down'', ''switch.beta_zero_g_mode'', ''switch.beta_tv_mode'', ''switch.beta_reading_mode'', ''switch.beta_sleep_mode'', ''switch.beta_head_up'', ''switch.beta_foot_up'', ''switch.beta_head_down'', ''switch.beta_foot_down'', ''cover.master_room_curtain'', ''light.master_room_lamp'', ''light.master_room_ceiling_light'', ''light.master_room_bed_ceiling_light'', ''light.master_room_drawer_ceiling_light'', ''light.master_room_lamp_1'', ''light.master_room_lamp_2'', ''light.master_room_tv_led'', ''light.master_room_entrance_light''] %}{% set ns = namespace() %}{% set ns.num_unavail_devices = 0 %}{% for device in added_device_entities %}   {% if states(device) in [''unavailable'', ''unknown'', ''none''] %}      {% set ns.num_unavail_devices = ns.num_unavail_devices + 1 %}   {% endif %}{% endfor %}{% if ns.num_unavail_devices > 0%}  on  {% else %}  off {% endif %}'
+    attributes:
+      value: '{% set added_device_entities =  [''sensor.master_room_temperature_sensor_new_1'', ''sensor.master_room_temperature_sensor_battery_new_1'', ''sensor.master_room_temperature_sensor_new_2'', ''sensor.master_room_temperature_sensor_battery_new_2'', ''sensor.master_room_average_temperature_sensor'', ''binary_sensor.master_room_corridor_occupancy_sensor_occupancy'', ''sensor.master_room_corridor_occupancy_sensor_battery'', ''binary_sensor.master_room_corridor_xiaomi_home_occupancy_sensor_occupancy'', ''sensor.master_room_corridor_xiaomi_home_occupancy_sensor_battery'', ''binary_sensor.master_room_bed_xiaomi_home_occupancy_sensor_occupancy'', ''sensor.master_room_bed_xiaomi_home_occupancy_sensor_battery'', ''sensor.master_room_tv_motion_sensor_battery'', ''sensor.master_room_entrance_motion_sensor_battery'', ''sensor.master_room_stair_motion_sensor_battery'', ''sensor.master_room_drawer_motion_sensor_battery'', ''sensor.master_room_wall_button'', ''sensor.master_room_entrance_wall_button'', ''sensor.master_room_west_side_light_sensor_battery'', ''sensor.master_room_west_side_light_sensor'', ''sensor.master_room_tado_availiabity'', ''binary_sensor.master_room_heating_required'', ''binary_sensor.master_room_tv_motion_sensor_motion'', ''binary_sensor.master_room_entrance_motion_sensor_motion'', ''binary_sensor.master_room_stair_motion_sensor_motion'', ''binary_sensor.master_room_drawer_motion_sensor_motion'', ''switch.master_room_wall_switch_1'', ''switch.master_room_wall_switch_2'', ''switch.master_room_wall_switch_3'', ''switch.master_room_balcony_wall_light'', ''switch.master_room_entrance_wall_switch'', ''switch.alpha_zero_g_mode'', ''switch.alpha_tv_mode'', ''switch.alpha_reading_mode'', ''switch.alpha_sleep_mode'', ''switch.alpha_head_up'', ''switch.alpha_foot_up'', ''switch.alpha_head_down'', ''switch.alpha_foot_down'', ''switch.beta_zero_g_mode'', ''switch.beta_tv_mode'', ''switch.beta_reading_mode'', ''switch.beta_sleep_mode'', ''switch.beta_head_up'', ''switch.beta_foot_up'', ''switch.beta_head_down'', ''switch.beta_foot_down'', ''cover.master_room_curtain'', ''light.master_room_lamp'', ''light.master_room_ceiling_light'', ''light.master_room_bed_ceiling_light'', ''light.master_room_drawer_ceiling_light'', ''light.master_room_lamp_1'', ''light.master_room_lamp_2'', ''light.master_room_tv_led'', ''light.master_room_entrance_light''] %}{% set ns = namespace() %}{% set ns.unavail_devices = '''' %}{% for device in added_device_entities %}   {% if states(device) in [''unavailable'', ''unknown'', ''none''] %}   {% set ns.unavail_devices = ns.unavail_devices + ''
+
+        '' +device %} {% endif %}{% endfor %}{{ns.unavail_devices}}'
+- binary_sensor:
+  - name: Master Room Low Battery
+    state: '{% set state = states("sensor.master_room_min_battery") %} {% if state == "unavailable" or state == "unknown" or int(state) > 20 %} off {% else%} on {% endif %}'
+binary_sensor:
+- platform: group
+  name: Master Room TV Motion Sensor Motion
+  device_class: motion
+  entities: binary_sensor.0x00158d0005228ba8_motion
+- platform: group
+  name: Master Room Entrance Motion Sensor Motion
+  device_class: motion
+  entities: binary_sensor.0x00158d000122393b_motion
+- platform: group
+  name: Master Room Stair Motion Sensor Motion
+  device_class: motion
+  entities: binary_sensor.0x00158d00054deda4_motion
+- platform: group
+  name: Master Room Drawer Motion Sensor Motion
+  device_class: motion
+  entities: binary_sensor.0x00158d00054a6f3a_motion
+event: []
+lock: []
+light:
+- platform: group
+  name: Master Room Lamp
+  entities:
+  - light.master_room_lamp_1
+  - light.master_room_lamp_2
+- platform: group
+  name: Master Room Ceiling Light
+  entities:
+  - light.master_room_bed_ceiling_light
+  - light.master_room_drawer_ceiling_light
+- platform: group
+  name: Master Room Bed Ceiling Light
+  entities: light.yeelight_ceiling13_0x1c649afe
+- platform: group
+  name: Master Room Drawer Ceiling Light
+  entities: light.yeelink_cn_442976373_ceiling13_s_2_light
+- platform: group
+  name: Master Room Lamp 1
+  entities: light.hue_color_lamp_5
+- platform: group
+  name: Master Room Lamp 2
+  entities: light.hue_color_lamp_6
+- platform: group
+  name: Master Room TV LED
+  entities: light.master_room_tv_led_magic_home
+- platform: group
+  name: Master Room Entrance Light
+  entities: light.hue_ambiance_lamp_2
 group:
   master_room_occupancy_group:
     name: Master Room Occupancy Group
@@ -4229,7 +4676,10 @@ group:
     - binary_sensor.master_room_drawer_motion_sensor_motion
     - binary_sensor.master_toilet_dressing_room_motion_sensor_motion
     - binary_sensor.master_room_bed_motion_sensor_motion
+    - binary_sensor.master_room_bed_xiaomi_home_occupancy_sensor_occupancy
     - binary_sensor.master_room_bed_occupancy_sensor_occupancy
+    - binary_sensor.master_room_bed_new_xiaomi_home_occupancy_sensor_occupancy
+    - binary_sensor.master_room_baby_xiaomi_home_occupancy_sensor_occupancy
     - binary_sensor.master_room_baby_occupancy_sensor_occupancy
     - group.master_toilet_motion_group
     - automation.zoc_mr_occupancy_update_master_room
@@ -4243,7 +4693,10 @@ group:
     - binary_sensor.master_room_drawer_motion_sensor_motion
     - binary_sensor.master_toilet_dressing_room_motion_sensor_motion
     - binary_sensor.master_room_bed_motion_sensor_motion
+    - binary_sensor.master_room_bed_xiaomi_home_occupancy_sensor_occupancy
     - binary_sensor.master_room_bed_occupancy_sensor_occupancy
+    - binary_sensor.master_room_bed_new_xiaomi_home_occupancy_sensor_occupancy
+    - binary_sensor.master_room_baby_xiaomi_home_occupancy_sensor_occupancy
     - binary_sensor.master_room_baby_occupancy_sensor_occupancy
     - group.master_toilet_motion_group
   master_room_light_group:
@@ -4254,7 +4707,8 @@ group:
     - light.master_room_lamp_1
     - light.master_room_lamp_2
     - light.master_room_tv_led
-    - switch.master_room_entrance_wall_switch
+    - light.master_room_entrance_light
+    - switch.master_room_balcony_wall_light
   master_room_window_group:
     name: Master Room Window Group
     entities:
@@ -4269,12 +4723,9 @@ group:
   master_room_battery:
     name: Master Room Battery
     entities:
-    - sensor.master_room_temperature_sensor_battery_new_1
-    - sensor.master_room_temperature_sensor_battery_new_2
-    - sensor.master_room_bed_occupancy_sensor_battery
+    - sensor.master_room_corridor_occupancy_sensor_battery
+    - sensor.master_room_corridor_xiaomi_home_occupancy_sensor_battery
     - sensor.master_room_bed_xiaomi_home_occupancy_sensor_battery
-    - sensor.master_room_baby_occupancy_sensor_battery
-    - sensor.master_room_baby_xiaomi_home_occupancy_sensor_battery
     - sensor.master_room_tv_motion_sensor_battery
     - sensor.master_room_entrance_motion_sensor_battery
     - sensor.master_room_stair_motion_sensor_battery
@@ -4315,6 +4766,8 @@ group:
     - automation.zm_mr_sonos_pause_playing_after_people_left_master_room
     - automation.zlb_mr_wall_switch_double_press_leave_room_and_turn_off_everything_master_room
     - automation.zoc_mr_occupancy_update_master_room
+    - automation.zoc_mr_occupancy_override_and_sync_to_timer_master_room
+    - automation.zoc_mr_occupancy_override_sync_from_timer_master_room
     - automation.ztv_mr_reset_picture_mode_when_turning_on_tv_master_room
     - automation.zn_mr_notify_zigbee_offline_devices_master_room
     - automation.zn_mr_notify_wifi_offline_devices_master_room
@@ -4329,10 +4782,9 @@ group:
     - switch.0x04cf8cdf3c7ad638_wireless_3
     - switch.0x00158d00052e2124_wireless
     - switch.adaptive_lighting_sleep_mode_master_room
-    - input_datetime.morning_start_time_master_room
-    - input_datetime.morning_end_time_master_room
-    - input_datetime.afternoon_start_time_master_room
-    - input_datetime.afternoon_end_time_master_room
+    - switch.adaptive_lighting_sleep_mode_master_room_entrance
+    - input_datetime.noon_time_master_room
     - sensor.master_room_west_side_light_sensor
     - input_number.master_room_min_value_as_bright
     - group.master_room_battery
+    - group.master_room_window_group

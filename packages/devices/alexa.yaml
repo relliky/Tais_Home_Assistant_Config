@@ -30,6 +30,58 @@ group alexa:
       - light.living_room_floor_light_2
       - switch.living_room_floor_light_3
 
+#-------------------
+# Amazon AWS Alexa
+#-------------------
+alexa:
+  smart_home:
+    locale: en-GB
+    endpoint: https://api.eu.amazonalexa.com/v3/events
+    #client_id: YOUR_SKILL_CLIENT_ID
+    #client_secret: YOUR_SKILL_CLIENT_SECRET
+    filter:
+      include_entities:
+        ###################################
+        # Study
+        ###################################
+        - light.study_lamp
+        ###################################
+        # Master Room
+        ###################################
+        - light.master_room_lamp_1
+        - light.master_room_lamp_2
+        - light.master_room_ceiling_light
+        - light.master_room_led
+        - light.master_room_entrance_light
+        - climate.master_room
+        - cover.master_room_curtain
+        ###################################
+        # Living Room
+        ###################################
+        - light.living_room_ceiling_light
+        - light.living_room_floor_light_1
+        - light.living_room_floor_light_2
+        - switch.living_room_floor_light_3
+        - cover.living_room_curtain_1
+        - climate.living_room
+        ###################################
+        # En-suite Room
+        ###################################
+        - climate.en_suite_room
+        - light.en_suite_room_lamp_1
+        - light.en_suite_room_lamp_2
+        - light.en_suite_room_ceiling_light
+        - light.en_suite_room_bed_led
+        - cover.en_suite_room_curtain
+        ###################################
+        # Kitchen
+        ###################################
+        - climate.kitchen
+        - light.kitchen_dining_light
+        - light.kitchen_ceiling_light
+        - switch.kitchen_floor_led
+        - light.kitchen_worktop_led
+
 #----------------
 # Emulated Hue
 #----------------
@@ -140,168 +192,168 @@ group alexa:
 #      name: "En-suite Room Right Lamp"
 #      hidden: false
 
-cloud:
-  alexa:
-    filter:
-      include_entities:
-        ###################################
-        # Master Room  - 7 devices
-        ###################################
-        - light.master_room_lamp_1
-        - light.master_room_lamp_2
-        - light.master_room_ceiling_light
-        - light.master_room_leds
-        - switch.master_room_dressing_table_light
-        - cover.master_room_curtain
-        - cover.master_room_blind
-          ###################################
-          # Master Toilet  - 2 devices
-          ###################################
-        - light.master_toilet_ceiling_light
-        - switch.master_toilet_floor_led
-          ###################################
-          # Guest Room  - 1 devices
-          ###################################
-        - light.guest_room_ceiling_light
-        - light.guest_room_lamp_1
-        - light.guest_room_lamp_2
-        - cover.guest_room_curtain
-          ###################################
-          # Living Room - 4 devices
-          ###################################
-        - light.living_room_led
-        - light.living_room_floor_light_1
-        - light.living_room_floor_light_2
-        - light.living_room_ceiling_light
-        - switch.living_room_floor_light_3
-        - switch.tais_desk_screen_led
-        - switch.garden_wall_light
-        - cover.living_room_curtain_1
-        - cover.living_room_curtain_2
-          ###################################
-          # Kitchen - 5 devices
-          ###################################
-        - light.kitchen_ceiling_light
-        - light.kitchen_dining_light
-        - group.kitchen_worktop_leds
-        - switch.kitchen_floor_led
-        - cover.kitchen_curtain
-          ###################################
-          # Ground Toilet - 1 devices
-          ###################################
-          #light.ground_toilet_ceiling_light:
-          #  name: "Ground Toilet Ceiling Light"
-          ###################################
-          # Study - 1 devices
-          ###################################
-        - light.study_ceiling_light
-          ###################################
-          # En-suite Room - 6 devices
-          ###################################
-        - light.en_suite_room_ceiling_light
-        - light.en_suite_room_bed_led
-        - light.en_suite_room_lamp_2
-        - light.en_suite_room_lamp_1
-        - cover.en_suite_room_curtain
-    entity_config:
-      light.emulated_hue_ha_script_index_from_alexa:
-        name: "HA Script Index From Alexa"
-      # Alexa, set the Master Room Thermostat to 23
-      light.master_room_lamp_1:
-        name: "Master Room Left Lamp"
-      light.master_room_lamp_2:
-        name: "Master Room Right Lamp"
-      light.en_suite_room_lamp_2:
-        name: "En-suite Room Left Lamp"
-      light.en_suite_room_lamp_1:
-        name: "En-suite Room Right Lamp"
-      cover.living_room_curtain_1:
-        name: "Living Room Left Curtain"
-      cover.living_room_curtain_2:
-        name: "Living Room Right Curtain"
-
-automation:
-  - alias: E- Emulated Hue Alexa->HA Script
-    id: "1939270046562"
-    trigger:
-      #- platform: state
-      #  entity_id: light.emulated_hue_ha_script_index_from_alexa
-      #  from: "off"
-      #  to: "on"
-      - platform: state
-        entity_id: light.emulated_hue_ha_script_index_from_alexa
-        attribute: brightness
-    mode: single
-    action:
-      # Delay for a bit for the brightness value to be up-to-date
-      - delay: "00:00:02"
-
-      - service: pyscript.alexa_call_ha_script
-        data:
-          # when alexa sets brightness less than 89, HA needs to round up
-          # any decimal points of brightness to up despite it's less than 0.5
-          script_index: "{{ ((state_attr('light.emulated_hue_ha_script_index_from_alexa', 'brightness')*100/255))|round(0, 'ceil')}}"
-
-      # Restore the default value and delay for a bit
-      - delay: "00:00:02"
-      - service: light.turn_on
-        entity_id: light.emulated_hue_ha_script_index_from_alexa
-        data:
-          brightness_pct: 1
-      - service: light.turn_off
-        entity_id: light.emulated_hue_ha_script_index_from_alexa
-
-# Switches for Emulated Hue
-switch emulated_hue:
-  - platform: template
-    switches:
-      master_room_blind:
-        value_template: "{{ is_state('cover.master_room_blind', 'open') }}"
-        turn_on:
-          service: cover.open_cover
-          target:
-            entity_id: cover.master_room_blind
-        turn_off:
-          service: cover.close_cover
-          target:
-            entity_id: cover.master_room_blind
-
-      master_room_curtain:
-        value_template: "{{ is_state('cover.master_room_curtain', 'open') }}"
-        turn_on:
-          service: cover.open_cover
-          target:
-            entity_id: cover.master_room_curtain
-        turn_off:
-          service: cover.close_cover
-          target:
-            entity_id: cover.master_room_curtain
-
-# Fake Light - using its brightness to call scripts from customized Alexa commands
-light:
-  - platform: template
-    lights:
-      emulated_hue_ha_script:
-        friendly_name: "Emulated Hue HA Script 1"
-        turn_on:
-          service: script.do_nothing
-        turn_off:
-          service: script.do_nothing
-        set_level:
-          service: script.do_nothing
-        set_temperature:
-          service: script.do_nothing
-        #set_white_value:
-        #  service: script.do_nothing
-        set_color:
-          service: script.do_nothing
-
-  # Sometimes HA script Light Needs to be re-instantiated
-  - platform: group
-    name: Emulated Hue HA Script Index From Alexa
-    entities:
-      #- light.emulated_hue_ha_script
-      - light.tuya_virtual_light
+#cloud:
+#  alexa:
+#    filter:
+#      include_entities:
+#        ###################################
+#        # Master Room  - 7 devices
+#        ###################################
+#        - light.master_room_lamp_1
+#        - light.master_room_lamp_2
+#        - light.master_room_ceiling_light
+#        - light.master_room_leds
+#        - switch.master_room_dressing_table_light
+#        - cover.master_room_curtain
+#        - cover.master_room_blind
+#          ###################################
+#          # Master Toilet  - 2 devices
+#          ###################################
+#        - light.master_toilet_ceiling_light
+#        - switch.master_toilet_floor_led
+#          ###################################
+#          # Guest Room  - 1 devices
+#          ###################################
+#        - light.guest_room_ceiling_light
+#        - light.guest_room_lamp_1
+#        - light.guest_room_lamp_2
+#        - cover.guest_room_curtain
+#          ###################################
+#          # Living Room - 4 devices
+#          ###################################
+#        - light.living_room_led
+#        - light.living_room_floor_light_1
+#        - light.living_room_floor_light_2
+#        - light.living_room_ceiling_light
+#        - switch.living_room_floor_light_3
+#        - switch.tais_desk_screen_led
+#        - switch.garden_wall_light
+#        - cover.living_room_curtain_1
+#        - cover.living_room_curtain_2
+#          ###################################
+#          # Kitchen - 5 devices
+#          ###################################
+#        - light.kitchen_ceiling_light
+#        - light.kitchen_dining_light
+#        - group.kitchen_worktop_leds
+#        - switch.kitchen_floor_led
+#        - cover.kitchen_curtain
+#          ###################################
+#          # Ground Toilet - 1 devices
+#          ###################################
+#          #light.ground_toilet_ceiling_light:
+#          #  name: "Ground Toilet Ceiling Light"
+#          ###################################
+#          # Study - 1 devices
+#          ###################################
+#        - light.study_ceiling_light
+#          ###################################
+#          # En-suite Room - 6 devices
+#          ###################################
+#        - light.en_suite_room_ceiling_light
+#        - light.en_suite_room_bed_led
+#        - light.en_suite_room_lamp_2
+#        - light.en_suite_room_lamp_1
+#        - cover.en_suite_room_curtain
+#    entity_config:
+#      light.emulated_hue_ha_script_index_from_alexa:
+#        name: "HA Script Index From Alexa"
+#      # Alexa, set the Master Room Thermostat to 23
+#      light.master_room_lamp_1:
+#        name: "Master Room Left Lamp"
+#      light.master_room_lamp_2:
+#        name: "Master Room Right Lamp"
+#      light.en_suite_room_lamp_2:
+#        name: "En-suite Room Left Lamp"
+#      light.en_suite_room_lamp_1:
+#        name: "En-suite Room Right Lamp"
+#      cover.living_room_curtain_1:
+#        name: "Living Room Left Curtain"
+#      cover.living_room_curtain_2:
+#        name: "Living Room Right Curtain"
+#
+#automation:
+#  - alias: E- Emulated Hue Alexa->HA Script
+#    id: "1939270046562"
+#    trigger:
+#      #- platform: state
+#      #  entity_id: light.emulated_hue_ha_script_index_from_alexa
+#      #  from: "off"
+#      #  to: "on"
+#      - platform: state
+#        entity_id: light.emulated_hue_ha_script_index_from_alexa
+#        attribute: brightness
+#    mode: single
+#    action:
+#      # Delay for a bit for the brightness value to be up-to-date
+#      - delay: "00:00:02"
+#
+#      - service: pyscript.alexa_call_ha_script
+#        data:
+#          # when alexa sets brightness less than 89, HA needs to round up
+#          # any decimal points of brightness to up despite it's less than 0.5
+#          script_index: "{{ ((state_attr('light.emulated_hue_ha_script_index_from_alexa', 'brightness')*100/255))|round(0, 'ceil')}}"
+#
+#      # Restore the default value and delay for a bit
+#      - delay: "00:00:02"
+#      - service: light.turn_on
+#        entity_id: light.emulated_hue_ha_script_index_from_alexa
+#        data:
+#          brightness_pct: 1
+#      - service: light.turn_off
+#        entity_id: light.emulated_hue_ha_script_index_from_alexa
+#
+## Switches for Emulated Hue
+#switch emulated_hue:
+#  - platform: template
+#    switches:
+#      master_room_blind:
+#        value_template: "{{ is_state('cover.master_room_blind', 'open') }}"
+#        turn_on:
+#          service: cover.open_cover
+#          target:
+#            entity_id: cover.master_room_blind
+#        turn_off:
+#          service: cover.close_cover
+#          target:
+#            entity_id: cover.master_room_blind
+#
+#      master_room_curtain:
+#        value_template: "{{ is_state('cover.master_room_curtain', 'open') }}"
+#        turn_on:
+#          service: cover.open_cover
+#          target:
+#            entity_id: cover.master_room_curtain
+#        turn_off:
+#          service: cover.close_cover
+#          target:
+#            entity_id: cover.master_room_curtain
+#
+## Fake Light - using its brightness to call scripts from customized Alexa commands
+#light:
+#  - platform: template
+#    lights:
+#      emulated_hue_ha_script:
+#        friendly_name: "Emulated Hue HA Script 1"
+#        turn_on:
+#          service: script.do_nothing
+#        turn_off:
+#          service: script.do_nothing
+#        set_level:
+#          service: script.do_nothing
+#        set_temperature:
+#          service: script.do_nothing
+#        #set_white_value:
+#        #  service: script.do_nothing
+#        set_color:
+#          service: script.do_nothing
+#
+#  # Sometimes HA script Light Needs to be re-instantiated
+#  - platform: group
+#    name: Emulated Hue HA Script Index From Alexa
+#    entities:
+#      #- light.emulated_hue_ha_script
+#      - light.tuya_virtual_light
 #script:
 #  alexa_set_tv_brightness_to_dynamic:
 #    sequence:

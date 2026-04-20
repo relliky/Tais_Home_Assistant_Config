@@ -1,306 +1,6 @@
 #############################################################################
 # DO NOT MODIFY. This is an automatically generated file.                   # 
-# Please modify the python source code under python_templates directory.    #
 #############################################################################
-input_select:
-  kitchen_scene:
-    name: Kitchen Scene
-    options:
-    - Idle
-    - LED White
-    - All White
-    - Ceiling Light White
-    - All Off
-  kitchen_occupancy:
-    name: Kitchen Occupancy
-    options:
-    - Outside
-    - Just Entered
-    - Stayed Inside
-    - In Sleep
-sensor:
-- platform: history_stats
-  name: Kitchen Motion On Ratio For Last 4 Minutes
-  entity_id: group.kitchen_motion_group
-  state: 'on'
-  type: ratio
-  duration:
-    minutes: '4'
-  end: '{{ (now() | as_timestamp) | as_datetime | as_local }}'
-- platform: history_stats
-  name: Kitchen Motion On Ratio For Last 8 Minutes
-  entity_id: group.kitchen_motion_group
-  state: 'on'
-  type: ratio
-  duration:
-    minutes: '8'
-  end: '{{ (now() | as_timestamp) | as_datetime | as_local }}'
-- name: 52b1 Measure Mss310 Power W Main Channel Smoothed
-  platform: filter
-  entity_id: sensor.52b1_measure_mss310_power_w_main_channel
-  filters:
-    filter: lowpass
-    time_constant: 5
-- name: 560a Measure Mss310 Power W Main Channel Smoothed
-  platform: filter
-  entity_id: sensor.560a_measure_mss310_power_w_main_channel
-  filters:
-    filter: lowpass
-    time_constant: 5
-- name: F809 Measure2 Mss305 Power W Main Channel Smoothed
-  platform: filter
-  entity_id: sensor.f809_measure2_mss305_power_w_main_channel
-  filters:
-    filter: lowpass
-    time_constant: 5
-- name: Fcf7 Measure2 Mss305 Power W Main Channel Smoothed
-  platform: filter
-  entity_id: sensor.fcf7_measure2_mss305_power_w_main_channel
-  filters:
-    filter: lowpass
-    time_constant: 5
-- name: Kitchen Min Battery
-  platform: min_max
-  type: min
-  entity_ids:
-  - sensor.vaccum_battery
-  - sensor.kitchen_temperature_sensor_battery
-  - sensor.kitchen_dining_motion_sensor_battery
-  - sensor.kitchen_worktop_motion_sensor_battery
-  - sensor.kitchen_table_occupancy_sensor_battery
-  - sensor.kitchen_table_xiaomi_home_occupancy_sensor_battery
-input_boolean:
-  kitchen_heating_override:
-    name: Kitchen Heating Override
-    initial: 'off'
-  curtain_control_when_left_kitchen:
-    name: Curtain Control When Left Kitchen
-  curtain_control_bright_morning_when_left_kitchen:
-    name: Curtain Control Bright Morning When Left Kitchen
-  curtain_control_bright_afternoon_when_left_kitchen:
-    name: Curtain Control Bright Afternoon When Left Kitchen
-  curtain_control_dark_when_left_kitchen:
-    name: Curtain Control Dark When Left Kitchen
-  ceiling_light_control_bright_morning_kitchen:
-    name: Ceiling Light Control Bright Morning Kitchen
-  lamp_control_bright_morning_kitchen:
-    name: Lamp Control Bright Morning Kitchen
-  led_control_bright_morning_kitchen:
-    name: Led Control Bright Morning Kitchen
-  curtain_control_bright_morning_kitchen:
-    name: Curtain Control Bright Morning Kitchen
-  ceiling_light_control_bright_afternoon_kitchen:
-    name: Ceiling Light Control Bright Afternoon Kitchen
-  lamp_control_bright_afternoon_kitchen:
-    name: Lamp Control Bright Afternoon Kitchen
-    initial: 'off'
-  led_control_bright_afternoon_kitchen:
-    name: Led Control Bright Afternoon Kitchen
-  curtain_control_bright_afternoon_kitchen:
-    name: Curtain Control Bright Afternoon Kitchen
-  ceiling_light_control_dark_kitchen:
-    name: Ceiling Light Control Dark Kitchen
-  lamp_control_dark_kitchen:
-    name: Lamp Control Dark Kitchen
-    initial: 'off'
-  led_control_dark_kitchen:
-    name: Led Control Dark Kitchen
-  curtain_control_dark_kitchen:
-    name: Curtain Control Dark Kitchen
-  kitchen_tado_heater:
-    name: Kitchen Tado Heater
-input_datetime:
-  morning_start_time_kitchen:
-    name: Morning Start Time Kitchen
-    has_date: false
-    has_time: true
-  morning_end_time_kitchen:
-    name: Morning End Time Kitchen
-    has_date: false
-    has_time: true
-  afternoon_start_time_kitchen:
-    name: Afternoon Start Time Kitchen
-    has_date: false
-    has_time: true
-  afternoon_end_time_kitchen:
-    name: Afternoon End Time Kitchen
-    has_date: false
-    has_time: true
-input_number:
-  kitchen_min_value_as_bright:
-    name: Kitchen Min Value As Bright
-    min: 0
-    max: 4000
-    step: 1
-    mode: box
-switch:
-- platform: group
-  name: Kitchen Extractor Wall Switch 1
-  entities: switch.0x00158d0005210fa9_channel_1
-- platform: group
-  name: Kitchen Extractor Wall Switch 2
-  entities: switch.0x00158d0005210fa9_channel_2
-- platform: group
-  name: Kitchen Extractor
-  entities: switch.0x00158d0005210fa9_channel_2
-- platform: group
-  name: Kitchen Wall Switch 1
-  entities: switch.0x04cf8cdf3c7ad647_channel_1
-- platform: group
-  name: Kitchen Wall Switch 2
-  entities: switch.0x04cf8cdf3c7ad647_channel_2
-- platform: group
-  name: Kitchen Wall Switch 3
-  entities: switch.0x04cf8cdf3c7ad647_channel_3
-- platform: group
-  name: Kitchen Floor LED
-  entities: switch.0x04cf8cdf3c7ad647_channel_3
-- platform: group
-  name: Rice Cooker Switch
-  entities: switch.f809_measure2_mss305_main_channel
-- platform: group
-  name: Plate Warmer Switch
-  entities: switch.fcf7_measure2_mss305_main_channel
-cover: []
-climate:
-- platform: generic_thermostat
-  name: Kitchen
-  heater: input_boolean.kitchen_tado_heater
-  target_sensor: sensor.kitchen_temperature_sensor
-  min_temp: 16
-  max_temp: 27
-  ac_mode: false
-  cold_tolerance: 0
-  precision: 0.1
-  target_temp_step: 0.5
-  min_cycle_duration: 00:01:30
-template:
-- sensor:
-  - name: Vaccum Battery
-    unit_of_measurement: '%'
-    state: '{{states.sensor["x1_battery_2"].state}}'
-- sensor:
-  - name: Kitchen Temperature Sensor
-    unit_of_measurement: "\xB0C"
-    state: '{{states.sensor["582d34828f85_temperature"].state | float | round(1)}}'
-- sensor:
-  - name: Kitchen Temperature Sensor Battery
-    unit_of_measurement: '%'
-    state: '{{states.sensor["582d34828f85_battery"].state}}'
-- sensor:
-  - name: Kitchen Extractor Wall Button
-    state: '{{states.sensor["0x00158d0005210fa9_action"].state}}'
-- sensor:
-  - name: Kitchen Wall Button
-    state: '{{states.sensor["0x04cf8cdf3c7ad647_action"].state}}'
-- binary_sensor:
-  - name: Washing Machine Power
-    state: '{% if (states.sensor["52b1_measure_mss310_power_w_main_channel_smoothed"].state) | float | round(1) > 4 %} on {% else %} off {% endif %}'
-- binary_sensor:
-  - name: Dish Washer Power
-    state: '{% if (states.sensor["560a_measure_mss310_power_w_main_channel_smoothed"].state) | float | round(1) > 3 %} on {% else %} off {% endif %}'
-- binary_sensor:
-  - name: Rice Cooker Power
-    state: '{% if (states.sensor["f809_measure2_mss305_power_w_main_channel_smoothed"].state) | float | round(1) > 4 %} on {% else %} off {% endif %}'
-- binary_sensor:
-  - name: Plate Warmer Power
-    state: '{% if (states.sensor["fcf7_measure2_mss305_power_w_main_channel_smoothed"].state) | float | round(1) > 4 %} on {% else %} off {% endif %}'
-- sensor:
-  - name: Kitchen Dining Motion Sensor Battery
-    unit_of_measurement: '%'
-    state: '{{states.sensor["0x00158d00057acaac_battery"].state}}'
-- sensor:
-  - name: Kitchen Worktop Motion Sensor Battery
-    unit_of_measurement: '%'
-    state: '{{states.sensor["0x00158d0004660308_battery"].state}}'
-- binary_sensor:
-  - name: Kitchen Table Occupancy Sensor Occupancy
-    state: '{% if states.sensor["a4c1381a4361_no_one_duration"].state == ''unavailable'' or states.sensor["a4c1381a4361_no_one_duration"].state  == ''unknown''%}
-
-      {{states.binary_sensor["a4c1381a4361_occupancy"].state}}
-
-      {% elif states.sensor["a4c1381a4361_no_one_duration"].state == ''0'' %}
-
-      {{states.binary_sensor["a4c1381a4361_occupancy"].state}}
-
-      {# else is equivilence to elif states.sensor["a4c1381a4361_no_one_duration"].state > "0" #}
-
-      {% else %}
-
-      off
-
-      {% endif %}
-
-      '
-- sensor:
-  - name: Kitchen Table Occupancy Sensor Battery
-    unit_of_measurement: '%'
-    state: '{{states.sensor["a4c1381a4361_battery"].state}}'
-- binary_sensor:
-  - name: Kitchen Table Xiaomi Home Occupancy Sensor Occupancy
-    state: '{% if states.sensor["linp_cn_blt_3_1kdf7mlc8k400_es2_no_one_duration_p_2_1079"].state == ''unavailable'' or states.sensor["linp_cn_blt_3_1kdf7mlc8k400_es2_no_one_duration_p_2_1079"].state  == ''unknown''%}
-
-      {{states.binary_sensor["linp_cn_blt_3_1kdf7mlc8k400_es2_occupancy_status_p_2_1078"].state}}
-
-      {% elif states.sensor["linp_cn_blt_3_1kdf7mlc8k400_es2_no_one_duration_p_2_1079"].state == ''0'' %}
-
-      {{states.binary_sensor["linp_cn_blt_3_1kdf7mlc8k400_es2_occupancy_status_p_2_1078"].state}}
-
-      {# else is equivilence to elif states.sensor["linp_cn_blt_3_1kdf7mlc8k400_es2_no_one_duration_p_2_1079"].state > "0" #}
-
-      {% else %}
-
-      off
-
-      {% endif %}
-
-      '
-- sensor:
-  - name: Kitchen Table Xiaomi Home Occupancy Sensor Battery
-    unit_of_measurement: '%'
-    state: '{{states.sensor["linp_cn_blt_3_1kdf7mlc8k400_es2_battery_level_p_4_1003"].state}}'
-- sensor:
-  - name: Kitchen Tado Availiabity
-    unit_of_measurement: "\xB0C"
-    state: '{{states("sensor.tado_smart_radiator_thermostat_va3767669760_current_temperature") | float | round(1)}}'
-- binary_sensor:
-  - name: Kitchen Heating Required
-    state: '{% set climate = "climate.tado_smart_radiator_thermostat_va3767669760" %}{% if states(climate) == "unavailable" or states(climate) == "off" or (state_attr(climate, "temperature") <= state_attr(climate, "current_temperature"))  %}off{% else %} on{% endif %}'
-- binary_sensor:
-  - name: Kitchen Unavailable Entities
-    state: '{% set added_device_entities =  [''sensor.vaccum_battery'', ''sensor.kitchen_temperature_sensor'', ''sensor.kitchen_temperature_sensor_battery'', ''sensor.kitchen_extractor_wall_button'', ''sensor.kitchen_wall_button'', ''binary_sensor.washing_machine_power'', ''binary_sensor.dish_washer_power'', ''binary_sensor.rice_cooker_power'', ''binary_sensor.plate_warmer_power'', ''sensor.kitchen_dining_motion_sensor_battery'', ''sensor.kitchen_worktop_motion_sensor_battery'', ''binary_sensor.kitchen_table_occupancy_sensor_occupancy'', ''sensor.kitchen_table_occupancy_sensor_battery'', ''binary_sensor.kitchen_table_xiaomi_home_occupancy_sensor_occupancy'', ''sensor.kitchen_table_xiaomi_home_occupancy_sensor_battery'', ''sensor.kitchen_tado_availiabity'', ''binary_sensor.kitchen_heating_required'', ''binary_sensor.kitchen_dining_motion_sensor_motion'', ''binary_sensor.kitchen_worktop_motion_sensor_motion'', ''binary_sensor.kitchen_window'', ''binary_sensor.kitchen_water_sensor'', ''switch.kitchen_extractor_wall_switch_1'', ''switch.kitchen_extractor_wall_switch_2'', ''switch.kitchen_extractor'', ''switch.kitchen_wall_switch_1'', ''switch.kitchen_wall_switch_2'', ''switch.kitchen_wall_switch_3'', ''switch.kitchen_floor_led'', ''switch.rice_cooker_switch'', ''switch.plate_warmer_switch'', ''light.kitchen_ceiling_light'', ''light.kitchen_dining_light'', ''light.kitchen_worktop_led''] %}{% set ns = namespace() %}{% set ns.num_unavail_devices = 0 %}{% for device in added_device_entities %}   {% if states(device) in [''unavailable'', ''unknown'', ''none''] %}      {% set ns.num_unavail_devices = ns.num_unavail_devices + 1 %}   {% endif %}{% endfor %}{% if ns.num_unavail_devices > 0%}  on  {% else %}  off {% endif %}'
-    attributes:
-      value: '{% set added_device_entities =  [''sensor.vaccum_battery'', ''sensor.kitchen_temperature_sensor'', ''sensor.kitchen_temperature_sensor_battery'', ''sensor.kitchen_extractor_wall_button'', ''sensor.kitchen_wall_button'', ''binary_sensor.washing_machine_power'', ''binary_sensor.dish_washer_power'', ''binary_sensor.rice_cooker_power'', ''binary_sensor.plate_warmer_power'', ''sensor.kitchen_dining_motion_sensor_battery'', ''sensor.kitchen_worktop_motion_sensor_battery'', ''binary_sensor.kitchen_table_occupancy_sensor_occupancy'', ''sensor.kitchen_table_occupancy_sensor_battery'', ''binary_sensor.kitchen_table_xiaomi_home_occupancy_sensor_occupancy'', ''sensor.kitchen_table_xiaomi_home_occupancy_sensor_battery'', ''sensor.kitchen_tado_availiabity'', ''binary_sensor.kitchen_heating_required'', ''binary_sensor.kitchen_dining_motion_sensor_motion'', ''binary_sensor.kitchen_worktop_motion_sensor_motion'', ''binary_sensor.kitchen_window'', ''binary_sensor.kitchen_water_sensor'', ''switch.kitchen_extractor_wall_switch_1'', ''switch.kitchen_extractor_wall_switch_2'', ''switch.kitchen_extractor'', ''switch.kitchen_wall_switch_1'', ''switch.kitchen_wall_switch_2'', ''switch.kitchen_wall_switch_3'', ''switch.kitchen_floor_led'', ''switch.rice_cooker_switch'', ''switch.plate_warmer_switch'', ''light.kitchen_ceiling_light'', ''light.kitchen_dining_light'', ''light.kitchen_worktop_led''] %}{% set ns = namespace() %}{% set ns.unavail_devices = '''' %}{% for device in added_device_entities %}   {% if states(device) in [''unavailable'', ''unknown'', ''none''] %}   {% set ns.unavail_devices = ns.unavail_devices + ''
-
-        '' +device %} {% endif %}{% endfor %}{{ns.unavail_devices}}'
-- binary_sensor:
-  - name: Kitchen Low Battery
-    state: '{% set state = states("sensor.kitchen_min_battery") %} {% if state == "unavailable" or state == "unknown" or int(state) > 20 %} off {% else%} on {% endif %}'
-binary_sensor:
-- platform: group
-  name: Kitchen Dining Motion Sensor Motion
-  entities: binary_sensor.0x00158d00057acaac_motion
-- platform: group
-  name: Kitchen Worktop Motion Sensor Motion
-  entities: binary_sensor.0x00158d0004660308_motion
-- platform: group
-  name: Kitchen Window
-  entities: binary_sensor.e4aaec4500e4_contact
-- platform: group
-  name: Kitchen Water Sensor
-  entities: binary_sensor.18c23c2caa33_water_leak
-event: []
-lock: []
-light:
-- platform: group
-  name: Kitchen Ceiling Light
-  entities: light.kitchen_ceiling_light_hue
-- platform: group
-  name: Kitchen Dining Light
-  entities: light.kitchen_dining_light_yeelight
-- platform: group
-  name: Kitchen Worktop LED
-  entities: light.kitchen_worktop_led_tuya
 adaptive_lighting:
 - name: Kitchen
   lights:
@@ -317,6 +17,7 @@ adaptive_lighting:
   max_color_temp: 4000
   sleep_brightness: 1
   sleep_color_temp: 2200
+  min_sunset_time: '17:30'
   take_over_control: true
   autoreset_control_seconds: 86400
   detect_non_ha_changes: false
@@ -364,9 +65,15 @@ automation:
   - trigger: state
     entity_id: climate.tado_smart_radiator_thermostat_va3767669760
     attribute: temperature
+  - trigger: state
+    entity_id: climate.tado_smart_radiator_thermostat_va3767669760
+    attribute: current_temperature
+  - trigger: homeassistant
+    event: start
   - minutes: /30
-    seconds: '48'
-    platform: time_pattern
+    seconds: '38'
+    trigger: time_pattern
+  mode: single
   actions:
   - if:
     - condition: state
@@ -376,9 +83,10 @@ automation:
     - action: climate.set_temperature
       data:
         hvac_mode: heat
-        temperature: '{%set room_helper_entity = ''climate.kitchen'' %}{%set tado_valve_entity  = ''climate.tado_smart_radiator_thermostat_va3767669760'' %}  {%set room_cur_temp      = state_attr(room_helper_entity, ''current_temperature'') | float %}  {%set room_target_temp   = state_attr(room_helper_entity, ''temperature'')         | float %}  {%set tado_cur_temp      = state_attr(tado_valve_entity,  ''current_temperature'') | float %}  {#diff = room_target_temp - room_cur_temp = tado_target_temp_nxt - tado_cur_temp #}{% set tado_target_temp_nxt = ((room_target_temp - room_cur_temp + tado_cur_temp) * 2) | float | round / 2 %} {# round to 0.5 #}{%set tado_target_temp_nxt_sat = [[tado_target_temp_nxt, 25]|min,5]|max %} {# set lower and upper limit to [5,25] #}{{tado_target_temp_nxt_sat}}'
+        temperature: '{%set room_helper_entity = ''climate.kitchen'' %}{%set tado_valve_entity  = ''climate.tado_smart_radiator_thermostat_va3767669760'' %}  {%set room_cur_temp      = state_attr(room_helper_entity, ''current_temperature'') | float %}  {%set room_target_temp   = state_attr(room_helper_entity, ''temperature'')         | float %}  {%set tado_cur_temp      = state_attr(tado_valve_entity,  ''current_temperature'') | float %}  {#diff = room_target_temp - room_cur_temp = tado_target_temp_nxt - tado_cur_temp #}{% set tado_target_temp_nxt = ((room_target_temp - room_cur_temp + tado_cur_temp) * 2) | float(22) | round / 2 %} {# round to 0.5 #}{%set tado_target_temp_nxt_sat = [[tado_target_temp_nxt, 25]|min,5]|max %} {# set lower and upper limit to [5,25] #}{{tado_target_temp_nxt_sat}}'
       target:
         entity_id: climate.tado_smart_radiator_thermostat_va3767669760
+    - delay: 00:05:00
     else:
     - action: climate.turn_off
       target:
@@ -426,8 +134,7 @@ automation:
           - unavailable
           - unknown
       - condition: time
-        after: input_datetime.morning_start_time_kitchen
-        before: input_datetime.morning_end_time_kitchen
+        before: input_datetime.noon_time_kitchen
     then:
       alias: States when bright morning
       if:
@@ -548,8 +255,7 @@ automation:
             - unavailable
             - unknown
         - condition: time
-          after: input_datetime.afternoon_start_time_kitchen
-          before: input_datetime.afternoon_end_time_kitchen
+          after: input_datetime.noon_time_kitchen
       then:
         alias: States when bright afternoon
         if:
@@ -742,9 +448,11 @@ automation:
   - platform: state
     entity_id: input_select.kitchen_occupancy
     to: Outside
+  - trigger: homeassistant
+    event: start
   - minutes: /30
-    seconds: '6'
-    platform: time_pattern
+    seconds: '26'
+    trigger: time_pattern
   condition:
   - condition: state
     entity_id: input_select.kitchen_occupancy
@@ -761,10 +469,6 @@ automation:
       then:
         service: homeassistant.turn_on
         entity_id: automation.zl_kc_lights_and_curtain_on_if_entering_to_room_kitchen
-    - service: script.call_room_scene
-      data:
-        room_scene_select: input_select.kitchen_scene
-        scene: Idle
     - alias: If it is bright morning
       if:
       - alias: Bright morning
@@ -791,8 +495,7 @@ automation:
             - unavailable
             - unknown
         - condition: time
-          after: input_datetime.morning_start_time_kitchen
-          before: input_datetime.morning_end_time_kitchen
+          before: input_datetime.noon_time_kitchen
       then:
         alias: States when left in bright morning
         if:
@@ -861,8 +564,7 @@ automation:
               - unavailable
               - unknown
           - condition: time
-            after: input_datetime.afternoon_start_time_kitchen
-            before: input_datetime.afternoon_end_time_kitchen
+            after: input_datetime.noon_time_kitchen
         then:
           alias: States when left in bright afternoon
           if:
@@ -946,6 +648,10 @@ automation:
                       entity_id:
                       - cover.kitchen_curtain
     - service: script.do_nothing
+    - service: script.call_room_scene
+      data:
+        room_scene_select: input_select.kitchen_scene
+        scene: Idle
     - alias: All Off
       if:
       - '{{ 1 == 1 }}'
@@ -1038,9 +744,11 @@ automation:
   - platform: state
     entity_id: input_select.kitchen_occupancy
     to: Outside
+  - trigger: homeassistant
+    event: start
   - minutes: /30
-    seconds: '46'
-    platform: time_pattern
+    seconds: '52'
+    trigger: time_pattern
   action:
   - condition: state
     entity_id: input_select.kitchen_occupancy
@@ -1594,9 +1302,11 @@ automation:
     entity_id: input_select.kitchen_occupancy
     to: Outside
     for: 00:00:01
+  - trigger: homeassistant
+    event: start
   - minutes: /30
-    seconds: '54'
-    platform: time_pattern
+    seconds: '42'
+    trigger: time_pattern
   action:
   - condition: state
     entity_id: input_select.kitchen_occupancy
@@ -1626,9 +1336,11 @@ automation:
     entity_id: input_select.kitchen_occupancy
     to: Outside
     for: 00:00:01
+  - trigger: homeassistant
+    event: start
   - minutes: /30
-    seconds: '2'
-    platform: time_pattern
+    seconds: '43'
+    trigger: time_pattern
   actions:
     action: script.kitchen_camera_pointing_to_door
   id: automation.zm_kc_reset_camera_position_after_people_left_kitchen
@@ -1748,7 +1460,7 @@ automation:
     platform: state
     to: 'on'
     for:
-      seconds: 300
+      seconds: 1800
   - entity_id: group.kitchen_motion_group
     platform: state
     to: 'off'
@@ -1756,15 +1468,17 @@ automation:
     platform: state
     to: 'off'
     for:
-      seconds: 120
+      seconds: 600
   - entity_id: group.kitchen_motion_group
     platform: state
     to: 'off'
     for:
-      seconds: 300
-  - minutes: /5
-    seconds: '5'
-    platform: time_pattern
+      seconds: 3600
+  - trigger: homeassistant
+    event: start
+  - minutes: /30
+    seconds: '31'
+    trigger: time_pattern
   action:
     service: pyscript.room_occupancy_state_machine
     data:
@@ -1773,9 +1487,79 @@ automation:
       sleep_time: input_boolean.always_off_constant
       turn_to_outside_when_no_motion: 'no'
       entered_to_inside_timeout: 150
-      inside_to_outside_timeout: 120
-      sleep_to_outside_timesout: 300
-      inside_to_sleep_timeout: 300
+      inside_to_outside_timeout: 600
+      sleep_to_outside_timesout: 3600
+      inside_to_sleep_timeout: 1800
+- alias: ZOc-KC Occupancy Override and sync to Timer-Kitchen
+  mode: single
+  trigger:
+  - platform: state
+    entity_id: input_boolean.kitchen_auto_off_suspended
+  action:
+  - choose:
+    - conditions:
+      - condition: state
+        entity_id: input_boolean.kitchen_auto_off_suspended
+        state: 'on'
+      sequence:
+      - service: timer.start
+        target:
+          entity_id: timer.kitchen_auto_off_suspended_timer
+      - alias: Turn automation.zoc_kc_occupancy_update_kitchen state=off
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          service: homeassistant.turn_off
+          entity_id: automation.zoc_kc_occupancy_update_kitchen
+      - service: input_select.select_option
+        target:
+          entity_id: input_select.kitchen_occupancy
+        data:
+          option: Stayed Inside
+    - conditions:
+      - condition: state
+        entity_id: input_boolean.kitchen_auto_off_suspended
+        state: 'off'
+      sequence:
+      - service: timer.cancel
+        target:
+          entity_id: timer.kitchen_auto_off_suspended_timer
+      - alias: Turn automation.zoc_kc_occupancy_update_kitchen state=on
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          service: homeassistant.turn_on
+          entity_id: automation.zoc_kc_occupancy_update_kitchen
+  id: automation.zoc_kc_occupancy_override_and_sync_to_timer_kitchen
+- alias: ZOc-KC Occupancy Override Sync from Timer-Kitchen
+  mode: single
+  trigger:
+  - platform: state
+    entity_id: timer.kitchen_auto_off_suspended_timer
+  action:
+  - choose:
+    - conditions:
+      - condition: state
+        entity_id: timer.kitchen_auto_off_suspended_timer
+        state: active
+      sequence:
+      - service: input_boolean.turn_on
+        target:
+          entity_id: input_boolean.kitchen_auto_off_suspended
+    - conditions:
+      - condition: or
+        conditions:
+        - condition: state
+          entity_id: timer.kitchen_auto_off_suspended_timer
+          state: paused
+        - condition: state
+          entity_id: timer.kitchen_auto_off_suspended_timer
+          state: idle
+      sequence:
+      - service: input_boolean.turn_off
+        target:
+          entity_id: input_boolean.kitchen_auto_off_suspended
+  id: automation.zoc_kc_occupancy_override_sync_from_timer_kitchen
 - alias: ZN-KC Notify Window Left Open When Tai is Leaving Zone-Kitchen
   trigger:
   - platform: zone
@@ -1789,7 +1573,7 @@ automation:
   action:
   - service: script.notify_alexa_speakers_and_phones
     data:
-      tts_message: Kitchen windows are left open. But you have left home. Is that ok?
+      tts_message: Kitchen windows or locks are left open. But you have left home. Is that ok?
       notify_tai: 'yes'
   id: automation.zn_kc_notify_window_left_open_when_tai_is_leaving_zone_kitchen
 - alias: ZN-KC Notify Window Left Open When Ke is Leaving Zone-Kitchen
@@ -1805,7 +1589,7 @@ automation:
   action:
   - service: script.notify_alexa_speakers_and_phones
     data:
-      tts_message: Kitchen windows are left open. But you have left home. Is that ok?
+      tts_message: Kitchen windows or locks are left open. But you have left home. Is that ok?
       notify_ke: 'yes'
   id: automation.zn_kc_notify_window_left_open_when_ke_is_leaving_zone_kitchen
 - alias: ZN-KC Notify Window Left Open in Bedtime -Kitchen
@@ -1813,6 +1597,7 @@ automation:
   - platform: time
     at:
     - '21:00:00'
+    - '22:00:00'
     - '23:00:00'
     - 00:00:00
     - 01:00:00
@@ -1825,32 +1610,323 @@ automation:
   action:
   - service: script.notify_alexa_speakers_and_phones
     data:
-      tts_message: Kitchen windows are left open. But it's almost bedtime time. Is that ok?
+      tts_message: Kitchen windows or locks are left open. But it's almost bedtime time. Is that ok?
       notify_tai: 'yes'
       notify_ke: 'yes'
       notify_guest_room_tenant: 'yes'
       notify_en_suite_room_tenant: 'yes'
   id: automation.zn_kc_notify_window_left_open_in_bedtime_kitchen
-- alias: ZN-KC Notify Window Left Open After Timeout-Kitchen
-  trigger:
-  - platform: template
-    value_template: '{{(now().timestamp() - states.group.kitchen_timeout_window_group.last_changed.timestamp()) > state_attr(''input_datetime.qianjie_windows_open_timeout'', ''timestamp'')}}
+input_select:
+  kitchen_scene:
+    name: Kitchen Scene
+    options:
+    - Idle
+    - LED White
+    - All White
+    - Ceiling Light White
+    - All Off
+  kitchen_occupancy:
+    name: Kitchen Occupancy
+    options:
+    - Outside
+    - Just Entered
+    - Stayed Inside
+    - In Sleep
+input_boolean:
+  kitchen_heating_override:
+    name: Kitchen Heating Override
+    initial: 'off'
+  curtain_control_when_left_kitchen:
+    name: Curtain Control When Left Kitchen
+  curtain_control_bright_morning_when_left_kitchen:
+    name: Curtain Control Bright Morning When Left Kitchen
+  curtain_control_bright_afternoon_when_left_kitchen:
+    name: Curtain Control Bright Afternoon When Left Kitchen
+  curtain_control_dark_when_left_kitchen:
+    name: Curtain Control Dark When Left Kitchen
+  ceiling_light_control_bright_morning_kitchen:
+    name: Ceiling Light Control Bright Morning Kitchen
+  lamp_control_bright_morning_kitchen:
+    name: Lamp Control Bright Morning Kitchen
+  led_control_bright_morning_kitchen:
+    name: Led Control Bright Morning Kitchen
+  curtain_control_bright_morning_kitchen:
+    name: Curtain Control Bright Morning Kitchen
+  ceiling_light_control_bright_afternoon_kitchen:
+    name: Ceiling Light Control Bright Afternoon Kitchen
+  lamp_control_bright_afternoon_kitchen:
+    name: Lamp Control Bright Afternoon Kitchen
+    initial: 'off'
+  led_control_bright_afternoon_kitchen:
+    name: Led Control Bright Afternoon Kitchen
+  curtain_control_bright_afternoon_kitchen:
+    name: Curtain Control Bright Afternoon Kitchen
+  ceiling_light_control_dark_kitchen:
+    name: Ceiling Light Control Dark Kitchen
+  lamp_control_dark_kitchen:
+    name: Lamp Control Dark Kitchen
+    initial: 'off'
+  led_control_dark_kitchen:
+    name: Led Control Dark Kitchen
+  curtain_control_dark_kitchen:
+    name: Curtain Control Dark Kitchen
+  kitchen_auto_off_suspended:
+    name: Kitchen Auto Off Suspended
+    icon: mdi:timer-sand
+  kitchen_tado_heater:
+    name: Kitchen Tado Heater
+input_datetime:
+  noon_time_kitchen:
+    name: Noon Time Kitchen
+    has_date: false
+    has_time: true
+input_number:
+  kitchen_min_value_as_bright:
+    name: Kitchen Min Value As Bright
+    min: 0
+    max: 4000
+    step: 1
+    mode: box
+sensor:
+- platform: history_stats
+  name: Kitchen Motion On Ratio For Last 4 Minutes
+  entity_id: group.kitchen_motion_group
+  state: 'on'
+  type: ratio
+  duration:
+    minutes: '4'
+  end: '{{ (now() | as_timestamp) | as_datetime | as_local }}'
+- platform: history_stats
+  name: Kitchen Motion On Ratio For Last 8 Minutes
+  entity_id: group.kitchen_motion_group
+  state: 'on'
+  type: ratio
+  duration:
+    minutes: '8'
+  end: '{{ (now() | as_timestamp) | as_datetime | as_local }}'
+- name: 582d34828f85 Battery Median
+  platform: statistics
+  entity_id: sensor.582d34828f85_battery
+  precision: 0
+  state_characteristic: median
+  max_age:
+    hours: 24
+- name: Smart Switch 24110804769064510803c4e7ae0ff809 Power Smoothed
+  platform: filter
+  entity_id: sensor.smart_switch_24110804769064510803c4e7ae0ff809_power
+  filters:
+    filter: lowpass
+    time_constant: 5
+    precision: 1
+- name: Smart Plug 20030678930061251h3448e1e91852b1 Power Smoothed
+  platform: filter
+  entity_id: sensor.smart_plug_20030678930061251h3448e1e91852b1_power
+  filters:
+    filter: lowpass
+    time_constant: 5
+    precision: 1
+- name: Smart Plug 20030602740631251h3448e1e918560a Power Smoothed
+  platform: filter
+  entity_id: sensor.smart_plug_20030602740631251h3448e1e918560a_power
+  filters:
+    filter: lowpass
+    time_constant: 5
+    precision: 1
+- name: 0x00158d00057acaac Battery Median
+  platform: statistics
+  entity_id: sensor.0x00158d00057acaac_battery
+  precision: 0
+  state_characteristic: median
+  max_age:
+    hours: 24
+- name: 0x00158d0004660308 Battery Median
+  platform: statistics
+  entity_id: sensor.0x00158d0004660308_battery
+  precision: 0
+  state_characteristic: median
+  max_age:
+    hours: 24
+- name: Kitchen Min Battery
+  platform: min_max
+  type: min
+  entity_ids:
+  - sensor.front_door_lock_battery
+  - sensor.front_door_battery
+  - sensor.kitchen_temperature_sensor_battery
+  - sensor.kitchen_dining_motion_sensor_battery
+  - sensor.kitchen_worktop_motion_sensor_battery
+  - sensor.kitchen_window_battery
+timer:
+  kitchen_auto_off_suspended_timer:
+    name: Kitchen Auto Off Suspended Timer
+    duration: 02:00:00
+button: []
+switch:
+- platform: group
+  name: Kitchen Extractor Wall Switch 1
+  entities: switch.0x00158d0005210fa9_channel_1
+- platform: group
+  name: Kitchen Extractor Wall Switch 2
+  entities: switch.0x00158d0005210fa9_channel_2
+- platform: group
+  name: Kitchen Extractor
+  entities: switch.0x00158d0005210fa9_channel_2
+- platform: group
+  name: Kitchen Wall Switch 1
+  entities: switch.0x04cf8cdf3c7ad647_channel_1
+- platform: group
+  name: Kitchen Wall Switch 2
+  entities: switch.0x04cf8cdf3c7ad647_channel_2
+- platform: group
+  name: Kitchen Wall Switch 3
+  entities: switch.0x04cf8cdf3c7ad647_channel_3
+- platform: group
+  name: Kitchen Floor LED
+  entities: switch.0x04cf8cdf3c7ad647_channel_3
+- platform: group
+  name: Rice Cooker Switch
+  entities: switch.smart_switch_24110804769064510803c4e7ae0ff809_outlet
+- platform: group
+  name: Plate Warmer Switch
+  entities: switch.smart_switch_24110805022128510803c4e7ae0ffcf7_outlet
+- platform: group
+  name: Baby Food Cooker Switch
+  entities: switch.0x00158d000171756e_plug
+cover: []
+climate:
+- platform: generic_thermostat
+  name: Kitchen
+  heater: input_boolean.kitchen_tado_heater
+  target_sensor: sensor.kitchen_temperature_sensor
+  min_temp: 16
+  max_temp: 27
+  ac_mode: false
+  cold_tolerance: 0
+  precision: 0.1
+  target_temp_step: 0.5
+  min_cycle_duration: 00:01:30
+template:
+- sensor:
+  - name: Front Door Lock Battery
+    unit_of_measurement: '%'
+    device_class: battery
+    state_class: measurement
+    state: '{% set s = states(''sensor.ttlock_front_door_battery'') %}{{ s | int if s not in [''unknown'', ''unavailable'', ''''] else ''unknown'' }}'
+- sensor:
+  - name: Front Door Battery
+    unit_of_measurement: '%'
+    device_class: battery
+    state_class: measurement
+    state: '{% set s = states(''sensor.e4aaec80bc25_battery'') %}{{ s | int if s not in [''unknown'', ''unavailable'', ''''] else ''unknown'' }}'
+- sensor:
+  - name: Kitchen Temperature Sensor
+    unit_of_measurement: "\xB0C"
+    state: '{{states.sensor["582d34828f85_temperature"].state | float(22) | round(1)}}'
+- sensor:
+  - name: Kitchen Temperature Sensor Battery
+    unit_of_measurement: '%'
+    device_class: battery
+    state_class: measurement
+    state: '{% set s = states(''sensor.582d34828f85_battery_median'') %}{{ s | int if s not in [''unknown'', ''unavailable'', ''''] else ''unknown'' }}'
+- sensor:
+  - name: Kitchen Extractor Wall Button
+    state: '{{states.sensor["0x00158d0005210fa9_action"].state}}'
+- sensor:
+  - name: Kitchen Wall Button
+    state: '{{states.sensor["0x04cf8cdf3c7ad647_action"].state}}'
+- binary_sensor:
+  - name: Rice Cooker Power
+    state: '{% if states("sensor.smart_switch_24110804769064510803c4e7ae0ff809_power_smoothed") | float(0) | round(1) > 10 %} on {% else %} off {% endif %}'
+    delay_off:
+      minutes: 0
+- binary_sensor:
+  - name: Plate Warmer Power
+    state: '{% if states("sensor.smart_switch_24110805022128510803c4e7ae0ffcf7_power") | float(0) | round(1) > 10 %} on {% else %} off {% endif %}'
+    delay_off:
+      minutes: 0
+- binary_sensor:
+  - name: Baby Food Cooker Power
+    state: '{% if states("sensor.0x00158d000171756e_power") | float(0) | round(1) > 5 %} on {% else %} off {% endif %}'
+    delay_off:
+      minutes: 3
+- binary_sensor:
+  - name: Washing Machine Power
+    state: '{% if states("sensor.smart_plug_20030678930061251h3448e1e91852b1_power_smoothed") | float(0) | round(1) > 10 %} on {% else %} off {% endif %}'
+    delay_off:
+      minutes: 0
+- binary_sensor:
+  - name: Dish Washer Power
+    state: '{% if states("sensor.smart_plug_20030602740631251h3448e1e918560a_power_smoothed") | float(0) | round(1) > 5 %} on {% else %} off {% endif %}'
+    delay_off:
+      minutes: 0
+- sensor:
+  - name: Kitchen Dining Motion Sensor Battery
+    unit_of_measurement: '%'
+    device_class: battery
+    state_class: measurement
+    state: '{% set s = states(''sensor.0x00158d00057acaac_battery_median'') %}{{ s | int if s not in [''unknown'', ''unavailable'', ''''] else ''unknown'' }}'
+- sensor:
+  - name: Kitchen Worktop Motion Sensor Battery
+    unit_of_measurement: '%'
+    device_class: battery
+    state_class: measurement
+    state: '{% set s = states(''sensor.0x00158d0004660308_battery_median'') %}{{ s | int if s not in [''unknown'', ''unavailable'', ''''] else ''unknown'' }}'
+- sensor:
+  - name: Kitchen Window Battery
+    unit_of_measurement: '%'
+    device_class: battery
+    state_class: measurement
+    state: '{% set s = states(''sensor.e4aaec4500e4_battery'') %}{{ s | int if s not in [''unknown'', ''unavailable'', ''''] else ''unknown'' }}'
+- sensor:
+  - name: Kitchen Tado Availiabity
+    unit_of_measurement: "\xB0C"
+    state: '{{states("sensor.tado_smart_radiator_thermostat_va3767669760_current_temperature") | float(22) | round(1)}}'
+- binary_sensor:
+  - name: Kitchen Heating Required
+    state: '{% set climate = "climate.tado_smart_radiator_thermostat_va3767669760" %}{% if states(climate) == "unavailable" or states(climate) == "off" or (state_attr(climate, "temperature") <= state_attr(climate, "current_temperature"))  %}off{% else %} on{% endif %}'
+- binary_sensor:
+  - name: Kitchen Unavailable Entities
+    state: '{% set added_device_entities =  [''sensor.front_door_lock_battery'', ''sensor.front_door_battery'', ''sensor.kitchen_temperature_sensor'', ''sensor.kitchen_temperature_sensor_battery'', ''sensor.kitchen_extractor_wall_button'', ''sensor.kitchen_wall_button'', ''binary_sensor.rice_cooker_power'', ''binary_sensor.plate_warmer_power'', ''binary_sensor.baby_food_cooker_power'', ''binary_sensor.washing_machine_power'', ''binary_sensor.dish_washer_power'', ''sensor.kitchen_dining_motion_sensor_battery'', ''sensor.kitchen_worktop_motion_sensor_battery'', ''sensor.kitchen_window_battery'', ''sensor.kitchen_tado_availiabity'', ''binary_sensor.kitchen_heating_required'', ''binary_sensor.front_door'', ''binary_sensor.kitchen_dining_motion_sensor_motion'', ''binary_sensor.kitchen_worktop_motion_sensor_motion'', ''binary_sensor.kitchen_window'', ''binary_sensor.kitchen_water_sensor'', ''switch.kitchen_extractor_wall_switch_1'', ''switch.kitchen_extractor_wall_switch_2'', ''switch.kitchen_extractor'', ''switch.kitchen_wall_switch_1'', ''switch.kitchen_wall_switch_2'', ''switch.kitchen_wall_switch_3'', ''switch.kitchen_floor_led'', ''switch.rice_cooker_switch'', ''switch.plate_warmer_switch'', ''switch.baby_food_cooker_switch'', ''lock.front_door'', ''light.kitchen_ceiling_light'', ''light.kitchen_dining_light'', ''light.kitchen_worktop_led''] %}{% set ns = namespace() %}{% set ns.num_unavail_devices = 0 %}{% for device in added_device_entities %}   {% if states(device) in [''unavailable'', ''unknown'', ''none''] %}      {% set ns.num_unavail_devices = ns.num_unavail_devices + 1 %}   {% endif %}{% endfor %}{% if ns.num_unavail_devices > 0%}  on  {% else %}  off {% endif %}'
+    attributes:
+      value: '{% set added_device_entities =  [''sensor.front_door_lock_battery'', ''sensor.front_door_battery'', ''sensor.kitchen_temperature_sensor'', ''sensor.kitchen_temperature_sensor_battery'', ''sensor.kitchen_extractor_wall_button'', ''sensor.kitchen_wall_button'', ''binary_sensor.rice_cooker_power'', ''binary_sensor.plate_warmer_power'', ''binary_sensor.baby_food_cooker_power'', ''binary_sensor.washing_machine_power'', ''binary_sensor.dish_washer_power'', ''sensor.kitchen_dining_motion_sensor_battery'', ''sensor.kitchen_worktop_motion_sensor_battery'', ''sensor.kitchen_window_battery'', ''sensor.kitchen_tado_availiabity'', ''binary_sensor.kitchen_heating_required'', ''binary_sensor.front_door'', ''binary_sensor.kitchen_dining_motion_sensor_motion'', ''binary_sensor.kitchen_worktop_motion_sensor_motion'', ''binary_sensor.kitchen_window'', ''binary_sensor.kitchen_water_sensor'', ''switch.kitchen_extractor_wall_switch_1'', ''switch.kitchen_extractor_wall_switch_2'', ''switch.kitchen_extractor'', ''switch.kitchen_wall_switch_1'', ''switch.kitchen_wall_switch_2'', ''switch.kitchen_wall_switch_3'', ''switch.kitchen_floor_led'', ''switch.rice_cooker_switch'', ''switch.plate_warmer_switch'', ''switch.baby_food_cooker_switch'', ''lock.front_door'', ''light.kitchen_ceiling_light'', ''light.kitchen_dining_light'', ''light.kitchen_worktop_led''] %}{% set ns = namespace() %}{% set ns.unavail_devices = '''' %}{% for device in added_device_entities %}   {% if states(device) in [''unavailable'', ''unknown'', ''none''] %}   {% set ns.unavail_devices = ns.unavail_devices + ''
 
-      '
-  condition:
-  - condition: state
-    entity_id: group.kitchen_timeout_window_group
-    state: 'on'
-  action:
-  - service: script.notify_alexa_speakers_and_phones
-    data:
-      tts_message: Kitchen windows are left open for a while. Is that ok?
-      notify_tai: 'yes'
-      notify_ke: 'yes'
-      notify_guest_room_tenant: 'yes'
-      notify_en_suite_room_tenant: 'yes'
-  mode: single
-  id: automation.zn_kc_notify_window_left_open_after_timeout_kitchen
+        '' +device %} {% endif %}{% endfor %}{{ns.unavail_devices}}'
+- binary_sensor:
+  - name: Kitchen Low Battery
+    state: '{% set state = states("sensor.kitchen_min_battery") %} {% if state == "unavailable" or state == "unknown" or int(state) > 20 %} off {% else%} on {% endif %}'
+binary_sensor:
+- platform: group
+  name: Front Door
+  entities: binary_sensor.e4aaec80bc25_contact
+- platform: group
+  name: Kitchen Dining Motion Sensor Motion
+  device_class: motion
+  entities: binary_sensor.0x00158d00057acaac_motion
+- platform: group
+  name: Kitchen Worktop Motion Sensor Motion
+  device_class: motion
+  entities: binary_sensor.0x00158d0004660308_motion
+- platform: group
+  name: Kitchen Window
+  entities: binary_sensor.e4aaec4500e4_contact
+- platform: group
+  name: Kitchen Water Sensor
+  entities: binary_sensor.18c23c2caa33_water_leak
+event: []
+lock:
+- platform: group
+  name: Front Door
+  entities: lock.ttlock_front_door
+light:
+- platform: group
+  name: Kitchen Ceiling Light
+  entities: light.kitchen_ceiling_light_hue
+- platform: group
+  name: Kitchen Dining Light
+  entities: light.yeelink_cn_472898922_ceil30_s_2_light
+- platform: group
+  name: Kitchen Worktop LED
+  entities: light.kitchen_worktop_led_tuya
 group:
   kitchen_occupancy_group:
     name: Kitchen Occupancy Group
@@ -1860,6 +1936,7 @@ group:
     - binary_sensor.kitchen_worktop_motion_sensor_motion
     - binary_sensor.kitchen_dining_motion_sensor_motion
     - binary_sensor.kitchen_dining_table_motion_sensor_motion
+    - binary_sensor.kitchen_table_xiaomi_home_occupancy_sensor_occupancy
     - binary_sensor.kitchen_table_occupancy_sensor_occupancy
     - automation.zoc_kc_occupancy_update_kitchen
   kitchen_motion_group:
@@ -1868,6 +1945,7 @@ group:
     - binary_sensor.kitchen_worktop_motion_sensor_motion
     - binary_sensor.kitchen_dining_motion_sensor_motion
     - binary_sensor.kitchen_dining_table_motion_sensor_motion
+    - binary_sensor.kitchen_table_xiaomi_home_occupancy_sensor_occupancy
     - binary_sensor.kitchen_table_occupancy_sensor_occupancy
   kitchen_light_group:
     name: Kitchen Light Group
@@ -1880,10 +1958,14 @@ group:
     name: Kitchen Window Group
     entities:
     - binary_sensor.kitchen_window
+    - binary_sensor.front_door
+    - lock.front_door
   kitchen_timeout_window_group:
     name: Kitchen Timeout Window Group
     entities:
     - binary_sensor.kitchen_window
+    - binary_sensor.front_door
+    - lock.front_door
   kitchen_curtain_group:
     name: Kitchen Curtain Group
     entities:
@@ -1891,12 +1973,12 @@ group:
   kitchen_battery:
     name: Kitchen Battery
     entities:
-    - sensor.vaccum_battery
+    - sensor.front_door_lock_battery
+    - sensor.front_door_battery
     - sensor.kitchen_temperature_sensor_battery
     - sensor.kitchen_dining_motion_sensor_battery
     - sensor.kitchen_worktop_motion_sensor_battery
-    - sensor.kitchen_table_occupancy_sensor_battery
-    - sensor.kitchen_table_xiaomi_home_occupancy_sensor_battery
+    - sensor.kitchen_window_battery
   kitchen_auto_gen_automations:
     name: Kitchen Auto Gen Automations
     entities:
@@ -1928,10 +2010,11 @@ group:
     - automation.zlb_kc_worktop_wall_switch_single_left_press_toggle_worktop_led_kitchen
     - automation.zlb_kc_wall_switch_double_press_leave_room_and_turn_off_everything_kitchen
     - automation.zoc_kc_occupancy_update_kitchen
+    - automation.zoc_kc_occupancy_override_and_sync_to_timer_kitchen
+    - automation.zoc_kc_occupancy_override_sync_from_timer_kitchen
     - automation.zn_kc_notify_window_left_open_when_tai_is_leaving_zone_kitchen
     - automation.zn_kc_notify_window_left_open_when_ke_is_leaving_zone_kitchen
     - automation.zn_kc_notify_window_left_open_in_bedtime_kitchen
-    - automation.zn_kc_notify_window_left_open_after_timeout_kitchen
     - switch.0x00158d0005210fa9_channel_1
     - switch.0x00158d0005210fa9_channel_2
     - switch.0x04cf8cdf3c7ad647_channel_1
@@ -1943,10 +2026,8 @@ group:
     - switch.0x04cf8cdf3c7ad647_wireless_2
     - switch.0x04cf8cdf3c7ad647_wireless_3
     - switch.adaptive_lighting_sleep_mode_kitchen
-    - input_datetime.morning_start_time_kitchen
-    - input_datetime.morning_end_time_kitchen
-    - input_datetime.afternoon_start_time_kitchen
-    - input_datetime.afternoon_end_time_kitchen
+    - input_datetime.noon_time_kitchen
     - sensor.master_room_west_side_light_sensor
     - input_number.kitchen_min_value_as_bright
     - group.kitchen_battery
+    - group.kitchen_window_group

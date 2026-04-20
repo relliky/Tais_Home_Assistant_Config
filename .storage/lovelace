@@ -135,6 +135,9 @@
                         },
                         {
                           "user": "317c743e4c8348b8a70d671db917dbe8"
+                        },
+                        {
+                          "user": "e9fbd5a00abd49b88122f03d68053128"
                         }
                       ]
                     }
@@ -148,6 +151,9 @@
                     },
                     {
                       "user": "317c743e4c8348b8a70d671db917dbe8"
+                    },
+                    {
+                      "user": "e9fbd5a00abd49b88122f03d68053128"
                     }
                   ],
                   "card": {
@@ -226,27 +232,18 @@
                             }
                           },
                           {
-                            "type": "conditional",
-                            "conditions": [
-                              {
-                                "entity": "binary_sensor.living_room_low_battery",
-                                "state": "on"
-                              }
-                            ],
-                            "card": {
-                              "type": "custom:mushroom-template-card",
-                              "icon": "{% set entity = 'group.living_room_battery' %}\nmdi:battery-20-bluetooth",
-                              "tap_action": {
-                                "action": "more-info"
-                              },
-                              "icon_tap_action": {
-                                "action": "more-info"
-                              },
-                              "entity": "group.living_room_battery",
-                              "layout": "horizontal",
-                              "fill_container": true,
-                              "icon_color": "{% set entity = 'group.living_room_battery' %}\norange"
-                            }
+                            "type": "custom:mushroom-template-card",
+                            "icon": "{% set entity = 'group.living_room_battery' %}\n{% if is_state('binary_sensor.living_room_low_battery', 'on') %}\n  mdi:battery-20-bluetooth \n{% else %}\n  mdi:battery-70\n{% endif %}",
+                            "tap_action": {
+                              "action": "more-info"
+                            },
+                            "icon_tap_action": {
+                              "action": "more-info"
+                            },
+                            "entity": "group.living_room_battery",
+                            "layout": "horizontal",
+                            "fill_container": true,
+                            "icon_color": "{% set entity = 'group.living_room_battery' %}\n{% if is_state('binary_sensor.living_room_low_battery', 'on') %}\n  amber\n{% endif %}"
                           },
                           {
                             "type": "conditional",
@@ -295,29 +292,6 @@
                             }
                           },
                           {
-                            "type": "conditional",
-                            "conditions": [
-                              {
-                                "entity": "group.living_room_curtain_group",
-                                "state": "open"
-                              }
-                            ],
-                            "card": {
-                              "type": "custom:mushroom-template-card",
-                              "icon": "{% set entity = 'group.living_room_curtain_group' %}\n{% if is_state(entity, 'open') %}\n  mdi:curtains\n{% else %}\n  mdi:curtains-closed\n{% endif %}",
-                              "tap_action": {
-                                "action": "more-info"
-                              },
-                              "icon_tap_action": {
-                                "action": "more-info"
-                              },
-                              "entity": "group.living_room_curtain_group",
-                              "layout": "horizontal",
-                              "fill_container": true,
-                              "icon_color": "{% set entity = 'group.living_room_curtain_group' %}\n{% if is_state(entity, 'open') %}\n  green       \n{% endif %}"
-                            }
-                          },
-                          {
                             "type": "custom:mushroom-template-card",
                             "icon": "{% set entity = 'group.living_room_light_group' %}\n{% if is_state(entity, 'on') %}\n  mdi:floor-lamp\n{% else %}\n  mdi:floor-lamp-outline\n{% endif %}",
                             "tap_action": {
@@ -333,17 +307,17 @@
                           },
                           {
                             "type": "custom:mushroom-template-card",
-                            "icon": "{% set entity = 'input_select.living_room_occupancy' %}\n{% if   is_state(entity, 'Outside') %}\n  mdi:door-closed\n{% elif is_state(entity, 'Just Entered') %}\n  mdi:arrow-right-circle\n{% elif is_state(entity, 'In Sleep') %}\n  mdi:sleep\n{% else %}\n  mdi:account-multiple\n{% endif %}",
+                            "icon": "{% set entity = 'input_boolean.living_room_auto_off_suspended' %}\n{% if is_state(entity, 'on') %}\n  mdi:timer-sand\n{% else %}\n  mdi:timer-sand-paused\n{% endif %}",
                             "tap_action": {
                               "action": "more-info"
                             },
                             "icon_tap_action": {
                               "action": "more-info"
                             },
-                            "entity": "input_select.living_room_occupancy",
+                            "entity": "input_boolean.living_room_auto_off_suspended",
                             "layout": "horizontal",
                             "fill_container": true,
-                            "icon_color": "{% set entity = 'input_select.living_room_occupancy' %}\n{% if   is_state(entity, 'Outside') %}                     {% elif is_state(entity, 'Just Entered') %}\n  green\n                 {% elif is_state(entity, 'In Sleep') %}\n  blue\n     {% else %}\n  purple\n              {% endif %}"
+                            "icon_color": "{% set entity = 'input_boolean.living_room_auto_off_suspended' %}\n{% if is_state(entity, 'on') %}\n  yellow\n{% endif %}"
                           },
                           {
                             "type": "conditional",
@@ -367,6 +341,52 @@
                               "fill_container": true,
                               "icon_color": "{% set entity = 'climate.living_room' %}\n{% if is_state(entity, 'heat') %}\n  {% if state_attr(entity, 'temperature') > state_attr(entity, 'current_temperature') %}\n  red\n {% else %}\n blue\n  {% endif %}\n {% endif %}\n"
                             }
+                          },
+                          {
+                            "type": "conditional",
+                            "conditions": [
+                              {
+                                "entity": "input_select.living_room_occupancy",
+                                "state_not": "Outside"
+                              }
+                            ],
+                            "card": {
+                              "type": "custom:mushroom-template-card",
+                              "icon": "{% set entity = 'input_select.living_room_occupancy' %}\n{% if   is_state(entity, 'Outside') %}\n  mdi:door-closed\n{% elif is_state(entity, 'Just Entered') %}\n  mdi:arrow-right-circle\n{% elif is_state(entity, 'In Sleep') %}\n  mdi:sleep\n{% else %}\n  mdi:account-multiple\n{% endif %}",
+                              "tap_action": {
+                                "action": "more-info"
+                              },
+                              "icon_tap_action": {
+                                "action": "more-info"
+                              },
+                              "entity": "input_select.living_room_occupancy",
+                              "layout": "horizontal",
+                              "fill_container": true,
+                              "icon_color": "{% set entity = 'input_select.living_room_occupancy' %}\n{% if   is_state(entity, 'Outside') %}                     {% elif is_state(entity, 'Just Entered') %}\n  green\n                 {% elif is_state(entity, 'In Sleep') %}\n  blue\n     {% else %}\n  purple\n              {% endif %}"
+                            }
+                          },
+                          {
+                            "type": "conditional",
+                            "conditions": [
+                              {
+                                "entity": "group.living_room_curtain_group",
+                                "state": "open"
+                              }
+                            ],
+                            "card": {
+                              "type": "custom:mushroom-template-card",
+                              "icon": "{% set entity = 'group.living_room_curtain_group' %}\n{% if is_state(entity, 'open') %}\n  mdi:curtains\n{% else %}\n  mdi:curtains-closed\n{% endif %}",
+                              "tap_action": {
+                                "action": "more-info"
+                              },
+                              "icon_tap_action": {
+                                "action": "more-info"
+                              },
+                              "entity": "group.living_room_curtain_group",
+                              "layout": "horizontal",
+                              "fill_container": true,
+                              "icon_color": "{% set entity = 'group.living_room_curtain_group' %}\n{% if is_state(entity, 'open') %}\n  green       \n{% endif %}"
+                            }
                           }
                         ]
                       }
@@ -386,6 +406,9 @@
                         },
                         {
                           "user": "317c743e4c8348b8a70d671db917dbe8"
+                        },
+                        {
+                          "user": "e9fbd5a00abd49b88122f03d68053128"
                         }
                       ]
                     }
@@ -399,6 +422,9 @@
                     },
                     {
                       "user": "317c743e4c8348b8a70d671db917dbe8"
+                    },
+                    {
+                      "user": "e9fbd5a00abd49b88122f03d68053128"
                     }
                   ],
                   "card": {
@@ -592,27 +618,18 @@
                             }
                           },
                           {
-                            "type": "conditional",
-                            "conditions": [
-                              {
-                                "entity": "binary_sensor.kitchen_low_battery",
-                                "state": "on"
-                              }
-                            ],
-                            "card": {
-                              "type": "custom:mushroom-template-card",
-                              "icon": "{% set entity = 'group.kitchen_battery' %}\nmdi:battery-20-bluetooth",
-                              "tap_action": {
-                                "action": "more-info"
-                              },
-                              "icon_tap_action": {
-                                "action": "more-info"
-                              },
-                              "entity": "group.kitchen_battery",
-                              "layout": "horizontal",
-                              "fill_container": true,
-                              "icon_color": "{% set entity = 'group.kitchen_battery' %}\norange"
-                            }
+                            "type": "custom:mushroom-template-card",
+                            "icon": "{% set entity = 'group.kitchen_battery' %}\n{% if is_state('binary_sensor.kitchen_low_battery', 'on') %}\n  mdi:battery-20-bluetooth \n{% else %}\n  mdi:battery-70\n{% endif %}",
+                            "tap_action": {
+                              "action": "more-info"
+                            },
+                            "icon_tap_action": {
+                              "action": "more-info"
+                            },
+                            "entity": "group.kitchen_battery",
+                            "layout": "horizontal",
+                            "fill_container": true,
+                            "icon_color": "{% set entity = 'group.kitchen_battery' %}\n{% if is_state('binary_sensor.kitchen_low_battery', 'on') %}\n  amber\n{% endif %}"
                           },
                           {
                             "type": "conditional",
@@ -638,29 +655,6 @@
                             }
                           },
                           {
-                            "type": "conditional",
-                            "conditions": [
-                              {
-                                "entity": "group.kitchen_curtain_group",
-                                "state": "open"
-                              }
-                            ],
-                            "card": {
-                              "type": "custom:mushroom-template-card",
-                              "icon": "{% set entity = 'group.kitchen_curtain_group' %}\n{% if is_state(entity, 'open') %}\n  mdi:curtains\n{% else %}\n  mdi:curtains-closed\n{% endif %}",
-                              "tap_action": {
-                                "action": "more-info"
-                              },
-                              "icon_tap_action": {
-                                "action": "more-info"
-                              },
-                              "entity": "group.kitchen_curtain_group",
-                              "layout": "horizontal",
-                              "fill_container": true,
-                              "icon_color": "{% set entity = 'group.kitchen_curtain_group' %}\n{% if is_state(entity, 'open') %}\n  green       \n{% endif %}"
-                            }
-                          },
-                          {
                             "type": "custom:mushroom-template-card",
                             "icon": "{% set entity = 'group.kitchen_light_group' %}\n{% if is_state(entity, 'on') %}\n  mdi:floor-lamp\n{% else %}\n  mdi:floor-lamp-outline\n{% endif %}",
                             "tap_action": {
@@ -676,17 +670,17 @@
                           },
                           {
                             "type": "custom:mushroom-template-card",
-                            "icon": "{% set entity = 'input_select.kitchen_occupancy' %}\n{% if   is_state(entity, 'Outside') %}\n  mdi:door-closed\n{% elif is_state(entity, 'Just Entered') %}\n  mdi:arrow-right-circle\n{% elif is_state(entity, 'In Sleep') %}\n  mdi:sleep\n{% else %}\n  mdi:account-multiple\n{% endif %}",
+                            "icon": "{% set entity = 'input_boolean.kitchen_auto_off_suspended' %}\n{% if is_state(entity, 'on') %}\n  mdi:timer-sand\n{% else %}\n  mdi:timer-sand-paused\n{% endif %}",
                             "tap_action": {
                               "action": "more-info"
                             },
                             "icon_tap_action": {
                               "action": "more-info"
                             },
-                            "entity": "input_select.kitchen_occupancy",
+                            "entity": "input_boolean.kitchen_auto_off_suspended",
                             "layout": "horizontal",
                             "fill_container": true,
-                            "icon_color": "{% set entity = 'input_select.kitchen_occupancy' %}\n{% if   is_state(entity, 'Outside') %}                     {% elif is_state(entity, 'Just Entered') %}\n  green\n                 {% elif is_state(entity, 'In Sleep') %}\n  blue\n     {% else %}\n  purple\n              {% endif %}"
+                            "icon_color": "{% set entity = 'input_boolean.kitchen_auto_off_suspended' %}\n{% if is_state(entity, 'on') %}\n  yellow\n{% endif %}"
                           },
                           {
                             "type": "conditional",
@@ -710,6 +704,52 @@
                               "fill_container": true,
                               "icon_color": "{% set entity = 'climate.kitchen' %}\n{% if is_state(entity, 'heat') %}\n  {% if state_attr(entity, 'temperature') > state_attr(entity, 'current_temperature') %}\n  red\n {% else %}\n blue\n  {% endif %}\n {% endif %}\n"
                             }
+                          },
+                          {
+                            "type": "conditional",
+                            "conditions": [
+                              {
+                                "entity": "input_select.kitchen_occupancy",
+                                "state_not": "Outside"
+                              }
+                            ],
+                            "card": {
+                              "type": "custom:mushroom-template-card",
+                              "icon": "{% set entity = 'input_select.kitchen_occupancy' %}\n{% if   is_state(entity, 'Outside') %}\n  mdi:door-closed\n{% elif is_state(entity, 'Just Entered') %}\n  mdi:arrow-right-circle\n{% elif is_state(entity, 'In Sleep') %}\n  mdi:sleep\n{% else %}\n  mdi:account-multiple\n{% endif %}",
+                              "tap_action": {
+                                "action": "more-info"
+                              },
+                              "icon_tap_action": {
+                                "action": "more-info"
+                              },
+                              "entity": "input_select.kitchen_occupancy",
+                              "layout": "horizontal",
+                              "fill_container": true,
+                              "icon_color": "{% set entity = 'input_select.kitchen_occupancy' %}\n{% if   is_state(entity, 'Outside') %}                     {% elif is_state(entity, 'Just Entered') %}\n  green\n                 {% elif is_state(entity, 'In Sleep') %}\n  blue\n     {% else %}\n  purple\n              {% endif %}"
+                            }
+                          },
+                          {
+                            "type": "conditional",
+                            "conditions": [
+                              {
+                                "entity": "group.kitchen_curtain_group",
+                                "state": "open"
+                              }
+                            ],
+                            "card": {
+                              "type": "custom:mushroom-template-card",
+                              "icon": "{% set entity = 'group.kitchen_curtain_group' %}\n{% if is_state(entity, 'open') %}\n  mdi:curtains\n{% else %}\n  mdi:curtains-closed\n{% endif %}",
+                              "tap_action": {
+                                "action": "more-info"
+                              },
+                              "icon_tap_action": {
+                                "action": "more-info"
+                              },
+                              "entity": "group.kitchen_curtain_group",
+                              "layout": "horizontal",
+                              "fill_container": true,
+                              "icon_color": "{% set entity = 'group.kitchen_curtain_group' %}\n{% if is_state(entity, 'open') %}\n  green       \n{% endif %}"
+                            }
                           }
                         ]
                       }
@@ -729,6 +769,9 @@
                         },
                         {
                           "user": "317c743e4c8348b8a70d671db917dbe8"
+                        },
+                        {
+                          "user": "e9fbd5a00abd49b88122f03d68053128"
                         }
                       ]
                     }
@@ -742,6 +785,9 @@
                     },
                     {
                       "user": "317c743e4c8348b8a70d671db917dbe8"
+                    },
+                    {
+                      "user": "e9fbd5a00abd49b88122f03d68053128"
                     }
                   ],
                   "card": {
@@ -797,27 +843,18 @@
                             }
                           },
                           {
-                            "type": "conditional",
-                            "conditions": [
-                              {
-                                "entity": "binary_sensor.master_room_low_battery",
-                                "state": "on"
-                              }
-                            ],
-                            "card": {
-                              "type": "custom:mushroom-template-card",
-                              "icon": "{% set entity = 'group.master_room_battery' %}\nmdi:battery-20-bluetooth",
-                              "tap_action": {
-                                "action": "more-info"
-                              },
-                              "icon_tap_action": {
-                                "action": "more-info"
-                              },
-                              "entity": "group.master_room_battery",
-                              "layout": "horizontal",
-                              "fill_container": true,
-                              "icon_color": "{% set entity = 'group.master_room_battery' %}\norange"
-                            }
+                            "type": "custom:mushroom-template-card",
+                            "icon": "{% set entity = 'group.master_room_battery' %}\n{% if is_state('binary_sensor.master_room_low_battery', 'on') %}\n  mdi:battery-20-bluetooth \n{% else %}\n  mdi:battery-70\n{% endif %}",
+                            "tap_action": {
+                              "action": "more-info"
+                            },
+                            "icon_tap_action": {
+                              "action": "more-info"
+                            },
+                            "entity": "group.master_room_battery",
+                            "layout": "horizontal",
+                            "fill_container": true,
+                            "icon_color": "{% set entity = 'group.master_room_battery' %}\n{% if is_state('binary_sensor.master_room_low_battery', 'on') %}\n  amber\n{% endif %}"
                           },
                           {
                             "type": "conditional",
@@ -866,29 +903,6 @@
                             }
                           },
                           {
-                            "type": "conditional",
-                            "conditions": [
-                              {
-                                "entity": "group.master_room_curtain_group",
-                                "state": "open"
-                              }
-                            ],
-                            "card": {
-                              "type": "custom:mushroom-template-card",
-                              "icon": "{% set entity = 'group.master_room_curtain_group' %}\n{% if is_state(entity, 'open') %}\n  mdi:curtains\n{% else %}\n  mdi:curtains-closed\n{% endif %}",
-                              "tap_action": {
-                                "action": "more-info"
-                              },
-                              "icon_tap_action": {
-                                "action": "more-info"
-                              },
-                              "entity": "group.master_room_curtain_group",
-                              "layout": "horizontal",
-                              "fill_container": true,
-                              "icon_color": "{% set entity = 'group.master_room_curtain_group' %}\n{% if is_state(entity, 'open') %}\n  green       \n{% endif %}"
-                            }
-                          },
-                          {
                             "type": "custom:mushroom-template-card",
                             "icon": "{% set entity = 'group.master_room_light_group' %}\n{% if is_state(entity, 'on') %}\n  mdi:floor-lamp\n{% else %}\n  mdi:floor-lamp-outline\n{% endif %}",
                             "tap_action": {
@@ -904,17 +918,17 @@
                           },
                           {
                             "type": "custom:mushroom-template-card",
-                            "icon": "{% set entity = 'input_select.master_room_occupancy' %}\n{% if   is_state(entity, 'Outside') %}\n  mdi:door-closed\n{% elif is_state(entity, 'Just Entered') %}\n  mdi:arrow-right-circle\n{% elif is_state(entity, 'In Sleep') %}\n  mdi:sleep\n{% else %}\n  mdi:account-multiple\n{% endif %}",
+                            "icon": "{% set entity = 'input_boolean.master_room_auto_off_suspended' %}\n{% if is_state(entity, 'on') %}\n  mdi:timer-sand\n{% else %}\n  mdi:timer-sand-paused\n{% endif %}",
                             "tap_action": {
                               "action": "more-info"
                             },
                             "icon_tap_action": {
                               "action": "more-info"
                             },
-                            "entity": "input_select.master_room_occupancy",
+                            "entity": "input_boolean.master_room_auto_off_suspended",
                             "layout": "horizontal",
                             "fill_container": true,
-                            "icon_color": "{% set entity = 'input_select.master_room_occupancy' %}\n{% if   is_state(entity, 'Outside') %}                     {% elif is_state(entity, 'Just Entered') %}\n  green\n                 {% elif is_state(entity, 'In Sleep') %}\n  blue\n     {% else %}\n  purple\n              {% endif %}"
+                            "icon_color": "{% set entity = 'input_boolean.master_room_auto_off_suspended' %}\n{% if is_state(entity, 'on') %}\n  yellow\n{% endif %}"
                           },
                           {
                             "type": "conditional",
@@ -938,6 +952,52 @@
                               "fill_container": true,
                               "icon_color": "{% set entity = 'climate.master_room' %}\n{% if is_state(entity, 'heat') %}\n  {% if state_attr(entity, 'temperature') > state_attr(entity, 'current_temperature') %}\n  red\n {% else %}\n blue\n  {% endif %}\n {% endif %}\n"
                             }
+                          },
+                          {
+                            "type": "conditional",
+                            "conditions": [
+                              {
+                                "entity": "input_select.master_room_occupancy",
+                                "state_not": "Outside"
+                              }
+                            ],
+                            "card": {
+                              "type": "custom:mushroom-template-card",
+                              "icon": "{% set entity = 'input_select.master_room_occupancy' %}\n{% if   is_state(entity, 'Outside') %}\n  mdi:door-closed\n{% elif is_state(entity, 'Just Entered') %}\n  mdi:arrow-right-circle\n{% elif is_state(entity, 'In Sleep') %}\n  mdi:sleep\n{% else %}\n  mdi:account-multiple\n{% endif %}",
+                              "tap_action": {
+                                "action": "more-info"
+                              },
+                              "icon_tap_action": {
+                                "action": "more-info"
+                              },
+                              "entity": "input_select.master_room_occupancy",
+                              "layout": "horizontal",
+                              "fill_container": true,
+                              "icon_color": "{% set entity = 'input_select.master_room_occupancy' %}\n{% if   is_state(entity, 'Outside') %}                     {% elif is_state(entity, 'Just Entered') %}\n  green\n                 {% elif is_state(entity, 'In Sleep') %}\n  blue\n     {% else %}\n  purple\n              {% endif %}"
+                            }
+                          },
+                          {
+                            "type": "conditional",
+                            "conditions": [
+                              {
+                                "entity": "group.master_room_curtain_group",
+                                "state": "open"
+                              }
+                            ],
+                            "card": {
+                              "type": "custom:mushroom-template-card",
+                              "icon": "{% set entity = 'group.master_room_curtain_group' %}\n{% if is_state(entity, 'open') %}\n  mdi:curtains\n{% else %}\n  mdi:curtains-closed\n{% endif %}",
+                              "tap_action": {
+                                "action": "more-info"
+                              },
+                              "icon_tap_action": {
+                                "action": "more-info"
+                              },
+                              "entity": "group.master_room_curtain_group",
+                              "layout": "horizontal",
+                              "fill_container": true,
+                              "icon_color": "{% set entity = 'group.master_room_curtain_group' %}\n{% if is_state(entity, 'open') %}\n  green       \n{% endif %}"
+                            }
                           }
                         ]
                       }
@@ -957,6 +1017,9 @@
                         },
                         {
                           "user": "317c743e4c8348b8a70d671db917dbe8"
+                        },
+                        {
+                          "user": "e9fbd5a00abd49b88122f03d68053128"
                         }
                       ]
                     }
@@ -970,6 +1033,9 @@
                     },
                     {
                       "user": "317c743e4c8348b8a70d671db917dbe8"
+                    },
+                    {
+                      "user": "e9fbd5a00abd49b88122f03d68053128"
                     }
                   ],
                   "card": {
@@ -1025,26 +1091,91 @@
                             }
                           },
                           {
+                            "type": "custom:mushroom-template-card",
+                            "icon": "{% set entity = 'group.master_toilet_battery' %}\n{% if is_state('binary_sensor.master_toilet_low_battery', 'on') %}\n  mdi:battery-20-bluetooth \n{% else %}\n  mdi:battery-70\n{% endif %}",
+                            "tap_action": {
+                              "action": "more-info"
+                            },
+                            "icon_tap_action": {
+                              "action": "more-info"
+                            },
+                            "entity": "group.master_toilet_battery",
+                            "layout": "horizontal",
+                            "fill_container": true,
+                            "icon_color": "{% set entity = 'group.master_toilet_battery' %}\n{% if is_state('binary_sensor.master_toilet_low_battery', 'on') %}\n  amber\n{% endif %}"
+                          },
+                          {
+                            "type": "custom:mushroom-template-card",
+                            "icon": "{% set entity = 'group.master_toilet_light_group' %}\n{% if is_state(entity, 'on') %}\n  mdi:floor-lamp\n{% else %}\n  mdi:floor-lamp-outline\n{% endif %}",
+                            "tap_action": {
+                              "action": "more-info"
+                            },
+                            "icon_tap_action": {
+                              "action": "more-info"
+                            },
+                            "entity": "group.master_toilet_light_group",
+                            "layout": "horizontal",
+                            "fill_container": true,
+                            "icon_color": "{% set entity = 'group.master_toilet_light_group' %}\n{% if is_state(entity, 'on') %}\n  amber\n{% endif %}"
+                          },
+                          {
+                            "type": "custom:mushroom-template-card",
+                            "icon": "{% set entity = 'input_boolean.master_toilet_auto_off_suspended' %}\n{% if is_state(entity, 'on') %}\n  mdi:timer-sand\n{% else %}\n  mdi:timer-sand-paused\n{% endif %}",
+                            "tap_action": {
+                              "action": "more-info"
+                            },
+                            "icon_tap_action": {
+                              "action": "more-info"
+                            },
+                            "entity": "input_boolean.master_toilet_auto_off_suspended",
+                            "layout": "horizontal",
+                            "fill_container": true,
+                            "icon_color": "{% set entity = 'input_boolean.master_toilet_auto_off_suspended' %}\n{% if is_state(entity, 'on') %}\n  yellow\n{% endif %}"
+                          },
+                          {
                             "type": "conditional",
                             "conditions": [
                               {
-                                "entity": "binary_sensor.master_toilet_low_battery",
-                                "state": "on"
+                                "entity": "climate.master_toilet",
+                                "state": "heat"
                               }
                             ],
                             "card": {
                               "type": "custom:mushroom-template-card",
-                              "icon": "{% set entity = 'group.master_toilet_battery' %}\nmdi:battery-20-bluetooth",
+                              "icon": "{% set entity = 'climate.master_toilet' %}\n{% if is_state(entity, 'heat') %}\n  mdi:heating-coil\n    {% else %}   \n  mdi:snowflake\n      {% endif %}",
                               "tap_action": {
                                 "action": "more-info"
                               },
                               "icon_tap_action": {
                                 "action": "more-info"
                               },
-                              "entity": "group.master_toilet_battery",
+                              "entity": "climate.master_toilet",
                               "layout": "horizontal",
                               "fill_container": true,
-                              "icon_color": "{% set entity = 'group.master_toilet_battery' %}\norange"
+                              "icon_color": "{% set entity = 'climate.master_toilet' %}\n{% if is_state(entity, 'heat') %}\n  {% if state_attr(entity, 'temperature') > state_attr(entity, 'current_temperature') %}\n  red\n {% else %}\n blue\n  {% endif %}\n {% endif %}\n"
+                            }
+                          },
+                          {
+                            "type": "conditional",
+                            "conditions": [
+                              {
+                                "entity": "input_select.master_toilet_occupancy",
+                                "state_not": "Outside"
+                              }
+                            ],
+                            "card": {
+                              "type": "custom:mushroom-template-card",
+                              "icon": "{% set entity = 'input_select.master_toilet_occupancy' %}\n{% if   is_state(entity, 'Outside') %}\n  mdi:door-closed\n{% elif is_state(entity, 'Just Entered') %}\n  mdi:arrow-right-circle\n{% elif is_state(entity, 'In Sleep') %}\n  mdi:sleep\n{% else %}\n  mdi:account-multiple\n{% endif %}",
+                              "tap_action": {
+                                "action": "more-info"
+                              },
+                              "icon_tap_action": {
+                                "action": "more-info"
+                              },
+                              "entity": "input_select.master_toilet_occupancy",
+                              "layout": "horizontal",
+                              "fill_container": true,
+                              "icon_color": "{% set entity = 'input_select.master_toilet_occupancy' %}\n{% if   is_state(entity, 'Outside') %}                     {% elif is_state(entity, 'Just Entered') %}\n  green\n                 {% elif is_state(entity, 'In Sleep') %}\n  blue\n     {% else %}\n  purple\n              {% endif %}"
                             }
                           },
                           {
@@ -1069,57 +1200,6 @@
                               "fill_container": true,
                               "icon_color": "{% set entity = 'group.master_toilet_curtain_group' %}\n{% if is_state(entity, 'open') %}\n  green       \n{% endif %}"
                             }
-                          },
-                          {
-                            "type": "custom:mushroom-template-card",
-                            "icon": "{% set entity = 'group.master_toilet_light_group' %}\n{% if is_state(entity, 'on') %}\n  mdi:floor-lamp\n{% else %}\n  mdi:floor-lamp-outline\n{% endif %}",
-                            "tap_action": {
-                              "action": "more-info"
-                            },
-                            "icon_tap_action": {
-                              "action": "more-info"
-                            },
-                            "entity": "group.master_toilet_light_group",
-                            "layout": "horizontal",
-                            "fill_container": true,
-                            "icon_color": "{% set entity = 'group.master_toilet_light_group' %}\n{% if is_state(entity, 'on') %}\n  amber\n{% endif %}"
-                          },
-                          {
-                            "type": "custom:mushroom-template-card",
-                            "icon": "{% set entity = 'input_select.master_toilet_occupancy' %}\n{% if   is_state(entity, 'Outside') %}\n  mdi:door-closed\n{% elif is_state(entity, 'Just Entered') %}\n  mdi:arrow-right-circle\n{% elif is_state(entity, 'In Sleep') %}\n  mdi:sleep\n{% else %}\n  mdi:account-multiple\n{% endif %}",
-                            "tap_action": {
-                              "action": "more-info"
-                            },
-                            "icon_tap_action": {
-                              "action": "more-info"
-                            },
-                            "entity": "input_select.master_toilet_occupancy",
-                            "layout": "horizontal",
-                            "fill_container": true,
-                            "icon_color": "{% set entity = 'input_select.master_toilet_occupancy' %}\n{% if   is_state(entity, 'Outside') %}                     {% elif is_state(entity, 'Just Entered') %}\n  green\n                 {% elif is_state(entity, 'In Sleep') %}\n  blue\n     {% else %}\n  purple\n              {% endif %}"
-                          },
-                          {
-                            "type": "conditional",
-                            "conditions": [
-                              {
-                                "entity": "climate.master_toilet",
-                                "state": "heat"
-                              }
-                            ],
-                            "card": {
-                              "type": "custom:mushroom-template-card",
-                              "icon": "{% set entity = 'climate.master_toilet' %}\n{% if is_state(entity, 'heat') %}\n  mdi:heating-coil\n    {% else %}   \n  mdi:snowflake\n      {% endif %}",
-                              "tap_action": {
-                                "action": "more-info"
-                              },
-                              "icon_tap_action": {
-                                "action": "more-info"
-                              },
-                              "entity": "climate.master_toilet",
-                              "layout": "horizontal",
-                              "fill_container": true,
-                              "icon_color": "{% set entity = 'climate.master_toilet' %}\n{% if is_state(entity, 'heat') %}\n  {% if state_attr(entity, 'temperature') > state_attr(entity, 'current_temperature') %}\n  red\n {% else %}\n blue\n  {% endif %}\n {% endif %}\n"
-                            }
                           }
                         ]
                       }
@@ -1139,6 +1219,9 @@
                         },
                         {
                           "user": "317c743e4c8348b8a70d671db917dbe8"
+                        },
+                        {
+                          "user": "e9fbd5a00abd49b88122f03d68053128"
                         }
                       ]
                     }
@@ -1152,6 +1235,9 @@
                     },
                     {
                       "user": "317c743e4c8348b8a70d671db917dbe8"
+                    },
+                    {
+                      "user": "e9fbd5a00abd49b88122f03d68053128"
                     }
                   ],
                   "card": {
@@ -1207,26 +1293,91 @@
                             }
                           },
                           {
+                            "type": "custom:mushroom-template-card",
+                            "icon": "{% set entity = 'group.study_battery' %}\n{% if is_state('binary_sensor.study_low_battery', 'on') %}\n  mdi:battery-20-bluetooth \n{% else %}\n  mdi:battery-70\n{% endif %}",
+                            "tap_action": {
+                              "action": "more-info"
+                            },
+                            "icon_tap_action": {
+                              "action": "more-info"
+                            },
+                            "entity": "group.study_battery",
+                            "layout": "horizontal",
+                            "fill_container": true,
+                            "icon_color": "{% set entity = 'group.study_battery' %}\n{% if is_state('binary_sensor.study_low_battery', 'on') %}\n  amber\n{% endif %}"
+                          },
+                          {
+                            "type": "custom:mushroom-template-card",
+                            "icon": "{% set entity = 'group.study_light_group' %}\n{% if is_state(entity, 'on') %}\n  mdi:floor-lamp\n{% else %}\n  mdi:floor-lamp-outline\n{% endif %}",
+                            "tap_action": {
+                              "action": "more-info"
+                            },
+                            "icon_tap_action": {
+                              "action": "more-info"
+                            },
+                            "entity": "group.study_light_group",
+                            "layout": "horizontal",
+                            "fill_container": true,
+                            "icon_color": "{% set entity = 'group.study_light_group' %}\n{% if is_state(entity, 'on') %}\n  amber\n{% endif %}"
+                          },
+                          {
+                            "type": "custom:mushroom-template-card",
+                            "icon": "{% set entity = 'input_boolean.study_auto_off_suspended' %}\n{% if is_state(entity, 'on') %}\n  mdi:timer-sand\n{% else %}\n  mdi:timer-sand-paused\n{% endif %}",
+                            "tap_action": {
+                              "action": "more-info"
+                            },
+                            "icon_tap_action": {
+                              "action": "more-info"
+                            },
+                            "entity": "input_boolean.study_auto_off_suspended",
+                            "layout": "horizontal",
+                            "fill_container": true,
+                            "icon_color": "{% set entity = 'input_boolean.study_auto_off_suspended' %}\n{% if is_state(entity, 'on') %}\n  yellow\n{% endif %}"
+                          },
+                          {
                             "type": "conditional",
                             "conditions": [
                               {
-                                "entity": "binary_sensor.study_low_battery",
-                                "state": "on"
+                                "entity": "climate.study",
+                                "state": "heat"
                               }
                             ],
                             "card": {
                               "type": "custom:mushroom-template-card",
-                              "icon": "{% set entity = 'group.study_battery' %}\nmdi:battery-20-bluetooth",
+                              "icon": "{% set entity = 'climate.study' %}\n{% if is_state(entity, 'heat') %}\n  mdi:heating-coil\n    {% else %}   \n  mdi:snowflake\n      {% endif %}",
                               "tap_action": {
                                 "action": "more-info"
                               },
                               "icon_tap_action": {
                                 "action": "more-info"
                               },
-                              "entity": "group.study_battery",
+                              "entity": "climate.study",
                               "layout": "horizontal",
                               "fill_container": true,
-                              "icon_color": "{% set entity = 'group.study_battery' %}\norange"
+                              "icon_color": "{% set entity = 'climate.study' %}\n{% if is_state(entity, 'heat') %}\n  {% if state_attr(entity, 'temperature') > state_attr(entity, 'current_temperature') %}\n  red\n {% else %}\n blue\n  {% endif %}\n {% endif %}\n"
+                            }
+                          },
+                          {
+                            "type": "conditional",
+                            "conditions": [
+                              {
+                                "entity": "input_select.study_occupancy",
+                                "state_not": "Outside"
+                              }
+                            ],
+                            "card": {
+                              "type": "custom:mushroom-template-card",
+                              "icon": "{% set entity = 'input_select.study_occupancy' %}\n{% if   is_state(entity, 'Outside') %}\n  mdi:door-closed\n{% elif is_state(entity, 'Just Entered') %}\n  mdi:arrow-right-circle\n{% elif is_state(entity, 'In Sleep') %}\n  mdi:sleep\n{% else %}\n  mdi:account-multiple\n{% endif %}",
+                              "tap_action": {
+                                "action": "more-info"
+                              },
+                              "icon_tap_action": {
+                                "action": "more-info"
+                              },
+                              "entity": "input_select.study_occupancy",
+                              "layout": "horizontal",
+                              "fill_container": true,
+                              "icon_color": "{% set entity = 'input_select.study_occupancy' %}\n{% if   is_state(entity, 'Outside') %}                     {% elif is_state(entity, 'Just Entered') %}\n  green\n                 {% elif is_state(entity, 'In Sleep') %}\n  blue\n     {% else %}\n  purple\n              {% endif %}"
                             }
                           },
                           {
@@ -1251,57 +1402,6 @@
                               "fill_container": true,
                               "icon_color": "{% set entity = 'group.study_curtain_group' %}\n{% if is_state(entity, 'open') %}\n  green       \n{% endif %}"
                             }
-                          },
-                          {
-                            "type": "custom:mushroom-template-card",
-                            "icon": "{% set entity = 'group.study_light_group' %}\n{% if is_state(entity, 'on') %}\n  mdi:floor-lamp\n{% else %}\n  mdi:floor-lamp-outline\n{% endif %}",
-                            "tap_action": {
-                              "action": "more-info"
-                            },
-                            "icon_tap_action": {
-                              "action": "more-info"
-                            },
-                            "entity": "group.study_light_group",
-                            "layout": "horizontal",
-                            "fill_container": true,
-                            "icon_color": "{% set entity = 'group.study_light_group' %}\n{% if is_state(entity, 'on') %}\n  amber\n{% endif %}"
-                          },
-                          {
-                            "type": "custom:mushroom-template-card",
-                            "icon": "{% set entity = 'input_select.study_occupancy' %}\n{% if   is_state(entity, 'Outside') %}\n  mdi:door-closed\n{% elif is_state(entity, 'Just Entered') %}\n  mdi:arrow-right-circle\n{% elif is_state(entity, 'In Sleep') %}\n  mdi:sleep\n{% else %}\n  mdi:account-multiple\n{% endif %}",
-                            "tap_action": {
-                              "action": "more-info"
-                            },
-                            "icon_tap_action": {
-                              "action": "more-info"
-                            },
-                            "entity": "input_select.study_occupancy",
-                            "layout": "horizontal",
-                            "fill_container": true,
-                            "icon_color": "{% set entity = 'input_select.study_occupancy' %}\n{% if   is_state(entity, 'Outside') %}                     {% elif is_state(entity, 'Just Entered') %}\n  green\n                 {% elif is_state(entity, 'In Sleep') %}\n  blue\n     {% else %}\n  purple\n              {% endif %}"
-                          },
-                          {
-                            "type": "conditional",
-                            "conditions": [
-                              {
-                                "entity": "climate.study",
-                                "state": "heat"
-                              }
-                            ],
-                            "card": {
-                              "type": "custom:mushroom-template-card",
-                              "icon": "{% set entity = 'climate.study' %}\n{% if is_state(entity, 'heat') %}\n  mdi:heating-coil\n    {% else %}   \n  mdi:snowflake\n      {% endif %}",
-                              "tap_action": {
-                                "action": "more-info"
-                              },
-                              "icon_tap_action": {
-                                "action": "more-info"
-                              },
-                              "entity": "climate.study",
-                              "layout": "horizontal",
-                              "fill_container": true,
-                              "icon_color": "{% set entity = 'climate.study' %}\n{% if is_state(entity, 'heat') %}\n  {% if state_attr(entity, 'temperature') > state_attr(entity, 'current_temperature') %}\n  red\n {% else %}\n blue\n  {% endif %}\n {% endif %}\n"
-                            }
                           }
                         ]
                       }
@@ -1321,6 +1421,9 @@
                         },
                         {
                           "user": "317c743e4c8348b8a70d671db917dbe8"
+                        },
+                        {
+                          "user": "e9fbd5a00abd49b88122f03d68053128"
                         }
                       ]
                     }
@@ -1334,6 +1437,9 @@
                     },
                     {
                       "user": "317c743e4c8348b8a70d671db917dbe8"
+                    },
+                    {
+                      "user": "e9fbd5a00abd49b88122f03d68053128"
                     }
                   ],
                   "card": {
@@ -1397,52 +1503,6 @@
                             "type": "conditional",
                             "conditions": [
                               {
-                                "entity": "switch.downstairs_heating",
-                                "state": "on"
-                              }
-                            ],
-                            "card": {
-                              "type": "custom:mushroom-template-card",
-                              "icon": "{% set entity = 'switch.downstairs_heating' %}\nmdi:home-floor-g",
-                              "tap_action": {
-                                "action": "more-info"
-                              },
-                              "icon_tap_action": {
-                                "action": "more-info"
-                              },
-                              "entity": "switch.downstairs_heating",
-                              "layout": "horizontal",
-                              "fill_container": true,
-                              "icon_color": "{% set entity = 'switch.downstairs_heating' %}\ndeep-orange"
-                            }
-                          },
-                          {
-                            "type": "conditional",
-                            "conditions": [
-                              {
-                                "entity": "switch.upstairs_heating",
-                                "state": "on"
-                              }
-                            ],
-                            "card": {
-                              "type": "custom:mushroom-template-card",
-                              "icon": "{% set entity = 'switch.upstairs_heating' %}\nmdi:home-floor-1",
-                              "tap_action": {
-                                "action": "more-info"
-                              },
-                              "icon_tap_action": {
-                                "action": "more-info"
-                              },
-                              "entity": "switch.upstairs_heating",
-                              "layout": "horizontal",
-                              "fill_container": true,
-                              "icon_color": "{% set entity = 'switch.upstairs_heating' %}\ndeep-orange"
-                            }
-                          },
-                          {
-                            "type": "conditional",
-                            "conditions": [
-                              {
                                 "entity": "switch.water_heater",
                                 "state": "on"
                               }
@@ -1480,6 +1540,9 @@
                         },
                         {
                           "user": "317c743e4c8348b8a70d671db917dbe8"
+                        },
+                        {
+                          "user": "e9fbd5a00abd49b88122f03d68053128"
                         }
                       ]
                     }
@@ -1493,801 +1556,9 @@
                     },
                     {
                       "user": "317c743e4c8348b8a70d671db917dbe8"
-                    }
-                  ],
-                  "card": {
-                    "type": "custom:stack-in-card",
-                    "mode": "vertical",
-                    "cards": [
-                      {
-                        "type": "custom:mushroom-template-card",
-                        "icon": "{% set entity = 'input_boolean.placeholder' %}\nmdi:toilet",
-                        "tap_action": {
-                          "action": "navigate",
-                          "navigation_path": "/lovelace-misc/ground-toilet"
-                        },
-                        "icon_tap_action": {
-                          "action": "navigate",
-                          "navigation_path": "/lovelace-misc/ground-toilet"
-                        },
-                        "entity": "input_boolean.placeholder",
-                        "layout": "horizontal",
-                        "fill_container": true,
-                        "primary": "Ground Toilet",
-                        "secondary": "{% if states.sensor.ground_toilet_temperature_sensor.state is defined %} {{ states.sensor.ground_toilet_temperature_sensor.state }}°C {% endif %}{% set motion_postfix     = 'ground_toilet_motion_group' %}\n{% set motion = 'group.ground_toilet_motion_group' %}\n{% if is_state(motion, 'on') %}\n  🙋🏻\n{% else %}\n  🦶🏻\n{% endif %}{{\n (as_timestamp(now()) -\n as_timestamp(states.group[motion_postfix].last_changed)) |\n timestamp_custom(\"%H:%M\", false) }} ",
-                        "icon_color": "{% set entity = 'input_boolean.placeholder' %}\nblue"
-                      },
-                      {
-                        "card_mod": {
-                          "style": ":host { --ha-card-background:rgba(245, 245, 245, 0);}\n"
-                        },
-                        "type": "custom:stack-in-card",
-                        "mode": "horizontal",
-                        "cards": [
-                          {
-                            "type": "conditional",
-                            "conditions": [
-                              {
-                                "entity": "binary_sensor.ground_toilet_unavailable_entities",
-                                "state": "on"
-                              }
-                            ],
-                            "card": {
-                              "type": "custom:mushroom-template-card",
-                              "icon": "{% set entity = 'binary_sensor.ground_toilet_unavailable_entities' %}\nmdi:battery-charging-outline",
-                              "tap_action": {
-                                "action": "more-info"
-                              },
-                              "icon_tap_action": {
-                                "action": "more-info"
-                              },
-                              "entity": "binary_sensor.ground_toilet_unavailable_entities",
-                              "layout": "horizontal",
-                              "fill_container": true,
-                              "icon_color": "{% set entity = 'binary_sensor.ground_toilet_unavailable_entities' %}\nred"
-                            }
-                          },
-                          {
-                            "type": "conditional",
-                            "conditions": [
-                              {
-                                "entity": "binary_sensor.ground_toilet_low_battery",
-                                "state": "on"
-                              }
-                            ],
-                            "card": {
-                              "type": "custom:mushroom-template-card",
-                              "icon": "{% set entity = 'group.ground_toilet_battery' %}\nmdi:battery-20-bluetooth",
-                              "tap_action": {
-                                "action": "more-info"
-                              },
-                              "icon_tap_action": {
-                                "action": "more-info"
-                              },
-                              "entity": "group.ground_toilet_battery",
-                              "layout": "horizontal",
-                              "fill_container": true,
-                              "icon_color": "{% set entity = 'group.ground_toilet_battery' %}\norange"
-                            }
-                          },
-                          {
-                            "type": "custom:mushroom-template-card",
-                            "icon": "{% set entity = 'group.ground_toilet_light_group' %}\n{% if is_state(entity, 'on') %}\n  mdi:floor-lamp\n{% else %}\n  mdi:floor-lamp-outline\n{% endif %}",
-                            "tap_action": {
-                              "action": "more-info"
-                            },
-                            "icon_tap_action": {
-                              "action": "more-info"
-                            },
-                            "entity": "group.ground_toilet_light_group",
-                            "layout": "horizontal",
-                            "fill_container": true,
-                            "icon_color": "{% set entity = 'group.ground_toilet_light_group' %}\n{% if is_state(entity, 'on') %}\n  amber\n{% endif %}"
-                          },
-                          {
-                            "type": "custom:mushroom-template-card",
-                            "icon": "{% set entity = 'input_select.ground_toilet_occupancy' %}\n{% if   is_state(entity, 'Outside') %}\n  mdi:door-closed\n{% elif is_state(entity, 'Just Entered') %}\n  mdi:arrow-right-circle\n{% elif is_state(entity, 'In Sleep') %}\n  mdi:sleep\n{% else %}\n  mdi:account-multiple\n{% endif %}",
-                            "tap_action": {
-                              "action": "more-info"
-                            },
-                            "icon_tap_action": {
-                              "action": "more-info"
-                            },
-                            "entity": "input_select.ground_toilet_occupancy",
-                            "layout": "horizontal",
-                            "fill_container": true,
-                            "icon_color": "{% set entity = 'input_select.ground_toilet_occupancy' %}\n{% if   is_state(entity, 'Outside') %}                     {% elif is_state(entity, 'Just Entered') %}\n  green\n                 {% elif is_state(entity, 'In Sleep') %}\n  blue\n     {% else %}\n  purple\n              {% endif %}"
-                          },
-                          {
-                            "type": "conditional",
-                            "conditions": [
-                              {
-                                "entity": "climate.ground_toilet",
-                                "state": "heat"
-                              }
-                            ],
-                            "card": {
-                              "type": "custom:mushroom-template-card",
-                              "icon": "{% set entity = 'climate.ground_toilet' %}\n{% if is_state(entity, 'heat') %}\n  mdi:heating-coil\n    {% else %}   \n  mdi:snowflake\n      {% endif %}",
-                              "tap_action": {
-                                "action": "more-info"
-                              },
-                              "icon_tap_action": {
-                                "action": "more-info"
-                              },
-                              "entity": "climate.ground_toilet",
-                              "layout": "horizontal",
-                              "fill_container": true,
-                              "icon_color": "{% set entity = 'climate.ground_toilet' %}\n{% if is_state(entity, 'heat') %}\n  {% if state_attr(entity, 'temperature') > state_attr(entity, 'current_temperature') %}\n  red\n {% else %}\n blue\n  {% endif %}\n {% endif %}\n"
-                            }
-                          }
-                        ]
-                      }
-                    ]
-                  }
-                },
-                {
-                  "type": "custom:restriction-card",
-                  "restrictions": {
-                    "hide": {
-                      "exemptions": [
-                        {
-                          "user": "72e8e305715145febff1ba701fd78954"
-                        },
-                        {
-                          "user": "60652445f3d14a8f822054569404b643"
-                        },
-                        {
-                          "user": "317c743e4c8348b8a70d671db917dbe8"
-                        }
-                      ]
-                    }
-                  },
-                  "exemptions": [
-                    {
-                      "user": "72e8e305715145febff1ba701fd78954"
                     },
                     {
-                      "user": "60652445f3d14a8f822054569404b643"
-                    },
-                    {
-                      "user": "317c743e4c8348b8a70d671db917dbe8"
-                    }
-                  ],
-                  "card": {
-                    "type": "custom:stack-in-card",
-                    "mode": "vertical",
-                    "cards": [
-                      {
-                        "type": "custom:mushroom-template-card",
-                        "icon": "{% set entity = 'input_boolean.placeholder' %}\nmdi:toilet",
-                        "tap_action": {
-                          "action": "navigate",
-                          "navigation_path": "/lovelace-misc/corridor"
-                        },
-                        "icon_tap_action": {
-                          "action": "navigate",
-                          "navigation_path": "/lovelace-misc/corridor"
-                        },
-                        "entity": "input_boolean.placeholder",
-                        "layout": "horizontal",
-                        "fill_container": true,
-                        "primary": "Corridor",
-                        "secondary": "{% if states.sensor.corridor_temperature_sensor.state is defined %} {{ states.sensor.corridor_temperature_sensor.state }}°C {% endif %}{% set motion_postfix     = 'corridor_motion_group' %}\n{% set motion = 'group.corridor_motion_group' %}\n{% if is_state(motion, 'on') %}\n  🙋🏻\n{% else %}\n  🦶🏻\n{% endif %}{{\n (as_timestamp(now()) -\n as_timestamp(states.group[motion_postfix].last_changed)) |\n timestamp_custom(\"%H:%M\", false) }} ",
-                        "icon_color": "{% set entity = 'input_boolean.placeholder' %}\nblue"
-                      },
-                      {
-                        "card_mod": {
-                          "style": ":host { --ha-card-background:rgba(245, 245, 245, 0);}\n"
-                        },
-                        "type": "custom:stack-in-card",
-                        "mode": "horizontal",
-                        "cards": [
-                          {
-                            "type": "conditional",
-                            "conditions": [
-                              {
-                                "entity": "binary_sensor.corridor_unavailable_entities",
-                                "state": "on"
-                              }
-                            ],
-                            "card": {
-                              "type": "custom:mushroom-template-card",
-                              "icon": "{% set entity = 'binary_sensor.corridor_unavailable_entities' %}\nmdi:battery-charging-outline",
-                              "tap_action": {
-                                "action": "more-info"
-                              },
-                              "icon_tap_action": {
-                                "action": "more-info"
-                              },
-                              "entity": "binary_sensor.corridor_unavailable_entities",
-                              "layout": "horizontal",
-                              "fill_container": true,
-                              "icon_color": "{% set entity = 'binary_sensor.corridor_unavailable_entities' %}\nred"
-                            }
-                          },
-                          {
-                            "type": "conditional",
-                            "conditions": [
-                              {
-                                "entity": "binary_sensor.corridor_low_battery",
-                                "state": "on"
-                              }
-                            ],
-                            "card": {
-                              "type": "custom:mushroom-template-card",
-                              "icon": "{% set entity = 'group.corridor_battery' %}\nmdi:battery-20-bluetooth",
-                              "tap_action": {
-                                "action": "more-info"
-                              },
-                              "icon_tap_action": {
-                                "action": "more-info"
-                              },
-                              "entity": "group.corridor_battery",
-                              "layout": "horizontal",
-                              "fill_container": true,
-                              "icon_color": "{% set entity = 'group.corridor_battery' %}\norange"
-                            }
-                          },
-                          {
-                            "type": "custom:mushroom-template-card",
-                            "icon": "{% set entity = 'group.corridor_light_group' %}\n{% if is_state(entity, 'on') %}\n  mdi:floor-lamp\n{% else %}\n  mdi:floor-lamp-outline\n{% endif %}",
-                            "tap_action": {
-                              "action": "more-info"
-                            },
-                            "icon_tap_action": {
-                              "action": "more-info"
-                            },
-                            "entity": "group.corridor_light_group",
-                            "layout": "horizontal",
-                            "fill_container": true,
-                            "icon_color": "{% set entity = 'group.corridor_light_group' %}\n{% if is_state(entity, 'on') %}\n  amber\n{% endif %}"
-                          },
-                          {
-                            "type": "custom:mushroom-template-card",
-                            "icon": "{% set entity = 'input_select.corridor_occupancy' %}\n{% if   is_state(entity, 'Outside') %}\n  mdi:door-closed\n{% elif is_state(entity, 'Just Entered') %}\n  mdi:arrow-right-circle\n{% elif is_state(entity, 'In Sleep') %}\n  mdi:sleep\n{% else %}\n  mdi:account-multiple\n{% endif %}",
-                            "tap_action": {
-                              "action": "more-info"
-                            },
-                            "icon_tap_action": {
-                              "action": "more-info"
-                            },
-                            "entity": "input_select.corridor_occupancy",
-                            "layout": "horizontal",
-                            "fill_container": true,
-                            "icon_color": "{% set entity = 'input_select.corridor_occupancy' %}\n{% if   is_state(entity, 'Outside') %}                     {% elif is_state(entity, 'Just Entered') %}\n  green\n                 {% elif is_state(entity, 'In Sleep') %}\n  blue\n     {% else %}\n  purple\n              {% endif %}"
-                          },
-                          {
-                            "type": "conditional",
-                            "conditions": [
-                              {
-                                "entity": "climate.corridor",
-                                "state": "heat"
-                              }
-                            ],
-                            "card": {
-                              "type": "custom:mushroom-template-card",
-                              "icon": "{% set entity = 'climate.corridor' %}\n{% if is_state(entity, 'heat') %}\n  mdi:heating-coil\n    {% else %}   \n  mdi:snowflake\n      {% endif %}",
-                              "tap_action": {
-                                "action": "more-info"
-                              },
-                              "icon_tap_action": {
-                                "action": "more-info"
-                              },
-                              "entity": "climate.corridor",
-                              "layout": "horizontal",
-                              "fill_container": true,
-                              "icon_color": "{% set entity = 'climate.corridor' %}\n{% if is_state(entity, 'heat') %}\n  {% if state_attr(entity, 'temperature') > state_attr(entity, 'current_temperature') %}\n  red\n {% else %}\n blue\n  {% endif %}\n {% endif %}\n"
-                            }
-                          }
-                        ]
-                      }
-                    ]
-                  }
-                },
-                {
-                  "type": "custom:restriction-card",
-                  "restrictions": {
-                    "hide": {
-                      "exemptions": [
-                        {
-                          "user": "72e8e305715145febff1ba701fd78954"
-                        },
-                        {
-                          "user": "60652445f3d14a8f822054569404b643"
-                        },
-                        {
-                          "user": "317c743e4c8348b8a70d671db917dbe8"
-                        }
-                      ]
-                    }
-                  },
-                  "exemptions": [
-                    {
-                      "user": "72e8e305715145febff1ba701fd78954"
-                    },
-                    {
-                      "user": "60652445f3d14a8f822054569404b643"
-                    },
-                    {
-                      "user": "317c743e4c8348b8a70d671db917dbe8"
-                    }
-                  ],
-                  "card": {
-                    "type": "custom:stack-in-card",
-                    "mode": "vertical",
-                    "cards": [
-                      {
-                        "type": "custom:mushroom-template-card",
-                        "icon": "{% set entity = 'input_boolean.placeholder' %}\nmdi:beach",
-                        "tap_action": {
-                          "action": "navigate",
-                          "navigation_path": "/lovelace-garden/garden"
-                        },
-                        "icon_tap_action": {
-                          "action": "navigate",
-                          "navigation_path": "/lovelace-garden/garden"
-                        },
-                        "entity": "input_boolean.placeholder",
-                        "layout": "horizontal",
-                        "fill_container": true,
-                        "primary": "Garden",
-                        "secondary": "{% if states.sensor.garden_temperature_sensor.state is defined %} {{ states.sensor.garden_temperature_sensor.state }}°C {% endif %}{% set motion_postfix     = 'garden_motion_group' %}\n{% set motion = 'group.garden_motion_group' %}\n{% if is_state(motion, 'on') %}\n  🙋🏻\n{% else %}\n  🦶🏻\n{% endif %}{{\n (as_timestamp(now()) -\n as_timestamp(states.group[motion_postfix].last_changed)) |\n timestamp_custom(\"%H:%M\", false) }} ",
-                        "icon_color": "{% set entity = 'input_boolean.placeholder' %}\nblue"
-                      },
-                      {
-                        "card_mod": {
-                          "style": ":host { --ha-card-background:rgba(245, 245, 245, 0);}\n"
-                        },
-                        "type": "custom:stack-in-card",
-                        "mode": "horizontal",
-                        "cards": [
-                          {
-                            "type": "conditional",
-                            "conditions": [
-                              {
-                                "entity": "binary_sensor.garden_unavailable_entities",
-                                "state": "on"
-                              }
-                            ],
-                            "card": {
-                              "type": "custom:mushroom-template-card",
-                              "icon": "{% set entity = 'binary_sensor.garden_unavailable_entities' %}\nmdi:battery-charging-outline",
-                              "tap_action": {
-                                "action": "more-info"
-                              },
-                              "icon_tap_action": {
-                                "action": "more-info"
-                              },
-                              "entity": "binary_sensor.garden_unavailable_entities",
-                              "layout": "horizontal",
-                              "fill_container": true,
-                              "icon_color": "{% set entity = 'binary_sensor.garden_unavailable_entities' %}\nred"
-                            }
-                          },
-                          {
-                            "type": "conditional",
-                            "conditions": [
-                              {
-                                "entity": "binary_sensor.garden_low_battery",
-                                "state": "on"
-                              }
-                            ],
-                            "card": {
-                              "type": "custom:mushroom-template-card",
-                              "icon": "{% set entity = 'group.garden_battery' %}\nmdi:battery-20-bluetooth",
-                              "tap_action": {
-                                "action": "more-info"
-                              },
-                              "icon_tap_action": {
-                                "action": "more-info"
-                              },
-                              "entity": "group.garden_battery",
-                              "layout": "horizontal",
-                              "fill_container": true,
-                              "icon_color": "{% set entity = 'group.garden_battery' %}\norange"
-                            }
-                          },
-                          {
-                            "type": "custom:mushroom-template-card",
-                            "icon": "{% set entity = 'group.garden_light_group' %}\n{% if is_state(entity, 'on') %}\n  mdi:floor-lamp\n{% else %}\n  mdi:floor-lamp-outline\n{% endif %}",
-                            "tap_action": {
-                              "action": "more-info"
-                            },
-                            "icon_tap_action": {
-                              "action": "more-info"
-                            },
-                            "entity": "group.garden_light_group",
-                            "layout": "horizontal",
-                            "fill_container": true,
-                            "icon_color": "{% set entity = 'group.garden_light_group' %}\n{% if is_state(entity, 'on') %}\n  amber\n{% endif %}"
-                          },
-                          {
-                            "type": "custom:mushroom-template-card",
-                            "icon": "{% set entity = 'input_select.garden_occupancy' %}\n{% if   is_state(entity, 'Outside') %}\n  mdi:door-closed\n{% elif is_state(entity, 'Just Entered') %}\n  mdi:arrow-right-circle\n{% elif is_state(entity, 'In Sleep') %}\n  mdi:sleep\n{% else %}\n  mdi:account-multiple\n{% endif %}",
-                            "tap_action": {
-                              "action": "more-info"
-                            },
-                            "icon_tap_action": {
-                              "action": "more-info"
-                            },
-                            "entity": "input_select.garden_occupancy",
-                            "layout": "horizontal",
-                            "fill_container": true,
-                            "icon_color": "{% set entity = 'input_select.garden_occupancy' %}\n{% if   is_state(entity, 'Outside') %}                     {% elif is_state(entity, 'Just Entered') %}\n  green\n                 {% elif is_state(entity, 'In Sleep') %}\n  blue\n     {% else %}\n  purple\n              {% endif %}"
-                          }
-                        ]
-                      }
-                    ]
-                  }
-                },
-                {
-                  "type": "custom:restriction-card",
-                  "restrictions": {
-                    "hide": {
-                      "exemptions": [
-                        {
-                          "user": "72e8e305715145febff1ba701fd78954"
-                        },
-                        {
-                          "user": "60652445f3d14a8f822054569404b643"
-                        },
-                        {
-                          "user": "317c743e4c8348b8a70d671db917dbe8"
-                        }
-                      ]
-                    }
-                  },
-                  "exemptions": [
-                    {
-                      "user": "72e8e305715145febff1ba701fd78954"
-                    },
-                    {
-                      "user": "60652445f3d14a8f822054569404b643"
-                    },
-                    {
-                      "user": "317c743e4c8348b8a70d671db917dbe8"
-                    }
-                  ],
-                  "card": {
-                    "type": "custom:stack-in-card",
-                    "mode": "vertical",
-                    "cards": [
-                      {
-                        "type": "custom:mushroom-template-card",
-                        "icon": "{% set entity = 'input_boolean.placeholder' %}\nmdi:bed-queen",
-                        "tap_action": {
-                          "action": "navigate",
-                          "navigation_path": "/en-suite-room/en-suite-room"
-                        },
-                        "icon_tap_action": {
-                          "action": "navigate",
-                          "navigation_path": "/en-suite-room/en-suite-room"
-                        },
-                        "entity": "input_boolean.placeholder",
-                        "layout": "horizontal",
-                        "fill_container": true,
-                        "primary": "En-suite Room",
-                        "secondary": "{% if states.sensor.en_suite_room_temperature_sensor.state is defined %} {{ states.sensor.en_suite_room_temperature_sensor.state }}°C {% endif %}{% set motion_postfix     = 'en_suite_room_motion_group' %}\n{% set motion = 'group.en_suite_room_motion_group' %}\n{% if is_state(motion, 'on') %}\n  🙋🏻\n{% else %}\n  🦶🏻\n{% endif %}{{\n (as_timestamp(now()) -\n as_timestamp(states.group[motion_postfix].last_changed)) |\n timestamp_custom(\"%H:%M\", false) }} ",
-                        "icon_color": "{% set entity = 'input_boolean.placeholder' %}\nblue"
-                      },
-                      {
-                        "card_mod": {
-                          "style": ":host { --ha-card-background:rgba(245, 245, 245, 0);}\n"
-                        },
-                        "type": "custom:stack-in-card",
-                        "mode": "horizontal",
-                        "cards": [
-                          {
-                            "type": "conditional",
-                            "conditions": [
-                              {
-                                "entity": "binary_sensor.en_suite_room_unavailable_entities",
-                                "state": "on"
-                              }
-                            ],
-                            "card": {
-                              "type": "custom:mushroom-template-card",
-                              "icon": "{% set entity = 'binary_sensor.en_suite_room_unavailable_entities' %}\nmdi:battery-charging-outline",
-                              "tap_action": {
-                                "action": "more-info"
-                              },
-                              "icon_tap_action": {
-                                "action": "more-info"
-                              },
-                              "entity": "binary_sensor.en_suite_room_unavailable_entities",
-                              "layout": "horizontal",
-                              "fill_container": true,
-                              "icon_color": "{% set entity = 'binary_sensor.en_suite_room_unavailable_entities' %}\nred"
-                            }
-                          },
-                          {
-                            "type": "conditional",
-                            "conditions": [
-                              {
-                                "entity": "binary_sensor.en_suite_room_low_battery",
-                                "state": "on"
-                              }
-                            ],
-                            "card": {
-                              "type": "custom:mushroom-template-card",
-                              "icon": "{% set entity = 'group.en_suite_room_battery' %}\nmdi:battery-20-bluetooth",
-                              "tap_action": {
-                                "action": "more-info"
-                              },
-                              "icon_tap_action": {
-                                "action": "more-info"
-                              },
-                              "entity": "group.en_suite_room_battery",
-                              "layout": "horizontal",
-                              "fill_container": true,
-                              "icon_color": "{% set entity = 'group.en_suite_room_battery' %}\norange"
-                            }
-                          },
-                          {
-                            "type": "conditional",
-                            "conditions": [
-                              {
-                                "entity": "group.en_suite_room_curtain_group",
-                                "state": "open"
-                              }
-                            ],
-                            "card": {
-                              "type": "custom:mushroom-template-card",
-                              "icon": "{% set entity = 'group.en_suite_room_curtain_group' %}\n{% if is_state(entity, 'open') %}\n  mdi:curtains\n{% else %}\n  mdi:curtains-closed\n{% endif %}",
-                              "tap_action": {
-                                "action": "more-info"
-                              },
-                              "icon_tap_action": {
-                                "action": "more-info"
-                              },
-                              "entity": "group.en_suite_room_curtain_group",
-                              "layout": "horizontal",
-                              "fill_container": true,
-                              "icon_color": "{% set entity = 'group.en_suite_room_curtain_group' %}\n{% if is_state(entity, 'open') %}\n  green       \n{% endif %}"
-                            }
-                          },
-                          {
-                            "type": "custom:mushroom-template-card",
-                            "icon": "{% set entity = 'group.en_suite_room_light_group' %}\n{% if is_state(entity, 'on') %}\n  mdi:floor-lamp\n{% else %}\n  mdi:floor-lamp-outline\n{% endif %}",
-                            "tap_action": {
-                              "action": "more-info"
-                            },
-                            "icon_tap_action": {
-                              "action": "more-info"
-                            },
-                            "entity": "group.en_suite_room_light_group",
-                            "layout": "horizontal",
-                            "fill_container": true,
-                            "icon_color": "{% set entity = 'group.en_suite_room_light_group' %}\n{% if is_state(entity, 'on') %}\n  amber\n{% endif %}"
-                          },
-                          {
-                            "type": "custom:mushroom-template-card",
-                            "icon": "{% set entity = 'input_select.en_suite_room_occupancy' %}\n{% if   is_state(entity, 'Outside') %}\n  mdi:door-closed\n{% elif is_state(entity, 'Just Entered') %}\n  mdi:arrow-right-circle\n{% elif is_state(entity, 'In Sleep') %}\n  mdi:sleep\n{% else %}\n  mdi:account-multiple\n{% endif %}",
-                            "tap_action": {
-                              "action": "more-info"
-                            },
-                            "icon_tap_action": {
-                              "action": "more-info"
-                            },
-                            "entity": "input_select.en_suite_room_occupancy",
-                            "layout": "horizontal",
-                            "fill_container": true,
-                            "icon_color": "{% set entity = 'input_select.en_suite_room_occupancy' %}\n{% if   is_state(entity, 'Outside') %}                     {% elif is_state(entity, 'Just Entered') %}\n  green\n                 {% elif is_state(entity, 'In Sleep') %}\n  blue\n     {% else %}\n  purple\n              {% endif %}"
-                          },
-                          {
-                            "type": "conditional",
-                            "conditions": [
-                              {
-                                "entity": "climate.en_suite_room",
-                                "state": "heat"
-                              }
-                            ],
-                            "card": {
-                              "type": "custom:mushroom-template-card",
-                              "icon": "{% set entity = 'climate.en_suite_room' %}\n{% if is_state(entity, 'heat') %}\n  mdi:heating-coil\n    {% else %}   \n  mdi:snowflake\n      {% endif %}",
-                              "tap_action": {
-                                "action": "more-info"
-                              },
-                              "icon_tap_action": {
-                                "action": "more-info"
-                              },
-                              "entity": "climate.en_suite_room",
-                              "layout": "horizontal",
-                              "fill_container": true,
-                              "icon_color": "{% set entity = 'climate.en_suite_room' %}\n{% if is_state(entity, 'heat') %}\n  {% if state_attr(entity, 'temperature') > state_attr(entity, 'current_temperature') %}\n  red\n {% else %}\n blue\n  {% endif %}\n {% endif %}\n"
-                            }
-                          }
-                        ]
-                      }
-                    ]
-                  }
-                },
-                {
-                  "type": "custom:restriction-card",
-                  "restrictions": {
-                    "hide": {
-                      "exemptions": [
-                        {
-                          "user": "72e8e305715145febff1ba701fd78954"
-                        },
-                        {
-                          "user": "60652445f3d14a8f822054569404b643"
-                        },
-                        {
-                          "user": "317c743e4c8348b8a70d671db917dbe8"
-                        }
-                      ]
-                    }
-                  },
-                  "exemptions": [
-                    {
-                      "user": "72e8e305715145febff1ba701fd78954"
-                    },
-                    {
-                      "user": "60652445f3d14a8f822054569404b643"
-                    },
-                    {
-                      "user": "317c743e4c8348b8a70d671db917dbe8"
-                    }
-                  ],
-                  "card": {
-                    "type": "custom:stack-in-card",
-                    "mode": "vertical",
-                    "cards": [
-                      {
-                        "type": "custom:mushroom-template-card",
-                        "icon": "{% set entity = 'input_boolean.placeholder' %}\nmdi:shower-head",
-                        "tap_action": {
-                          "action": "navigate",
-                          "navigation_path": "/en-suite-room/en-suite-toilet"
-                        },
-                        "icon_tap_action": {
-                          "action": "navigate",
-                          "navigation_path": "/en-suite-room/en-suite-toilet"
-                        },
-                        "entity": "input_boolean.placeholder",
-                        "layout": "horizontal",
-                        "fill_container": true,
-                        "primary": "En-suite Toilet",
-                        "secondary": "{% if states.sensor.en_suite_toilet_temperature_sensor.state is defined %} {{ states.sensor.en_suite_toilet_temperature_sensor.state }}°C {% endif %}{% set motion_postfix     = 'en_suite_toilet_motion_group' %}\n{% set motion = 'group.en_suite_toilet_motion_group' %}\n{% if is_state(motion, 'on') %}\n  🙋🏻\n{% else %}\n  🦶🏻\n{% endif %}{{\n (as_timestamp(now()) -\n as_timestamp(states.group[motion_postfix].last_changed)) |\n timestamp_custom(\"%H:%M\", false) }} ",
-                        "icon_color": "{% set entity = 'input_boolean.placeholder' %}\nblue"
-                      },
-                      {
-                        "card_mod": {
-                          "style": ":host { --ha-card-background:rgba(245, 245, 245, 0);}\n"
-                        },
-                        "type": "custom:stack-in-card",
-                        "mode": "horizontal",
-                        "cards": [
-                          {
-                            "type": "conditional",
-                            "conditions": [
-                              {
-                                "entity": "binary_sensor.en_suite_toilet_unavailable_entities",
-                                "state": "on"
-                              }
-                            ],
-                            "card": {
-                              "type": "custom:mushroom-template-card",
-                              "icon": "{% set entity = 'binary_sensor.en_suite_toilet_unavailable_entities' %}\nmdi:battery-charging-outline",
-                              "tap_action": {
-                                "action": "more-info"
-                              },
-                              "icon_tap_action": {
-                                "action": "more-info"
-                              },
-                              "entity": "binary_sensor.en_suite_toilet_unavailable_entities",
-                              "layout": "horizontal",
-                              "fill_container": true,
-                              "icon_color": "{% set entity = 'binary_sensor.en_suite_toilet_unavailable_entities' %}\nred"
-                            }
-                          },
-                          {
-                            "type": "conditional",
-                            "conditions": [
-                              {
-                                "entity": "binary_sensor.en_suite_toilet_low_battery",
-                                "state": "on"
-                              }
-                            ],
-                            "card": {
-                              "type": "custom:mushroom-template-card",
-                              "icon": "{% set entity = 'group.en_suite_toilet_battery' %}\nmdi:battery-20-bluetooth",
-                              "tap_action": {
-                                "action": "more-info"
-                              },
-                              "icon_tap_action": {
-                                "action": "more-info"
-                              },
-                              "entity": "group.en_suite_toilet_battery",
-                              "layout": "horizontal",
-                              "fill_container": true,
-                              "icon_color": "{% set entity = 'group.en_suite_toilet_battery' %}\norange"
-                            }
-                          },
-                          {
-                            "type": "custom:mushroom-template-card",
-                            "icon": "{% set entity = 'group.en_suite_toilet_light_group' %}\n{% if is_state(entity, 'on') %}\n  mdi:floor-lamp\n{% else %}\n  mdi:floor-lamp-outline\n{% endif %}",
-                            "tap_action": {
-                              "action": "more-info"
-                            },
-                            "icon_tap_action": {
-                              "action": "more-info"
-                            },
-                            "entity": "group.en_suite_toilet_light_group",
-                            "layout": "horizontal",
-                            "fill_container": true,
-                            "icon_color": "{% set entity = 'group.en_suite_toilet_light_group' %}\n{% if is_state(entity, 'on') %}\n  amber\n{% endif %}"
-                          },
-                          {
-                            "type": "custom:mushroom-template-card",
-                            "icon": "{% set entity = 'input_select.en_suite_toilet_occupancy' %}\n{% if   is_state(entity, 'Outside') %}\n  mdi:door-closed\n{% elif is_state(entity, 'Just Entered') %}\n  mdi:arrow-right-circle\n{% elif is_state(entity, 'In Sleep') %}\n  mdi:sleep\n{% else %}\n  mdi:account-multiple\n{% endif %}",
-                            "tap_action": {
-                              "action": "more-info"
-                            },
-                            "icon_tap_action": {
-                              "action": "more-info"
-                            },
-                            "entity": "input_select.en_suite_toilet_occupancy",
-                            "layout": "horizontal",
-                            "fill_container": true,
-                            "icon_color": "{% set entity = 'input_select.en_suite_toilet_occupancy' %}\n{% if   is_state(entity, 'Outside') %}                     {% elif is_state(entity, 'Just Entered') %}\n  green\n                 {% elif is_state(entity, 'In Sleep') %}\n  blue\n     {% else %}\n  purple\n              {% endif %}"
-                          },
-                          {
-                            "type": "conditional",
-                            "conditions": [
-                              {
-                                "entity": "climate.en_suite_toilet",
-                                "state": "heat"
-                              }
-                            ],
-                            "card": {
-                              "type": "custom:mushroom-template-card",
-                              "icon": "{% set entity = 'climate.en_suite_toilet' %}\n{% if is_state(entity, 'heat') %}\n  mdi:heating-coil\n    {% else %}   \n  mdi:snowflake\n      {% endif %}",
-                              "tap_action": {
-                                "action": "more-info"
-                              },
-                              "icon_tap_action": {
-                                "action": "more-info"
-                              },
-                              "entity": "climate.en_suite_toilet",
-                              "layout": "horizontal",
-                              "fill_container": true,
-                              "icon_color": "{% set entity = 'climate.en_suite_toilet' %}\n{% if is_state(entity, 'heat') %}\n  {% if state_attr(entity, 'temperature') > state_attr(entity, 'current_temperature') %}\n  red\n {% else %}\n blue\n  {% endif %}\n {% endif %}\n"
-                            }
-                          }
-                        ]
-                      }
-                    ]
-                  }
-                },
-                {
-                  "type": "custom:restriction-card",
-                  "restrictions": {
-                    "hide": {
-                      "exemptions": [
-                        {
-                          "user": "72e8e305715145febff1ba701fd78954"
-                        },
-                        {
-                          "user": "60652445f3d14a8f822054569404b643"
-                        },
-                        {
-                          "user": "317c743e4c8348b8a70d671db917dbe8"
-                        }
-                      ]
-                    }
-                  },
-                  "exemptions": [
-                    {
-                      "user": "72e8e305715145febff1ba701fd78954"
-                    },
-                    {
-                      "user": "60652445f3d14a8f822054569404b643"
-                    },
-                    {
-                      "user": "317c743e4c8348b8a70d671db917dbe8"
+                      "user": "e9fbd5a00abd49b88122f03d68053128"
                     }
                   ],
                   "card": {
@@ -2343,26 +1614,91 @@
                             }
                           },
                           {
+                            "type": "custom:mushroom-template-card",
+                            "icon": "{% set entity = 'group.guest_room_battery' %}\n{% if is_state('binary_sensor.guest_room_low_battery', 'on') %}\n  mdi:battery-20-bluetooth \n{% else %}\n  mdi:battery-70\n{% endif %}",
+                            "tap_action": {
+                              "action": "more-info"
+                            },
+                            "icon_tap_action": {
+                              "action": "more-info"
+                            },
+                            "entity": "group.guest_room_battery",
+                            "layout": "horizontal",
+                            "fill_container": true,
+                            "icon_color": "{% set entity = 'group.guest_room_battery' %}\n{% if is_state('binary_sensor.guest_room_low_battery', 'on') %}\n  amber\n{% endif %}"
+                          },
+                          {
+                            "type": "custom:mushroom-template-card",
+                            "icon": "{% set entity = 'group.guest_room_light_group' %}\n{% if is_state(entity, 'on') %}\n  mdi:floor-lamp\n{% else %}\n  mdi:floor-lamp-outline\n{% endif %}",
+                            "tap_action": {
+                              "action": "more-info"
+                            },
+                            "icon_tap_action": {
+                              "action": "more-info"
+                            },
+                            "entity": "group.guest_room_light_group",
+                            "layout": "horizontal",
+                            "fill_container": true,
+                            "icon_color": "{% set entity = 'group.guest_room_light_group' %}\n{% if is_state(entity, 'on') %}\n  amber\n{% endif %}"
+                          },
+                          {
+                            "type": "custom:mushroom-template-card",
+                            "icon": "{% set entity = 'input_boolean.guest_room_auto_off_suspended' %}\n{% if is_state(entity, 'on') %}\n  mdi:timer-sand\n{% else %}\n  mdi:timer-sand-paused\n{% endif %}",
+                            "tap_action": {
+                              "action": "more-info"
+                            },
+                            "icon_tap_action": {
+                              "action": "more-info"
+                            },
+                            "entity": "input_boolean.guest_room_auto_off_suspended",
+                            "layout": "horizontal",
+                            "fill_container": true,
+                            "icon_color": "{% set entity = 'input_boolean.guest_room_auto_off_suspended' %}\n{% if is_state(entity, 'on') %}\n  yellow\n{% endif %}"
+                          },
+                          {
                             "type": "conditional",
                             "conditions": [
                               {
-                                "entity": "binary_sensor.guest_room_low_battery",
-                                "state": "on"
+                                "entity": "climate.guest_room",
+                                "state": "heat"
                               }
                             ],
                             "card": {
                               "type": "custom:mushroom-template-card",
-                              "icon": "{% set entity = 'group.guest_room_battery' %}\nmdi:battery-20-bluetooth",
+                              "icon": "{% set entity = 'climate.guest_room' %}\n{% if is_state(entity, 'heat') %}\n  mdi:heating-coil\n    {% else %}   \n  mdi:snowflake\n      {% endif %}",
                               "tap_action": {
                                 "action": "more-info"
                               },
                               "icon_tap_action": {
                                 "action": "more-info"
                               },
-                              "entity": "group.guest_room_battery",
+                              "entity": "climate.guest_room",
                               "layout": "horizontal",
                               "fill_container": true,
-                              "icon_color": "{% set entity = 'group.guest_room_battery' %}\norange"
+                              "icon_color": "{% set entity = 'climate.guest_room' %}\n{% if is_state(entity, 'heat') %}\n  {% if state_attr(entity, 'temperature') > state_attr(entity, 'current_temperature') %}\n  red\n {% else %}\n blue\n  {% endif %}\n {% endif %}\n"
+                            }
+                          },
+                          {
+                            "type": "conditional",
+                            "conditions": [
+                              {
+                                "entity": "input_select.guest_room_occupancy",
+                                "state_not": "Outside"
+                              }
+                            ],
+                            "card": {
+                              "type": "custom:mushroom-template-card",
+                              "icon": "{% set entity = 'input_select.guest_room_occupancy' %}\n{% if   is_state(entity, 'Outside') %}\n  mdi:door-closed\n{% elif is_state(entity, 'Just Entered') %}\n  mdi:arrow-right-circle\n{% elif is_state(entity, 'In Sleep') %}\n  mdi:sleep\n{% else %}\n  mdi:account-multiple\n{% endif %}",
+                              "tap_action": {
+                                "action": "more-info"
+                              },
+                              "icon_tap_action": {
+                                "action": "more-info"
+                              },
+                              "entity": "input_select.guest_room_occupancy",
+                              "layout": "horizontal",
+                              "fill_container": true,
+                              "icon_color": "{% set entity = 'input_select.guest_room_occupancy' %}\n{% if   is_state(entity, 'Outside') %}                     {% elif is_state(entity, 'Just Entered') %}\n  green\n                 {% elif is_state(entity, 'In Sleep') %}\n  blue\n     {% else %}\n  purple\n              {% endif %}"
                             }
                           },
                           {
@@ -2387,56 +1723,276 @@
                               "fill_container": true,
                               "icon_color": "{% set entity = 'group.guest_room_curtain_group' %}\n{% if is_state(entity, 'open') %}\n  green       \n{% endif %}"
                             }
-                          },
-                          {
-                            "type": "custom:mushroom-template-card",
-                            "icon": "{% set entity = 'group.guest_room_light_group' %}\n{% if is_state(entity, 'on') %}\n  mdi:floor-lamp\n{% else %}\n  mdi:floor-lamp-outline\n{% endif %}",
-                            "tap_action": {
-                              "action": "more-info"
-                            },
-                            "icon_tap_action": {
-                              "action": "more-info"
-                            },
-                            "entity": "group.guest_room_light_group",
-                            "layout": "horizontal",
-                            "fill_container": true,
-                            "icon_color": "{% set entity = 'group.guest_room_light_group' %}\n{% if is_state(entity, 'on') %}\n  amber\n{% endif %}"
-                          },
-                          {
-                            "type": "custom:mushroom-template-card",
-                            "icon": "{% set entity = 'input_select.guest_room_occupancy' %}\n{% if   is_state(entity, 'Outside') %}\n  mdi:door-closed\n{% elif is_state(entity, 'Just Entered') %}\n  mdi:arrow-right-circle\n{% elif is_state(entity, 'In Sleep') %}\n  mdi:sleep\n{% else %}\n  mdi:account-multiple\n{% endif %}",
-                            "tap_action": {
-                              "action": "more-info"
-                            },
-                            "icon_tap_action": {
-                              "action": "more-info"
-                            },
-                            "entity": "input_select.guest_room_occupancy",
-                            "layout": "horizontal",
-                            "fill_container": true,
-                            "icon_color": "{% set entity = 'input_select.guest_room_occupancy' %}\n{% if   is_state(entity, 'Outside') %}                     {% elif is_state(entity, 'Just Entered') %}\n  green\n                 {% elif is_state(entity, 'In Sleep') %}\n  blue\n     {% else %}\n  purple\n              {% endif %}"
-                          },
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                },
+                {
+                  "type": "custom:restriction-card",
+                  "restrictions": {
+                    "hide": {
+                      "exemptions": [
+                        {
+                          "user": "72e8e305715145febff1ba701fd78954"
+                        },
+                        {
+                          "user": "60652445f3d14a8f822054569404b643"
+                        },
+                        {
+                          "user": "317c743e4c8348b8a70d671db917dbe8"
+                        },
+                        {
+                          "user": "e9fbd5a00abd49b88122f03d68053128"
+                        }
+                      ]
+                    }
+                  },
+                  "exemptions": [
+                    {
+                      "user": "72e8e305715145febff1ba701fd78954"
+                    },
+                    {
+                      "user": "60652445f3d14a8f822054569404b643"
+                    },
+                    {
+                      "user": "317c743e4c8348b8a70d671db917dbe8"
+                    },
+                    {
+                      "user": "e9fbd5a00abd49b88122f03d68053128"
+                    }
+                  ],
+                  "card": {
+                    "type": "custom:stack-in-card",
+                    "mode": "vertical",
+                    "cards": [
+                      {
+                        "type": "custom:mushroom-template-card",
+                        "icon": "{% set entity = 'input_boolean.placeholder' %}\nmdi:toilet",
+                        "tap_action": {
+                          "action": "navigate",
+                          "navigation_path": "/lovelace-misc/corridor"
+                        },
+                        "icon_tap_action": {
+                          "action": "navigate",
+                          "navigation_path": "/lovelace-misc/corridor"
+                        },
+                        "entity": "input_boolean.placeholder",
+                        "layout": "horizontal",
+                        "fill_container": true,
+                        "primary": "Corridor",
+                        "secondary": "{% if states.sensor.corridor_temperature_sensor.state is defined %} {{ states.sensor.corridor_temperature_sensor.state }}°C {% endif %}{% set motion_postfix     = 'corridor_motion_group' %}\n{% set motion = 'group.corridor_motion_group' %}\n{% if is_state(motion, 'on') %}\n  🙋🏻\n{% else %}\n  🦶🏻\n{% endif %}{{\n (as_timestamp(now()) -\n as_timestamp(states.group[motion_postfix].last_changed)) |\n timestamp_custom(\"%H:%M\", false) }} ",
+                        "icon_color": "{% set entity = 'input_boolean.placeholder' %}\nblue"
+                      },
+                      {
+                        "card_mod": {
+                          "style": ":host { --ha-card-background:rgba(245, 245, 245, 0);}\n"
+                        },
+                        "type": "custom:stack-in-card",
+                        "mode": "horizontal",
+                        "cards": [
                           {
                             "type": "conditional",
                             "conditions": [
                               {
-                                "entity": "climate.guest_room",
-                                "state": "heat"
+                                "entity": "lock.front_door",
+                                "state": "unlocked"
                               }
                             ],
                             "card": {
                               "type": "custom:mushroom-template-card",
-                              "icon": "{% set entity = 'climate.guest_room' %}\n{% if is_state(entity, 'heat') %}\n  mdi:heating-coil\n    {% else %}   \n  mdi:snowflake\n      {% endif %}",
+                              "icon": "{% set entity = 'lock.front_door' %}\nmdi:lock-open-variant-outline",
                               "tap_action": {
                                 "action": "more-info"
                               },
                               "icon_tap_action": {
                                 "action": "more-info"
                               },
-                              "entity": "climate.guest_room",
+                              "entity": "lock.front_door",
                               "layout": "horizontal",
                               "fill_container": true,
-                              "icon_color": "{% set entity = 'climate.guest_room' %}\n{% if is_state(entity, 'heat') %}\n  {% if state_attr(entity, 'temperature') > state_attr(entity, 'current_temperature') %}\n  red\n {% else %}\n blue\n  {% endif %}\n {% endif %}\n"
+                              "icon_color": "{% set entity = 'lock.front_door' %}\nred"
+                            }
+                          },
+                          {
+                            "type": "conditional",
+                            "conditions": [
+                              {
+                                "entity": "switch.downstairs_heating",
+                                "state": "on"
+                              }
+                            ],
+                            "card": {
+                              "type": "custom:mushroom-template-card",
+                              "icon": "{% set entity = 'switch.downstairs_heating' %}\nmdi:home-floor-g",
+                              "tap_action": {
+                                "action": "more-info"
+                              },
+                              "icon_tap_action": {
+                                "action": "more-info"
+                              },
+                              "entity": "switch.downstairs_heating",
+                              "layout": "horizontal",
+                              "fill_container": true,
+                              "icon_color": "{% set entity = 'switch.downstairs_heating' %}\ndeep-orange"
+                            }
+                          },
+                          {
+                            "type": "conditional",
+                            "conditions": [
+                              {
+                                "entity": "switch.upstairs_heating",
+                                "state": "on"
+                              }
+                            ],
+                            "card": {
+                              "type": "custom:mushroom-template-card",
+                              "icon": "{% set entity = 'switch.upstairs_heating' %}\nmdi:home-floor-1",
+                              "tap_action": {
+                                "action": "more-info"
+                              },
+                              "icon_tap_action": {
+                                "action": "more-info"
+                              },
+                              "entity": "switch.upstairs_heating",
+                              "layout": "horizontal",
+                              "fill_container": true,
+                              "icon_color": "{% set entity = 'switch.upstairs_heating' %}\ndeep-orange"
+                            }
+                          },
+                          {
+                            "type": "conditional",
+                            "conditions": [
+                              {
+                                "entity": "binary_sensor.corridor_unavailable_entities",
+                                "state": "on"
+                              }
+                            ],
+                            "card": {
+                              "type": "custom:mushroom-template-card",
+                              "icon": "{% set entity = 'binary_sensor.corridor_unavailable_entities' %}\nmdi:battery-charging-outline",
+                              "tap_action": {
+                                "action": "more-info"
+                              },
+                              "icon_tap_action": {
+                                "action": "more-info"
+                              },
+                              "entity": "binary_sensor.corridor_unavailable_entities",
+                              "layout": "horizontal",
+                              "fill_container": true,
+                              "icon_color": "{% set entity = 'binary_sensor.corridor_unavailable_entities' %}\nred"
+                            }
+                          },
+                          {
+                            "type": "custom:mushroom-template-card",
+                            "icon": "{% set entity = 'group.corridor_battery' %}\n{% if is_state('binary_sensor.corridor_low_battery', 'on') %}\n  mdi:battery-20-bluetooth \n{% else %}\n  mdi:battery-70\n{% endif %}",
+                            "tap_action": {
+                              "action": "more-info"
+                            },
+                            "icon_tap_action": {
+                              "action": "more-info"
+                            },
+                            "entity": "group.corridor_battery",
+                            "layout": "horizontal",
+                            "fill_container": true,
+                            "icon_color": "{% set entity = 'group.corridor_battery' %}\n{% if is_state('binary_sensor.corridor_low_battery', 'on') %}\n  amber\n{% endif %}"
+                          },
+                          {
+                            "type": "conditional",
+                            "conditions": [
+                              {
+                                "entity": "group.corridor_window_group",
+                                "state": "on"
+                              }
+                            ],
+                            "card": {
+                              "type": "custom:mushroom-template-card",
+                              "icon": "{% set entity = 'group.corridor_window_group' %}\n{% if is_state(entity, 'on') %}\n  mdi:window-open-variant\n{% else %}\n  mdi:window-closed-variant\n{% endif %}",
+                              "tap_action": {
+                                "action": "more-info"
+                              },
+                              "icon_tap_action": {
+                                "action": "more-info"
+                              },
+                              "entity": "group.corridor_window_group",
+                              "layout": "horizontal",
+                              "fill_container": true,
+                              "icon_color": "{% set entity = 'group.corridor_window_group' %}\n{% if is_state(entity, 'on') %}\n  lime\n{% endif %}"
+                            }
+                          },
+                          {
+                            "type": "custom:mushroom-template-card",
+                            "icon": "{% set entity = 'group.corridor_light_group' %}\n{% if is_state(entity, 'on') %}\n  mdi:floor-lamp\n{% else %}\n  mdi:floor-lamp-outline\n{% endif %}",
+                            "tap_action": {
+                              "action": "more-info"
+                            },
+                            "icon_tap_action": {
+                              "action": "more-info"
+                            },
+                            "entity": "group.corridor_light_group",
+                            "layout": "horizontal",
+                            "fill_container": true,
+                            "icon_color": "{% set entity = 'group.corridor_light_group' %}\n{% if is_state(entity, 'on') %}\n  amber\n{% endif %}"
+                          },
+                          {
+                            "type": "custom:mushroom-template-card",
+                            "icon": "{% set entity = 'input_boolean.corridor_auto_off_suspended' %}\n{% if is_state(entity, 'on') %}\n  mdi:timer-sand\n{% else %}\n  mdi:timer-sand-paused\n{% endif %}",
+                            "tap_action": {
+                              "action": "more-info"
+                            },
+                            "icon_tap_action": {
+                              "action": "more-info"
+                            },
+                            "entity": "input_boolean.corridor_auto_off_suspended",
+                            "layout": "horizontal",
+                            "fill_container": true,
+                            "icon_color": "{% set entity = 'input_boolean.corridor_auto_off_suspended' %}\n{% if is_state(entity, 'on') %}\n  yellow\n{% endif %}"
+                          },
+                          {
+                            "type": "conditional",
+                            "conditions": [
+                              {
+                                "entity": "climate.corridor",
+                                "state": "heat"
+                              }
+                            ],
+                            "card": {
+                              "type": "custom:mushroom-template-card",
+                              "icon": "{% set entity = 'climate.corridor' %}\n{% if is_state(entity, 'heat') %}\n  mdi:heating-coil\n    {% else %}   \n  mdi:snowflake\n      {% endif %}",
+                              "tap_action": {
+                                "action": "more-info"
+                              },
+                              "icon_tap_action": {
+                                "action": "more-info"
+                              },
+                              "entity": "climate.corridor",
+                              "layout": "horizontal",
+                              "fill_container": true,
+                              "icon_color": "{% set entity = 'climate.corridor' %}\n{% if is_state(entity, 'heat') %}\n  {% if state_attr(entity, 'temperature') > state_attr(entity, 'current_temperature') %}\n  red\n {% else %}\n blue\n  {% endif %}\n {% endif %}\n"
+                            }
+                          },
+                          {
+                            "type": "conditional",
+                            "conditions": [
+                              {
+                                "entity": "input_select.corridor_occupancy",
+                                "state_not": "Outside"
+                              }
+                            ],
+                            "card": {
+                              "type": "custom:mushroom-template-card",
+                              "icon": "{% set entity = 'input_select.corridor_occupancy' %}\n{% if   is_state(entity, 'Outside') %}\n  mdi:door-closed\n{% elif is_state(entity, 'Just Entered') %}\n  mdi:arrow-right-circle\n{% elif is_state(entity, 'In Sleep') %}\n  mdi:sleep\n{% else %}\n  mdi:account-multiple\n{% endif %}",
+                              "tap_action": {
+                                "action": "more-info"
+                              },
+                              "icon_tap_action": {
+                                "action": "more-info"
+                              },
+                              "entity": "input_select.corridor_occupancy",
+                              "layout": "horizontal",
+                              "fill_container": true,
+                              "icon_color": "{% set entity = 'input_select.corridor_occupancy' %}\n{% if   is_state(entity, 'Outside') %}                     {% elif is_state(entity, 'Just Entered') %}\n  green\n                 {% elif is_state(entity, 'In Sleep') %}\n  blue\n     {% else %}\n  purple\n              {% endif %}"
                             }
                           }
                         ]
@@ -2457,6 +2013,9 @@
                         },
                         {
                           "user": "317c743e4c8348b8a70d671db917dbe8"
+                        },
+                        {
+                          "user": "e9fbd5a00abd49b88122f03d68053128"
                         }
                       ]
                     }
@@ -2470,6 +2029,9 @@
                     },
                     {
                       "user": "317c743e4c8348b8a70d671db917dbe8"
+                    },
+                    {
+                      "user": "e9fbd5a00abd49b88122f03d68053128"
                     }
                   ],
                   "card": {
@@ -2525,27 +2087,18 @@
                             }
                           },
                           {
-                            "type": "conditional",
-                            "conditions": [
-                              {
-                                "entity": "binary_sensor.guest_toilet_low_battery",
-                                "state": "on"
-                              }
-                            ],
-                            "card": {
-                              "type": "custom:mushroom-template-card",
-                              "icon": "{% set entity = 'group.guest_toilet_battery' %}\nmdi:battery-20-bluetooth",
-                              "tap_action": {
-                                "action": "more-info"
-                              },
-                              "icon_tap_action": {
-                                "action": "more-info"
-                              },
-                              "entity": "group.guest_toilet_battery",
-                              "layout": "horizontal",
-                              "fill_container": true,
-                              "icon_color": "{% set entity = 'group.guest_toilet_battery' %}\norange"
-                            }
+                            "type": "custom:mushroom-template-card",
+                            "icon": "{% set entity = 'group.guest_toilet_battery' %}\n{% if is_state('binary_sensor.guest_toilet_low_battery', 'on') %}\n  mdi:battery-20-bluetooth \n{% else %}\n  mdi:battery-70\n{% endif %}",
+                            "tap_action": {
+                              "action": "more-info"
+                            },
+                            "icon_tap_action": {
+                              "action": "more-info"
+                            },
+                            "entity": "group.guest_toilet_battery",
+                            "layout": "horizontal",
+                            "fill_container": true,
+                            "icon_color": "{% set entity = 'group.guest_toilet_battery' %}\n{% if is_state('binary_sensor.guest_toilet_low_battery', 'on') %}\n  amber\n{% endif %}"
                           },
                           {
                             "type": "custom:mushroom-template-card",
@@ -2563,17 +2116,17 @@
                           },
                           {
                             "type": "custom:mushroom-template-card",
-                            "icon": "{% set entity = 'input_select.guest_toilet_occupancy' %}\n{% if   is_state(entity, 'Outside') %}\n  mdi:door-closed\n{% elif is_state(entity, 'Just Entered') %}\n  mdi:arrow-right-circle\n{% elif is_state(entity, 'In Sleep') %}\n  mdi:sleep\n{% else %}\n  mdi:account-multiple\n{% endif %}",
+                            "icon": "{% set entity = 'input_boolean.guest_toilet_auto_off_suspended' %}\n{% if is_state(entity, 'on') %}\n  mdi:timer-sand\n{% else %}\n  mdi:timer-sand-paused\n{% endif %}",
                             "tap_action": {
                               "action": "more-info"
                             },
                             "icon_tap_action": {
                               "action": "more-info"
                             },
-                            "entity": "input_select.guest_toilet_occupancy",
+                            "entity": "input_boolean.guest_toilet_auto_off_suspended",
                             "layout": "horizontal",
                             "fill_container": true,
-                            "icon_color": "{% set entity = 'input_select.guest_toilet_occupancy' %}\n{% if   is_state(entity, 'Outside') %}                     {% elif is_state(entity, 'Just Entered') %}\n  green\n                 {% elif is_state(entity, 'In Sleep') %}\n  blue\n     {% else %}\n  purple\n              {% endif %}"
+                            "icon_color": "{% set entity = 'input_boolean.guest_toilet_auto_off_suspended' %}\n{% if is_state(entity, 'on') %}\n  yellow\n{% endif %}"
                           },
                           {
                             "type": "conditional",
@@ -2596,6 +2149,768 @@
                               "layout": "horizontal",
                               "fill_container": true,
                               "icon_color": "{% set entity = 'climate.guest_toilet' %}\n{% if is_state(entity, 'heat') %}\n  {% if state_attr(entity, 'temperature') > state_attr(entity, 'current_temperature') %}\n  red\n {% else %}\n blue\n  {% endif %}\n {% endif %}\n"
+                            }
+                          },
+                          {
+                            "type": "conditional",
+                            "conditions": [
+                              {
+                                "entity": "input_select.guest_toilet_occupancy",
+                                "state_not": "Outside"
+                              }
+                            ],
+                            "card": {
+                              "type": "custom:mushroom-template-card",
+                              "icon": "{% set entity = 'input_select.guest_toilet_occupancy' %}\n{% if   is_state(entity, 'Outside') %}\n  mdi:door-closed\n{% elif is_state(entity, 'Just Entered') %}\n  mdi:arrow-right-circle\n{% elif is_state(entity, 'In Sleep') %}\n  mdi:sleep\n{% else %}\n  mdi:account-multiple\n{% endif %}",
+                              "tap_action": {
+                                "action": "more-info"
+                              },
+                              "icon_tap_action": {
+                                "action": "more-info"
+                              },
+                              "entity": "input_select.guest_toilet_occupancy",
+                              "layout": "horizontal",
+                              "fill_container": true,
+                              "icon_color": "{% set entity = 'input_select.guest_toilet_occupancy' %}\n{% if   is_state(entity, 'Outside') %}                     {% elif is_state(entity, 'Just Entered') %}\n  green\n                 {% elif is_state(entity, 'In Sleep') %}\n  blue\n     {% else %}\n  purple\n              {% endif %}"
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                },
+                {
+                  "type": "custom:restriction-card",
+                  "restrictions": {
+                    "hide": {
+                      "exemptions": [
+                        {
+                          "user": "72e8e305715145febff1ba701fd78954"
+                        },
+                        {
+                          "user": "60652445f3d14a8f822054569404b643"
+                        },
+                        {
+                          "user": "317c743e4c8348b8a70d671db917dbe8"
+                        },
+                        {
+                          "user": "e9fbd5a00abd49b88122f03d68053128"
+                        }
+                      ]
+                    }
+                  },
+                  "exemptions": [
+                    {
+                      "user": "72e8e305715145febff1ba701fd78954"
+                    },
+                    {
+                      "user": "60652445f3d14a8f822054569404b643"
+                    },
+                    {
+                      "user": "317c743e4c8348b8a70d671db917dbe8"
+                    },
+                    {
+                      "user": "e9fbd5a00abd49b88122f03d68053128"
+                    }
+                  ],
+                  "card": {
+                    "type": "custom:stack-in-card",
+                    "mode": "vertical",
+                    "cards": [
+                      {
+                        "type": "custom:mushroom-template-card",
+                        "icon": "{% set entity = 'input_boolean.placeholder' %}\nmdi:beach",
+                        "tap_action": {
+                          "action": "navigate",
+                          "navigation_path": "/lovelace-garden/garden"
+                        },
+                        "icon_tap_action": {
+                          "action": "navigate",
+                          "navigation_path": "/lovelace-garden/garden"
+                        },
+                        "entity": "input_boolean.placeholder",
+                        "layout": "horizontal",
+                        "fill_container": true,
+                        "primary": "Garden",
+                        "secondary": "{% if states.sensor.garden_temperature_sensor.state is defined %} {{ states.sensor.garden_temperature_sensor.state }}°C {% endif %}{% set motion_postfix     = 'garden_motion_group' %}\n{% set motion = 'group.garden_motion_group' %}\n{% if is_state(motion, 'on') %}\n  🙋🏻\n{% else %}\n  🦶🏻\n{% endif %}{{\n (as_timestamp(now()) -\n as_timestamp(states.group[motion_postfix].last_changed)) |\n timestamp_custom(\"%H:%M\", false) }} ",
+                        "icon_color": "{% set entity = 'input_boolean.placeholder' %}\nblue"
+                      },
+                      {
+                        "card_mod": {
+                          "style": ":host { --ha-card-background:rgba(245, 245, 245, 0);}\n"
+                        },
+                        "type": "custom:stack-in-card",
+                        "mode": "horizontal",
+                        "cards": [
+                          {
+                            "type": "conditional",
+                            "conditions": [
+                              {
+                                "entity": "binary_sensor.Garden_rain_sensor",
+                                "state": "on"
+                              }
+                            ],
+                            "card": {
+                              "type": "custom:mushroom-template-card",
+                              "icon": "{% set entity = 'binary_sensor.Garden_rain_sensor' %}\nmdi:weather-pouring",
+                              "tap_action": {
+                                "action": "more-info"
+                              },
+                              "icon_tap_action": {
+                                "action": "more-info"
+                              },
+                              "entity": "binary_sensor.Garden_rain_sensor",
+                              "layout": "horizontal",
+                              "fill_container": true,
+                              "icon_color": "{% set entity = 'binary_sensor.Garden_rain_sensor' %}\nblue"
+                            }
+                          },
+                          {
+                            "type": "conditional",
+                            "conditions": [
+                              {
+                                "entity": "binary_sensor.garden_unavailable_entities",
+                                "state": "on"
+                              }
+                            ],
+                            "card": {
+                              "type": "custom:mushroom-template-card",
+                              "icon": "{% set entity = 'binary_sensor.garden_unavailable_entities' %}\nmdi:battery-charging-outline",
+                              "tap_action": {
+                                "action": "more-info"
+                              },
+                              "icon_tap_action": {
+                                "action": "more-info"
+                              },
+                              "entity": "binary_sensor.garden_unavailable_entities",
+                              "layout": "horizontal",
+                              "fill_container": true,
+                              "icon_color": "{% set entity = 'binary_sensor.garden_unavailable_entities' %}\nred"
+                            }
+                          },
+                          {
+                            "type": "custom:mushroom-template-card",
+                            "icon": "{% set entity = 'group.garden_battery' %}\n{% if is_state('binary_sensor.garden_low_battery', 'on') %}\n  mdi:battery-20-bluetooth \n{% else %}\n  mdi:battery-70\n{% endif %}",
+                            "tap_action": {
+                              "action": "more-info"
+                            },
+                            "icon_tap_action": {
+                              "action": "more-info"
+                            },
+                            "entity": "group.garden_battery",
+                            "layout": "horizontal",
+                            "fill_container": true,
+                            "icon_color": "{% set entity = 'group.garden_battery' %}\n{% if is_state('binary_sensor.garden_low_battery', 'on') %}\n  amber\n{% endif %}"
+                          },
+                          {
+                            "type": "custom:mushroom-template-card",
+                            "icon": "{% set entity = 'group.garden_light_group' %}\n{% if is_state(entity, 'on') %}\n  mdi:floor-lamp\n{% else %}\n  mdi:floor-lamp-outline\n{% endif %}",
+                            "tap_action": {
+                              "action": "more-info"
+                            },
+                            "icon_tap_action": {
+                              "action": "more-info"
+                            },
+                            "entity": "group.garden_light_group",
+                            "layout": "horizontal",
+                            "fill_container": true,
+                            "icon_color": "{% set entity = 'group.garden_light_group' %}\n{% if is_state(entity, 'on') %}\n  amber\n{% endif %}"
+                          },
+                          {
+                            "type": "custom:mushroom-template-card",
+                            "icon": "{% set entity = 'input_boolean.garden_auto_off_suspended' %}\n{% if is_state(entity, 'on') %}\n  mdi:timer-sand\n{% else %}\n  mdi:timer-sand-paused\n{% endif %}",
+                            "tap_action": {
+                              "action": "more-info"
+                            },
+                            "icon_tap_action": {
+                              "action": "more-info"
+                            },
+                            "entity": "input_boolean.garden_auto_off_suspended",
+                            "layout": "horizontal",
+                            "fill_container": true,
+                            "icon_color": "{% set entity = 'input_boolean.garden_auto_off_suspended' %}\n{% if is_state(entity, 'on') %}\n  yellow\n{% endif %}"
+                          },
+                          {
+                            "type": "conditional",
+                            "conditions": [
+                              {
+                                "entity": "input_select.garden_occupancy",
+                                "state_not": "Outside"
+                              }
+                            ],
+                            "card": {
+                              "type": "custom:mushroom-template-card",
+                              "icon": "{% set entity = 'input_select.garden_occupancy' %}\n{% if   is_state(entity, 'Outside') %}\n  mdi:door-closed\n{% elif is_state(entity, 'Just Entered') %}\n  mdi:arrow-right-circle\n{% elif is_state(entity, 'In Sleep') %}\n  mdi:sleep\n{% else %}\n  mdi:account-multiple\n{% endif %}",
+                              "tap_action": {
+                                "action": "more-info"
+                              },
+                              "icon_tap_action": {
+                                "action": "more-info"
+                              },
+                              "entity": "input_select.garden_occupancy",
+                              "layout": "horizontal",
+                              "fill_container": true,
+                              "icon_color": "{% set entity = 'input_select.garden_occupancy' %}\n{% if   is_state(entity, 'Outside') %}                     {% elif is_state(entity, 'Just Entered') %}\n  green\n                 {% elif is_state(entity, 'In Sleep') %}\n  blue\n     {% else %}\n  purple\n              {% endif %}"
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                },
+                {
+                  "type": "custom:restriction-card",
+                  "restrictions": {
+                    "hide": {
+                      "exemptions": [
+                        {
+                          "user": "72e8e305715145febff1ba701fd78954"
+                        },
+                        {
+                          "user": "60652445f3d14a8f822054569404b643"
+                        },
+                        {
+                          "user": "317c743e4c8348b8a70d671db917dbe8"
+                        },
+                        {
+                          "user": "e9fbd5a00abd49b88122f03d68053128"
+                        }
+                      ]
+                    }
+                  },
+                  "exemptions": [
+                    {
+                      "user": "72e8e305715145febff1ba701fd78954"
+                    },
+                    {
+                      "user": "60652445f3d14a8f822054569404b643"
+                    },
+                    {
+                      "user": "317c743e4c8348b8a70d671db917dbe8"
+                    },
+                    {
+                      "user": "e9fbd5a00abd49b88122f03d68053128"
+                    }
+                  ],
+                  "card": {
+                    "type": "custom:stack-in-card",
+                    "mode": "vertical",
+                    "cards": [
+                      {
+                        "type": "custom:mushroom-template-card",
+                        "icon": "{% set entity = 'input_boolean.placeholder' %}\nmdi:bed-queen",
+                        "tap_action": {
+                          "action": "navigate",
+                          "navigation_path": "/en-suite-room/en-suite-room"
+                        },
+                        "icon_tap_action": {
+                          "action": "navigate",
+                          "navigation_path": "/en-suite-room/en-suite-room"
+                        },
+                        "entity": "input_boolean.placeholder",
+                        "layout": "horizontal",
+                        "fill_container": true,
+                        "primary": "En-suite Room",
+                        "secondary": "{% if states.sensor.en_suite_room_temperature_sensor.state is defined %} {{ states.sensor.en_suite_room_temperature_sensor.state }}°C {% endif %}{% set motion_postfix     = 'en_suite_room_motion_group' %}\n{% set motion = 'group.en_suite_room_motion_group' %}\n{% if is_state(motion, 'on') %}\n  🙋🏻\n{% else %}\n  🦶🏻\n{% endif %}{{\n (as_timestamp(now()) -\n as_timestamp(states.group[motion_postfix].last_changed)) |\n timestamp_custom(\"%H:%M\", false) }} ",
+                        "icon_color": "{% set entity = 'input_boolean.placeholder' %}\nblue"
+                      },
+                      {
+                        "card_mod": {
+                          "style": ":host { --ha-card-background:rgba(245, 245, 245, 0);}\n"
+                        },
+                        "type": "custom:stack-in-card",
+                        "mode": "horizontal",
+                        "cards": [
+                          {
+                            "type": "conditional",
+                            "conditions": [
+                              {
+                                "entity": "binary_sensor.en_suite_room_unavailable_entities",
+                                "state": "on"
+                              }
+                            ],
+                            "card": {
+                              "type": "custom:mushroom-template-card",
+                              "icon": "{% set entity = 'binary_sensor.en_suite_room_unavailable_entities' %}\nmdi:battery-charging-outline",
+                              "tap_action": {
+                                "action": "more-info"
+                              },
+                              "icon_tap_action": {
+                                "action": "more-info"
+                              },
+                              "entity": "binary_sensor.en_suite_room_unavailable_entities",
+                              "layout": "horizontal",
+                              "fill_container": true,
+                              "icon_color": "{% set entity = 'binary_sensor.en_suite_room_unavailable_entities' %}\nred"
+                            }
+                          },
+                          {
+                            "type": "custom:mushroom-template-card",
+                            "icon": "{% set entity = 'group.en_suite_room_battery' %}\n{% if is_state('binary_sensor.en_suite_room_low_battery', 'on') %}\n  mdi:battery-20-bluetooth \n{% else %}\n  mdi:battery-70\n{% endif %}",
+                            "tap_action": {
+                              "action": "more-info"
+                            },
+                            "icon_tap_action": {
+                              "action": "more-info"
+                            },
+                            "entity": "group.en_suite_room_battery",
+                            "layout": "horizontal",
+                            "fill_container": true,
+                            "icon_color": "{% set entity = 'group.en_suite_room_battery' %}\n{% if is_state('binary_sensor.en_suite_room_low_battery', 'on') %}\n  amber\n{% endif %}"
+                          },
+                          {
+                            "type": "custom:mushroom-template-card",
+                            "icon": "{% set entity = 'group.en_suite_room_light_group' %}\n{% if is_state(entity, 'on') %}\n  mdi:floor-lamp\n{% else %}\n  mdi:floor-lamp-outline\n{% endif %}",
+                            "tap_action": {
+                              "action": "more-info"
+                            },
+                            "icon_tap_action": {
+                              "action": "more-info"
+                            },
+                            "entity": "group.en_suite_room_light_group",
+                            "layout": "horizontal",
+                            "fill_container": true,
+                            "icon_color": "{% set entity = 'group.en_suite_room_light_group' %}\n{% if is_state(entity, 'on') %}\n  amber\n{% endif %}"
+                          },
+                          {
+                            "type": "custom:mushroom-template-card",
+                            "icon": "{% set entity = 'input_boolean.en_suite_room_auto_off_suspended' %}\n{% if is_state(entity, 'on') %}\n  mdi:timer-sand\n{% else %}\n  mdi:timer-sand-paused\n{% endif %}",
+                            "tap_action": {
+                              "action": "more-info"
+                            },
+                            "icon_tap_action": {
+                              "action": "more-info"
+                            },
+                            "entity": "input_boolean.en_suite_room_auto_off_suspended",
+                            "layout": "horizontal",
+                            "fill_container": true,
+                            "icon_color": "{% set entity = 'input_boolean.en_suite_room_auto_off_suspended' %}\n{% if is_state(entity, 'on') %}\n  yellow\n{% endif %}"
+                          },
+                          {
+                            "type": "conditional",
+                            "conditions": [
+                              {
+                                "entity": "climate.en_suite_room",
+                                "state": "heat"
+                              }
+                            ],
+                            "card": {
+                              "type": "custom:mushroom-template-card",
+                              "icon": "{% set entity = 'climate.en_suite_room' %}\n{% if is_state(entity, 'heat') %}\n  mdi:heating-coil\n    {% else %}   \n  mdi:snowflake\n      {% endif %}",
+                              "tap_action": {
+                                "action": "more-info"
+                              },
+                              "icon_tap_action": {
+                                "action": "more-info"
+                              },
+                              "entity": "climate.en_suite_room",
+                              "layout": "horizontal",
+                              "fill_container": true,
+                              "icon_color": "{% set entity = 'climate.en_suite_room' %}\n{% if is_state(entity, 'heat') %}\n  {% if state_attr(entity, 'temperature') > state_attr(entity, 'current_temperature') %}\n  red\n {% else %}\n blue\n  {% endif %}\n {% endif %}\n"
+                            }
+                          },
+                          {
+                            "type": "conditional",
+                            "conditions": [
+                              {
+                                "entity": "input_select.en_suite_room_occupancy",
+                                "state_not": "Outside"
+                              }
+                            ],
+                            "card": {
+                              "type": "custom:mushroom-template-card",
+                              "icon": "{% set entity = 'input_select.en_suite_room_occupancy' %}\n{% if   is_state(entity, 'Outside') %}\n  mdi:door-closed\n{% elif is_state(entity, 'Just Entered') %}\n  mdi:arrow-right-circle\n{% elif is_state(entity, 'In Sleep') %}\n  mdi:sleep\n{% else %}\n  mdi:account-multiple\n{% endif %}",
+                              "tap_action": {
+                                "action": "more-info"
+                              },
+                              "icon_tap_action": {
+                                "action": "more-info"
+                              },
+                              "entity": "input_select.en_suite_room_occupancy",
+                              "layout": "horizontal",
+                              "fill_container": true,
+                              "icon_color": "{% set entity = 'input_select.en_suite_room_occupancy' %}\n{% if   is_state(entity, 'Outside') %}                     {% elif is_state(entity, 'Just Entered') %}\n  green\n                 {% elif is_state(entity, 'In Sleep') %}\n  blue\n     {% else %}\n  purple\n              {% endif %}"
+                            }
+                          },
+                          {
+                            "type": "conditional",
+                            "conditions": [
+                              {
+                                "entity": "group.en_suite_room_curtain_group",
+                                "state": "open"
+                              }
+                            ],
+                            "card": {
+                              "type": "custom:mushroom-template-card",
+                              "icon": "{% set entity = 'group.en_suite_room_curtain_group' %}\n{% if is_state(entity, 'open') %}\n  mdi:curtains\n{% else %}\n  mdi:curtains-closed\n{% endif %}",
+                              "tap_action": {
+                                "action": "more-info"
+                              },
+                              "icon_tap_action": {
+                                "action": "more-info"
+                              },
+                              "entity": "group.en_suite_room_curtain_group",
+                              "layout": "horizontal",
+                              "fill_container": true,
+                              "icon_color": "{% set entity = 'group.en_suite_room_curtain_group' %}\n{% if is_state(entity, 'open') %}\n  green       \n{% endif %}"
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                },
+                {
+                  "type": "custom:restriction-card",
+                  "restrictions": {
+                    "hide": {
+                      "exemptions": [
+                        {
+                          "user": "72e8e305715145febff1ba701fd78954"
+                        },
+                        {
+                          "user": "60652445f3d14a8f822054569404b643"
+                        },
+                        {
+                          "user": "317c743e4c8348b8a70d671db917dbe8"
+                        },
+                        {
+                          "user": "e9fbd5a00abd49b88122f03d68053128"
+                        }
+                      ]
+                    }
+                  },
+                  "exemptions": [
+                    {
+                      "user": "72e8e305715145febff1ba701fd78954"
+                    },
+                    {
+                      "user": "60652445f3d14a8f822054569404b643"
+                    },
+                    {
+                      "user": "317c743e4c8348b8a70d671db917dbe8"
+                    },
+                    {
+                      "user": "e9fbd5a00abd49b88122f03d68053128"
+                    }
+                  ],
+                  "card": {
+                    "type": "custom:stack-in-card",
+                    "mode": "vertical",
+                    "cards": [
+                      {
+                        "type": "custom:mushroom-template-card",
+                        "icon": "{% set entity = 'input_boolean.placeholder' %}\nmdi:toilet",
+                        "tap_action": {
+                          "action": "navigate",
+                          "navigation_path": "/lovelace-misc/ground-toilet"
+                        },
+                        "icon_tap_action": {
+                          "action": "navigate",
+                          "navigation_path": "/lovelace-misc/ground-toilet"
+                        },
+                        "entity": "input_boolean.placeholder",
+                        "layout": "horizontal",
+                        "fill_container": true,
+                        "primary": "Ground Toilet",
+                        "secondary": "{% if states.sensor.ground_toilet_temperature_sensor.state is defined %} {{ states.sensor.ground_toilet_temperature_sensor.state }}°C {% endif %}{% set motion_postfix     = 'ground_toilet_motion_group' %}\n{% set motion = 'group.ground_toilet_motion_group' %}\n{% if is_state(motion, 'on') %}\n  🙋🏻\n{% else %}\n  🦶🏻\n{% endif %}{{\n (as_timestamp(now()) -\n as_timestamp(states.group[motion_postfix].last_changed)) |\n timestamp_custom(\"%H:%M\", false) }} ",
+                        "icon_color": "{% set entity = 'input_boolean.placeholder' %}\nblue"
+                      },
+                      {
+                        "card_mod": {
+                          "style": ":host { --ha-card-background:rgba(245, 245, 245, 0);}\n"
+                        },
+                        "type": "custom:stack-in-card",
+                        "mode": "horizontal",
+                        "cards": [
+                          {
+                            "type": "conditional",
+                            "conditions": [
+                              {
+                                "entity": "binary_sensor.ground_toilet_unavailable_entities",
+                                "state": "on"
+                              }
+                            ],
+                            "card": {
+                              "type": "custom:mushroom-template-card",
+                              "icon": "{% set entity = 'binary_sensor.ground_toilet_unavailable_entities' %}\nmdi:battery-charging-outline",
+                              "tap_action": {
+                                "action": "more-info"
+                              },
+                              "icon_tap_action": {
+                                "action": "more-info"
+                              },
+                              "entity": "binary_sensor.ground_toilet_unavailable_entities",
+                              "layout": "horizontal",
+                              "fill_container": true,
+                              "icon_color": "{% set entity = 'binary_sensor.ground_toilet_unavailable_entities' %}\nred"
+                            }
+                          },
+                          {
+                            "type": "custom:mushroom-template-card",
+                            "icon": "{% set entity = 'group.ground_toilet_battery' %}\n{% if is_state('binary_sensor.ground_toilet_low_battery', 'on') %}\n  mdi:battery-20-bluetooth \n{% else %}\n  mdi:battery-70\n{% endif %}",
+                            "tap_action": {
+                              "action": "more-info"
+                            },
+                            "icon_tap_action": {
+                              "action": "more-info"
+                            },
+                            "entity": "group.ground_toilet_battery",
+                            "layout": "horizontal",
+                            "fill_container": true,
+                            "icon_color": "{% set entity = 'group.ground_toilet_battery' %}\n{% if is_state('binary_sensor.ground_toilet_low_battery', 'on') %}\n  amber\n{% endif %}"
+                          },
+                          {
+                            "type": "custom:mushroom-template-card",
+                            "icon": "{% set entity = 'group.ground_toilet_light_group' %}\n{% if is_state(entity, 'on') %}\n  mdi:floor-lamp\n{% else %}\n  mdi:floor-lamp-outline\n{% endif %}",
+                            "tap_action": {
+                              "action": "more-info"
+                            },
+                            "icon_tap_action": {
+                              "action": "more-info"
+                            },
+                            "entity": "group.ground_toilet_light_group",
+                            "layout": "horizontal",
+                            "fill_container": true,
+                            "icon_color": "{% set entity = 'group.ground_toilet_light_group' %}\n{% if is_state(entity, 'on') %}\n  amber\n{% endif %}"
+                          },
+                          {
+                            "type": "custom:mushroom-template-card",
+                            "icon": "{% set entity = 'input_boolean.ground_toilet_auto_off_suspended' %}\n{% if is_state(entity, 'on') %}\n  mdi:timer-sand\n{% else %}\n  mdi:timer-sand-paused\n{% endif %}",
+                            "tap_action": {
+                              "action": "more-info"
+                            },
+                            "icon_tap_action": {
+                              "action": "more-info"
+                            },
+                            "entity": "input_boolean.ground_toilet_auto_off_suspended",
+                            "layout": "horizontal",
+                            "fill_container": true,
+                            "icon_color": "{% set entity = 'input_boolean.ground_toilet_auto_off_suspended' %}\n{% if is_state(entity, 'on') %}\n  yellow\n{% endif %}"
+                          },
+                          {
+                            "type": "conditional",
+                            "conditions": [
+                              {
+                                "entity": "climate.ground_toilet",
+                                "state": "heat"
+                              }
+                            ],
+                            "card": {
+                              "type": "custom:mushroom-template-card",
+                              "icon": "{% set entity = 'climate.ground_toilet' %}\n{% if is_state(entity, 'heat') %}\n  mdi:heating-coil\n    {% else %}   \n  mdi:snowflake\n      {% endif %}",
+                              "tap_action": {
+                                "action": "more-info"
+                              },
+                              "icon_tap_action": {
+                                "action": "more-info"
+                              },
+                              "entity": "climate.ground_toilet",
+                              "layout": "horizontal",
+                              "fill_container": true,
+                              "icon_color": "{% set entity = 'climate.ground_toilet' %}\n{% if is_state(entity, 'heat') %}\n  {% if state_attr(entity, 'temperature') > state_attr(entity, 'current_temperature') %}\n  red\n {% else %}\n blue\n  {% endif %}\n {% endif %}\n"
+                            }
+                          },
+                          {
+                            "type": "conditional",
+                            "conditions": [
+                              {
+                                "entity": "input_select.ground_toilet_occupancy",
+                                "state_not": "Outside"
+                              }
+                            ],
+                            "card": {
+                              "type": "custom:mushroom-template-card",
+                              "icon": "{% set entity = 'input_select.ground_toilet_occupancy' %}\n{% if   is_state(entity, 'Outside') %}\n  mdi:door-closed\n{% elif is_state(entity, 'Just Entered') %}\n  mdi:arrow-right-circle\n{% elif is_state(entity, 'In Sleep') %}\n  mdi:sleep\n{% else %}\n  mdi:account-multiple\n{% endif %}",
+                              "tap_action": {
+                                "action": "more-info"
+                              },
+                              "icon_tap_action": {
+                                "action": "more-info"
+                              },
+                              "entity": "input_select.ground_toilet_occupancy",
+                              "layout": "horizontal",
+                              "fill_container": true,
+                              "icon_color": "{% set entity = 'input_select.ground_toilet_occupancy' %}\n{% if   is_state(entity, 'Outside') %}                     {% elif is_state(entity, 'Just Entered') %}\n  green\n                 {% elif is_state(entity, 'In Sleep') %}\n  blue\n     {% else %}\n  purple\n              {% endif %}"
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                },
+                {
+                  "type": "custom:restriction-card",
+                  "restrictions": {
+                    "hide": {
+                      "exemptions": [
+                        {
+                          "user": "72e8e305715145febff1ba701fd78954"
+                        },
+                        {
+                          "user": "60652445f3d14a8f822054569404b643"
+                        },
+                        {
+                          "user": "317c743e4c8348b8a70d671db917dbe8"
+                        },
+                        {
+                          "user": "e9fbd5a00abd49b88122f03d68053128"
+                        }
+                      ]
+                    }
+                  },
+                  "exemptions": [
+                    {
+                      "user": "72e8e305715145febff1ba701fd78954"
+                    },
+                    {
+                      "user": "60652445f3d14a8f822054569404b643"
+                    },
+                    {
+                      "user": "317c743e4c8348b8a70d671db917dbe8"
+                    },
+                    {
+                      "user": "e9fbd5a00abd49b88122f03d68053128"
+                    }
+                  ],
+                  "card": {
+                    "type": "custom:stack-in-card",
+                    "mode": "vertical",
+                    "cards": [
+                      {
+                        "type": "custom:mushroom-template-card",
+                        "icon": "{% set entity = 'input_boolean.placeholder' %}\nmdi:shower-head",
+                        "tap_action": {
+                          "action": "navigate",
+                          "navigation_path": "/en-suite-room/en-suite-toilet"
+                        },
+                        "icon_tap_action": {
+                          "action": "navigate",
+                          "navigation_path": "/en-suite-room/en-suite-toilet"
+                        },
+                        "entity": "input_boolean.placeholder",
+                        "layout": "horizontal",
+                        "fill_container": true,
+                        "primary": "En-suite Toilet",
+                        "secondary": "{% if states.sensor.en_suite_toilet_temperature_sensor.state is defined %} {{ states.sensor.en_suite_toilet_temperature_sensor.state }}°C {% endif %}{% set motion_postfix     = 'en_suite_toilet_motion_group' %}\n{% set motion = 'group.en_suite_toilet_motion_group' %}\n{% if is_state(motion, 'on') %}\n  🙋🏻\n{% else %}\n  🦶🏻\n{% endif %}{{\n (as_timestamp(now()) -\n as_timestamp(states.group[motion_postfix].last_changed)) |\n timestamp_custom(\"%H:%M\", false) }} ",
+                        "icon_color": "{% set entity = 'input_boolean.placeholder' %}\nblue"
+                      },
+                      {
+                        "card_mod": {
+                          "style": ":host { --ha-card-background:rgba(245, 245, 245, 0);}\n"
+                        },
+                        "type": "custom:stack-in-card",
+                        "mode": "horizontal",
+                        "cards": [
+                          {
+                            "type": "conditional",
+                            "conditions": [
+                              {
+                                "entity": "binary_sensor.en_suite_toilet_unavailable_entities",
+                                "state": "on"
+                              }
+                            ],
+                            "card": {
+                              "type": "custom:mushroom-template-card",
+                              "icon": "{% set entity = 'binary_sensor.en_suite_toilet_unavailable_entities' %}\nmdi:battery-charging-outline",
+                              "tap_action": {
+                                "action": "more-info"
+                              },
+                              "icon_tap_action": {
+                                "action": "more-info"
+                              },
+                              "entity": "binary_sensor.en_suite_toilet_unavailable_entities",
+                              "layout": "horizontal",
+                              "fill_container": true,
+                              "icon_color": "{% set entity = 'binary_sensor.en_suite_toilet_unavailable_entities' %}\nred"
+                            }
+                          },
+                          {
+                            "type": "custom:mushroom-template-card",
+                            "icon": "{% set entity = 'group.en_suite_toilet_battery' %}\n{% if is_state('binary_sensor.en_suite_toilet_low_battery', 'on') %}\n  mdi:battery-20-bluetooth \n{% else %}\n  mdi:battery-70\n{% endif %}",
+                            "tap_action": {
+                              "action": "more-info"
+                            },
+                            "icon_tap_action": {
+                              "action": "more-info"
+                            },
+                            "entity": "group.en_suite_toilet_battery",
+                            "layout": "horizontal",
+                            "fill_container": true,
+                            "icon_color": "{% set entity = 'group.en_suite_toilet_battery' %}\n{% if is_state('binary_sensor.en_suite_toilet_low_battery', 'on') %}\n  amber\n{% endif %}"
+                          },
+                          {
+                            "type": "custom:mushroom-template-card",
+                            "icon": "{% set entity = 'group.en_suite_toilet_light_group' %}\n{% if is_state(entity, 'on') %}\n  mdi:floor-lamp\n{% else %}\n  mdi:floor-lamp-outline\n{% endif %}",
+                            "tap_action": {
+                              "action": "more-info"
+                            },
+                            "icon_tap_action": {
+                              "action": "more-info"
+                            },
+                            "entity": "group.en_suite_toilet_light_group",
+                            "layout": "horizontal",
+                            "fill_container": true,
+                            "icon_color": "{% set entity = 'group.en_suite_toilet_light_group' %}\n{% if is_state(entity, 'on') %}\n  amber\n{% endif %}"
+                          },
+                          {
+                            "type": "custom:mushroom-template-card",
+                            "icon": "{% set entity = 'input_boolean.en_suite_toilet_auto_off_suspended' %}\n{% if is_state(entity, 'on') %}\n  mdi:timer-sand\n{% else %}\n  mdi:timer-sand-paused\n{% endif %}",
+                            "tap_action": {
+                              "action": "more-info"
+                            },
+                            "icon_tap_action": {
+                              "action": "more-info"
+                            },
+                            "entity": "input_boolean.en_suite_toilet_auto_off_suspended",
+                            "layout": "horizontal",
+                            "fill_container": true,
+                            "icon_color": "{% set entity = 'input_boolean.en_suite_toilet_auto_off_suspended' %}\n{% if is_state(entity, 'on') %}\n  yellow\n{% endif %}"
+                          },
+                          {
+                            "type": "conditional",
+                            "conditions": [
+                              {
+                                "entity": "climate.en_suite_toilet",
+                                "state": "heat"
+                              }
+                            ],
+                            "card": {
+                              "type": "custom:mushroom-template-card",
+                              "icon": "{% set entity = 'climate.en_suite_toilet' %}\n{% if is_state(entity, 'heat') %}\n  mdi:heating-coil\n    {% else %}   \n  mdi:snowflake\n      {% endif %}",
+                              "tap_action": {
+                                "action": "more-info"
+                              },
+                              "icon_tap_action": {
+                                "action": "more-info"
+                              },
+                              "entity": "climate.en_suite_toilet",
+                              "layout": "horizontal",
+                              "fill_container": true,
+                              "icon_color": "{% set entity = 'climate.en_suite_toilet' %}\n{% if is_state(entity, 'heat') %}\n  {% if state_attr(entity, 'temperature') > state_attr(entity, 'current_temperature') %}\n  red\n {% else %}\n blue\n  {% endif %}\n {% endif %}\n"
+                            }
+                          },
+                          {
+                            "type": "conditional",
+                            "conditions": [
+                              {
+                                "entity": "input_select.en_suite_toilet_occupancy",
+                                "state_not": "Outside"
+                              }
+                            ],
+                            "card": {
+                              "type": "custom:mushroom-template-card",
+                              "icon": "{% set entity = 'input_select.en_suite_toilet_occupancy' %}\n{% if   is_state(entity, 'Outside') %}\n  mdi:door-closed\n{% elif is_state(entity, 'Just Entered') %}\n  mdi:arrow-right-circle\n{% elif is_state(entity, 'In Sleep') %}\n  mdi:sleep\n{% else %}\n  mdi:account-multiple\n{% endif %}",
+                              "tap_action": {
+                                "action": "more-info"
+                              },
+                              "icon_tap_action": {
+                                "action": "more-info"
+                              },
+                              "entity": "input_select.en_suite_toilet_occupancy",
+                              "layout": "horizontal",
+                              "fill_container": true,
+                              "icon_color": "{% set entity = 'input_select.en_suite_toilet_occupancy' %}\n{% if   is_state(entity, 'Outside') %}                     {% elif is_state(entity, 'Just Entered') %}\n  green\n                 {% elif is_state(entity, 'In Sleep') %}\n  blue\n     {% else %}\n  purple\n              {% endif %}"
                             }
                           }
                         ]

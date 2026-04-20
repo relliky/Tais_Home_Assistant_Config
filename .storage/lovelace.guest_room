@@ -18,11 +18,12 @@
               "type": "grid",
               "cards": [
                 {
-                  "type": "custom:mushroom-template-card",
+                  "type": "custom:mushroom-entity-card",
                   "entity": "input_boolean.placeholder",
                   "icon": "mdi:keyboard-return",
-                  "primary": "HOME",
-                  "secondary": "",
+                  "icon_color": "white",
+                  "name": "HOME",
+                  "secondary_info": "none",
                   "hold_action": {
                     "action": "more-info"
                   },
@@ -34,35 +35,16 @@
                     "action": "navigate",
                     "navigation_path": "/lovelace/home"
                   },
-                  "color": "yellow",
                   "vertical": true,
                   "features_position": "bottom",
                   "card_mod": {
                     "style": {
                       "mushroom-state-info$": ".primary {\n  font-size: 16px !important;\n  position: relative;\n  top: 0px;\n  left: 0px;\n  overflow: visible !important;\n  white-space:  \n}\n",
                       "mushroom-shape-icon$": ".shape {\n  position: relative;\n  left: 0px;\n  top: 0px;\n}\n",
-                      ".": ":host {\n  --mush-icon-size: 80px;\n}\n"
+                      ".": ":host {\n  --mush-icon-size: 60px;\n}\n"
                     }
                   }
                 },
-                {
-                  "type": "custom:mushroom-select-card",
-                  "fill_container": true,
-                  "tap_action": {
-                    "action": "more-info"
-                  },
-                  "icon": "",
-                  "secondary_info": "none",
-                  "name": " Scene",
-                  "entity": "input_select.guest_room_scene"
-                }
-              ]
-            },
-            {
-              "square": false,
-              "columns": 2,
-              "type": "grid",
-              "cards": [
                 {
                   "type": "custom:mushroom-climate-card",
                   "show_temperature_control": true,
@@ -102,6 +84,17 @@
                   }
                 },
                 {
+                  "type": "custom:mushroom-entity-card",
+                  "fill_container": true,
+                  "layout": "horizontal",
+                  "tap_action": {
+                    "action": "toggle"
+                  },
+                  "entity": "switch.guest_room_desk_screen_led",
+                  "icon": "mdi:monitor",
+                  "name": "Desk Screen LED"
+                },
+                {
                   "type": "custom:mushroom-cover-card",
                   "fill_container": true,
                   "tap_action": {
@@ -118,16 +111,6 @@
                   "name": " Curtain",
                   "icon": "",
                   "entity": "cover.guest_room_curtain"
-                },
-                {
-                  "type": "custom:mushroom-entity-card",
-                  "fill_container": true,
-                  "tap_action": {
-                    "action": "toggle"
-                  },
-                  "name": "Heating Override",
-                  "icon": "mdi:heating-coil",
-                  "entity": "input_boolean.guest_room_heating_override"
                 },
                 {
                   "type": "custom:vertical-stack-in-card",
@@ -211,8 +194,47 @@
                       ]
                     }
                   ]
+                },
+                {
+                  "type": "custom:mushroom-entity-card",
+                  "fill_container": true,
+                  "tap_action": {
+                    "action": "toggle"
+                  },
+                  "name": "Heating Override",
+                  "icon": "mdi:heating-coil",
+                  "entity": "input_boolean.guest_room_heating_override"
+                },
+                {
+                  "type": "tile",
+                  "tap_action": {
+                    "action": "toggle"
+                  },
+                  "entity": "input_boolean.guest_room_auto_off_suspended",
+                  "name": "Auto Off Suspend",
+                  "features_position": "bottom",
+                  "vertical": false
                 }
               ]
+            },
+            {
+              "type": "custom:flipdown-timer-card",
+              "entity": "timer.guest_room_auto_off_suspended_timer",
+              "show_hour": true,
+              "show_title": true,
+              "theme": "dark",
+              "styles": {
+                "rotor": {
+                  "width": "30px",
+                  "height": "80px"
+                },
+                "button": {
+                  "width": "100px",
+                  "location": "bottom"
+                }
+              },
+              "name": "Auto-off suspended until the timer ends",
+              "show_error": false
             },
             {
               "type": "custom:scheduler-card",
@@ -252,21 +274,6 @@
                   }
                 ]
               }
-            },
-            {
-              "type": "conditional",
-              "conditions": [
-                {
-                  "condition": "state",
-                  "entity": "binary_sensor.guest_room_unavailable_entities",
-                  "state": "on"
-                }
-              ],
-              "card": {
-                "type": "custom:mushroom-title-card",
-                "title": "Devices offline:",
-                "subtitle": "{{ states.binary_sensor.guest_room_unavailable_entities.attributes.value}} \n\nIt's likely due to running out of battery. Try to ask Tai to replace battery."
-              }
             }
           ],
           "type": "masonry"
@@ -292,7 +299,7 @@
                     "action": "navigate",
                     "navigation_path": "/lovelace/home"
                   },
-                  "color": "yellow",
+                  "color": "white",
                   "vertical": true,
                   "features_position": "bottom",
                   "icon_tap_action": {
@@ -452,26 +459,61 @@
                   "name": "Extractor",
                   "icon": "mdi:fan",
                   "entity": "switch.guest_toilet_extractor"
+                },
+                {
+                  "type": "tile",
+                  "tap_action": {
+                    "action": "more-info"
+                  },
+                  "entity": "button.guest_toilet_air_refresher",
+                  "name": "Air Refresher",
+                  "features_position": "bottom",
+                  "vertical": false,
+                  "hide_state": true,
+                  "show_entity_picture": false,
+                  "icon": "mdi:spray",
+                  "color": "lime",
+                  "hold_action": {
+                    "action": "more-info"
+                  },
+                  "icon_tap_action": {
+                    "action": "more-info"
+                  }
+                },
+                {
+                  "type": "tile",
+                  "entity": "binary_sensor.guest_toilet_mirror_sensor",
+                  "name": "Mirror Light",
+                  "icon": "mdi:mirror",
+                  "show_entity_picture": false,
+                  "vertical": false,
+                  "features_position": "bottom"
+                },
+                {
+                  "type": "tile",
+                  "entity": "sensor.guest_toilet_humidity_sensor",
+                  "name": "Humidity",
+                  "features_position": "bottom",
+                  "vertical": false,
+                  "icon": "mdi:home-thermometer-outline",
+                  "features": [
+                    {
+                      "type": "trend-graph"
+                    }
+                  ]
                 }
               ]
             },
             {
               "type": "custom:scheduler-card",
               "include": [
-                "climate.guest_toilet"
+                "climate.guest_toilet",
+                "button.guest_toilet_air_refresher"
               ],
               "exclude": [],
               "title": true,
               "discover_existing": true,
               "time_step": 30
-            },
-            {
-              "type": "custom:group-card",
-              "card": {
-                "type": "entities",
-                "title": "Occupancy"
-              },
-              "group": "group.guest_toilet_occupancy_group"
             },
             {
               "type": "custom:auto-entities",
@@ -482,24 +524,14 @@
               "filter": {
                 "include": [
                   {
+                    "options": {},
+                    "group": "group.guest_toilet_occupancy_group"
+                  },
+                  {
+                    "options": {},
                     "group": "group.guest_toilet_auto_gen_automations"
                   }
                 ]
-              }
-            },
-            {
-              "type": "conditional",
-              "conditions": [
-                {
-                  "condition": "state",
-                  "entity": "binary_sensor.guest_toilet_unavailable_entities",
-                  "state": "on"
-                }
-              ],
-              "card": {
-                "type": "custom:mushroom-title-card",
-                "title": "Devices offline:",
-                "subtitle": "{{ states.binary_sensor.guest_toilet_unavailable_entities.attributes.value}} \n\nIt's likely due to running out of battery. Try to ask Tai to replace battery."
               }
             }
           ],

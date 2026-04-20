@@ -46,19 +46,6 @@
                   "type": "vertical-stack",
                   "cards": [
                     {
-                      "show_name": true,
-                      "show_icon": true,
-                      "type": "button",
-                      "tap_action": {
-                        "action": "navigate",
-                        "navigation_path": "/lovelace-kitchen/kitchen-tv"
-                      },
-                      "entity": "media_player.kitchen_tv",
-                      "icon": "mdi:remote-tv",
-                      "name": "TV",
-                      "icon_height": "110px"
-                    },
-                    {
                       "type": "entities",
                       "entities": [
                         {
@@ -67,6 +54,19 @@
                         }
                       ],
                       "state_color": false
+                    },
+                    {
+                      "type": "tile",
+                      "entity": "sensor.kitchen_temperature_sensor",
+                      "name": "Temperature",
+                      "features_position": "bottom",
+                      "vertical": false,
+                      "icon": "mdi:home-thermometer-outline",
+                      "features": [
+                        {
+                          "type": "trend-graph"
+                        }
+                      ]
                     }
                   ]
                 }
@@ -127,18 +127,6 @@
                   "icon": "mdi:led-strip-variant"
                 },
                 {
-                  "features": [
-                    {
-                      "type": "cover-open-close"
-                    }
-                  ],
-                  "type": "tile",
-                  "entity": "cover.kitchen_curtain",
-                  "icon": "mdi:curtains-closed",
-                  "features_position": "bottom",
-                  "vertical": false
-                },
-                {
                   "type": "custom:mushroom-entity-card",
                   "tap_action": {
                     "action": "toggle"
@@ -151,6 +139,16 @@
                     "action": "navigate",
                     "navigation_path": "/lovelace-kitchen/kitchen-worktop-leds"
                   }
+                },
+                {
+                  "type": "tile",
+                  "tap_action": {
+                    "action": "toggle"
+                  },
+                  "entity": "input_boolean.kitchen_auto_off_suspended",
+                  "name": "Auto Off Suspend",
+                  "features_position": "bottom",
+                  "vertical": false
                 },
                 {
                   "type": "custom:mushroom-entity-card",
@@ -203,23 +201,57 @@
                 },
                 {
                   "type": "tile",
-                  "entity": "binary_sensor.plate_warmer_power",
+                  "entity": "switch.baby_food_cooker",
+                  "icon": "mdi:pot-steam-outline",
+                  "show_entity_picture": false,
+                  "vertical": false,
+                  "features_position": "bottom",
+                  "color": "accent",
+                  "icon_tap_action": {
+                    "action": "more-info"
+                  },
+                  "name": "Baby Food Cooker"
+                },
+                {
+                  "type": "tile",
+                  "entity": "switch.plate_warmer",
                   "icon": "mdi:heat-pump-outline",
                   "show_entity_picture": false,
                   "vertical": false,
                   "features_position": "bottom",
                   "name": "Plate Warmer",
-                  "color": "pink"
+                  "color": "pink",
+                  "icon_tap_action": {
+                    "action": "more-info"
+                  }
                 },
                 {
                   "type": "tile",
-                  "entity": "binary_sensor.rice_cooker_power",
+                  "entity": "switch.rice_cooker",
                   "icon": "mdi:rice",
                   "show_entity_picture": false,
                   "vertical": false,
                   "features_position": "bottom",
                   "name": "Rice Cooker",
-                  "color": "yellow"
+                  "color": "yellow",
+                  "icon_tap_action": {
+                    "action": "more-info"
+                  }
+                },
+                {
+                  "type": "tile",
+                  "entity": "binary_sensor.front_door",
+                  "features_position": "bottom",
+                  "vertical": false,
+                  "icon": "mdi:door-open",
+                  "name": "Front Door",
+                  "show_entity_picture": false,
+                  "hide_state": false
+                },
+                {
+                  "type": "custom:mushroom-lock-card",
+                  "entity": "lock.front_door",
+                  "name": "Front Door"
                 },
                 {
                   "type": "custom:mushroom-vacuum-card",
@@ -229,29 +261,6 @@
                     "start_pause",
                     "stop"
                   ]
-                },
-                {
-                  "type": "sensor",
-                  "entity": "sensor.kitchen_temperature_sensor",
-                  "graph": "line",
-                  "name": "Tempearture"
-                },
-                {
-                  "graph": "line",
-                  "hours_to_show": 24,
-                  "type": "sensor",
-                  "entity": "sensor.x1_battery_2",
-                  "name": "X1 Battery",
-                  "detail": 1,
-                  "icon": "mdi:battery-charging-100"
-                },
-                {
-                  "type": "tile",
-                  "entity": "switch.kitchen_ice_maker",
-                  "name": "Ice Maker",
-                  "icon": "mdi:ice-cream",
-                  "features_position": "bottom",
-                  "vertical": false
                 },
                 {
                   "type": "tile",
@@ -320,6 +329,26 @@
                   },
                   "name": "Clean Living Room",
                   "icon": "mdi:robot-vacuum"
+                },
+                {
+                  "type": "tile",
+                  "entity": "switch.kitchen_ice_maker",
+                  "name": "Ice Maker",
+                  "icon": "mdi:ice-cream",
+                  "features_position": "bottom",
+                  "vertical": false
+                },
+                {
+                  "features": [
+                    {
+                      "type": "cover-open-close"
+                    }
+                  ],
+                  "type": "tile",
+                  "entity": "cover.kitchen_curtain",
+                  "icon": "mdi:curtains-closed",
+                  "features_position": "bottom",
+                  "vertical": false
                 }
               ]
             },
@@ -361,21 +390,6 @@
                     "group": "group.kitchen_auto_gen_automations"
                   }
                 ]
-              }
-            },
-            {
-              "type": "conditional",
-              "conditions": [
-                {
-                  "condition": "state",
-                  "entity": "binary_sensor.kitchen_unavailable_entities",
-                  "state": "on"
-                }
-              ],
-              "card": {
-                "type": "custom:mushroom-title-card",
-                "title": "Devices offline:",
-                "subtitle": "{{ states.binary_sensor.kitchen_unavailable_entities.attributes.value}} \n\nIt's likely due to running out of battery. Try to ask Tai to replace battery."
               }
             }
           ]

@@ -45,3 +45,171 @@ blind_set:
     target:
       entity_id: cover.master_toilet_dressing_room_blind
   mode: single
+room_occupancy_state_machine:
+  alias: Room occupancy state machine
+  description: >-
+    Native YAML implementation of pyscript.room_occupancy_state_machine.
+  fields:
+    occupancy_entity_str:
+      description: Input select entity that stores the room occupancy state.
+      example: input_select.master_room_occupancy
+    motion_str:
+      description: Motion entity or group used to determine occupancy.
+      example: group.master_room_motion_group
+    sleep_time:
+      description: Input boolean that indicates sleep time.
+      example: input_boolean.master_room_sleep_time
+    turn_to_outside_when_no_motion:
+      description: Set to 'yes' to force Outside when motion is off.
+      example: 'no'
+    entered_to_inside_timeout:
+      description: Seconds motion must remain on to transition from Just Entered to Stayed Inside.
+      example: 150
+    inside_to_outside_timeout:
+      description: Seconds motion must remain off to transition from Just Entered/Stayed Inside to Outside.
+      example: 120
+    inside_to_sleep_timeout:
+      description: Seconds stayed inside before transitioning to In Sleep during sleep time.
+      example: 1800
+    sleep_to_outside_timesout:
+      description: Seconds in In Sleep with no motion before transitioning to Outside.
+      example: 3600
+  sequence:
+    - variables:
+        cur_state: "{{ states(occupancy_entity_str) }}"
+        motion: "{{ states(motion_str) }}"
+        motion_state_lasts_for: >
+          {{ (as_timestamp(now()) - as_timestamp(states[motion_str].last_changed | default(now()))) | int }}
+        motion_on_for: >
+          {{ motion == 'on' and motion_state_lasts_for or 0 }}
+        motion_off_for: >
+          {{ motion == 'off' and motion_state_lasts_for or 0 }}
+        stay_inside_for: >
+          {{ cur_state == 'Stayed Inside' and
+             (as_timestamp(now()) - as_timestamp(states[occupancy_entity_str].last_changed | default(now()))) | int
+             or 0 }}
+        now_is_sleep_time: "{{ is_state(sleep_time, 'on') }}"
+        entered_to_inside_timeout: "{{ entered_to_inside_timeout | int }}"
+        inside_to_outside_timeout: "{{ inside_to_outside_timeout | int }}"
+        inside_to_sleep_timeout: "{{ inside_to_sleep_timeout | int }}"
+        sleep_to_outside_timesout: "{{ sleep_to_outside_timesout | int }}"
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: >
+                {{ cur_state == 'Outside' and motion == 'on' and now_is_sleep_time }}
+          sequence:
+            - service: input_select.select_option
+              target:
+                entity_id: "{{ occupancy_entity_str }}"
+              data:
+                option: "In Sleep"
+        - conditions:
+            - condition: template
+              value_template: >
+                {{ cur_state == 'Outside' and motion == 'on' }}
+          sequence:
+            - service: input_select.select_option
+              target:
+                entity_id: "{{ occupancy_entity_str }}"
+              data:
+                option: "Just Entered"
+        - conditions:
+            - condition: template
+              value_template: >
+                {{ cur_state == 'Just Entered' and motion == 'on' and motion_on_for >= entered_to_inside_timeout }}
+          sequence:
+            - service: input_select.select_option
+              target:
+                entity_id: "{{ occupancy_entity_str }}"
+              data:
+                option: "Stayed Inside"
+        - conditions:
+            - condition: template
+              value_template: >
+                {{ cur_state == 'Just Entered' and motion == 'off' and motion_off_for >= inside_to_outside_timeout }}
+          sequence:
+            - service: input_select.select_option
+              target:
+                entity_id: "{{ occupancy_entity_str }}"
+              data:
+                option: "Outside"
+        - conditions:
+            - condition: template
+              value_template: >
+                {{ cur_state == 'Just Entered' and turn_to_outside_when_no_motion == 'yes' and motion == 'off' }}
+          sequence:
+            - service: input_select.select_option
+              target:
+                entity_id: "{{ occupancy_entity_str }}"
+              data:
+                option: "Outside"
+        - conditions:
+            - condition: template
+              value_template: >
+                {{ cur_state == 'Stayed Inside' and stay_inside_for > inside_to_sleep_timeout and now_is_sleep_time }}
+          sequence:
+            - service: input_select.select_option
+              target:
+                entity_id: "{{ occupancy_entity_str }}"
+              data:
+                option: "In Sleep"
+        - conditions:
+            - condition: template
+              value_template: >
+                {{ cur_state == 'Stayed Inside' and motion == 'off' and motion_off_for >= inside_to_outside_timeout }}
+          sequence:
+            - service: input_select.select_option
+              target:
+                entity_id: "{{ occupancy_entity_str }}"
+              data:
+                option: "Outside"
+        - conditions:
+            - condition: template
+              value_template: >
+                {{ cur_state == 'Stayed Inside' and turn_to_outside_when_no_motion == 'yes' and motion == 'off' }}
+          sequence:
+            - service: input_select.select_option
+              target:
+                entity_id: "{{ occupancy_entity_str }}"
+              data:
+                option: "Outside"
+        - conditions:
+            - condition: template
+              value_template: >
+                {{ cur_state == 'In Sleep' and not now_is_sleep_time }}
+          sequence:
+            - service: input_select.select_option
+              target:
+                entity_id: "{{ occupancy_entity_str }}"
+              data:
+                option: "Stayed Inside"
+        - conditions:
+            - condition: template
+              value_template: >
+                {{ cur_state == 'In Sleep' and motion_off_for > sleep_to_outside_timesout }}
+          sequence:
+            - service: input_select.select_option
+              target:
+                entity_id: "{{ occupancy_entity_str }}"
+              data:
+                option: "Outside"
+        - conditions:
+            - condition: template
+              value_template: >
+                {{ cur_state in ['Outside', 'Just Entered', 'Stayed Inside', 'In Sleep'] }}
+          sequence:
+            - service: input_select.select_option
+              target:
+                entity_id: "{{ occupancy_entity_str }}"
+              data:
+                option: "{{ cur_state }}"
+      default: []
+'1763376684286':
+  sequence:
+  - type: turn_off
+    device_id: 96628f54dad60fcfee7fcdc260d62c6b
+    entity_id: b6458b95130cdec9f38875c298f2544a
+    domain: light
+  alias: New script 123
+  description: ''
