@@ -16,6 +16,27 @@ import random
 import warnings
 from copy import deepcopy
 
+
+AUTO_GENERATED_HEADER = (
+  "#############################################################################\n"
+  "# DO NOT MODIFY. This is an automatically generated file.                   # \n"
+  "#############################################################################\n"
+)
+
+
+def write_yaml_file(path, data, include_header=False):
+  yaml.Dumper.ignore_aliases = lambda *args : True
+
+  with open(path, "w") as yaml_file:
+    if include_header:
+      yaml_file.write(AUTO_GENERATED_HEADER)
+    yaml_file.write(yaml.dump(data, sort_keys=False, width=float("inf")))
+
+
+def write_json_file(path, data):
+  with open(path, "w") as json_file:
+    json.dump(data, json_file, sort_keys=False, indent=2)
+
 #from HA_Composite_Card_Lib import HA_Composite_Card_Lib as self.hccl
 #from translate import Translator
 #global translator
@@ -5263,38 +5284,22 @@ class RoomBase:
   # Create a new yaml and write to it
   def writeConfig (self):
 
-      yaml.Dumper.ignore_aliases = lambda *args : True
-
     #if type not in ['package', 'overall_dashboard']:
     #  raise TypeError("Yaml type " + type + " is not supported.")
 
     #if type == 'package':
-      yaml.Dumper.ignore_aliases = lambda *args : True
-
       # File Path
       self.script_dir         = os.path.dirname(os.path.realpath(__file__))
       self.auto_gen_dir       = self.script_dir + "/../packages/_auto_generated_packages/"
       self.auto_gen_config_path = self.auto_gen_dir + "/auto_gen_" + self.room_entity + ".yaml"
 
-
-      # Open a new file and write automation
-      f = open(self.auto_gen_config_path, "w")
-      f.write("#############################################################################\n")
-      f.write("# DO NOT MODIFY. This is an automatically generated file.                   # \n")
-      f.write("#############################################################################\n")
-      f.write(yaml.dump(self.entity_declarations, sort_keys=False, width=float("inf")))
-      f.close()
+      write_yaml_file(self.auto_gen_config_path, self.entity_declarations, include_header=True)
 
       # Customize have to take level 1 directory as it only accept 1 level of directory, which is 'packages' in this case.
       self.auto_gen_customize_dir  = self.script_dir             + "/../packages/"
       self.auto_gen_config_path    = self.auto_gen_customize_dir + "/auto_gen_customize_" + self.room_entity + ".yaml"
       self.customize_declaration   = {'homeassistant': {'customize': self.customize_dict}}
-      f = open(self.auto_gen_config_path, "w")
-      f.write("#############################################################################\n")
-      f.write("# DO NOT MODIFY. This is an automatically generated file.                   # \n")
-      f.write("#############################################################################\n")
-      f.write(yaml.dump(self.customize_declaration, sort_keys=False, width=float("inf")))
-      f.close()
+      write_yaml_file(self.auto_gen_config_path, self.customize_declaration, include_header=True)
 
 
       #for category_name in self.entity_declarations:
@@ -7297,9 +7302,6 @@ class Dashboard(RoomBase):
 
 
   def writeConfig(self):
-
-    yaml.Dumper.ignore_aliases = lambda *args : True
-
     # File Path
     self.script_dir         = os.path.dirname(os.path.realpath(__file__))
     if self.format == 'yaml':
@@ -7310,12 +7312,10 @@ class Dashboard(RoomBase):
 
 
     # Open a new file and write automation
-    f = open(self.auto_gen_config_path, "w")
     if self.format == 'yaml':
-      f.write(yaml.dump(self.dashboard, sort_keys=False, width=float("inf")))
+      write_yaml_file(self.auto_gen_config_path, self.dashboard)
     else: # json
-      json.dump(self.dashboard, f, sort_keys=False, indent=2)
-    f.close()
+      write_json_file(self.auto_gen_config_path, self.dashboard)
 
 
 
@@ -7504,9 +7504,6 @@ print ("Done.")
 #translation = translator.translate("This is a pen.")
 #translation = translator.translate("Master Room Lamp 1")
 #print (translation)
-
-
-
 
 
 
