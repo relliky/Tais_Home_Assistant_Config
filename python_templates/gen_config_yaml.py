@@ -24,6 +24,7 @@ import message_helpers
 import occupancy_state_machine
 import occupancy_ratio_sensor
 import package_writer
+import room_config_defaults
 import room_device_defaults
 import room_light_entities
 import room_motion_entities
@@ -139,42 +140,8 @@ class RoomBase:
     self.writeConfig()
 
   def get_room_config(self):
-    # Room configuration
-    self.room_entity           = False
-    self.num_of_xiaomi_button  = 0
-    self.num_of_lamps          = 0
-    # Basic Enables
-    self.cfg_scene                   = False
-    self.cfg_occupancy               = False
-    self.cfg_occupancy_override      = True
-    self.cfg_group_auto              = False
-    self.cfg_motion_light            = False
-    self.cfg_remote_light            = False
-    self.cfg_temp_control            = False
-    self.cfg_temp_calibration        = False
-    self.cfg_tado_calibrate_uses_lan = True
-
-    # Adavanced Enables
-    self.cfg_scene_color_led   = False
-    self.cfg_scene_color_lamp  = False
-    self.cfg_custom_scene       = False
-    self.cfg_led_only_scene     = False
-    self.cfg_motion_bed_led     = False
-    self.cfg_auto_curtain_ctl   = False
-    self.cfg_adaptive_lighting  = False
-
-    # Automatically loaded by settings later
-    self.cfg_flex_switch       = False
-    self.room_entity           = 'uninitialized_room_entity'
-    self.room_name             = 'Uninitialized_room_name'
-    self.room_short_name       = 'uninitialized_room_short_name'
-
-    # Occupancy Sensor Integration
-    self.xiaomi_home_occupancy = True # No need anymore
-    self.gateway_occupancy     = True
-
-    # Additional mannual added automations
-    self.manual_added_automations = []
+    for key, value in room_config_defaults.default_room_config().items():
+      setattr(self, key, value)
 
   def error(self, msg):
         message_helpers.raise_config_error(msg)

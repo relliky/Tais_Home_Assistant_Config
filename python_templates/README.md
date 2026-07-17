@@ -42,6 +42,8 @@ package YAML and Lovelace dashboard YAML from room-specific Python classes.
 - `message_helpers.py` contains shared warning, error, and info output helpers.
 - `room_registry.py` defines the room order used by package and dashboard
   generation.
+- `room_config_defaults.py` contains default room feature flags and initial
+  room metadata values.
 - `room_properties.py` contains derived room metadata such as entity name,
   dashboard path, room type, and west-facing-window classification.
 - `room_scene_defaults.py` contains default scene-control entities and internal
@@ -176,6 +178,7 @@ Completed foundations:
 30. Move entity-interface container defaults into their own module.
 31. Move default scene-control entities into their own module.
 32. Move occupancy ratio sensor config generation into its own module.
+33. Move default room config flags into their own module.
 
 Recommended next steps:
 
