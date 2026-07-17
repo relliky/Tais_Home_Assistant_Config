@@ -22,6 +22,7 @@ import ha_entity_registry
 import message_helpers
 import occupancy_state_machine
 import package_writer
+import room_device_defaults
 import room_properties
 import room_registry
 import room_remote_entities
@@ -308,9 +309,10 @@ class RoomBase:
 
 
   def get_mirror_entities(self):
-    self.mirror_sensors          = []
-    self.demisters               = []
-    self.shower_sensors          = []
+    entities = room_device_defaults.default_mirror_entities()
+    self.mirror_sensors = entities["mirror_sensors"]
+    self.demisters = entities["demisters"]
+    self.shower_sensors = entities["shower_sensors"]
 
   def get_lighting_control_entities(self):
 
@@ -396,12 +398,13 @@ class RoomBase:
     return entity_naming.get_id_from_alias(alias)
 
   def get_tv_entities(self):
-    self.tv_room_entity          = None
-    self.tvs                     = []
-    self.tv_picture_mode         = []
-    self.tv_soundbars            = []
-    self.fire_tvs                = []
-    self.media_players            = []
+    entities = room_device_defaults.default_tv_entities()
+    self.tv_room_entity = entities["tv_room_entity"]
+    self.tvs = entities["tvs"]
+    self.tv_picture_mode = entities["tv_picture_mode"]
+    self.tv_soundbars = entities["tv_soundbars"]
+    self.fire_tvs = entities["fire_tvs"]
+    self.media_players = entities["media_players"]
 
   def get_time_setup(self):
     settings = room_time_settings.default_light_time_settings(self.room_type)
@@ -412,10 +415,10 @@ class RoomBase:
     self.daytime_end = settings["daytime_end"]
 
   def get_cover_entities(self):
-    # Cover entities
-    self.curtains                      = []
-    self.aqara_shutter_blind           = False
-    self.curtain_group                 = 'group.' + self.room_entity + '_curtain_group'
+    entities = room_device_defaults.default_cover_entities(self.room_entity)
+    self.curtains = entities["curtains"]
+    self.aqara_shutter_blind = entities["aqara_shutter_blind"]
+    self.curtain_group = entities["curtain_group"]
 
     # Cover extra controls
 #    self.light_in_daytime_postfix      = self.room_entity + "_light_in_daytime"
@@ -425,10 +428,11 @@ class RoomBase:
 
 
   def get_window_entities(self):
-    self.windows                        = []
-    self.timeout_windows                = []
-    self.window_group                   = 'group.' + self.room_entity + '_window_group'
-    self.timeout_window_group           = 'group.' + self.room_entity + '_timeout_window_group'
+    entities = room_device_defaults.default_window_entities(self.room_entity)
+    self.windows = entities["windows"]
+    self.timeout_windows = entities["timeout_windows"]
+    self.window_group = entities["window_group"]
+    self.timeout_window_group = entities["timeout_window_group"]
 
   def get_temperature_control_entities(self):
     # Temperature sensor entities

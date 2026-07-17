@@ -9,6 +9,8 @@ package YAML and Lovelace dashboard YAML from room-specific Python classes.
 - `generator_io.py` contains output path configuration and YAML/JSON writing
   helpers.
 - `package_writer.py` contains package/customize YAML write orchestration.
+- `room_device_defaults.py` contains default mirror, TV, cover, and window
+  entity builders.
 - `generator_cli.py` contains command-line argument parsing and dashboard flag
   interpretation.
 - `entity_naming.py` contains entity ID, postfix, display-name, and automation
@@ -154,6 +156,7 @@ Completed foundations:
 23. Move derived room metadata helpers into their own module.
 24. Move default room time settings into their own module.
 25. Move default remote button and wall-switch entities into their own module.
+26. Move default mirror, TV, cover, and window entities into their own module.
 
 Recommended next steps:
 
