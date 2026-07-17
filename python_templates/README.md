@@ -19,6 +19,7 @@ package YAML and Lovelace dashboard YAML from room-specific Python classes.
   logic.
 - `ha_entity_registry.py` contains helper functions for inspecting and cleaning
   Home Assistant's `core.entity_registry`.
+- `message_helpers.py` contains shared warning, error, and info output helpers.
 - `room_registry.py` defines the room order used by package and dashboard
   generation.
 - `rooms.py` contains room-specific classes such as `MasterRoom`, `Kitchen`,
@@ -122,6 +123,7 @@ Completed foundations:
 12. Move small automation trigger/action/condition helpers into their own
     module.
 13. Move dashboard color aliases into their own module.
+14. Move shared message helpers into their own module.
 
 Recommended next steps:
 

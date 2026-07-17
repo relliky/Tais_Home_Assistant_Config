@@ -13,12 +13,12 @@ import entity_naming
 import generator_cli
 import generator_io
 import ha_entity_registry
+import message_helpers
 import room_registry
 import rooms
 import re
 import os
 import random
-import warnings
 from copy import deepcopy
 
 
@@ -161,19 +161,13 @@ class RoomBase:
     self.manual_added_automations = []
 
   def error(self, msg):
-        raise TypeError( "\n" +\
-                         "###################################################################################\n" + \
-                         msg + "\n" + \
-                         "###################################################################################\n")
+        message_helpers.raise_config_error(msg)
 
   def warn(self, str):
-      warnings.warn("\n" +\
-          "-----------------------------------------------------\n" + \
-          str + "\n" + \
-          "-----------------------------------------------------\n")
+      message_helpers.warn_config(str)
 
   def info(self, str):
-      print(str)
+      message_helpers.print_info(str)
 
   def get_time_entities(self):
     self.end_of_sleep_time   = '06:30:00'
