@@ -7,32 +7,24 @@
 
 from HA_Composite_Card_Lib.src.main import HA_Composite_Card_Lib
 import dashboard_generator
+import generator_io
 import ha_entity_registry
 import room_registry
 import rooms
 import re
-import yaml
 import os
-import json
 import argparse
 import random
 import warnings
 from copy import deepcopy
 
 
-SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))
-OUTPUT_ROOT = None
-PACKAGES_DIR = os.path.normpath(os.path.join(SCRIPT_DIR, "..", "packages"))
-AUTO_GENERATED_PACKAGES_DIR = os.path.join(PACKAGES_DIR, "_auto_generated_packages")
-STORAGE_DIR = os.path.normpath(os.path.join(SCRIPT_DIR, "..", ".storage"))
-DASHBOARD_OUTPUT_DIR = SCRIPT_DIR
-
-
-AUTO_GENERATED_HEADER = (
-  "#############################################################################\n"
-  "# DO NOT MODIFY. This is an automatically generated file.                   # \n"
-  "#############################################################################\n"
-)
+SCRIPT_DIR = generator_io.SCRIPT_DIR
+OUTPUT_ROOT = generator_io.OUTPUT_ROOT
+PACKAGES_DIR = generator_io.PACKAGES_DIR
+AUTO_GENERATED_PACKAGES_DIR = generator_io.AUTO_GENERATED_PACKAGES_DIR
+STORAGE_DIR = generator_io.STORAGE_DIR
+DASHBOARD_OUTPUT_DIR = generator_io.DASHBOARD_OUTPUT_DIR
 
 
 def configure_output_root(output_root=None):
@@ -42,34 +34,20 @@ def configure_output_root(output_root=None):
   global STORAGE_DIR
   global DASHBOARD_OUTPUT_DIR
 
-  if output_root == None:
-    OUTPUT_ROOT = None
-    PACKAGES_DIR = os.path.normpath(os.path.join(SCRIPT_DIR, "..", "packages"))
-    AUTO_GENERATED_PACKAGES_DIR = os.path.join(PACKAGES_DIR, "_auto_generated_packages")
-    STORAGE_DIR = os.path.normpath(os.path.join(SCRIPT_DIR, "..", ".storage"))
-    DASHBOARD_OUTPUT_DIR = SCRIPT_DIR
-  else:
-    OUTPUT_ROOT = os.path.abspath(output_root)
-    PACKAGES_DIR = os.path.join(OUTPUT_ROOT, "packages")
-    AUTO_GENERATED_PACKAGES_DIR = os.path.join(PACKAGES_DIR, "_auto_generated_packages")
-    STORAGE_DIR = os.path.join(OUTPUT_ROOT, ".storage")
-    DASHBOARD_OUTPUT_DIR = os.path.join(OUTPUT_ROOT, "python_templates")
+  generator_io.configure_output_root(output_root)
+  OUTPUT_ROOT = generator_io.OUTPUT_ROOT
+  PACKAGES_DIR = generator_io.PACKAGES_DIR
+  AUTO_GENERATED_PACKAGES_DIR = generator_io.AUTO_GENERATED_PACKAGES_DIR
+  STORAGE_DIR = generator_io.STORAGE_DIR
+  DASHBOARD_OUTPUT_DIR = generator_io.DASHBOARD_OUTPUT_DIR
 
 
 def write_yaml_file(path, data, include_header=False):
-  yaml.Dumper.ignore_aliases = lambda *args : True
-
-  os.makedirs(os.path.dirname(path), exist_ok=True)
-  with open(path, "w") as yaml_file:
-    if include_header:
-      yaml_file.write(AUTO_GENERATED_HEADER)
-    yaml_file.write(yaml.dump(data, sort_keys=False, width=float("inf")))
+  generator_io.write_yaml_file(path, data, include_header=include_header)
 
 
 def write_json_file(path, data):
-  os.makedirs(os.path.dirname(path), exist_ok=True)
-  with open(path, "w") as json_file:
-    json.dump(data, json_file, sort_keys=False, indent=2)
+  generator_io.write_json_file(path, data)
 
 #from HA_Composite_Card_Lib import HA_Composite_Card_Lib as self.hccl
 #from translate import Translator

@@ -6,6 +6,8 @@ package YAML and Lovelace dashboard YAML from room-specific Python classes.
 ## Main Files
 
 - `gen_config_yaml.py` is the main generator.
+- `generator_io.py` contains output path configuration and YAML/JSON writing
+  helpers.
 - `dashboard_generator.py` contains the overall Lovelace dashboard aggregation
   logic.
 - `ha_entity_registry.py` contains helper functions for inspecting and cleaning
@@ -107,6 +109,7 @@ Completed foundations:
 6. Move dashboard generation into its own module.
 7. Move package/dashboard room ordering into its own module.
 8. Move room-specific classes into a `rooms.py` module.
+9. Move output path and YAML/JSON writing helpers into their own module.
 
 Recommended next steps:
 
