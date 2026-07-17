@@ -391,18 +391,18 @@ class RoomBase:
                                   ]
 
   def getPrefix(self, entity):
-    prefix = re.sub("\..*$", "", entity)
+    prefix = re.sub(r"\..*$", "", entity)
 
     # This regex does not seem to work to capture special characters
-    if re.search('[\./!"£$%^&*()]', prefix) != None:
+    if re.search(r'[\./!"£$%^&*()]', prefix) != None:
       error("Prefix " + prefix + " still have specical characters $./!\"£$%^&*()")
     return postfix
 
   def getPostfix(self, entity):
-    postfix = re.sub("^.*\.", "", entity)
+    postfix = re.sub(r"^.*\.", "", entity)
 
     # This regex does not seem to work to capture special characters
-    if re.search('[\./!"£$%^&*()]', postfix) != None:
+    if re.search(r'[\./!"£$%^&*()]', postfix) != None:
       error("Postfix " + postfix + " still have specical characters $./!\"£$%^&*()")
     return postfix
 
@@ -411,7 +411,7 @@ class RoomBase:
 
   # match the beginning of the string or a space, followed by a non-space
   def captilizeSentence(self, s):
-    return re.sub("(^|\s)(\S)", lambda m: m.group(1) + m.group(2).upper(), s)
+    return re.sub(r"(^|\s)(\S)", lambda m: m.group(1) + m.group(2).upper(), s)
 
   def getNameFromEntity(self, entity):
     postfix = self.getPostfix(entity)
@@ -2369,7 +2369,7 @@ class RoomBase:
 
       # remove entity name to get entity type
       # "light" = Remove ".living_room_ceiling_light" from "light.living_room_ceiling_light"
-      entity_type = re.sub("\.(\w+)$", "", entity)
+      entity_type = re.sub(r"\.(\w+)$", "", entity)
 
       if entity_type in ['light', 'cover', 'climate']:
         card_type = 'custom:mushroom-' + entity_type    + '-card'
@@ -2785,7 +2785,7 @@ class RoomBase:
                                       "   rgb{{state_attr(config.entity, 'rgb_color')}}"                 + " \n" + \
                                       "{% endif%}"                                                       + ";\n" + \
             "--slider-bg-color:        {% if state_attr(config.entity, 'color_mode') == 'color_temp' %}" + " \n" + \
-                                          "{{ '" + self.getColor(color) + "' | regex_replace(',([\d\.])+\)$', ',0.2)') }}" + " \n" + \
+                                          "{{ '" + self.getColor(color) + "' | regex_replace(',([\\d\\.])+\\)$', ',0.2)') }}" + " \n" + \
                                       "{% else  %}"                                                      + " \n" + \
                                       "   rgba{{(state_attr(config.entity, 'rgb_color')|string)[0:-1]}}, 0.2)"  + " \n" + \
                                       "{% endif%}"                                                       + ";\n" + \
