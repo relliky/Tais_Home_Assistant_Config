@@ -35,6 +35,8 @@ package YAML and Lovelace dashboard YAML from room-specific Python classes.
   config builders.
 - `dashboard_colors.py` contains dashboard CSS color aliases.
 - `dashboard_card_mod.py` contains Lovelace `card_mod` style builders.
+- `dashboard_entity_cards.py` contains Lovelace entity-card type inference
+  helpers.
 - `dashboard_settings.py` contains default dashboard settings, dashboard root
   selection, and theme selection.
 - `dashboard_restrictions.py` contains Lovelace restriction-card wrappers and
@@ -191,6 +193,7 @@ Completed foundations:
 36. Move room-level battery entity builders into their own module.
 37. Move generated entity ID collection for unavailable-device sensors into
     its own module.
+38. Move Lovelace entity-card type inference into its own module.
 
 Recommended next steps:
 

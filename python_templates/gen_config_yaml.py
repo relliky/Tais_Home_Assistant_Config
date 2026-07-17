@@ -11,6 +11,7 @@ import battery_entity_builder
 import configured_entity_filter
 import dashboard_card_mod
 import dashboard_colors
+import dashboard_entity_cards
 import dashboard_generator
 import dashboard_restrictions
 import dashboard_settings
@@ -1965,25 +1966,7 @@ class RoomBase:
 
     # Set up card_type based on entity_type
     if card_type is None:
-
-      # remove entity name to get entity type
-      # "light" = Remove ".living_room_ceiling_light" from "light.living_room_ceiling_light"
-      entity_type = re.sub(r"\.(\w+)$", "", entity)
-
-      if entity_type in ['light', 'cover', 'climate']:
-        card_type = 'custom:mushroom-' + entity_type    + '-card'
-      elif entity_type in ['media_player']:
-        card_type = 'custom:mushroom-' + 'media-player' + '-card'
-      if entity_type in ['binary_sensor', 'switch', 'input_boolean']:
-        card_type = 'custom:mushroom-' + 'entity'       + '-card'
-      elif entity_type in ['group']:
-        card_type = 'custom:auto-entities'
-      elif entity_type in ['sensor']:
-        card_type = 'sensor'
-      elif entity_type in ['input_select']:
-        card_type = 'custom:mushroom-select-card'
-      elif entity_type in ['input_number', 'number']:
-        card_type = 'custom:mushroom-number-card'
+      card_type = dashboard_entity_cards.infer_entity_card_type(entity)
 
     if entity_name is None:
       entity_name = self.getNameFromEntity(entity)
