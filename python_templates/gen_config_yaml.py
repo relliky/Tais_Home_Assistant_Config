@@ -1989,97 +1989,28 @@ class RoomBase:
 
     # light
     if card_type == 'custom:mushroom-light-card':
-      card = {
-        "type": card_type,
-        "fill_container": True,
-        "use_light_color": False,
-        "show_brightness_control": True,
-        "show_color_control": False,
-        "show_color_temp_control": True,
-        "collapsible_controls": False,
-        "name": card_name,
-        "icon": card_icon,
-        "entity": entity
-      } | self.getCardMod('ios16_toggle', card_type=card_type, color='ios_yellow')
+      card = dashboard_entity_cards.light_card(entity, card_name, card_icon, card_type=card_type)
 
     # cover
     elif card_type == 'custom:mushroom-cover-card':
-      card = {
-        "type": card_type,
-        "fill_container": True,
-        "tap_action":{
-          "action": "toggle"
-        },
-        "icon_tap_action":{
-          "action": "toggle"
-        },
-        "double_tap_action":{
-          "action": "more-info"
-        },
-        "hold_action":{
-          "action": "more-info"
-        },
-        "show_position_control": True,
-        "show_buttons_control": True,
-        "name": card_name,
-        "icon": card_icon,
-        "entity": entity
-      }
+      card = dashboard_entity_cards.cover_card(entity, card_name, card_icon, card_type=card_type)
 
     # climate
     elif card_type == 'custom:mushroom-climate-card':
-      card = {
-        "type": card_type,
-        "show_temperature_control": True,
-        "collapsible_controls": False,
-        "name": card_name,
-        "icon": card_icon,
-        "entity": entity
-      }
+      card = dashboard_entity_cards.climate_card(entity, card_name, card_icon, card_type=card_type)
 
     # media_player card
     # tap - toggle/navigate/more-info
     elif card_type == 'custom:mushroom-media-player-card':
-      card = {
-        "type": card_type,
-        "fill_container": True,
-        "tap_action":{
-          "action": "more-info"
-        },
-        "icon_tap_action":{
-          "action": "more-info"
-        },
-        "volume_controls":[
-         # "volume_mute",
-          "volume_set",
-          "volume_buttons"
-        ],
-        "show_volume_level": False,
-        "name": card_name,
-        "icon": card_icon,
-        "entity": entity
-      }
+      card = dashboard_entity_cards.media_player_card(entity, card_name, card_icon, card_type=card_type)
     # group card
     elif card_type == 'custom:auto-entities':
-      card = {
-        "type": card_type,
-        "card":{
-          "type": "entities",
-          "title": card_name
-        },
-        "filter": {"include": [{"group": entity}]}
-      }
+      card = dashboard_entity_cards.group_card(entity, card_name, card_type=card_type)
 
     # sensor
     elif card_type == 'sensor':
       if simple is True:
-        card = {
-          "type": card_type,
-          "graph": "line",
-          "name": card_name,
-          "icon": card_icon,
-          "entity": entity
-        }
+        card = dashboard_entity_cards.simple_sensor_card(entity, card_name, card_icon, card_type=card_type)
       else: # complex minigraph temperature sensor card from
       # https://bbs.hassbian.com/forum.php?mod=redirect&goto=findpost&ptid=22509&pid=550976
         card = {
@@ -2166,71 +2097,25 @@ class RoomBase:
     # switch           - tap to toggle
     # input boolean
     elif card_type == 'custom:mushroom-entity-card':
-      card = {
-        "type": card_type,
-        "fill_container": True,
-        "tap_action":      {"action": "toggle"},
-        "icon_tap_action": {"action": "toggle"},
-        "name": card_name,
-        "icon": card_icon,
-        "entity": entity
-      }
+      card = dashboard_entity_cards.entity_card(entity, card_name, card_icon, card_type=card_type)
 
     # entities card
     # input_timer
     elif card_type == 'entities':
-      card = {
-        "type": card_type,
-        "entities":[
-          { "name":   card_name,
-            "entity": entity}
-        ]
-      }
+      card = dashboard_entity_cards.entities_card(entity, card_name, card_type=card_type)
 
     # schduler card
     elif card_type == 'custom:scheduler-card':
-      card = {
-        "type": card_type,
-        "include": entity,
-        "exclude": [],
-        "title": True,
-        "discover_existing": True,
-        "time_step": 30
-      }
+      card = dashboard_entity_cards.scheduler_card(entity, card_type=card_type)
 
     # timer card
     elif card_type == 'custom:flipdown-timer-card':
-      card = {
-        "type": card_type,
-        "show_hour": True,
-        "show_title": True,
-        "theme": 'dark',
-        "styles": {
-          "rotor": {
-            "width": "50px",
-            "height": "80px"},
-          "button": {
-            "width": "100px",
-            "location": "bottom"}
-        },
-        "name": card_name,
-        "icon": card_icon,
-        "entity": entity
-      }
+      card = dashboard_entity_cards.flipdown_timer_card(entity, card_name, card_icon, card_type=card_type)
 
     # input_number
     # number
     elif card_type == 'custom:mushroom-number-card':
-      card = {
-        "type": card_type,
-        "fill_container": True,
-        "tap_action":      {"action": "more-info"},
-        "icon_tap_action": {"action": "more-info"},
-        "display_mode": "buttons",
-        "name": card_name,
-        "icon": 'mdi:counter' if card_icon is None else card_icon,
-        "entity": entity
-      }
+      card = dashboard_entity_cards.number_card(entity, card_name, card_icon, card_type=card_type)
 
     # input_select
     elif card_type == 'custom:mushroom-select-card':

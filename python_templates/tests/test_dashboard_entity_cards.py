@@ -54,6 +54,88 @@ class DashboardEntityCardsTest(unittest.TestCase):
     def test_unknown_entity_domain_returns_none(self):
         self.assertIsNone(dashboard_entity_cards.infer_entity_card_type("button.master_room"))
 
+    def test_light_card(self):
+        card = dashboard_entity_cards.light_card(
+            "light.master_room_ceiling_light",
+            "Ceiling",
+            "",
+        )
+
+        self.assertEqual(card["type"], "custom:mushroom-light-card")
+        self.assertEqual(card["entity"], "light.master_room_ceiling_light")
+        self.assertTrue(card["show_brightness_control"])
+        self.assertIn("card_mod", card)
+        self.assertIn("rgba(253,204,0,1)", card["card_mod"]["style"])
+
+    def test_cover_card(self):
+        card = dashboard_entity_cards.cover_card(
+            "cover.master_room_curtain",
+            "Curtain",
+            "",
+        )
+
+        self.assertEqual(card["tap_action"], {"action": "toggle"})
+        self.assertEqual(card["icon_tap_action"], {"action": "toggle"})
+        self.assertTrue(card["show_position_control"])
+        self.assertTrue(card["show_buttons_control"])
+
+    def test_media_player_card(self):
+        card = dashboard_entity_cards.media_player_card(
+            "media_player.living_room_tv",
+            "TV",
+            "",
+        )
+
+        self.assertEqual(card["tap_action"], {"action": "more-info"})
+        self.assertEqual(card["volume_controls"], ["volume_set", "volume_buttons"])
+        self.assertFalse(card["show_volume_level"])
+
+    def test_group_and_entities_cards(self):
+        self.assertEqual(
+            dashboard_entity_cards.group_card("group.master_room_light_group", "Lights"),
+            {
+                "type": "custom:auto-entities",
+                "card": {
+                    "type": "entities",
+                    "title": "Lights",
+                },
+                "filter": {"include": [{"group": "group.master_room_light_group"}]},
+            },
+        )
+        self.assertEqual(
+            dashboard_entity_cards.entities_card("timer.master_room", "Timer"),
+            {
+                "type": "entities",
+                "entities": [
+                    {
+                        "name": "Timer",
+                        "entity": "timer.master_room",
+                    }
+                ],
+            },
+        )
+
+    def test_scheduler_timer_and_number_cards(self):
+        self.assertEqual(
+            dashboard_entity_cards.scheduler_card(["climate.master_room"]),
+            {
+                "type": "custom:scheduler-card",
+                "include": ["climate.master_room"],
+                "exclude": [],
+                "title": True,
+                "discover_existing": True,
+                "time_step": 30,
+            },
+        )
+
+        timer = dashboard_entity_cards.flipdown_timer_card("timer.master_room", "Timer", "")
+        self.assertEqual(timer["theme"], "dark")
+        self.assertEqual(timer["styles"]["rotor"]["width"], "50px")
+
+        number = dashboard_entity_cards.number_card("input_number.master_room_default_temperature", "Default", "")
+        self.assertEqual(number["display_mode"], "buttons")
+        self.assertEqual(number["icon"], "")
+
 
 if __name__ == "__main__":
     unittest.main()
