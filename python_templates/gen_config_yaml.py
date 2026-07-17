@@ -36,6 +36,7 @@ import room_scene_defaults
 import room_time_settings
 import rooms
 import sensor_declaration_builders
+import unavailable_entity_builder
 import re
 import os
 from copy import deepcopy
@@ -1882,69 +1883,15 @@ class RoomBase:
 
 
   def get_unavailable_entity(self):
-    self.added_device_entities = []
-    # Go through template_list
-    # Iterate through each item in the parsed list
-    for entity_dict in self.template_list:
-        configured = False
-        # Iterate through the key-value pairs of the dictionary
-        for key, value in entity_dict.items():
-            if key == 'configured':
-                configured = value
-
-        for key, value in entity_dict.items():
-            # Check if the value is a list (which contains the entity configuration) to get rid of "configured" key-value pair
-            entity_type      = key
-            entity_data_list = value
-
-            # fitler out not configured item and reading list, also ignore the 'trigger' dictionary.
-            if key != 'trigger':
-              if isinstance(entity_data_list, list) and configured:
-                  # Iterate through each entity's configuration dictionary
-                  for entity_data in entity_data_list:
-                      # Extract the name, replace spaces with underscores, and convert to lowercase
-                      # to create a valid Home Assistant entity ID
-                      entity_name = entity_data['name'].strip().replace(' ', '_').replace('-', '_').lower()
-                      # Format the full entity ID and add it to the output list
-                      formatted_entity_id = f"{entity_type}.{entity_name}"
-                      self.added_device_entities.append(formatted_entity_id)
-
-    for entity_dict in  self.binary_sensor_list + \
-                        self.switch_list        + \
-                        self.cover_list         + \
-                        self.lock_list          + \
-                        self.event_list         + \
-                        self.light_list:
-        # Extract the name from the dictionary
-        entity_name = entity_dict.get('name')
-        configured  = entity_dict.get('configured')
-        # Check if a name was found and entity is configured to avoid errors
-        if entity_name and configured:
-            # Format the name: replace spaces with underscores and convert to lowercase
-            formatted_name = entity_name.strip().replace(' ', '_').replace('-', '_').lower()
-            # Removing tailing underscore _
-            formatted_name = re.sub("_$", "", formatted_name)
-            # Prepend 'binary_sensor.' to the formatted name
-            # as requested, since the platform is a group
-            formatted_entity_id = ""
-            if   entity_dict in self.binary_sensor_list:
-              formatted_entity_id = f"binary_sensor.{formatted_name}"
-            elif entity_dict in self.switch_list:
-              formatted_entity_id = f"switch.{formatted_name}"
-            elif entity_dict in self.cover_list:
-              formatted_entity_id = f"cover.{formatted_name}"
-            elif entity_dict in self.lock_list:
-              formatted_entity_id = f"lock.{formatted_name}"
-            elif entity_dict in self.switch_list:
-              formatted_entity_id = f"switch.{formatted_name}"
-            elif entity_dict in self.event_list:
-              formatted_entity_id = f"event.{formatted_name}"
-            elif entity_dict in self.light_list:
-              formatted_entity_id = f"light.{formatted_name}"
-            else:
-              error(f"{self.entity_name} type is not supported.")
-            # Add the new entity ID to the output list
-            self.added_device_entities.append(formatted_entity_id)
+    self.added_device_entities = unavailable_entity_builder.collect_added_device_entities(
+      self.template_list,
+      self.binary_sensor_list,
+      self.switch_list,
+      self.cover_list,
+      self.lock_list,
+      self.event_list,
+      self.light_list,
+    )
 
     # debug
     #yaml_string = yaml.dump(self.added_device_entities, sort_keys=False)

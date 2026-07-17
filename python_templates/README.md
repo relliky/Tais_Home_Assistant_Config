@@ -23,6 +23,8 @@ package YAML and Lovelace dashboard YAML from room-specific Python classes.
   containers used during room generation.
 - `configured_entity_filter.py` contains filtering for generated declarations
   guarded by a `configured` flag.
+- `unavailable_entity_builder.py` contains helpers for collecting generated
+  entity IDs used by unavailable-device sensors.
 - `automation_helpers.py` contains small Home Assistant trigger, action, and
   condition dict builders.
 - `battery_entity_builder.py` contains room-level battery group/min/low-battery
@@ -187,6 +189,8 @@ Completed foundations:
 35. Move battery, temperature, template, and filter sensor declaration builders
     into their own module.
 36. Move room-level battery entity builders into their own module.
+37. Move generated entity ID collection for unavailable-device sensors into
+    its own module.
 
 Recommended next steps:
 
