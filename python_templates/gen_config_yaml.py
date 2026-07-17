@@ -34,6 +34,7 @@ import room_remote_entities
 import room_scene_defaults
 import room_time_settings
 import rooms
+import sensor_declaration_builders
 import re
 import os
 from copy import deepcopy
@@ -1588,58 +1589,32 @@ class RoomBase:
         ]
 
   def add_event_binary_sensor(self, entity_id, name, attribute_name='Button Type', attribute_value=1, auto_off=0.2):
-      value_literal = "'" + attribute_value + "'" if isinstance(attribute_value, str) else str(attribute_value)
       self.template_list += [
-        {
-          "trigger": [
-            {
-              "platform": "state",
-              "entity_id":  entity_id,
-              "not_from": [
-                "unknown",
-                "unavailable"
-              ]
-            }
-          ],
-          "binary_sensor": [
-            {
-              "name": name,
-              "state": "{{ trigger.to_state.attributes['" + attribute_name + "'] == " + value_literal + " }}",
-              "auto_off": auto_off
-            }
-          ],
-          "configured": True
-        }
+        sensor_declaration_builders.event_binary_sensor(
+          entity_id,
+          name,
+          attribute_name=attribute_name,
+          attribute_value=attribute_value,
+          auto_off=auto_off,
+        )
       ]
 
   def add_smooth_power_sensor(self, sensor_in, sensor_out):
       self.sensor_list += [
-        {
-          "name": self.getNameFromEntity(sensor_out),
-          "platform": "filter",
-          "entity_id": sensor_in,
-          "filters":{
-              "filter": "lowpass",
-              "time_constant": 5,
-              "precision": 1,
-          },
-          "configured": True
-        }
+        sensor_declaration_builders.smooth_power_sensor(
+          sensor_in,
+          sensor_out,
+          self.getNameFromEntity,
+        )
       ]
 
   def add_smooth_temperature_sensor(self, sensor_in, sensor_out):
       self.sensor_list += [
-        {
-          "name": self.getNameFromEntity(sensor_out),
-          "platform": "filter",
-          "entity_id": sensor_in,
-          "filters":{
-              "filter": "lowpass",
-              "time_constant": 4,
-              "precision": 1,
-          },
-          "configured": True
-        }
+        sensor_declaration_builders.smooth_temperature_sensor(
+          sensor_in,
+          sensor_out,
+          self.getNameFromEntity,
+        )
       ]
 
   def get_entity_declarations(self):
