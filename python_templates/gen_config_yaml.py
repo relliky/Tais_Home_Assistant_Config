@@ -10,6 +10,7 @@ import automation_helpers
 import configured_entity_filter
 import dashboard_colors
 import dashboard_generator
+import dashboard_view_helpers
 import entity_declaration_builders
 import entity_naming
 import generator_cli
@@ -4849,16 +4850,12 @@ class RoomBase:
                     cards=[],
                     theme="Mushroom Shadow",
                     title=''):
-
-    self.views += [{
-                  "theme": theme,
-                  "title": title,
-                  "path":  viewPath,
-                  #"icon": "",
-                  "subview": True,
-                  "badges": [],
-                  "cards": cards
-                 }]
+    self.views += [dashboard_view_helpers.build_view(
+      view_path=viewPath,
+      cards=cards,
+      theme=theme,
+      title=title
+    )]
 
   def getRoomViews(self):
     # Add room header navagation cards (back card + scene card)
@@ -4875,22 +4872,7 @@ class RoomBase:
 
 
   def getLayoutWrapperCardList(self, cards=None):
-
-    if self.dashboard_type in ['mobile', 'default']:
-      grid_cards = [{
-          "square": False,
-          "columns": 2,
-          "type": "grid",
-          "cards": cards}]
-    elif self.dashboard_type == 'tablet':
-      grid_cards = cards
-    else:
-        raise TypeError( "\n" +\
-          "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n" + \
-          "getLayoutWrapperCardList does not support dashboard_type" + dashboard_type + \
-          "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n")
-
-    return grid_cards
+    return dashboard_view_helpers.layout_wrapper_cards(self.dashboard_type, cards=cards)
 
   def getHeaderCardList(self,navigate_path=None):
     # Navigation header

@@ -21,6 +21,8 @@ package YAML and Lovelace dashboard YAML from room-specific Python classes.
 - `occupancy_state_machine.py` contains the room occupancy choose/action
   generation logic.
 - `dashboard_colors.py` contains dashboard CSS color aliases.
+- `dashboard_view_helpers.py` contains small Lovelace view and layout wrapper
+  helpers.
 - `dashboard_generator.py` contains the overall Lovelace dashboard aggregation
   logic.
 - `ha_entity_registry.py` contains helper functions for inspecting and cleaning
@@ -133,6 +135,7 @@ Completed foundations:
 15. Move occupancy state machine generation into its own module.
 16. Move small entity declaration builders into their own module.
 17. Move configured entity filtering into its own module.
+18. Move small dashboard view/layout helpers into their own module.
 
 Recommended next steps:
 
