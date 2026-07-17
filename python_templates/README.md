@@ -70,6 +70,12 @@ false failures for harmless formatting differences.
 The baseline should only be updated when an intentional generated YAML behavior
 change is made and manually reviewed.
 
+`test_temp_output_generation.py` verifies that package and customize YAML can be
+generated into a temporary output directory and still match the baseline
+structure. Dashboard YAML is currently checked for successful generation and
+parseability, but not yet baseline equality because the current dashboard
+generator output does not reproduce the checked-in dashboard snapshot exactly.
+
 ## Refactoring Direction
 
 Prefer small, test-backed steps. The current recommended order is:
@@ -77,7 +83,7 @@ Prefer small, test-backed steps. The current recommended order is:
 1. Keep file writing and output paths centralized.
 2. Add support for generating into a temporary output directory.
 3. Extend tests so they can generate into that temporary directory and compare
-   against the baseline.
+   package/customize YAML against the baseline.
 4. Split command-line parsing and generation orchestration out of `main()`.
 5. Move entity-registry inspection helpers into their own module.
 6. Move dashboard generation into its own module.
