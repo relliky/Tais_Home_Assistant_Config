@@ -55,6 +55,20 @@ class RoomDeviceDefaultsTest(unittest.TestCase):
             },
         )
 
+    def test_default_temperature_control_entities(self):
+        self.assertEqual(
+            room_device_defaults.default_temperature_control_entities("master_room"),
+            {
+                "outside_temperature": "sensor.met_office_cambridge_city_airport_temperature_3_hourly",
+                "room_default_temperature": "input_number.master_room_default_temperature",
+                "thermostat": "climate.master_room",
+                "thermostat_cloud_tado": "climate.master_room_tado",
+                "thermostat_schedule": "switch.schedule_master_room_temperature",
+                "temperature_sensor": "sensor.master_room_temperature_sensor",
+                "room_heating_override": "input_boolean.master_room_heating_override",
+            },
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

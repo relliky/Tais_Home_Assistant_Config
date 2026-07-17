@@ -435,14 +435,14 @@ class RoomBase:
     self.timeout_window_group = entities["timeout_window_group"]
 
   def get_temperature_control_entities(self):
-    # Temperature sensor entities
-    self.outside_temperature              = "sensor.met_office_cambridge_city_airport_temperature_3_hourly"
-    self.room_default_temperature         = "input_number."    + self.room_entity + "_default_temperature"
-    self.thermostat                       = "climate."         + self.room_entity
-    self.thermostat_cloud_tado            = self.thermostat    + '_tado'
-    self.thermostat_schedule              = "switch.schedule_" + self.room_entity + "_temperature"
-    self.temperature_sensor               = "sensor."          + self.room_entity + "_temperature_sensor"
-    self.room_heating_override            = "input_boolean."   + self.room_entity + "_heating_override"
+    entities = room_device_defaults.default_temperature_control_entities(self.room_entity)
+    self.outside_temperature = entities["outside_temperature"]
+    self.room_default_temperature = entities["room_default_temperature"]
+    self.thermostat = entities["thermostat"]
+    self.thermostat_cloud_tado = entities["thermostat_cloud_tado"]
+    self.thermostat_schedule = entities["thermostat_schedule"]
+    self.temperature_sensor = entities["temperature_sensor"]
+    self.room_heating_override = entities["room_heating_override"]
 
   def get_post_room_config(self):
 
