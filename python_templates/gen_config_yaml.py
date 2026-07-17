@@ -23,6 +23,7 @@ import message_helpers
 import occupancy_state_machine
 import package_writer
 import room_device_defaults
+import room_light_entities
 import room_motion_entities
 import room_properties
 import room_registry
@@ -248,58 +249,22 @@ class RoomBase:
 
 
   def get_light_entities(self):
-    # Light/Switch entities
-    self.ceiling_lights          = ["light." + self.room_entity + "_ceiling_light"]
-    self.lamps                   = []
-    for i in range(self.num_of_lamps):
-      self.lamps                += ["light." + self.room_entity + "_lamp"]
-      if self.num_of_lamps != 1:
-        self.lamps[i]           += "_" + str(i+1)
-    self.leds                    = []
-    self.lights                  = self.leds + self.lamps + self.ceiling_lights
-    self.light_group             =  'group.' + self.room_entity + '_light_group'
-    self.screen_leds             = []
-    self.extractor               = []
-
-    # Adaptive Light settings
-    self.al_sleep_mode       = 'switch.adaptive_lighting_sleep_mode_'       + self.room_entity
-    self.al_adapt_brightness = 'switch.adaptive_lighting_adapt_brightness_' + self.room_entity
-
-    if self.cfg_adaptive_lighting == True:
-      self.al_light_list += \
-        [
-          {
-            "configured": True,
-            "name": self.room_name,
-            "lights": [],
-            "prefer_rgb_color": False,
-            "transition": 45,
-            "initial_transition": 1,
-            "interval": 90,
-            "min_brightness": 50,
-            "max_brightness": 100,
-            "min_color_temp": 2700,
-            "max_color_temp": 4000,
-            "sleep_brightness": 20,
-            "sleep_color_temp": 2200,
-            "min_sunset_time": '17:30', # Make sure lights are not turned into warm lights until off-work time
-            #"sunrise_time": None,
-            #"sunrise_offset": None,
-            #"sunset_time": None,
-            #"sunset_offset": None,
-            "take_over_control": True, # Does not work, after update brightness manually on lovelace, it still applies adaptive lighting at each interval
-            "autoreset_control_seconds": 86400,
-            "detect_non_ha_changes": False,
-            "only_once": False,
-            "adapt_only_on_bare_turn_on": True,
-            "separate_turn_on_commands": False, # Only setting it False will make "take_over_control" work. But adaptive on color transition may fail, such as living room lamps.
-            "send_split_delay": 500,
-            "adapt_delay": 0.5,
-            "intercept": True,
-            "multi_light_intercept": True,
-            "include_config_in_attributes": False
-          }
-        ]
+    entities = room_light_entities.default_light_entities(
+      self.room_entity,
+      self.room_name,
+      self.num_of_lamps,
+      self.cfg_adaptive_lighting,
+    )
+    self.ceiling_lights = entities["ceiling_lights"]
+    self.lamps = entities["lamps"]
+    self.leds = entities["leds"]
+    self.lights = entities["lights"]
+    self.light_group = entities["light_group"]
+    self.screen_leds = entities["screen_leds"]
+    self.extractor = entities["extractor"]
+    self.al_sleep_mode = entities["al_sleep_mode"]
+    self.al_adapt_brightness = entities["al_adapt_brightness"]
+    self.al_light_list += entities["al_light_list_additions"]
 
 
   def get_mirror_entities(self):
