@@ -7,6 +7,7 @@
 
 from HA_Composite_Card_Lib.src.main import HA_Composite_Card_Lib
 import dashboard_generator
+import entity_naming
 import generator_cli
 import generator_io
 import ha_entity_registry
@@ -372,50 +373,27 @@ class RoomBase:
                                   ]
 
   def getPrefix(self, entity):
-    prefix = re.sub(r"\..*$", "", entity)
-
-    # This regex does not seem to work to capture special characters
-    if re.search(r'[\./!"£$%^&*()]', prefix) != None:
-      error("Prefix " + prefix + " still have specical characters $./!\"£$%^&*()")
-    return postfix
+    return entity_naming.get_prefix(entity)
 
   def getPostfix(self, entity):
-    postfix = re.sub(r"^.*\.", "", entity)
-
-    # This regex does not seem to work to capture special characters
-    if re.search(r'[\./!"£$%^&*()]', postfix) != None:
-      error("Postfix " + postfix + " still have specical characters $./!\"£$%^&*()")
-    return postfix
+    return entity_naming.get_postfix(entity)
 
   def getNameFromPostfix(self, postfix):
-    return re.sub("_", " ", postfix)
+    return entity_naming.get_name_from_postfix(postfix)
 
   # match the beginning of the string or a space, followed by a non-space
   def captilizeSentence(self, s):
-    return re.sub(r"(^|\s)(\S)", lambda m: m.group(1) + m.group(2).upper(), s)
+    return entity_naming.captilize_sentence(s)
 
   def getNameFromEntity(self, entity):
-    postfix = self.getPostfix(entity)
-    name    = self.getNameFromPostfix(postfix)
-    name    = self.captilizeSentence(name)
-    return  name
+    return entity_naming.get_name_from_entity(entity)
 
   # Generate entity_name based on alias name
   def getEntityFromName(self, text):
-    # 1. Convert to lowercase
-    text = text.lower()
-    # 2. Replace any sequence of non-alphanumeric characters with a single underscore
-    # [^\w]+ matches spaces, hyphens, tabs, etc.
-    text = re.sub(r'[^\w]+', '_', text)
-    # reduce consucetive _ underscores to one instance
-    text = re.sub("(_+)", "_", text)
-    # 3. Trim underscores from the ends
-    return text.strip('_')
+    return entity_naming.get_entity_from_name(text)
 
   def getIDFromAlias (self, alias):
-    entity_postfix = self.getEntityFromName(alias)
-    entity = "automation." + entity_postfix
-    return entity
+    return entity_naming.get_id_from_alias(alias)
 
   def get_tv_entities(self):
     self.tv_room_entity          = None
