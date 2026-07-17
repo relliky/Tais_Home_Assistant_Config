@@ -7,6 +7,7 @@
 
 from HA_Composite_Card_Lib.src.main import HA_Composite_Card_Lib
 import automation_helpers
+import battery_entity_builder
 import configured_entity_filter
 import dashboard_card_mod
 import dashboard_colors
@@ -1865,74 +1866,19 @@ class RoomBase:
 
 
   def get_battery_entity(self):
-    self.room_battery_entity_list = []
-    # Go through template_list
-    # Iterate through each item in the parsed list
-    for entity_dict in self.template_list:
-
-        # Iterate through the key-value pairs of the dictionary
-        configured = False
-        for key, value in entity_dict.items():
-            if key == 'configured':
-                configured = value
-
-        # Iterate through the key-value pairs of the dictionary
-        for key, value in entity_dict.items():
-            # Check if the value is a list (which contains the entity configuration) to get rid of "configured" key-value pair
-            entity_type      = key
-            entity_data_list = value
-            # ignore the 'trigger' dictionary.
-            if key != 'trigger':
-              # fitler out not configured item and reading list
-              if isinstance(entity_data_list, list) and configured:
-                  # Iterate through each entity's configuration dictionary
-                  for entity_data in entity_data_list:
-                      # Extract the name, replace spaces with underscores, and convert to lowercase
-                      # to create a valid Home Assistant entity ID
-                      entity_name = entity_data['name'].strip().replace(' ', '_').replace('-', '_').lower()
-
-                      # Battery is last single word in the name
-                      if '_battery' in entity_name and not '_battery_' in entity_name:
-                        # Format the full entity ID and add it to the output list
-                        formatted_entity_id = f"{entity_type}.{entity_name}"
-                        self.room_battery_entity_list += [formatted_entity_id]
-
-    # Add a group for all battery entities in this room
-    self.room_battery_entity = 'group.' + self.room_entity + '_battery'
-
-    self.group_dict |= {
-      self.getPostfix(self.room_battery_entity) : {
-        "name": self.getNameFromEntity(self.room_battery_entity),
-        "entities": self.room_battery_entity_list,
-        'configured': True,
-      }
-    }
-
-    # Find minimum battery value
-    self.room_min_battery_value_entity = 'sensor.' + self.room_entity + '_min_battery'
-    self.sensor_list += [
-      {
-        "name": self.getNameFromEntity(self.room_min_battery_value_entity),
-        "platform": "min_max",
-        "type": 'min',
-        "entity_ids": self.room_battery_entity_list,
-        "configured": True,
-      }
-    ]
-
-    # Find
-    self.room_low_battery_entity = 'binary_sensor.' + self.room_entity + '_low_battery'
-    self.template_list += [
-      {
-        "binary_sensor": [
-          {
-            "name": self.getNameFromEntity(self.room_low_battery_entity),
-            "state": '{% set state = states("' + self.room_min_battery_value_entity + '") %} {% if state == "unavailable" or state == "unknown" or int(state) > 20 %} off {% else%} on {% endif %}'
-          }
-        ],
-        "configured": True
-      }
-    ]
+    declarations = battery_entity_builder.build_room_battery_entities(
+      self.room_entity,
+      self.template_list,
+      self.getPostfix,
+      self.getNameFromEntity,
+    )
+    self.room_battery_entity_list = declarations["room_battery_entity_list"]
+    self.room_battery_entity = declarations["room_battery_entity"]
+    self.group_dict |= declarations["group_dict_additions"]
+    self.room_min_battery_value_entity = declarations["room_min_battery_value_entity"]
+    self.sensor_list += declarations["sensor_list_additions"]
+    self.room_low_battery_entity = declarations["room_low_battery_entity"]
+    self.template_list += declarations["template_list_additions"]
 
 
   def get_unavailable_entity(self):

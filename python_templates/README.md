@@ -25,6 +25,8 @@ package YAML and Lovelace dashboard YAML from room-specific Python classes.
   guarded by a `configured` flag.
 - `automation_helpers.py` contains small Home Assistant trigger, action, and
   condition dict builders.
+- `battery_entity_builder.py` contains room-level battery group/min/low-battery
+  entity builders.
 - `occupancy_state_machine.py` contains the room occupancy choose/action
   generation logic.
 - `occupancy_ratio_sensor.py` contains history-stats occupancy ratio sensor
@@ -184,6 +186,7 @@ Completed foundations:
 34. Move dashboard root selection into dashboard settings.
 35. Move battery, temperature, template, and filter sensor declaration builders
     into their own module.
+36. Move room-level battery entity builders into their own module.
 
 Recommended next steps:
 
