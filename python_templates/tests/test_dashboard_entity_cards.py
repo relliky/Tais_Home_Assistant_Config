@@ -136,6 +136,31 @@ class DashboardEntityCardsTest(unittest.TestCase):
         self.assertEqual(number["display_mode"], "buttons")
         self.assertEqual(number["icon"], "")
 
+    def test_complex_sensor_card(self):
+        card = dashboard_entity_cards.complex_sensor_card(
+            "sensor.master_room_temperature",
+            "Temperature",
+        )
+
+        self.assertEqual(card["type"], "custom:vertical-stack-in-card")
+        self.assertEqual(card["cards"][0]["type"], "custom:mushroom-template-card")
+        self.assertEqual(card["cards"][0]["entity"], "sensor.master_room_temperature")
+        self.assertIn("rgba(245, 245, 245, 0)", card["cards"][0]["card_mod"]["style"])
+
+        graph_card = card["cards"][1]["cards"][0]
+        self.assertEqual(graph_card["type"], "custom:mini-graph-card")
+        self.assertEqual(
+            graph_card["entities"],
+            [
+                {
+                    "entity": "sensor.master_room_temperature",
+                    "name": "Temperature",
+                }
+            ],
+        )
+        self.assertEqual(graph_card["color_thresholds"][0], {"value": -10, "color": "#0000ff"})
+        self.assertTrue(graph_card["animate"])
+
 
 if __name__ == "__main__":
     unittest.main()

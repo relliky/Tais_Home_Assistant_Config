@@ -117,6 +117,89 @@ def simple_sensor_card(entity, card_name, card_icon, card_type='sensor'):
   }
 
 
+def complex_sensor_card(entity, card_name):
+  import dashboard_card_mod
+
+  return {
+    "type": "custom:vertical-stack-in-card",
+    "cards": [
+      {
+        "type": "custom:mushroom-template-card",
+        "entity": entity,
+        "primary": card_name,
+        "secondary": "{{ states('" + entity + "') | round(0) }}\u00b0C\n",
+        "icon": "mdi:thermometer",
+        "icon_color": "{% set value = states('" + entity + "') | int %}\n{% if value < 18 %}\n  blue\n{% elif value < 28 %}\n  light-green\n{% elif value < 40 %}\n  red\n{% else %}\n  green\n{% endif %}",
+        "tap_action": {"action": "more-info"},
+        "icon_tap_action": {"action": "more-info"},
+      } | dashboard_card_mod.build_card_mod('background_color_select', color='transparent'),
+      {
+        "type": "custom:layout-card",
+        "layout_type": "masonry",
+        "layout": {
+          "width": 150,
+          "max_cols": 1,
+          "height": "auto",
+          "padding": "0px",
+          "card_margin": "var(--masonry-view-card-margin, -10px 8px 15px)"
+        },
+        "cards": [
+          {
+            "type": "custom:mini-graph-card",
+            "tap_action": {"action": "more-info"},
+            "icon_tap_action": {"action": "more-info"},
+            "entities": [
+              {
+                "entity": entity,
+                "name": "Temperature"
+              }
+            ],
+            "color_thresholds": [
+              {
+                "value": -10,
+                "color": "#0000ff"
+              },
+              {
+                "value": 18,
+                "color": "#0000ff"
+              },
+              {
+                "value": 18.1,
+                "color": "#00FF00"
+              },
+              {
+                "value": 27,
+                "color": "#00FF00"
+              },
+              {
+                "value": 27.1,
+                "color": "#FF0000"
+              },
+              {
+                "value": 40,
+                "color": "#FF0000"
+              }
+            ],
+            "hours_to_show": 24,
+            "line_width": 3,
+            "animate": True,
+            "show": {
+              "name": False,
+              "icon": False,
+              "state": False,
+              "legend": False,
+              "fill": "fade"
+            },
+            "card_mod": {
+              "style": "ha-card {\n  background: none;\n  box-shadow: none;\n  --ha-card-border-width: 0;\n}"
+            }
+          }
+        ]
+      }
+    ]
+  }
+
+
 def entity_card(entity, card_name, card_icon, card_type='custom:mushroom-entity-card'):
   return {
     "type": card_type,
