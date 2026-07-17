@@ -7447,9 +7447,7 @@ def write_core_entity_entries_json():
 parser = ''
 args   = ''
 
-def main():
-  global parser
-  global args
+def build_arg_parser():
   parser = argparse.ArgumentParser()
   parser.add_argument('-R', dest ='render_auto_config', default=True,
                       action ='store_false', help ='Skip rendering auto-generated yaml config')
@@ -7468,35 +7466,74 @@ def main():
   parser.add_argument('-lc', '-language-chinese', dest='dashboard_language_chinese', default=False,
                       action ='store_true', help ='Render dashboard in Chinese. Default to false as it takes extra time and lovelace are not updated often')
 
-  args = parser.parse_args()
+  return parser
 
-  if args.render_auto_config :
-    render_package_for_rooms = create_package_rooms()
 
-    #for room in render_package_for_rooms:
-    #  room.writeConfig()
+def parse_args(argv=None):
+  global parser
+  global args
+  parser = build_arg_parser()
+  args = parser.parse_args(argv)
+  return args
+
+
+def render_package_configs():
+  create_package_rooms()
+
+
+def check_entity_registry_config(parsed_args):
+  if not parsed_args.check_auto_system_config:
+    return
 
   read_core_entity_entries_json()
   check_core_entity_unexpected_entities()
 
-  if args.create_system_config:
-    read_core_entity_entries_json()
-    remove_auto_gen_automation_entities()
-    write_core_entity_entries_json()
 
-  # Instantiate and render dashboard into yaml
-  # Default to disable it as the dashboard does not need to be updated
-  dashboard_type = 'tablet' if args.render_dashboard_tablet is True else \
-                   'mobile' if args.render_dashboard_mobile is True else \
-                   'default'
+def create_clean_entity_registry_config(parsed_args):
+  if not parsed_args.create_system_config:
+    return
 
-  dashboard_language = 'Chinese' if args.dashboard_language_chinese is True else \
-                       'English'
+  read_core_entity_entries_json()
+  remove_core_entity_unexpected_entities()
+  write_core_entity_entries_json()
 
-  if args.render_dashboard_yaml:
-    dashboard = Dashboard(format='yaml', dashboard_type=dashboard_type, dashboard_language=dashboard_language)
-  elif args.render_dashboard_json:
-    dashboard = Dashboard(format='json', dashboard_type=dashboard_type, dashboard_language=dashboard_language)
+
+def get_dashboard_type(parsed_args):
+  return 'tablet' if parsed_args.render_dashboard_tablet is True else \
+         'mobile' if parsed_args.render_dashboard_mobile is True else \
+         'default'
+
+
+def get_dashboard_language(parsed_args):
+  return 'Chinese' if parsed_args.dashboard_language_chinese is True else \
+         'English'
+
+
+def render_dashboard_config(parsed_args):
+  dashboard_type = get_dashboard_type(parsed_args)
+  dashboard_language = get_dashboard_language(parsed_args)
+
+  if parsed_args.render_dashboard_yaml:
+    Dashboard(format='yaml', dashboard_type=dashboard_type, dashboard_language=dashboard_language)
+  elif parsed_args.render_dashboard_json:
+    Dashboard(format='json', dashboard_type=dashboard_type, dashboard_language=dashboard_language)
+
+
+def run(parsed_args):
+  if parsed_args.render_auto_config:
+    render_package_configs()
+
+  if parsed_args.check_auto_system_config:
+    check_entity_registry_config(parsed_args)
+
+  if parsed_args.create_system_config:
+    create_clean_entity_registry_config(parsed_args)
+
+  render_dashboard_config(parsed_args)
+
+
+def main(argv=None):
+  run(parse_args(argv))
 
 
 if __name__ == "__main__":
@@ -7541,7 +7578,4 @@ print ("Done.")
 #translation = translator.translate("This is a pen.")
 #translation = translator.translate("Master Room Lamp 1")
 #print (translation)
-
-
-
 

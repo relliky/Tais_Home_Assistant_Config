@@ -58,6 +58,16 @@ Test command:
 python -m unittest discover -s H:\python_templates\tests
 ```
 
+Common dashboard-only generation command:
+
+```bash
+python3 /ha_config/python_templates/gen_config_yaml.py -C -dy -R
+```
+
+That command skips package generation (`-R`), skips entity-registry checking
+(`-C`), and writes dashboard YAML (`-dy`). Without `-dm` or `-dt`, it uses the
+default dashboard type.
+
 ## YAML Consistency Baseline
 
 `tests/baseline_generated/` stores snapshots of generated YAML files. The
@@ -76,19 +86,22 @@ structure. Dashboard YAML is currently checked for successful generation and
 parseability, but not yet baseline equality because the current dashboard
 generator output does not reproduce the checked-in dashboard snapshot exactly.
 
-## Refactoring Direction
+## Refactoring Status
 
-Prefer small, test-backed steps. The current recommended order is:
+Completed foundations:
 
 1. Keep file writing and output paths centralized.
 2. Add support for generating into a temporary output directory.
 3. Extend tests so they can generate into that temporary directory and compare
    package/customize YAML against the baseline.
 4. Split command-line parsing and generation orchestration out of `main()`.
-5. Move entity-registry inspection helpers into their own module.
-6. Move dashboard generation into its own module.
-7. Move room-specific classes into a `rooms.py` module.
-8. Split `RoomBase` only after the generated-output tests are strong.
+
+Recommended next steps:
+
+1. Move entity-registry inspection helpers into their own module.
+2. Move dashboard generation into its own module.
+3. Move room-specific classes into a `rooms.py` module.
+4. Split `RoomBase` only after the generated-output tests are strong.
 
 Avoid large mechanical rewrites until the generator can produce and compare all
 outputs in a temporary directory.
