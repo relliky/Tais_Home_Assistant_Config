@@ -4670,10 +4670,7 @@ class RoomBase:
     return self.convertToSingleService(service_list, alias)
 
   def convertToSingleService(self, service_list, alias=''):
-    # "sequence" cannot be used in automation generally
-    #return {"sequence": service_list}
-
-    return {"alias": alias, "if": self.alwaysOnCond(), "then": service_list}
+    return automation_helpers.wrap_service_sequence(service_list, alias=alias)
 
   def callSceneService(self, scene_name):
       parallel_enable = True

@@ -50,3 +50,7 @@ def continue_if(entity_id, state, attribute=None, lastFor=None):
   cond |= {"attribute": attribute} if attribute  != None else {}
   cond |= {"for":       lastFor}   if lastFor    != None else {}
   return cond
+
+
+def wrap_service_sequence(service_list, alias=''):
+  return {"alias": alias, "if": always_on_condition(), "then": service_list}

@@ -54,6 +54,14 @@ class AutomationHelpersTest(unittest.TestCase):
         self.assertIn("binary_sensor.motion", condition["value_template"])
         self.assertIn(">= 150", condition["value_template"])
 
+    def test_wrap_service_sequence(self):
+        service_list = [{"service": "light.turn_on", "entity_id": "light.test"}]
+
+        self.assertEqual(
+            automation_helpers.wrap_service_sequence(service_list, alias="Turn on test"),
+            {"alias": "Turn on test", "if": ['{{ 1 == 1 }}'], "then": service_list},
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
