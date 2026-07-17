@@ -14,6 +14,7 @@ import generator_cli
 import generator_io
 import ha_entity_registry
 import message_helpers
+import occupancy_state_machine
 import room_registry
 import rooms
 import re
@@ -3942,134 +3943,16 @@ class RoomBase:
     return automation_helpers.state_duration_template_condition(entity_id, state, seconds, op=op)
 
   def get_occupancy_state_machine_actions(self):
-    select_outside      = self.select_occupancy_state("Outside")
-    select_just_entered = self.select_occupancy_state("Just Entered")
-    select_stayed       = self.select_occupancy_state("Stayed Inside")
-    select_sleep        = self.select_occupancy_state("In Sleep")
-
-    choose_list = [
-      {
-        "alias": "Outside -> Just Entered when motion is on",
-        "conditions": [
-          {"condition": "state", "entity_id": self.room_occupancy, "state": "Outside"},
-          {"condition": "state", "entity_id": self.motion_group, "state": "on"},
-        ],
-        "sequence": [select_just_entered]
-      },
-      {
-        "alias": "Outside -> Outside when motion is not on",
-        "conditions": [
-          {"condition": "state", "entity_id": self.room_occupancy, "state": "Outside"},
-          {"condition": "template", "value_template": "{{ not is_state('" + self.motion_group + "', 'on') }}"},
-        ],
-        "sequence": [select_outside]
-      },
-      {
-        "alias": "Just Entered -> Stayed Inside when motion stays on",
-        "conditions": [
-          {"condition": "state", "entity_id": self.room_occupancy, "state": "Just Entered"},
-          self.state_duration_template_condition(self.motion_group, "on", self.entered_to_inside_timeout, ">="),
-        ],
-        "sequence": [select_stayed]
-      },
-      {
-        "alias": "Just Entered -> Outside when motion stays off",
-        "conditions": [
-          {"condition": "state", "entity_id": self.room_occupancy, "state": "Just Entered"},
-          self.state_duration_template_condition(self.motion_group, "off", self.inside_to_outside_timeout, ">="),
-        ],
-        "sequence": [select_outside]
-      },
-    ]
-
-    if self.set_to_outside_when_no_motion == 'yes':
-      choose_list += [
-        {
-          "alias": "Just Entered -> Outside when no motion is authoritative",
-          "conditions": [
-            {"condition": "state", "entity_id": self.room_occupancy, "state": "Just Entered"},
-            {"condition": "state", "entity_id": self.motion_group, "state": "off"},
-          ],
-          "sequence": [select_outside]
-        }
-      ]
-
-    choose_list += [
-      {
-        "alias": "Just Entered -> Just Entered by default",
-        "conditions": [
-          {"condition": "state", "entity_id": self.room_occupancy, "state": "Just Entered"},
-        ],
-        "sequence": [select_just_entered]
-      },
-      {
-        "alias": "Stayed Inside -> In Sleep when sleep time and stayed long enough",
-        "conditions": [
-          {"condition": "state", "entity_id": self.room_occupancy, "state": "Stayed Inside"},
-          {"condition": "state", "entity_id": self.sleep_time, "state": "on"},
-          self.state_duration_template_condition(self.room_occupancy, "Stayed Inside", self.inside_to_sleep_timeout, ">"),
-        ],
-        "sequence": [select_sleep]
-      },
-      {
-        "alias": "Stayed Inside -> Outside when motion stays off",
-        "conditions": [
-          {"condition": "state", "entity_id": self.room_occupancy, "state": "Stayed Inside"},
-          self.state_duration_template_condition(self.motion_group, "off", self.inside_to_outside_timeout, ">="),
-        ],
-        "sequence": [select_outside]
-      },
-    ]
-
-    if self.set_to_outside_when_no_motion == 'yes':
-      choose_list += [
-        {
-          "alias": "Stayed Inside -> Outside when no motion is authoritative",
-          "conditions": [
-            {"condition": "state", "entity_id": self.room_occupancy, "state": "Stayed Inside"},
-            {"condition": "state", "entity_id": self.motion_group, "state": "off"},
-          ],
-          "sequence": [select_outside]
-        }
-      ]
-
-    choose_list += [
-      {
-        "alias": "Stayed Inside -> Stayed Inside by default",
-        "conditions": [
-          {"condition": "state", "entity_id": self.room_occupancy, "state": "Stayed Inside"},
-        ],
-        "sequence": [select_stayed]
-      },
-      {
-        "alias": "In Sleep -> Stayed Inside when sleep time ends",
-        "conditions": [
-          {"condition": "state", "entity_id": self.room_occupancy, "state": "In Sleep"},
-          {"condition": "template", "value_template": "{{ not is_state('" + self.sleep_time + "', 'on') }}"},
-        ],
-        "sequence": [select_stayed]
-      },
-      {
-        "alias": "In Sleep -> Outside when motion stays off",
-        "conditions": [
-          {"condition": "state", "entity_id": self.room_occupancy, "state": "In Sleep"},
-          self.state_duration_template_condition(self.motion_group, "off", self.sleep_to_outside_timeout, ">"),
-        ],
-        "sequence": [select_outside]
-      },
-      {
-        "alias": "In Sleep -> In Sleep by default",
-        "conditions": [
-          {"condition": "state", "entity_id": self.room_occupancy, "state": "In Sleep"},
-        ],
-        "sequence": [select_sleep]
-      },
-    ]
-
-    return [{
-      "choose": choose_list,
-      "default": [{"service": "script.do_nothing"}]
-    }]
+    return occupancy_state_machine.get_occupancy_state_machine_actions(
+      room_occupancy=self.room_occupancy,
+      motion_group=self.motion_group,
+      sleep_time=self.sleep_time,
+      set_to_outside_when_no_motion=self.set_to_outside_when_no_motion,
+      entered_to_inside_timeout=self.entered_to_inside_timeout,
+      inside_to_sleep_timeout=self.inside_to_sleep_timeout,
+      inside_to_outside_timeout=self.inside_to_outside_timeout,
+      sleep_to_outside_timeout=self.sleep_to_outside_timeout
+    )
   def gen_occupancy_automations(self):
 
     self.automation_occupancy_update = {"alias":"ZOc-" + self.automation_room_name + "Occupancy Update" + "-" + self.room_name}

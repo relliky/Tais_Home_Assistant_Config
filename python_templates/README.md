@@ -14,6 +14,8 @@ package YAML and Lovelace dashboard YAML from room-specific Python classes.
   alias naming helpers.
 - `automation_helpers.py` contains small Home Assistant trigger, action, and
   condition dict builders.
+- `occupancy_state_machine.py` contains the room occupancy choose/action
+  generation logic.
 - `dashboard_colors.py` contains dashboard CSS color aliases.
 - `dashboard_generator.py` contains the overall Lovelace dashboard aggregation
   logic.
@@ -124,6 +126,7 @@ Completed foundations:
     module.
 13. Move dashboard color aliases into their own module.
 14. Move shared message helpers into their own module.
+15. Move occupancy state machine generation into its own module.
 
 Recommended next steps:
 
