@@ -23,6 +23,7 @@ import message_helpers
 import occupancy_state_machine
 import package_writer
 import room_device_defaults
+import room_motion_entities
 import room_properties
 import room_registry
 import room_remote_entities
@@ -194,40 +195,33 @@ class RoomBase:
     self.west_face_windows = properties["west_face_windows"]
 
   def get_motion_sensor_entities(self):
-    self.motion_group    = "group." + self.room_entity + "_motion_group"
-    self.occupancy_group = "group." + self.room_entity + "_occupancy_group"
-
-
-    # Motion sensor entities
-    self.bed_motion_sensors      =  ["binary_sensor." + self.room_entity + "_bed_motion_sensor_motion"] if self.room_type == 'bedroom' else []
-    self.non_bed_motion_sensors  =  []
-    self.all_motion_sensors      =  ["uninitialized_all_motion_sensors"]
-    self.entrance_motion_sensors =  ["binary_sensor." + self.room_entity + "_entrance_motion_sensor_motion"] if self.room_type == 'bedroom' else \
-                                    [self.motion_group]
-
-    self.room_occupancy          = "input_select."  + self.room_entity + "_occupancy"
-    self.sleep_time              = 'input_boolean.' + self.room_entity + '_sleep_time' if self.room_type == 'bedroom' else \
-                                   'input_boolean.always_off_constant'
-
-    self.entered_to_inside_timeout = 2*60+30
-    self.inside_to_outside_timeout = 1*60 if self.room_type == 'landing' else 5*60
-    self.sleep_to_outside_timeout  = 60*60
-    self.inside_to_sleep_timeout   = 30*60
-
-    self.automation_occupancy = { "alias":"ZOc-" + self.automation_room_name + "Occupancy Update" + "-" + self.room_name}
-    self.automation_occupancy['id'] = self.getIDFromAlias(self.automation_occupancy['alias'])
-
-    self.occupancy_state_duration= 4 # Minutes
-    self.occupancy_on_x_min_ratio_sensor  = "unitialized_ratio_sensor"
-    self.occupancy_on_2x_min_ratio_sensor = "unitialized_ratio_sensor"
-
-    # default to assume that no motion requires a longer timeout than immediately set the room occupancy to Outside
-    self.set_to_outside_when_no_motion = 'no'
-
-    # Occupancy Override Control
-    self.occupancy_override_entity          = 'input_boolean.' + self.room_entity + '_auto_off_suspended'
-    self.occupancy_override_timer_entity    = 'timer.'         + self.room_entity + '_auto_off_suspended_timer'
-    self.occupancy_override_default_timeout = '02:00:00'
+    entities = room_motion_entities.default_motion_sensor_entities(
+      self.room_entity,
+      self.room_type,
+      self.room_name,
+      self.automation_room_name,
+      self.getIDFromAlias,
+    )
+    self.motion_group = entities["motion_group"]
+    self.occupancy_group = entities["occupancy_group"]
+    self.bed_motion_sensors = entities["bed_motion_sensors"]
+    self.non_bed_motion_sensors = entities["non_bed_motion_sensors"]
+    self.all_motion_sensors = entities["all_motion_sensors"]
+    self.entrance_motion_sensors = entities["entrance_motion_sensors"]
+    self.room_occupancy = entities["room_occupancy"]
+    self.sleep_time = entities["sleep_time"]
+    self.entered_to_inside_timeout = entities["entered_to_inside_timeout"]
+    self.inside_to_outside_timeout = entities["inside_to_outside_timeout"]
+    self.sleep_to_outside_timeout = entities["sleep_to_outside_timeout"]
+    self.inside_to_sleep_timeout = entities["inside_to_sleep_timeout"]
+    self.automation_occupancy = entities["automation_occupancy"]
+    self.occupancy_state_duration = entities["occupancy_state_duration"]
+    self.occupancy_on_x_min_ratio_sensor = entities["occupancy_on_x_min_ratio_sensor"]
+    self.occupancy_on_2x_min_ratio_sensor = entities["occupancy_on_2x_min_ratio_sensor"]
+    self.set_to_outside_when_no_motion = entities["set_to_outside_when_no_motion"]
+    self.occupancy_override_entity = entities["occupancy_override_entity"]
+    self.occupancy_override_timer_entity = entities["occupancy_override_timer_entity"]
+    self.occupancy_override_default_timeout = entities["occupancy_override_default_timeout"]
 
     self.gui_ctl_entity_list = [self.occupancy_override_entity,
                                 self.occupancy_override_timer_entity]

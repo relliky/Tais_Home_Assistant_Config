@@ -42,6 +42,8 @@ package YAML and Lovelace dashboard YAML from room-specific Python classes.
   dashboard path, room type, and west-facing-window classification.
 - `room_remote_entities.py` contains default remote button and wall-switch
   entity list builders.
+- `room_motion_entities.py` contains default motion, occupancy, and occupancy
+  override entity builders.
 - `room_time_settings.py` contains default sleep-time and light-time settings.
 - `rooms.py` contains room-specific classes such as `MasterRoom`, `Kitchen`,
   `LivingRoom`, and `Study`.
@@ -159,6 +161,8 @@ Completed foundations:
 26. Move default mirror, TV, cover, and window entities into their own module.
 27. Move default temperature-control entities into the room device defaults
     module.
+28. Move default motion, occupancy, and occupancy override entities into their
+    own module.
 
 Recommended next steps:
 
