@@ -36,6 +36,8 @@ package YAML and Lovelace dashboard YAML from room-specific Python classes.
 - `message_helpers.py` contains shared warning, error, and info output helpers.
 - `room_registry.py` defines the room order used by package and dashboard
   generation.
+- `room_properties.py` contains derived room metadata such as entity name,
+  dashboard path, room type, and west-facing-window classification.
 - `rooms.py` contains room-specific classes such as `MasterRoom`, `Kitchen`,
   `LivingRoom`, and `Study`.
 - `auto_gen_overall_dashboard.yaml` is the generated Lovelace dashboard YAML.
@@ -146,6 +148,7 @@ Completed foundations:
 20. Move package/customize YAML writing orchestration into its own module.
 21. Move default dashboard settings into their own module.
 22. Move Lovelace `card_mod` style builders into their own module.
+23. Move derived room metadata helpers into their own module.
 
 Recommended next steps:
 

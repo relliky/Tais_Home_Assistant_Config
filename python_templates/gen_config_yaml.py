@@ -22,6 +22,7 @@ import ha_entity_registry
 import message_helpers
 import occupancy_state_machine
 import package_writer
+import room_properties
 import room_registry
 import rooms
 import re
@@ -181,18 +182,12 @@ class RoomBase:
     self.start_of_sleep_time = '23:00:00'
 
   def get_room_name_and_property(self):
-    self.room_entity          = self.getEntityFromName(self.room_name)
-    self.room_navi_path       = self.room_entity.replace("_", "-")
-    self.automation_room_name = self.room_short_name + " "
-
-    self.room_type =  'bedroom'       if (('_room' in self.room_entity) and ('living_room' != self.room_entity)) else \
-                      'toilet'        if '_toilet' in self.room_entity else \
-                      'common_area'
-
-    self.west_face_windows = True if self.room_entity in ['en_suite_room',
-                                                          'en_suite_toilet',
-                                                          'master_room',
-                                                          'kitchen'] else False
+    properties = room_properties.derive_room_properties(self.room_name, self.room_short_name)
+    self.room_entity = properties["room_entity"]
+    self.room_navi_path = properties["room_navi_path"]
+    self.automation_room_name = properties["automation_room_name"]
+    self.room_type = properties["room_type"]
+    self.west_face_windows = properties["west_face_windows"]
 
   def get_motion_sensor_entities(self):
     self.motion_group    = "group." + self.room_entity + "_motion_group"
