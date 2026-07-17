@@ -17,6 +17,12 @@ import warnings
 from copy import deepcopy
 
 
+SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))
+PACKAGES_DIR = os.path.normpath(os.path.join(SCRIPT_DIR, "..", "packages"))
+AUTO_GENERATED_PACKAGES_DIR = os.path.join(PACKAGES_DIR, "_auto_generated_packages")
+STORAGE_DIR = os.path.normpath(os.path.join(SCRIPT_DIR, "..", ".storage"))
+
+
 AUTO_GENERATED_HEADER = (
   "#############################################################################\n"
   "# DO NOT MODIFY. This is an automatically generated file.                   # \n"
@@ -5289,15 +5295,15 @@ class RoomBase:
 
     #if type == 'package':
       # File Path
-      self.script_dir         = os.path.dirname(os.path.realpath(__file__))
-      self.auto_gen_dir       = self.script_dir + "/../packages/_auto_generated_packages/"
-      self.auto_gen_config_path = self.auto_gen_dir + "/auto_gen_" + self.room_entity + ".yaml"
+      self.script_dir         = SCRIPT_DIR
+      self.auto_gen_dir       = AUTO_GENERATED_PACKAGES_DIR
+      self.auto_gen_config_path = os.path.join(self.auto_gen_dir, "auto_gen_" + self.room_entity + ".yaml")
 
       write_yaml_file(self.auto_gen_config_path, self.entity_declarations, include_header=True)
 
       # Customize have to take level 1 directory as it only accept 1 level of directory, which is 'packages' in this case.
-      self.auto_gen_customize_dir  = self.script_dir             + "/../packages/"
-      self.auto_gen_config_path    = self.auto_gen_customize_dir + "/auto_gen_customize_" + self.room_entity + ".yaml"
+      self.auto_gen_customize_dir  = PACKAGES_DIR
+      self.auto_gen_config_path    = os.path.join(self.auto_gen_customize_dir, "auto_gen_customize_" + self.room_entity + ".yaml")
       self.customize_declaration   = {'homeassistant': {'customize': self.customize_dict}}
       write_yaml_file(self.auto_gen_config_path, self.customize_declaration, include_header=True)
 
@@ -7303,12 +7309,12 @@ class Dashboard(RoomBase):
 
   def writeConfig(self):
     # File Path
-    self.script_dir         = os.path.dirname(os.path.realpath(__file__))
+    self.script_dir         = SCRIPT_DIR
     if self.format == 'yaml':
-      self.auto_gen_config_path = self.script_dir + "/auto_gen_overall_dashboard.yaml"
+      self.auto_gen_config_path = os.path.join(self.script_dir, "auto_gen_overall_dashboard.yaml")
     else: # json
       # this does not work. have to use GUI to copy the yaml dashboard
-      self.auto_gen_config_path = self.script_dir + "/../.storage/lovelace.dashboard_mobile"
+      self.auto_gen_config_path = os.path.join(STORAGE_DIR, "lovelace.dashboard_mobile")
 
 
     # Open a new file and write automation
@@ -7330,8 +7336,7 @@ def read_core_entity_entries_json ():
   global updated_core_entities_dict
 
   # File Path
-  script_dir         = os.path.dirname(os.path.realpath(__file__))
-  core_entities_path = script_dir + "/../.storage/core.entity_registry"
+  core_entities_path = os.path.join(STORAGE_DIR, "core.entity_registry")
 
   # Open a new file and write automation
   f = open(core_entities_path)
@@ -7381,8 +7386,7 @@ def write_core_entity_entries_json():
   global updated_core_entities_dict
 
   # File Path
-  script_dir         = os.path.dirname(os.path.realpath(__file__))
-  core_entities_path = script_dir + "/core.entity_registry"
+  core_entities_path = os.path.join(SCRIPT_DIR, "core.entity_registry")
 
   # Dump json database
   with open(core_entities_path, 'w') as json_file:
@@ -7504,9 +7508,6 @@ print ("Done.")
 #translation = translator.translate("This is a pen.")
 #translation = translator.translate("Master Room Lamp 1")
 #print (translation)
-
-
-
 
 
 
