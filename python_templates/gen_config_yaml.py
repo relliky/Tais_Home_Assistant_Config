@@ -9,6 +9,7 @@ from HA_Composite_Card_Lib.src.main import HA_Composite_Card_Lib
 import automation_helpers
 import dashboard_colors
 import dashboard_generator
+import entity_declaration_builders
 import entity_naming
 import generator_cli
 import generator_io
@@ -524,14 +525,7 @@ class RoomBase:
 #                                         )]
 
   def add_group(self, group_entity_type, group_name, group_entity_list):
-    simple_group_dict = [
-      {
-        "platform": "group",
-        "name": group_name,
-        "entities": group_entity_list,
-        "configured": True
-      }
-    ]
+    simple_group_dict = entity_declaration_builders.simple_group(group_name, group_entity_list)
 
     if(group_entity_type == 'light'):
       self.light_list += simple_group_dict
@@ -544,26 +538,14 @@ class RoomBase:
   def add_automation(self, entity_id, name, automation_type, unavailable_period='00:00:30', unavailable_device_id=None, device_id=None):
     if(automation_type == "Wifi Device Reconnect When Unavailable" ):
         self.automation_list += [
-          {
-            "alias": "ZR-" + self.automation_room_name + "Reconnect " + name + " When unavailable" + "-" + self.room_name,
-            "configured": True,
-            "triggers": [
-              {
-                "trigger": "state",
-                "entity_id": entity_id,
-                "to": "unavailable",
-                'for': unavailable_period,
-              },
-            ],
-            "actions": [
-              {
-                "action": "unifi.reconnect_client",
-                "data": {"device_id": unavailable_device_id},
-              },
-                # only try to reconnect every 1 hour to avoid too many reconnects in a short time
-              { "delay": '01:00:00'},
-            ],
-          }
+          entity_declaration_builders.wifi_reconnect_automation(
+            entity_id=entity_id,
+            name=name,
+            automation_room_name=self.automation_room_name,
+            room_name=self.room_name,
+            unavailable_period=unavailable_period,
+            unavailable_device_id=unavailable_device_id
+          )
         ]
     else:
       error("Automation_type '" + automation_type + "' is not supported. Name = '" + name + "', entity_id:'" + entity_id + "'\n")
