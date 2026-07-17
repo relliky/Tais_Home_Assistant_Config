@@ -7,6 +7,7 @@
 
 from HA_Composite_Card_Lib.src.main import HA_Composite_Card_Lib
 import automation_helpers
+import configured_entity_filter
 import dashboard_colors
 import dashboard_generator
 import entity_declaration_builders
@@ -5121,42 +5122,7 @@ class RoomBase:
 
 
   def remove_disabed_entities(self):
-    filtered_entities = {}
-
-    for category_name in self.entity_declarations:
-      category_entities = self.entity_declarations[category_name]
-
-      # If this entity category declare each instance using list
-      if type(category_entities) == list:
-        filtered_entities[category_name] = []
-        for entity in category_entities:
-          #print(entity)
-          if entity["configured"] == True:
-            # remove 'configured' key
-            entity.pop('configured')
-            filtered_entity = entity
-            filtered_entities[category_name] += [filtered_entity]
-          #print(filtered_entity)
-          #print(filtered_entities[category_name])
-
-      # else this entity category declare each instance using dict
-      elif type(category_entities) == dict:
-        filtered_entities[category_name] = {}
-        for entity_name in category_entities:
-          entity = category_entities[entity_name]
-          #print(entity)
-          if entity["configured"] == True:
-            # remove 'configured' key
-            entity.pop('configured')
-            filtered_entity = entity
-            filtered_entities[category_name] |= {entity_name : filtered_entity}
-            #print(filtered_entity)
-            #print(filtered_entities[category_name])
-
-      else:
-        error ('entity_declarations[' + category_name + '] is not either a dictionary or a list')
-
-    self.entity_declarations = filtered_entities
+    self.entity_declarations = configured_entity_filter.remove_disabled_entities(self.entity_declarations)
 
 #########################################################################
 # Instantiate all the rooms with custom entities/automation override    #

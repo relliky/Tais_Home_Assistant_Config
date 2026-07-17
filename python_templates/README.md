@@ -14,6 +14,8 @@ package YAML and Lovelace dashboard YAML from room-specific Python classes.
   alias naming helpers.
 - `entity_declaration_builders.py` contains small entity/group/automation
   declaration builders.
+- `configured_entity_filter.py` contains filtering for generated declarations
+  guarded by a `configured` flag.
 - `automation_helpers.py` contains small Home Assistant trigger, action, and
   condition dict builders.
 - `occupancy_state_machine.py` contains the room occupancy choose/action
@@ -130,6 +132,7 @@ Completed foundations:
 14. Move shared message helpers into their own module.
 15. Move occupancy state machine generation into its own module.
 16. Move small entity declaration builders into their own module.
+17. Move configured entity filtering into its own module.
 
 Recommended next steps:
 
