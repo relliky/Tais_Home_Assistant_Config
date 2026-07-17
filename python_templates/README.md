@@ -75,7 +75,7 @@ Recommended workflow:
 Test command:
 
 ```powershell
-python -m unittest discover -s H:\python_templates\tests
+py -3.14 -m unittest discover -s H:\python_templates\tests
 ```
 
 Common dashboard-only generation command:
@@ -141,6 +141,5 @@ outputs in a temporary directory.
   the test suite.
 - PyYAML is required.
 - The generator currently uses Python 3.9+ dictionary merge syntax.
-- Some regular expressions trigger warnings on newer Python versions because
-  they are not raw strings. These warnings should be cleaned up in a separate
-  low-risk commit.
+- Regex strings have been cleaned up so `gen_config_yaml.py` compiles under
+  Python 3.14 without `SyntaxWarning`.
