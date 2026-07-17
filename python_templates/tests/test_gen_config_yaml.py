@@ -1,0 +1,224 @@
+import os
+import sys
+import unittest
+
+
+SCRIPT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if SCRIPT_DIR not in sys.path:
+    sys.path.insert(0, SCRIPT_DIR)
+
+import gen_config_yaml
+
+
+class RoomBaseHelpersTest(unittest.TestCase):
+    def setUp(self):
+        self.room = gen_config_yaml.RoomBase.__new__(gen_config_yaml.RoomBase)
+
+    def test_get_entity_from_name_normalizes(self):
+        self.assertEqual(
+            self.room.getEntityFromName("Master Room"),
+            "master_room",
+        )
+        self.assertEqual(
+            self.room.getEntityFromName("  Living-Room!!  "),
+            "living_room",
+        )
+        self.assertEqual(
+            self.room.getEntityFromName("Kitchen___Zone"),
+            "kitchen_zone",
+        )
+
+    def test_get_id_from_alias(self):
+        alias = "ZL- Master Room Lights On"
+        self.assertEqual(
+            self.room.getIDFromAlias(alias),
+            "automation.zl_master_room_lights_on",
+        )
+
+    def test_captilize_sentence(self):
+        self.assertEqual(
+            self.room.captilizeSentence("hello world"),
+            "Hello World",
+        )
+        self.assertEqual(
+            self.room.captilizeSentence("  hello world"),
+            "  Hello World",
+        )
+
+    def test_get_name_from_entity(self):
+        entity = "light.master_room_ceiling_light"
+        self.assertEqual(
+            self.room.getNameFromEntity(entity),
+            "Master Room Ceiling Light",
+        )
+
+    def test_time_pattern_trigger_structure(self):
+        triggers = self.room.get_time_pattern_trigger(minutes=15, ha_start_trigger=True)
+        self.assertEqual(len(triggers), 2)
+        self.assertEqual(triggers[0]["trigger"], "homeassistant")
+        self.assertEqual(triggers[0]["event"], "start")
+        self.assertEqual(triggers[1]["trigger"], "time_pattern")
+        self.assertEqual(triggers[1]["minutes"], "/15")
+        self.assertTrue(triggers[1]["seconds"].isdigit())
+
+        triggers_no_start = self.room.get_time_pattern_trigger(minutes=10, ha_start_trigger=False)
+        self.assertEqual(len(triggers_no_start), 1)
+        self.assertEqual(triggers_no_start[0]["trigger"], "time_pattern")
+        self.assertEqual(triggers_no_start[0]["minutes"], "/10")
+
+
+
+def pyscript_occupancy_next_state(cur_state, motion, motion_state_lasts_for,
+                                  occupancy_state_lasts_for, sleep_time_on,
+                                  turn_to_outside_when_no_motion,
+                                  entered_to_inside_timeout,
+                                  inside_to_sleep_timeout,
+                                  inside_to_outside_timeout,
+                                  sleep_to_outside_timeout):
+    motion_on_for = motion_state_lasts_for if motion == 'on' else 0
+    motion_off_for = motion_state_lasts_for if motion == 'off' else 0
+    stay_inside_for = occupancy_state_lasts_for if cur_state == 'Stayed Inside' else 0
+
+    if cur_state == 'Outside':
+        if motion == 'on':
+            return 'Just Entered'
+        return 'Outside'
+
+    if cur_state == 'Just Entered':
+        if motion == 'on' and motion_on_for >= entered_to_inside_timeout:
+            return 'Stayed Inside'
+        if motion_off_for >= inside_to_outside_timeout:
+            return 'Outside'
+        if turn_to_outside_when_no_motion == 'yes' and motion == 'off':
+            return 'Outside'
+        return 'Just Entered'
+
+    if cur_state == 'Stayed Inside':
+        if stay_inside_for > inside_to_sleep_timeout and sleep_time_on:
+            return 'In Sleep'
+        if motion_off_for >= inside_to_outside_timeout:
+            return 'Outside'
+        if turn_to_outside_when_no_motion == 'yes' and motion == 'off':
+            return 'Outside'
+        return 'Stayed Inside'
+
+    if cur_state == 'In Sleep':
+        if not sleep_time_on:
+            return 'Stayed Inside'
+        if motion_off_for > sleep_to_outside_timeout:
+            return 'Outside'
+        return 'In Sleep'
+
+    return 'Uninitialized_states'
+
+
+def generated_occupancy_next_state(room, cur_state, motion, motion_state_lasts_for,
+                                   occupancy_state_lasts_for, sleep_time_on):
+    actions = room.get_occupancy_state_machine_actions()
+    choose = actions[0]['choose']
+
+    def state_matches(entity_id, expected):
+        actual = {
+            room.room_occupancy: cur_state,
+            room.motion_group: motion,
+            room.sleep_time: 'on' if sleep_time_on else 'off',
+        }[entity_id]
+        return actual == expected
+
+    def duration_matches(entity_id, expected_state, seconds, op):
+        actual_state = {
+            room.room_occupancy: cur_state,
+            room.motion_group: motion,
+        }[entity_id]
+        duration = {
+            room.room_occupancy: occupancy_state_lasts_for,
+            room.motion_group: motion_state_lasts_for,
+        }[entity_id]
+        if actual_state != expected_state:
+            return False
+        return duration > seconds if op == '>' else duration >= seconds
+
+    def template_matches(template):
+        if "not is_state('" + room.motion_group + "', 'on')" in template:
+            return motion != 'on'
+        if "not is_state('" + room.sleep_time + "', 'on')" in template:
+            return not sleep_time_on
+        for entity_id in (room.room_occupancy, room.motion_group):
+            for expected_state in ('on', 'off', 'Stayed Inside'):
+                marker = "is_state('" + entity_id + "', '" + expected_state + "')"
+                if marker in template:
+                    op = '>' if ') > ' in template else '>='
+                    seconds = int(template.rsplit(' ', 2)[1])
+                    return duration_matches(entity_id, expected_state, seconds, op)
+        raise AssertionError('Unsupported template condition: ' + template)
+
+    def condition_matches(condition):
+        if condition['condition'] == 'state':
+            return state_matches(condition['entity_id'], condition['state'])
+        if condition['condition'] == 'template':
+            return template_matches(condition['value_template'])
+        raise AssertionError('Unsupported condition: ' + str(condition))
+
+    for branch in choose:
+        if all(condition_matches(c) for c in branch['conditions']):
+            sequence = branch['sequence']
+            return sequence[0]['data']['option']
+
+    return None
+
+
+class OccupancyStateMachineGenerationTest(unittest.TestCase):
+    def make_room(self, turn_to_outside_when_no_motion='no'):
+        room = gen_config_yaml.RoomBase.__new__(gen_config_yaml.RoomBase)
+        room.room_occupancy = 'input_select.test_room_occupancy'
+        room.motion_group = 'group.test_room_motion_group'
+        room.sleep_time = 'input_boolean.test_room_sleep_time'
+        room.set_to_outside_when_no_motion = turn_to_outside_when_no_motion
+        room.entered_to_inside_timeout = 150
+        room.inside_to_sleep_timeout = 1800
+        room.inside_to_outside_timeout = 300
+        room.sleep_to_outside_timeout = 3600
+        return room
+
+    def assert_generated_matches_pyscript(self, case, turn_to_outside_when_no_motion='no'):
+        room = self.make_room(turn_to_outside_when_no_motion)
+        expected = pyscript_occupancy_next_state(
+            turn_to_outside_when_no_motion=turn_to_outside_when_no_motion,
+            entered_to_inside_timeout=room.entered_to_inside_timeout,
+            inside_to_sleep_timeout=room.inside_to_sleep_timeout,
+            inside_to_outside_timeout=room.inside_to_outside_timeout,
+            sleep_to_outside_timeout=room.sleep_to_outside_timeout,
+            **case,
+        )
+        actual = generated_occupancy_next_state(room, **case)
+        self.assertEqual(actual, expected, case)
+
+    def test_generated_automation_matches_pyscript_state_machine(self):
+        cases = [
+            dict(cur_state='Outside', motion='on', motion_state_lasts_for=1, occupancy_state_lasts_for=100, sleep_time_on=False),
+            dict(cur_state='Outside', motion='off', motion_state_lasts_for=1000, occupancy_state_lasts_for=100, sleep_time_on=False),
+            dict(cur_state='Just Entered', motion='on', motion_state_lasts_for=149, occupancy_state_lasts_for=20, sleep_time_on=False),
+            dict(cur_state='Just Entered', motion='on', motion_state_lasts_for=150, occupancy_state_lasts_for=20, sleep_time_on=False),
+            dict(cur_state='Just Entered', motion='off', motion_state_lasts_for=299, occupancy_state_lasts_for=20, sleep_time_on=False),
+            dict(cur_state='Just Entered', motion='off', motion_state_lasts_for=300, occupancy_state_lasts_for=20, sleep_time_on=False),
+            dict(cur_state='Stayed Inside', motion='on', motion_state_lasts_for=10, occupancy_state_lasts_for=1801, sleep_time_on=True),
+            dict(cur_state='Stayed Inside', motion='on', motion_state_lasts_for=10, occupancy_state_lasts_for=1800, sleep_time_on=True),
+            dict(cur_state='Stayed Inside', motion='off', motion_state_lasts_for=299, occupancy_state_lasts_for=100, sleep_time_on=False),
+            dict(cur_state='Stayed Inside', motion='off', motion_state_lasts_for=300, occupancy_state_lasts_for=100, sleep_time_on=False),
+            dict(cur_state='In Sleep', motion='off', motion_state_lasts_for=3600, occupancy_state_lasts_for=100, sleep_time_on=True),
+            dict(cur_state='In Sleep', motion='off', motion_state_lasts_for=3601, occupancy_state_lasts_for=100, sleep_time_on=True),
+            dict(cur_state='In Sleep', motion='on', motion_state_lasts_for=1, occupancy_state_lasts_for=100, sleep_time_on=False),
+            dict(cur_state='In Sleep', motion='on', motion_state_lasts_for=1, occupancy_state_lasts_for=100, sleep_time_on=True),
+        ]
+        for case in cases:
+            self.assert_generated_matches_pyscript(case)
+
+    def test_generated_automation_matches_pyscript_authoritative_no_motion_mode(self):
+        cases = [
+            dict(cur_state='Just Entered', motion='off', motion_state_lasts_for=1, occupancy_state_lasts_for=20, sleep_time_on=False),
+            dict(cur_state='Stayed Inside', motion='off', motion_state_lasts_for=1, occupancy_state_lasts_for=100, sleep_time_on=False),
+        ]
+        for case in cases:
+            self.assert_generated_matches_pyscript(case, turn_to_outside_when_no_motion='yes')
+if __name__ == "__main__":
+    unittest.main()
