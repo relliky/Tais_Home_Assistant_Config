@@ -29,8 +29,8 @@ package YAML and Lovelace dashboard YAML from room-specific Python classes.
   config builders.
 - `dashboard_colors.py` contains dashboard CSS color aliases.
 - `dashboard_card_mod.py` contains Lovelace `card_mod` style builders.
-- `dashboard_settings.py` contains default dashboard settings and theme
-  selection.
+- `dashboard_settings.py` contains default dashboard settings, dashboard root
+  selection, and theme selection.
 - `dashboard_restrictions.py` contains Lovelace restriction-card wrappers and
   exemption user IDs.
 - `dashboard_view_helpers.py` contains small Lovelace view and layout wrapper
@@ -179,6 +179,7 @@ Completed foundations:
 31. Move default scene-control entities into their own module.
 32. Move occupancy ratio sensor config generation into its own module.
 33. Move default room config flags into their own module.
+34. Move dashboard root selection into dashboard settings.
 
 Recommended next steps:
 

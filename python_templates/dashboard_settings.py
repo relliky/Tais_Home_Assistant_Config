@@ -19,3 +19,12 @@ def default_dashboard_settings():
     "room_icon": "Uninitliazed_room_icon",
     "room_theme": IOS_THEMES[random.randint(0, 6)],
   }
+
+
+def dashboard_root_for_type(dashboard_type, dashboard_default_root):
+  return (
+    dashboard_default_root if dashboard_type == "default" else
+    "dashboard-tablet" if dashboard_type == "tablet" else
+    "dashboard-mobile" if dashboard_type == "mobile" else
+    "uninitialized_dashboard_root"
+  )

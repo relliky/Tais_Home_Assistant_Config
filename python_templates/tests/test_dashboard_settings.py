@@ -21,6 +21,24 @@ class DashboardSettingsTest(unittest.TestCase):
         self.assertEqual(settings["room_icon"], "Uninitliazed_room_icon")
         self.assertEqual(settings["room_theme"], "ios-dark-mode-dark-green")
 
+    def test_dashboard_root_for_type(self):
+        self.assertEqual(
+            dashboard_settings.dashboard_root_for_type("default", "dashboard-root"),
+            "dashboard-root",
+        )
+        self.assertEqual(
+            dashboard_settings.dashboard_root_for_type("tablet", "dashboard-root"),
+            "dashboard-tablet",
+        )
+        self.assertEqual(
+            dashboard_settings.dashboard_root_for_type("mobile", "dashboard-root"),
+            "dashboard-mobile",
+        )
+        self.assertEqual(
+            dashboard_settings.dashboard_root_for_type(None, "dashboard-root"),
+            "uninitialized_dashboard_root",
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

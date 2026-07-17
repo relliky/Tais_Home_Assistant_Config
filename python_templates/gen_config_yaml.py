@@ -132,10 +132,10 @@ class RoomBase:
     #self.dashboard_language = dashboard_language
     #print (self.dashboard_language)
     self.getDashboardSettings()
-    self.dashboard_root = self.dashboard_default_root if dashboard_type == 'default' else \
-                          'dashboard-tablet'          if dashboard_type == 'tablet'  else \
-                          'dashboard-mobile'          if dashboard_type == 'mobile'  else \
-                          'uninitialized_dashboard_root'
+    self.dashboard_root = dashboard_settings.dashboard_root_for_type(
+      dashboard_type,
+      self.dashboard_default_root,
+    )
     # Render config
     self.writeConfig()
 
