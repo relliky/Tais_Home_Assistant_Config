@@ -6,6 +6,7 @@
 #####################################################################
 
 from HA_Composite_Card_Lib.src.main import HA_Composite_Card_Lib
+import automation_helpers
 import dashboard_generator
 import entity_naming
 import generator_cli
@@ -1692,20 +1693,7 @@ class RoomBase:
 
 
   def get_time_pattern_trigger(self, minutes=30, ha_start_trigger=True):
-
-    time_pattern_trigger =  {
-      "minutes": "/" + str(minutes),
-      "seconds": str(random.randint(0, 59)), # make each automation by time pattern launched at different interval
-      "trigger": "time_pattern"
-    }
-
-    ha_start_trigger_config = {
-     "trigger": "homeassistant",
-      # Event can also be 'shutdown'
-      "event": "start",
-    }
-
-    return [ha_start_trigger_config, time_pattern_trigger] if ha_start_trigger else [time_pattern_trigger]
+    return automation_helpers.get_time_pattern_trigger(minutes=minutes, ha_start_trigger=ha_start_trigger)
 
   def add_average_temperature_sensor(self, sensor_1, sensor_2, sensor_out):
       self.template_list += [
@@ -3974,17 +3962,10 @@ class RoomBase:
 
 
   def select_occupancy_state(self, occupancy_state):
-    return {
-      "service": "input_select.select_option",
-      "target": {"entity_id": self.room_occupancy},
-      "data": {"option": occupancy_state}
-    }
+    return automation_helpers.select_input_select_option(self.room_occupancy, occupancy_state)
 
   def state_duration_template_condition(self, entity_id, state, seconds, op=">="):
-    return {
-      "condition": "template",
-      "value_template": "{{ is_state('" + entity_id + "', '" + state + "') and (as_timestamp(now()) - as_timestamp(states['" + entity_id + "'].last_changed)) " + op + " " + str(int(seconds)) + " }}"
-    }
+    return automation_helpers.state_duration_template_condition(entity_id, state, seconds, op=op)
 
   def get_occupancy_state_machine_actions(self):
     select_outside      = self.select_occupancy_state("Outside")
@@ -4851,14 +4832,11 @@ class RoomBase:
 
 
   def alwaysOnCond(self):
-    return  ['{{ 1 == 1 }}']
+    return automation_helpers.always_on_condition()
 
 
   def entity_is_on(self, entity):
-    return  { "condition": "state",
-              "entity_id": entity,
-              "state": "on"
-            }
+    return automation_helpers.entity_is_on(entity)
 
   def callSceneServiceIfSelected(self, scene_name):
     cond_seq = {
@@ -4874,13 +4852,7 @@ class RoomBase:
     return cond_seq
 
   def continueIf(self, entity_id, state, attribute=None, lastFor=None):
-    cond =  { "condition": "state",
-              "entity_id": entity_id,
-              "state":     state
-            }
-    cond |= {"attribute": attribute} if attribute  != None else {}
-    cond |= {"for":       lastFor}   if lastFor    != None else {}
-    return cond
+    return automation_helpers.continue_if(entity_id, state, attribute=attribute, lastFor=lastFor)
 
 
   def condition_list_is(self, condition_name):

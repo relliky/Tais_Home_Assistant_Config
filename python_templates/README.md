@@ -12,6 +12,8 @@ package YAML and Lovelace dashboard YAML from room-specific Python classes.
   interpretation.
 - `entity_naming.py` contains entity ID, postfix, display-name, and automation
   alias naming helpers.
+- `automation_helpers.py` contains small Home Assistant trigger, action, and
+  condition dict builders.
 - `dashboard_generator.py` contains the overall Lovelace dashboard aggregation
   logic.
 - `ha_entity_registry.py` contains helper functions for inspecting and cleaning
@@ -116,6 +118,8 @@ Completed foundations:
 9. Move output path and YAML/JSON writing helpers into their own module.
 10. Move CLI parsing helpers into their own module.
 11. Move entity naming helpers into their own module.
+12. Move small automation trigger/action/condition helpers into their own
+    module.
 
 Recommended next steps:
 
