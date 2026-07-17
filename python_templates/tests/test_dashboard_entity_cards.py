@@ -161,6 +161,25 @@ class DashboardEntityCardsTest(unittest.TestCase):
         self.assertEqual(graph_card["color_thresholds"][0], {"value": -10, "color": "#0000ff"})
         self.assertTrue(graph_card["animate"])
 
+    def test_header_chips_card(self):
+        card = dashboard_entity_cards.header_chips_card()
+
+        self.assertEqual(card["type"], "custom:mod-card")
+        self.assertEqual(card["card"]["type"], "custom:button-card")
+        self.assertEqual(
+            card["card"]["custom_fields"]["a"]["card"]["chips"],
+            [{"type": "menu"}],
+        )
+        self.assertEqual(
+            card["card"]["custom_fields"]["b"]["card"]["chips"][0]["entity"],
+            "sensor.time",
+        )
+        self.assertEqual(
+            card["card"]["custom_fields"]["c"]["card"]["chips"][0]["entity"],
+            "sensor.shi_chen",
+        )
+        self.assertIn("position: sticky", card["card_mod"]["style"])
+
 
 if __name__ == "__main__":
     unittest.main()

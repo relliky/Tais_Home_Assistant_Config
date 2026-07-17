@@ -197,6 +197,7 @@ Completed foundations:
 39. Move simple Lovelace entity-card builders into the entity-card module.
 40. Move complex Lovelace sensor mini-graph card builder into the entity-card
     module.
+41. Move Lovelace header chips card builder into the entity-card module.
 
 Recommended next steps:
 
