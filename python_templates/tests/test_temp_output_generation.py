@@ -57,10 +57,8 @@ class TempOutputGenerationTest(unittest.TestCase):
                 random.seed(0)
                 with contextlib.redirect_stdout(io.StringIO()):
                     gen_config_yaml.create_package_rooms()
-                    gen_config_yaml.Dashboard(
-                        format="yaml",
-                        dashboard_type="mobile",
-                        dashboard_language="English",
+                    gen_config_yaml.render_dashboard_config(
+                        gen_config_yaml.parse_args(["-dy", "-dm"])
                     )
 
                 for group_name, generated_subdir in GENERATED_GROUPS.items():

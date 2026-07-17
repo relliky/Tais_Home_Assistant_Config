@@ -6,6 +6,8 @@ package YAML and Lovelace dashboard YAML from room-specific Python classes.
 ## Main Files
 
 - `gen_config_yaml.py` is the main generator.
+- `dashboard_generator.py` contains the overall Lovelace dashboard aggregation
+  logic.
 - `ha_entity_registry.py` contains helper functions for inspecting and cleaning
   Home Assistant's `core.entity_registry`.
 - `auto_gen_overall_dashboard.yaml` is the generated Lovelace dashboard YAML.
@@ -98,12 +100,12 @@ Completed foundations:
    package/customize YAML against the baseline.
 4. Split command-line parsing and generation orchestration out of `main()`.
 5. Move entity-registry inspection helpers into their own module.
+6. Move dashboard generation into its own module.
 
 Recommended next steps:
 
-1. Move dashboard generation into its own module.
-2. Move room-specific classes into a `rooms.py` module.
-3. Split `RoomBase` only after the generated-output tests are strong.
+1. Move room-specific classes into a `rooms.py` module.
+2. Split `RoomBase` only after the generated-output tests are strong.
 
 Avoid large mechanical rewrites until the generator can produce and compare all
 outputs in a temporary directory.
