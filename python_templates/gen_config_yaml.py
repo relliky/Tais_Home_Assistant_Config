@@ -6,11 +6,11 @@
 #####################################################################
 
 from HA_Composite_Card_Lib.src.main import HA_Composite_Card_Lib
+import ha_entity_registry
 import re
 import yaml
 import os
 import json
-import copy
 import argparse
 import random
 import warnings
@@ -7373,75 +7373,6 @@ class Dashboard(RoomBase):
 
 
 ##################################################################
-#   Check core.entity_entries duplicated automation entities
-##################################################################
-orig_core_entities_dict    = {}
-updated_core_entities_dict = {}
-
-def read_core_entity_entries_json ():
-  global orig_core_entities_dict
-  global updated_core_entities_dict
-
-  # File Path
-  core_entities_path = os.path.join(STORAGE_DIR, "core.entity_registry")
-
-  # Open a new file and write automation
-  f = open(core_entities_path)
-
-  # returns JSON object as
-  # a dictionary
-  orig_core_entities_dict    = json.load(f)
-  # Copy - not just a shallow copy of the top most dictory but a deep copy
-  updated_core_entities_dict = copy.deepcopy(orig_core_entities_dict)
-
-  f.close()
-
-
-def check_core_entity_unexpected_entities():
-  global orig_core_entities_dict
-  global updated_core_entities_dict
-  global args
-
-  # Check if core.entity_entires have unexpected entities
-  for entity in orig_core_entities_dict['data']['entities']:
-    # Check if entity has duplicated automations
-    if entity['entity_id'].startswith('automation.z') and entity['entity_id'].endswith('_2'):
-      print (entity['entity_id'])
-    # Check if entity has duplicated entities
-    if args.check_auto_system_config:
-        if entity['entity_id'].endswith('_2'):
-          print (entity['entity_id'])
-
-
-def remove_core_entity_unexpected_entities():
-  global orig_core_entities_dict
-  global updated_core_entities_dict
-
-  # Reset entities list
-  updated_core_entities_dict['data']['entities'] = []
-  #print (updated_core_entities_dict['data']['entities'])
-
-  # Copy all entities other than auto generated automation
-  for entity in orig_core_entities_dict['data']['entities']:
-    if not entity['entity_id'].startswith('automation.z'):
-      #print (entity['entity_id'])
-      updated_core_entities_dict['data']['entities'] += [entity]
-
-
-def write_core_entity_entries_json():
-  global orig_core_entities_dict
-  global updated_core_entities_dict
-
-  # File Path
-  core_entities_path = os.path.join(SCRIPT_DIR, "core.entity_registry")
-
-  # Dump json database
-  with open(core_entities_path, 'w') as json_file:
-      json.dump(updated_core_entities_dict, json_file, indent=2)
-  print ("A updated core.entity_registry with no duplicated automation is generated at: " + core_entities_path)
-  print ("Please manually run cp " + core_entities_path + ' ~/config/.storage')
-
-##################################################################
 #  Add command line options and run based on options
 ##################################################################
 parser = ''
@@ -7485,17 +7416,24 @@ def check_entity_registry_config(parsed_args):
   if not parsed_args.check_auto_system_config:
     return
 
-  read_core_entity_entries_json()
-  check_core_entity_unexpected_entities()
+  ha_entity_registry.read_core_entity_entries_json(STORAGE_DIR)
+  unexpected_entities = ha_entity_registry.find_unexpected_entities(
+    check_all_suffix_duplicates=parsed_args.check_auto_system_config
+  )
+
+  for entity_id in unexpected_entities:
+    print(entity_id)
 
 
 def create_clean_entity_registry_config(parsed_args):
   if not parsed_args.create_system_config:
     return
 
-  read_core_entity_entries_json()
-  remove_core_entity_unexpected_entities()
-  write_core_entity_entries_json()
+  ha_entity_registry.read_core_entity_entries_json(STORAGE_DIR)
+  ha_entity_registry.remove_auto_generated_automation_entities()
+  core_entities_path = ha_entity_registry.write_core_entity_entries_json(SCRIPT_DIR)
+  print ("A updated core.entity_registry with no duplicated automation is generated at: " + core_entities_path)
+  print ("Please manually run cp " + core_entities_path + ' ~/config/.storage')
 
 
 def get_dashboard_type(parsed_args):
@@ -7578,4 +7516,3 @@ print ("Done.")
 #translation = translator.translate("This is a pen.")
 #translation = translator.translate("Master Room Lamp 1")
 #print (translation)
-
