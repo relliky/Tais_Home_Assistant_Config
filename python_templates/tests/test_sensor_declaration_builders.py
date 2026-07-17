@@ -14,6 +14,10 @@ def fake_name_from_entity(entity):
     return "Name for " + entity
 
 
+def fake_entity_from_name(name):
+    return name.lower().replace(" ", "_")
+
+
 class SensorDeclarationBuildersTest(unittest.TestCase):
     def test_event_binary_sensor_with_numeric_attribute_value(self):
         self.assertEqual(
@@ -57,6 +61,40 @@ class SensorDeclarationBuildersTest(unittest.TestCase):
             "{{ trigger.to_state.attributes['action'] == 'single' }}",
         )
         self.assertEqual(sensor["binary_sensor"][0]["auto_off"], 1.5)
+
+    def test_battery_sensor_declarations(self):
+        declarations = sensor_declaration_builders.battery_sensor_declarations(
+            "battery_device",
+            "Battery Device",
+            fake_entity_from_name,
+            fake_name_from_entity,
+        )
+
+        self.assertEqual(
+            declarations["sensor_list_additions"],
+            [
+                {
+                    "name": "Name for sensor.battery_device_median",
+                    "platform": "statistics",
+                    "entity_id": "sensor.battery_device",
+                    "precision": 0,
+                    "state_characteristic": "median",
+                    "max_age": {"hours": 24},
+                    "configured": True,
+                },
+            ],
+        )
+        self.assertEqual(
+            declarations["template_list_additions"][0]["sensor"][0],
+            {
+                "name": "Battery Device",
+                "unit_of_measurement": "%",
+                "device_class": "battery",
+                "state_class": "measurement",
+                "state": "{% set s = states('sensor.battery_device_median') %}"
+                         "{{ s | int if s not in ['unknown', 'unavailable', ''] else 'unknown' }}",
+            },
+        )
 
     def test_smooth_power_sensor(self):
         self.assertEqual(

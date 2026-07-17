@@ -1553,40 +1553,14 @@ class RoomBase:
 
   def add_battery_sensor(self, mac, name, smooth_battery=True, enable_battery=True):
     if enable_battery is True:
-        # Add smooth battery when needed
-        raw_sensor            = 'sensor.' + mac + ''
-        entity_postfix        = self.getEntityFromName(name)
-        median_sensor         = 'sensor.' + entity_postfix + '_median'
-
-        # this requires a HA restart for adding a new statistics entity, updating it does not require restart.
-        self.sensor_list += [
-          {
-            "name": self.getNameFromEntity(median_sensor),
-            "platform": "statistics",
-            "entity_id": raw_sensor,
-            "precision": 0,
-            "state_characteristic": "median",
-            "max_age":{"hours": 24},
-            "configured": True
-          }
-        ]
-
-        self.template_list += [
-          {
-            "sensor": [
-              {
-                "name": name,
-                "unit_of_measurement": "%",
-                "device_class": "battery",
-                "state_class": "measurement",
-                # https://chatgpt.com/share/69432e2e-4d44-8009-841d-2127eaec74d2
-                "state": "{% set s = states('" + median_sensor + "') %}" + \
-                         "{{ s | int if s not in ['unknown', 'unavailable', ''] else 'unknown' }}"
-              }
-            ],
-            "configured": True
-          }
-        ]
+        declarations = sensor_declaration_builders.battery_sensor_declarations(
+          mac,
+          name,
+          self.getEntityFromName,
+          self.getNameFromEntity,
+        )
+        self.sensor_list += declarations["sensor_list_additions"]
+        self.template_list += declarations["template_list_additions"]
 
   def add_event_binary_sensor(self, entity_id, name, attribute_name='Button Type', attribute_value=1, auto_off=0.2):
       self.template_list += [
