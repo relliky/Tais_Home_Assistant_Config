@@ -24,6 +24,7 @@ import occupancy_state_machine
 import package_writer
 import room_properties
 import room_registry
+import room_time_settings
 import rooms
 import re
 import os
@@ -178,8 +179,9 @@ class RoomBase:
       message_helpers.print_info(str)
 
   def get_time_entities(self):
-    self.end_of_sleep_time   = '06:30:00'
-    self.start_of_sleep_time = '23:00:00'
+    settings = room_time_settings.default_sleep_time_entities()
+    self.end_of_sleep_time = settings["end_of_sleep_time"]
+    self.start_of_sleep_time = settings["start_of_sleep_time"]
 
   def get_room_name_and_property(self):
     properties = room_properties.derive_room_properties(self.room_name, self.room_short_name)
@@ -402,13 +404,12 @@ class RoomBase:
     self.media_players            = []
 
   def get_time_setup(self):
-    # Time setup
-    self.daytime_lights_off_timeout   = "00:15:00"
-    self.nighttime_lights_off_timeout = "02:00:00" if self.room_type == "bedroom" else \
-                                        self.daytime_lights_off_timeout
-    self.daytime_start                = "06:00:00"
-    self.afternoon_start              = "13:00:00"
-    self.daytime_end                  = "21:00:00"
+    settings = room_time_settings.default_light_time_settings(self.room_type)
+    self.daytime_lights_off_timeout = settings["daytime_lights_off_timeout"]
+    self.nighttime_lights_off_timeout = settings["nighttime_lights_off_timeout"]
+    self.daytime_start = settings["daytime_start"]
+    self.afternoon_start = settings["afternoon_start"]
+    self.daytime_end = settings["daytime_end"]
 
   def get_cover_entities(self):
     # Cover entities
