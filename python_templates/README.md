@@ -44,8 +44,8 @@ package YAML and Lovelace dashboard YAML from room-specific Python classes.
   entity list builders.
 - `room_motion_entities.py` contains default motion, occupancy, and occupancy
   override entity builders.
-- `room_light_entities.py` contains default light entity and adaptive-lighting
-  config builders.
+- `room_light_entities.py` contains default light entity, adaptive-lighting,
+  and light-control config builders.
 - `room_time_settings.py` contains default sleep-time and light-time settings.
 - `rooms.py` contains room-specific classes such as `MasterRoom`, `Kitchen`,
   `LivingRoom`, and `Study`.
@@ -165,8 +165,8 @@ Completed foundations:
     module.
 28. Move default motion, occupancy, and occupancy override entities into their
     own module.
-29. Move default light entities and adaptive-lighting config into their own
-    module.
+29. Move default light entities, adaptive-lighting config, and light-control
+    entities into their own module.
 
 Recommended next steps:
 

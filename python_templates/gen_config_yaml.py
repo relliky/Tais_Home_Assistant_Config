@@ -274,64 +274,22 @@ class RoomBase:
     self.shower_sensors = entities["shower_sensors"]
 
   def get_lighting_control_entities(self):
-
-    self.ceiling_light_control_when = {}
-    self.ceiling_light_control_when['intense light summer']    = "input_boolean.ceiling_light_control_" + "intense_light_summer_"    + self.room_entity
-    self.ceiling_light_control_when['moderate light outdoor']  = "input_boolean.ceiling_light_control_" + "moderate_light_outdoor_"  + self.room_entity
-    self.ceiling_light_control_when['low light outdoor']       = "input_boolean.ceiling_light_control_" + "low_light_outdoor_"       + self.room_entity
-    self.ceiling_light_control_when['sleep mode']              = "input_boolean.ceiling_light_control_" + "sleep_mode_"              + self.room_entity
-
-    self.lamp_control_when = {}
-    self.lamp_control_when['intense light summer']             = "input_boolean.lamp_control_" +          "intense_light_summer_"    + self.room_entity
-    self.lamp_control_when['moderate light outdoor']           = "input_boolean.lamp_control_" +          "moderate_light_outdoor_"  + self.room_entity
-    self.lamp_control_when['low light outdoor']                = "input_boolean.lamp_control_" +          "low_light_outdoor_"       + self.room_entity
-    self.lamp_control_when['sleep mode']                       = "input_boolean.lamp_control_" +          "sleep_mode_"              + self.room_entity
-
-    self.led_control_when = {}
-    self.led_control_when['intense light summer']              = "input_boolean.led_control_" +           "intense_light_summer_"    + self.room_entity
-    self.led_control_when['moderate light outdoor']            = "input_boolean.led_control_" +           "moderate_light_outdoor_"  + self.room_entity
-    self.led_control_when['low light outdoor']                 = "input_boolean.led_control_" +           "low_light_outdoor_"       + self.room_entity
-    self.led_control_when['sleep mode']                        = "input_boolean.led_control_" +           "sleep_mode_"              + self.room_entity
-
-    self.curtain_control_when = {}
-    self.curtain_control_when['intense light summer']          = "input_boolean.curtain_control_" +       "intense_light_summer_"    + self.room_entity
-    self.curtain_control_when['moderate light outdoor']        = "input_boolean.curtain_control_" +       "moderate_light_outdoor_"  + self.room_entity
-    self.curtain_control_when['low light outdoor']             = "input_boolean.curtain_control_" +       "low_light_outdoor_"       + self.room_entity
-    self.curtain_control_when['sleep mode']                    = "input_boolean.curtain_control_" +       "sleep_mode_"              + self.room_entity
-
-    self.light_intensity_threshold_when = {}
-    self.light_intensity_threshold_when['intense light summer']   = 'input_number.intensity_threshold_' + "intense_light_summer_"   + self.room_entity
-    self.light_intensity_threshold_when['moderate light outdoor'] = 'input_number.intensity_threshold_' + "moderate_light_outdoor_" + self.room_entity
-
-    for scene in self.light_intensity_threshold_when:
-        self.gui_ctl_entity_list   += [self.light_intensity_threshold_when[scene]]
-
-    # Light intensity entity
-    self.light_intensity_entity = 'sensor.master_room_light_intensity' if self.west_face_windows is True else \
-                                  'sensor.living_room_light_intensity'
-    self.gui_ctl_entity_list   += [self.light_intensity_entity]
-
-
-    self.noon_time              =  "input_datetime.noon_time_"            + self.room_entity
-    #self.morning_start_time    =  "input_datetime.morning_start_time_"   + self.room_entity
-    #self.morning_end_time      =  "input_datetime.morning_end_time_"     + self.room_entity
-    #self.afternoon_start_time  =  "input_datetime.afternoon_start_time_" + self.room_entity
-    #self.afternoon_end_time    =  "input_datetime.afternoon_end_time_"   + self.room_entity
-
-    self.time_controls = [#self.noon_time,
-                          #self.morning_start_time,
-                          #self.morning_end_time,
-                          #self.afternoon_start_time,
-                          #self.afternoon_end_time,
-                          ]
-    self.light_sensor = 'sensor.master_room_west_side_light_sensor' if self.west_face_windows is True else \
-                        'sensor.living_room_east_side_light_sensor'
-
-    self.min_value_as_bright = f'input_number.{self.room_entity}_min_value_as_bright'
-
-    self.light_sensor_controls = [self.light_sensor,
-                                  #self.min_value_as_bright
-                                  ]
+    entities = room_light_entities.default_lighting_control_entities(
+      self.room_entity,
+      self.west_face_windows,
+    )
+    self.ceiling_light_control_when = entities["ceiling_light_control_when"]
+    self.lamp_control_when = entities["lamp_control_when"]
+    self.led_control_when = entities["led_control_when"]
+    self.curtain_control_when = entities["curtain_control_when"]
+    self.light_intensity_threshold_when = entities["light_intensity_threshold_when"]
+    self.light_intensity_entity = entities["light_intensity_entity"]
+    self.noon_time = entities["noon_time"]
+    self.time_controls = entities["time_controls"]
+    self.light_sensor = entities["light_sensor"]
+    self.min_value_as_bright = entities["min_value_as_bright"]
+    self.light_sensor_controls = entities["light_sensor_controls"]
+    self.gui_ctl_entity_list += entities["gui_ctl_entity_list_additions"]
 
   def getPrefix(self, entity):
     return entity_naming.get_prefix(entity)

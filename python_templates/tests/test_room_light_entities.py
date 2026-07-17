@@ -72,6 +72,54 @@ class RoomLightEntitiesTest(unittest.TestCase):
         self.assertEqual(config["separate_turn_on_commands"], False)
         self.assertEqual(config["include_config_in_attributes"], False)
 
+    def test_default_lighting_control_entities_for_west_facing_room(self):
+        entities = room_light_entities.default_lighting_control_entities(
+            "master_room",
+            True,
+        )
+
+        self.assertEqual(
+            entities["ceiling_light_control_when"]["intense light summer"],
+            "input_boolean.ceiling_light_control_intense_light_summer_master_room",
+        )
+        self.assertEqual(
+            entities["lamp_control_when"]["sleep mode"],
+            "input_boolean.lamp_control_sleep_mode_master_room",
+        )
+        self.assertEqual(
+            entities["light_intensity_threshold_when"],
+            {
+                "intense light summer": "input_number.intensity_threshold_intense_light_summer_master_room",
+                "moderate light outdoor": "input_number.intensity_threshold_moderate_light_outdoor_master_room",
+            },
+        )
+        self.assertEqual(entities["light_intensity_entity"], "sensor.master_room_light_intensity")
+        self.assertEqual(entities["noon_time"], "input_datetime.noon_time_master_room")
+        self.assertEqual(entities["time_controls"], [])
+        self.assertEqual(entities["light_sensor"], "sensor.master_room_west_side_light_sensor")
+        self.assertEqual(entities["min_value_as_bright"], "input_number.master_room_min_value_as_bright")
+        self.assertEqual(
+            entities["light_sensor_controls"],
+            ["sensor.master_room_west_side_light_sensor"],
+        )
+        self.assertEqual(
+            entities["gui_ctl_entity_list_additions"],
+            [
+                "input_number.intensity_threshold_intense_light_summer_master_room",
+                "input_number.intensity_threshold_moderate_light_outdoor_master_room",
+                "sensor.master_room_light_intensity",
+            ],
+        )
+
+    def test_default_lighting_control_entities_for_non_west_facing_room(self):
+        entities = room_light_entities.default_lighting_control_entities(
+            "kitchen",
+            False,
+        )
+
+        self.assertEqual(entities["light_intensity_entity"], "sensor.living_room_light_intensity")
+        self.assertEqual(entities["light_sensor"], "sensor.living_room_east_side_light_sensor")
+
 
 if __name__ == "__main__":
     unittest.main()

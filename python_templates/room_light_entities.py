@@ -53,3 +53,38 @@ def adaptive_lighting_configs(room_name):
       "include_config_in_attributes": False,
     }
   ]
+
+
+def default_lighting_control_entities(room_entity, west_face_windows):
+  light_intensity_threshold_when = {
+    "intense light summer": "input_number.intensity_threshold_intense_light_summer_" + room_entity,
+    "moderate light outdoor": "input_number.intensity_threshold_moderate_light_outdoor_" + room_entity,
+  }
+  light_intensity_entity = "sensor.master_room_light_intensity" if west_face_windows is True else "sensor.living_room_light_intensity"
+  noon_time = "input_datetime.noon_time_" + room_entity
+  light_sensor = "sensor.master_room_west_side_light_sensor" if west_face_windows is True else "sensor.living_room_east_side_light_sensor"
+  min_value_as_bright = "input_number." + room_entity + "_min_value_as_bright"
+
+  return {
+    "ceiling_light_control_when": control_when_entities("ceiling_light", room_entity),
+    "lamp_control_when": control_when_entities("lamp", room_entity),
+    "led_control_when": control_when_entities("led", room_entity),
+    "curtain_control_when": control_when_entities("curtain", room_entity),
+    "light_intensity_threshold_when": light_intensity_threshold_when,
+    "light_intensity_entity": light_intensity_entity,
+    "noon_time": noon_time,
+    "time_controls": [],
+    "light_sensor": light_sensor,
+    "min_value_as_bright": min_value_as_bright,
+    "light_sensor_controls": [light_sensor],
+    "gui_ctl_entity_list_additions": list(light_intensity_threshold_when.values()) + [light_intensity_entity],
+  }
+
+
+def control_when_entities(control_prefix, room_entity):
+  return {
+    "intense light summer": "input_boolean." + control_prefix + "_control_intense_light_summer_" + room_entity,
+    "moderate light outdoor": "input_boolean." + control_prefix + "_control_moderate_light_outdoor_" + room_entity,
+    "low light outdoor": "input_boolean." + control_prefix + "_control_low_light_outdoor_" + room_entity,
+    "sleep mode": "input_boolean." + control_prefix + "_control_sleep_mode_" + room_entity,
+  }
