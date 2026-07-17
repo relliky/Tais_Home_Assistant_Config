@@ -7246,6 +7246,42 @@ class CN_MasterRoom(RoomBase):
 
 
 
+def create_package_rooms():
+  return [
+    LivingRoom(),
+    Kitchen(),
+    GuestRoom(),
+    Study(),
+    GuestToilet(),
+    Garden(),
+    Corridor(),
+    EnSuiteToilet(),
+    EnSuiteRoom(),
+    GroundToilet(),
+    MasterRoom(),
+    MasterToilet(),
+    WholeHome()
+  ]
+
+
+def create_dashboard_rooms(dashboard_type=None, dashboard_language=None):
+  return [
+    LivingRoom(      dashboard_type=dashboard_type, dashboard_language=dashboard_language),
+    Kitchen(         dashboard_type=dashboard_type, dashboard_language=dashboard_language),
+    MasterRoom(      dashboard_type=dashboard_type, dashboard_language=dashboard_language),
+    MasterToilet(    dashboard_type=dashboard_type, dashboard_language=dashboard_language),
+    Study(           dashboard_type=dashboard_type, dashboard_language=dashboard_language),
+    System(          dashboard_type=dashboard_type, dashboard_language=dashboard_language),
+    GuestRoom(       dashboard_type=dashboard_type, dashboard_language=dashboard_language),
+    Corridor(        dashboard_type=dashboard_type, dashboard_language=dashboard_language),
+    GuestToilet(     dashboard_type=dashboard_type, dashboard_language=dashboard_language),
+    Garden(          dashboard_type=dashboard_type, dashboard_language=dashboard_language),
+    EnSuiteRoom(     dashboard_type=dashboard_type, dashboard_language=dashboard_language),
+    GroundToilet(    dashboard_type=dashboard_type, dashboard_language=dashboard_language),
+    EnSuiteToilet(   dashboard_type=dashboard_type, dashboard_language=dashboard_language),
+  ]
+
+
 class Dashboard(RoomBase):
   def __init__ (self, format=None, dashboard_type=None, dashboard_language=None):
     print ("-------------------------------------")
@@ -7255,21 +7291,7 @@ class Dashboard(RoomBase):
     self.room_nav_cards = []
     self.dashboard = {}
     self.views = []
-    self.rooms = [
-              LivingRoom(      dashboard_type=dashboard_type, dashboard_language=dashboard_language),
-              Kitchen(         dashboard_type=dashboard_type, dashboard_language=dashboard_language),
-              MasterRoom(      dashboard_type=dashboard_type, dashboard_language=dashboard_language),
-              MasterToilet(    dashboard_type=dashboard_type, dashboard_language=dashboard_language),
-              Study(           dashboard_type=dashboard_type, dashboard_language=dashboard_language),
-              System(          dashboard_type=dashboard_type, dashboard_language=dashboard_language),
-              GuestRoom(       dashboard_type=dashboard_type, dashboard_language=dashboard_language),
-              Corridor(        dashboard_type=dashboard_type, dashboard_language=dashboard_language),
-              GuestToilet(     dashboard_type=dashboard_type, dashboard_language=dashboard_language),
-              Garden(          dashboard_type=dashboard_type, dashboard_language=dashboard_language),
-              EnSuiteRoom(     dashboard_type=dashboard_type, dashboard_language=dashboard_language),
-              GroundToilet(    dashboard_type=dashboard_type, dashboard_language=dashboard_language),
-              EnSuiteToilet(   dashboard_type=dashboard_type, dashboard_language=dashboard_language),
-    ]
+    self.rooms = create_dashboard_rooms(dashboard_type=dashboard_type, dashboard_language=dashboard_language)
     self.addNavigationView()
     self.addAllRoomView()
     self.getDashbaord()
@@ -7424,21 +7446,7 @@ def main():
   args = parser.parse_args()
 
   if args.render_auto_config :
-    render_package_for_rooms = [
-              LivingRoom(),
-              Kitchen(),
-              GuestRoom(),
-              Study(),
-              GuestToilet(),
-              Garden(),
-              Corridor(),
-              EnSuiteToilet(),
-              EnSuiteRoom(),
-              GroundToilet(),
-              MasterRoom(),
-              MasterToilet(),
-              WholeHome()
-              ]
+    render_package_for_rooms = create_package_rooms()
 
     #for room in render_package_for_rooms:
     #  room.writeConfig()
@@ -7508,8 +7516,6 @@ print ("Done.")
 #translation = translator.translate("This is a pen.")
 #translation = translator.translate("Master Room Lamp 1")
 #print (translation)
-
-
 
 
 
