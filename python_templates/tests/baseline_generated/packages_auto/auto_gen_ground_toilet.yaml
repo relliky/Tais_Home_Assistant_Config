@@ -1,0 +1,1396 @@
+#############################################################################
+# DO NOT MODIFY. This is an automatically generated file.                   # 
+#############################################################################
+adaptive_lighting:
+- name: Ground Toilet
+  lights:
+  - light.ground_toilet_ceiling_light
+  prefer_rgb_color: false
+  transition: 45
+  initial_transition: 1
+  interval: 90
+  min_brightness: 50
+  max_brightness: 100
+  min_color_temp: 2700
+  max_color_temp: 4000
+  sleep_brightness: 15
+  sleep_color_temp: 2200
+  min_sunset_time: '17:30'
+  take_over_control: true
+  autoreset_control_seconds: 86400
+  detect_non_ha_changes: false
+  only_once: false
+  adapt_only_on_bare_turn_on: true
+  separate_turn_on_commands: false
+  send_split_delay: 500
+  adapt_delay: 0.5
+  intercept: true
+  multi_light_intercept: true
+  include_config_in_attributes: false
+automation:
+- alias: ZH-0T Set Radiator Valve Target Temperature Based on External Sensor Temperature Difference-Ground Toilet
+  triggers:
+  - trigger: state
+    entity_id: input_boolean.ground_toilet_tado_heater
+  - trigger: state
+    entity_id: climate.tado_smart_radiator_thermostat_va2241008640
+    attribute: temperature
+  - trigger: state
+    entity_id: climate.tado_smart_radiator_thermostat_va2241008640
+    attribute: current_temperature
+  - trigger: homeassistant
+    event: start
+  - minutes: /30
+    seconds: '46'
+    trigger: time_pattern
+  mode: single
+  actions:
+  - if:
+    - condition: state
+      entity_id: input_boolean.ground_toilet_tado_heater
+      state: 'on'
+    then:
+    - action: climate.set_temperature
+      data:
+        hvac_mode: heat
+        temperature: '{%set room_helper_entity = ''climate.ground_toilet'' %}{%set tado_valve_entity  = ''climate.tado_smart_radiator_thermostat_va2241008640'' %}  {%set room_cur_temp      = state_attr(room_helper_entity, ''current_temperature'') | float %}  {%set room_target_temp   = state_attr(room_helper_entity, ''temperature'')         | float %}  {%set tado_cur_temp      = state_attr(tado_valve_entity,  ''current_temperature'') | float %}  {#diff = room_target_temp - room_cur_temp = tado_target_temp_nxt - tado_cur_temp #}{% set tado_target_temp_nxt = ((room_target_temp - room_cur_temp + tado_cur_temp) * 2) | float(22) | round / 2 %} {# round to 0.5 #}{%set tado_target_temp_nxt_sat = [[tado_target_temp_nxt, 25]|min,5]|max %} {# set lower and upper limit to [5,25] #}{{tado_target_temp_nxt_sat}}'
+      target:
+        entity_id: climate.tado_smart_radiator_thermostat_va2241008640
+    - delay: 00:05:00
+    else:
+    - action: climate.turn_off
+      target:
+        entity_id: climate.tado_smart_radiator_thermostat_va2241008640
+  id: automation.zh_0t_set_radiator_valve_target_temperature_based_on_external_sensor_temperature_difference_ground_toilet
+- alias: ZL-0T Curtain States When No Person Present-Ground Toilet
+  id: automation.zl_0t_curtain_states_when_no_person_present_ground_toilet
+  trigger:
+  - platform: state
+    entity_id: input_select.ground_toilet_occupancy
+    to: Outside
+    for: 00:03:00
+  - trigger: homeassistant
+    event: start
+  - minutes: /10
+    seconds: '24'
+    trigger: time_pattern
+  conditions:
+  - condition: state
+    entity_id: input_select.ground_toilet_occupancy
+    state: Outside
+    for: 00:03:00
+  action:
+  - alias: If it is intense light summer
+    if:
+    - condition: template
+      value_template: '{{ states(''sensor.living_room_light_intensity'') | float(0) > states(''input_number.intensity_threshold_intense_light_summer_ground_toilet'') | float(0) }}'
+    - condition: numeric_state
+      entity_id: sensor.met_office_cambridge_city_airport_temperature_3_hourly
+      above: '15'
+    - condition: template
+      value_template: '{{ now().month > 4 and now().month < 9 }}'
+    - condition: state
+      entity_id: switch.adaptive_lighting_sleep_mode_ground_toilet
+      state: 'off'
+    then:
+      alias: curtain states when intense light summer
+      if:
+      - '{{ 1 == 1 }}'
+      then:
+      - parallel:
+        - parallel:
+          - if:
+              condition: state
+              entity_id: input_boolean.curtain_control_intense_light_summer_ground_toilet
+              state: 'on'
+            then:
+              service: script.do_nothing
+            else:
+              service: script.do_nothing
+    else:
+      alias: If it is moderate light outdoor
+      if:
+      - condition: template
+        value_template: '{{ states(''sensor.living_room_light_intensity'') | float(0) > states(''input_number.intensity_threshold_moderate_light_outdoor_ground_toilet'') | float(0) }}'
+      - condition: state
+        entity_id: switch.adaptive_lighting_sleep_mode_ground_toilet
+        state: 'off'
+      then:
+        alias: curtain states when moderate light outdoor
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+        - parallel:
+          - parallel:
+            - if:
+                condition: state
+                entity_id: input_boolean.curtain_control_moderate_light_outdoor_ground_toilet
+                state: 'on'
+              then:
+                service: script.do_nothing
+              else:
+                service: script.do_nothing
+      else:
+        alias: If it is low light outdoor
+        if:
+        - condition: template
+          value_template: '{{ states(''sensor.living_room_light_intensity'') | float(0) <= states(''input_number.intensity_threshold_moderate_light_outdoor_ground_toilet'') | float(0) }}'
+        - condition: state
+          entity_id: switch.adaptive_lighting_sleep_mode_ground_toilet
+          state: 'off'
+        then:
+          alias: curtain states when low light outdoor
+          if:
+          - '{{ 1 == 1 }}'
+          then:
+          - parallel:
+            - parallel:
+              - if:
+                  condition: state
+                  entity_id: input_boolean.curtain_control_low_light_outdoor_ground_toilet
+                  state: 'on'
+                then:
+                  service: script.do_nothing
+                else:
+                  service: script.do_nothing
+        else:
+          alias: If it is sleep mode
+          if:
+          - condition: state
+            entity_id: switch.adaptive_lighting_sleep_mode_ground_toilet
+            state: 'on'
+          then:
+            alias: curtain states when sleep mode
+            if:
+            - '{{ 1 == 1 }}'
+            then:
+            - parallel:
+              - parallel:
+                - if:
+                    condition: state
+                    entity_id: input_boolean.curtain_control_sleep_mode_ground_toilet
+                    state: 'on'
+                  then:
+                    service: script.do_nothing
+                  else:
+                    service: script.do_nothing
+          else:
+            alias: Default
+            service: script.do_nothing
+- alias: ZL-0T Lights On If Entering to Room-Ground Toilet
+  id: automation.zl_0t_lights_on_if_entering_to_room_ground_toilet
+  trigger:
+    entity_id:
+    - group.ground_toilet_motion_group
+    platform: state
+    to: 'on'
+    from: 'off'
+  action:
+  - service: automation.turn_off
+    entity_id: automation.zl_0t_lights_on_if_entering_to_room_ground_toilet
+    data:
+      stop_actions: false
+  - service: script.call_room_scene
+    data:
+      room_scene_select: input_select.ground_toilet_scene
+      scene: Idle
+  - alias: If it is bright morning
+    if:
+    - condition: template
+      value_template: '{{ states(''sensor.living_room_light_intensity'') | float(0) > states(''input_number.intensity_threshold_intense_light_summer_ground_toilet'') | float(0) }}'
+    - condition: numeric_state
+      entity_id: sensor.met_office_cambridge_city_airport_temperature_3_hourly
+      above: '15'
+    - condition: template
+      value_template: '{{ now().month > 4 and now().month < 9 }}'
+    - condition: state
+      entity_id: switch.adaptive_lighting_sleep_mode_ground_toilet
+      state: 'off'
+    then:
+      alias: light states when intense light summer
+      if:
+      - '{{ 1 == 1 }}'
+      then:
+      - parallel:
+        - parallel:
+          - if:
+              condition: state
+              entity_id: input_boolean.ceiling_light_control_intense_light_summer_ground_toilet
+              state: 'on'
+            then:
+              alias: Turn light.ground_toilet_ceiling_light state=on
+              if:
+              - '{{ 1 == 1 }}'
+              then:
+                service: light.turn_on
+                entity_id:
+                - light.ground_toilet_ceiling_light
+            else:
+              alias: Turn light.ground_toilet_ceiling_light state=off
+              if:
+              - '{{ 1 == 1 }}'
+              then:
+                service: light.turn_off
+                entity_id:
+                - light.ground_toilet_ceiling_light
+          - if:
+              condition: state
+              entity_id: input_boolean.lamp_control_intense_light_summer_ground_toilet
+              state: 'on'
+            then:
+              service: script.do_nothing
+            else:
+              service: script.do_nothing
+          - if:
+              condition: state
+              entity_id: input_boolean.led_control_intense_light_summer_ground_toilet
+              state: 'on'
+            then:
+              service: script.do_nothing
+            else:
+              service: script.do_nothing
+    else:
+      alias: If it is bright afternoon
+      if:
+      - condition: template
+        value_template: '{{ states(''sensor.living_room_light_intensity'') | float(0) > states(''input_number.intensity_threshold_moderate_light_outdoor_ground_toilet'') | float(0) }}'
+      - condition: state
+        entity_id: switch.adaptive_lighting_sleep_mode_ground_toilet
+        state: 'off'
+      then:
+        alias: light states when moderate light outdoor
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+        - parallel:
+          - parallel:
+            - if:
+                condition: state
+                entity_id: input_boolean.ceiling_light_control_moderate_light_outdoor_ground_toilet
+                state: 'on'
+              then:
+                alias: Turn light.ground_toilet_ceiling_light state=on
+                if:
+                - '{{ 1 == 1 }}'
+                then:
+                  service: light.turn_on
+                  entity_id:
+                  - light.ground_toilet_ceiling_light
+              else:
+                alias: Turn light.ground_toilet_ceiling_light state=off
+                if:
+                - '{{ 1 == 1 }}'
+                then:
+                  service: light.turn_off
+                  entity_id:
+                  - light.ground_toilet_ceiling_light
+            - if:
+                condition: state
+                entity_id: input_boolean.lamp_control_moderate_light_outdoor_ground_toilet
+                state: 'on'
+              then:
+                service: script.do_nothing
+              else:
+                service: script.do_nothing
+            - if:
+                condition: state
+                entity_id: input_boolean.led_control_moderate_light_outdoor_ground_toilet
+                state: 'on'
+              then:
+                service: script.do_nothing
+              else:
+                service: script.do_nothing
+      else:
+        alias: If it is bright afternoon
+        if:
+        - condition: template
+          value_template: '{{ states(''sensor.living_room_light_intensity'') | float(0) <= states(''input_number.intensity_threshold_moderate_light_outdoor_ground_toilet'') | float(0) }}'
+        - condition: state
+          entity_id: switch.adaptive_lighting_sleep_mode_ground_toilet
+          state: 'off'
+        then:
+          alias: light states when low light outdoor
+          if:
+          - '{{ 1 == 1 }}'
+          then:
+          - parallel:
+            - parallel:
+              - if:
+                  condition: state
+                  entity_id: input_boolean.ceiling_light_control_low_light_outdoor_ground_toilet
+                  state: 'on'
+                then:
+                  alias: Turn light.ground_toilet_ceiling_light state=on
+                  if:
+                  - '{{ 1 == 1 }}'
+                  then:
+                    service: light.turn_on
+                    entity_id:
+                    - light.ground_toilet_ceiling_light
+                else:
+                  alias: Turn light.ground_toilet_ceiling_light state=off
+                  if:
+                  - '{{ 1 == 1 }}'
+                  then:
+                    service: light.turn_off
+                    entity_id:
+                    - light.ground_toilet_ceiling_light
+              - if:
+                  condition: state
+                  entity_id: input_boolean.lamp_control_low_light_outdoor_ground_toilet
+                  state: 'on'
+                then:
+                  service: script.do_nothing
+                else:
+                  service: script.do_nothing
+              - if:
+                  condition: state
+                  entity_id: input_boolean.led_control_low_light_outdoor_ground_toilet
+                  state: 'on'
+                then:
+                  service: script.do_nothing
+                else:
+                  service: script.do_nothing
+        else:
+          alias: If it is bright afternoon
+          if:
+          - condition: state
+            entity_id: switch.adaptive_lighting_sleep_mode_ground_toilet
+            state: 'on'
+          then:
+            alias: light states when sleep mode
+            if:
+            - '{{ 1 == 1 }}'
+            then:
+            - parallel:
+              - parallel:
+                - if:
+                    condition: state
+                    entity_id: input_boolean.ceiling_light_control_sleep_mode_ground_toilet
+                    state: 'on'
+                  then:
+                    alias: Turn light.ground_toilet_ceiling_light state=on
+                    if:
+                    - '{{ 1 == 1 }}'
+                    then:
+                      service: light.turn_on
+                      entity_id:
+                      - light.ground_toilet_ceiling_light
+                  else:
+                    alias: Turn light.ground_toilet_ceiling_light state=off
+                    if:
+                    - '{{ 1 == 1 }}'
+                    then:
+                      service: light.turn_off
+                      entity_id:
+                      - light.ground_toilet_ceiling_light
+                - if:
+                    condition: state
+                    entity_id: input_boolean.lamp_control_sleep_mode_ground_toilet
+                    state: 'on'
+                  then:
+                    service: script.do_nothing
+                  else:
+                    service: script.do_nothing
+                - if:
+                    condition: state
+                    entity_id: input_boolean.led_control_sleep_mode_ground_toilet
+                    state: 'on'
+                  then:
+                    service: script.do_nothing
+                  else:
+                    service: script.do_nothing
+          else:
+            alias: Default
+            service: script.do_nothing
+  - service: automation.trigger
+    entity_id: automation.zl_0t_curtain_states_when_no_person_present_ground_toilet
+- alias: ZL-0T Lights Off If No Person-Ground Toilet
+  id: automation.zl_0t_lights_off_if_no_person_ground_toilet
+  trigger:
+  - platform: state
+    entity_id: input_select.ground_toilet_occupancy
+    to: Outside
+  - trigger: homeassistant
+    event: start
+  - minutes: /30
+    seconds: '40'
+    trigger: time_pattern
+  condition:
+  - condition: state
+    entity_id: input_select.ground_toilet_occupancy
+    state: Outside
+  action:
+    parallel:
+    - alias: Turn automation.zl_0t_lights_on_if_entering_to_room_ground_toilet state=on
+      if:
+      - '{{ 1 == 1 }}'
+      then:
+        service: homeassistant.turn_on
+        entity_id: automation.zl_0t_lights_on_if_entering_to_room_ground_toilet
+    - service: script.do_nothing
+    - service: script.call_room_scene
+      data:
+        room_scene_select: input_select.ground_toilet_scene
+        scene: Idle
+    - alias: All Off
+      if:
+      - '{{ 1 == 1 }}'
+      then:
+      - parallel:
+        - alias: Turn light.ground_toilet_ceiling_light state=off
+          if:
+          - '{{ 1 == 1 }}'
+          then:
+            service: light.turn_off
+            entity_id:
+            - light.ground_toilet_ceiling_light
+        - service: script.do_nothing
+        - service: script.do_nothing
+        - service: script.do_nothing
+    - service: script.do_nothing
+- alias: ZL-0T Disable Entering Lights-on Automation If any People are in the Room-Ground Toilet
+  trigger:
+  - platform: state
+    entity_id: input_select.ground_toilet_occupancy
+    to:
+    - Just Entered
+    - In Sleep
+    - Stayed Inside
+  action:
+  - delay: 00:00:10
+  - service: automation.turn_off
+    entity_id: automation.zl_0t_lights_on_if_entering_to_room_ground_toilet
+    data:
+      stop_actions: 'false'
+  id: automation.zl_0t_disable_entering_lights_on_automation_if_any_people_are_in_the_room_ground_toilet
+- alias: ZH-0T Heating Schedule On If Staying In the Room-Ground Toilet
+  id: automation.zh_0t_heating_schedule_on_if_staying_in_the_room_ground_toilet
+  trigger:
+  - platform: state
+    entity_id: input_select.ground_toilet_occupancy
+    from:
+    - Just Entered
+    - Outside
+    to:
+    - Stayed Inside
+    - In Sleep
+  action:
+  - if:
+    - condition: not
+      conditions:
+      - condition: state
+        entity_id: climate.ground_toilet
+        state: heat
+    then:
+      alias: Turn heating state=on
+      if:
+      - '{{ 1 == 1 }}'
+      then:
+        alias: ''
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+        - alias: Turn climate.ground_toilet state=on
+          if:
+          - '{{ 1 == 1 }}'
+          then:
+            service: climate.set_hvac_mode
+            data:
+              hvac_mode: heat
+            entity_id: climate.ground_toilet
+        - alias: Turn switch.schedule_ground_toilet_temperature state=on
+          if:
+          - '{{ 1 == 1 }}'
+          then:
+            service: homeassistant.turn_on
+            entity_id: switch.schedule_ground_toilet_temperature
+- alias: ZH-0T Heating Schedule Off If People Left the Room-Ground Toilet
+  id: automation.zh_0t_heating_schedule_off_if_people_left_the_room_ground_toilet
+  trigger:
+  - platform: state
+    entity_id: input_select.ground_toilet_occupancy
+    to: Outside
+  - trigger: homeassistant
+    event: start
+  - minutes: /30
+    seconds: '41'
+    trigger: time_pattern
+  action:
+  - condition: state
+    entity_id: input_select.ground_toilet_occupancy
+    state: Outside
+  - service: script.do_nothing
+  - condition: state
+    entity_id: input_boolean.ground_toilet_heating_override
+    state: 'off'
+  - alias: Turn heating state=off
+    if:
+    - '{{ 1 == 1 }}'
+    then:
+      alias: ''
+      if:
+      - '{{ 1 == 1 }}'
+      then:
+      - alias: Turn climate.ground_toilet state=off
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          service: climate.set_hvac_mode
+          data:
+            hvac_mode: 'off'
+          entity_id: climate.ground_toilet
+      - alias: Turn switch.schedule_ground_toilet_temperature state=off
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          service: homeassistant.turn_off
+          entity_id: switch.schedule_ground_toilet_temperature
+- alias: ZH-0T Heating Manual Override-Ground Toilet
+  mode: restart
+  trigger:
+  - platform: state
+    entity_id: input_boolean.ground_toilet_heating_override
+  action:
+  - if:
+    - condition: state
+      entity_id: input_boolean.ground_toilet_heating_override
+      state: 'off'
+    then:
+    - service: automation.trigger
+      entity_id:
+      - automation.zh_0t_heating_schedule_off_if_people_left_the_room_ground_toilet
+    else:
+    - service: automation.trigger
+      entity_id:
+      - automation.zh_0t_heating_schedule_on_if_staying_in_the_room_ground_toilet
+    - delay:
+        hours: 4
+    - service: homeassistant.turn_off
+      entity_id: input_boolean.ground_toilet_heating_override
+    - service: automation.trigger
+      entity_id:
+      - automation.zh_0t_heating_schedule_on_if_staying_in_the_room_ground_toilet
+  id: automation.zh_0t_heating_manual_override_ground_toilet
+- alias: ZL-0T Applies Different Scenes Based on Scene Selections (State Execution)-Ground Toilet
+  trigger:
+  - platform: state
+    entity_id: input_select.ground_toilet_scene
+  mode: restart
+  action:
+  - choose:
+    - conditions:
+      - condition: state
+        entity_id: input_select.ground_toilet_scene
+        state: All White
+      sequence:
+        alias: All White
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+        - parallel:
+          - service: script.do_nothing
+          - alias: Turn light.ground_toilet_ceiling_light state=on
+            if:
+            - '{{ 1 == 1 }}'
+            then:
+              service: light.turn_on
+              entity_id:
+              - light.ground_toilet_ceiling_light
+          - service: script.do_nothing
+          - service: script.do_nothing
+    - conditions:
+      - condition: state
+        entity_id: input_select.ground_toilet_scene
+        state: Ceiling Light White
+      sequence:
+        alias: Ceiling Light White
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+        - parallel:
+          - service: script.do_nothing
+          - service: script.do_nothing
+          - alias: Turn light.ground_toilet_ceiling_light state=on
+            if:
+            - '{{ 1 == 1 }}'
+            then:
+              service: light.turn_on
+              entity_id:
+              - light.ground_toilet_ceiling_light
+          - service: script.do_nothing
+    - conditions:
+      - condition: state
+        entity_id: input_select.ground_toilet_scene
+        state: Lamp LED White
+      sequence:
+        alias: Lamp LED White
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+        - parallel:
+          - alias: Turn light.ground_toilet_ceiling_light state=off
+            if:
+            - '{{ 1 == 1 }}'
+            then:
+              service: light.turn_off
+              entity_id:
+              - light.ground_toilet_ceiling_light
+          - service: script.do_nothing
+          - service: script.do_nothing
+    - conditions:
+      - condition: state
+        entity_id: input_select.ground_toilet_scene
+        state: LED White
+      sequence:
+        alias: LED White
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+        - parallel:
+          - service: script.do_nothing
+    - conditions:
+      - condition: state
+        entity_id: input_select.ground_toilet_scene
+        state: Hue
+      sequence:
+        alias: Hue
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+        - service: pyscript.turn_rgb_light
+          data:
+            light_list:
+            - light.ground_toilet_ceiling_light
+            state: 'off'
+            rgb: non_rgb_only
+        - service: pyscript.turn_rgb_light
+          data:
+            light_list:
+            - light.ground_toilet_ceiling_light
+        - service: script.do_nothing
+    - conditions:
+      - condition: state
+        entity_id: input_select.ground_toilet_scene
+        state: Night Mode
+      sequence:
+        alias: Night Mode
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+        - parallel:
+          - service: homeassistant.turn_on
+            entity_id: scene.ground_toilet_night_mode
+          - service: script.do_nothing
+    - conditions:
+      - condition: state
+        entity_id: input_select.ground_toilet_scene
+        state: Dark Night Mode
+      sequence:
+        alias: Dark Night Mode
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+        - parallel:
+          - service: homeassistant.turn_on
+            entity_id: scene.ground_toilet_dark_night_mode
+          - service: script.do_nothing
+    - conditions:
+      - condition: state
+        entity_id: input_select.ground_toilet_scene
+        state: Sleep Mode
+      sequence:
+        alias: Sleep Mode
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+        - parallel:
+          - service: homeassistant.turn_on
+            entity_id: scene.ground_toilet_sleep_mode
+    - conditions:
+      - condition: state
+        entity_id: input_select.ground_toilet_scene
+        state: All Off
+      sequence:
+        alias: All Off
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+        - parallel:
+          - alias: Turn light.ground_toilet_ceiling_light state=off
+            if:
+            - '{{ 1 == 1 }}'
+            then:
+              service: light.turn_off
+              entity_id:
+              - light.ground_toilet_ceiling_light
+          - service: script.do_nothing
+          - service: script.do_nothing
+          - service: script.do_nothing
+  id: automation.zl_0t_applies_different_scenes_based_on_scene_selections_state_execution_ground_toilet
+- alias: ZLB-0T Wall Switch - Single Press - Toggle Ceiling Light-Ground Toilet
+  trigger:
+  - platform: state
+    entity_id:
+    - sensor.ground_toilet_wall_button
+    - sensor.ground_toilet_wall_button_2
+    to:
+    - '1'
+    - single
+    - single_left
+    - single_right
+    - single_center
+    - button_1_single
+    - button_2_single
+    - button_3_single
+  action:
+  - alias: Turn light.ground_toilet_ceiling_light state=toggle
+    if:
+    - '{{ 1 == 1 }}'
+    then:
+      if:
+      - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
+        condition: state
+        entity_id:
+        - light.ground_toilet_ceiling_light
+        state: 'on'
+        match: any
+      then:
+        alias: Turn light.ground_toilet_ceiling_light state=off
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          service: light.turn_off
+          entity_id:
+          - light.ground_toilet_ceiling_light
+      else:
+        alias: Turn light.ground_toilet_ceiling_light state=on
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          service: light.turn_on
+          entity_id:
+          - light.ground_toilet_ceiling_light
+  id: automation.zlb_0t_wall_switch_single_press_toggle_ceiling_light_ground_toilet
+- alias: ZLB-0T Wall Switch - Double Click - Leave Room and Turn Off Everything-Ground Toilet
+  trigger:
+  - platform: state
+    entity_id:
+    - sensor.ground_toilet_wall_button
+    - sensor.ground_toilet_wall_button_2
+    to:
+    - '2'
+    - double
+    - double_left
+    - double_right
+    - double_center
+    - button_1_double
+    - button_2_double
+    - button_3_double
+  action:
+  - service: automation.trigger
+    entity_id:
+    - automation.zl_0t_lights_off_if_no_person_ground_toilet
+    - automation.zh_0t_heating_schedule_off_if_people_left_the_room_ground_toilet
+  - service: input_select.select_option
+    target:
+      entity_id: input_select.ground_toilet_occupancy
+    data:
+      option: Outside
+  id: automation.zlb_0t_wall_switch_double_click_leave_room_and_turn_off_everything_ground_toilet
+- alias: ZOc-0T Occupancy Update-Ground Toilet
+  id: automation.zoc_0t_occupancy_update_ground_toilet
+  trigger:
+  - entity_id: group.ground_toilet_motion_group
+    platform: state
+    to: 'on'
+  - entity_id: group.ground_toilet_motion_group
+    platform: state
+    to: 'on'
+    for:
+      seconds: 150
+  - entity_id: group.ground_toilet_motion_group
+    platform: state
+    to: 'on'
+    for:
+      seconds: 1800
+  - entity_id: group.ground_toilet_motion_group
+    platform: state
+    to: 'off'
+  - entity_id: group.ground_toilet_motion_group
+    platform: state
+    to: 'off'
+    for:
+      seconds: 30
+  - entity_id: group.ground_toilet_motion_group
+    platform: state
+    to: 'off'
+    for:
+      seconds: 3600
+  - trigger: homeassistant
+    event: start
+  - minutes: /3
+    seconds: '59'
+    trigger: time_pattern
+  action:
+  - choose:
+    - alias: Outside -> Just Entered when motion is on
+      conditions:
+      - condition: state
+        entity_id: input_select.ground_toilet_occupancy
+        state: Outside
+      - condition: state
+        entity_id: group.ground_toilet_motion_group
+        state: 'on'
+      sequence:
+      - service: input_select.select_option
+        target:
+          entity_id: input_select.ground_toilet_occupancy
+        data:
+          option: Just Entered
+    - alias: Outside -> Outside when motion is not on
+      conditions:
+      - condition: state
+        entity_id: input_select.ground_toilet_occupancy
+        state: Outside
+      - condition: template
+        value_template: '{{ not is_state(''group.ground_toilet_motion_group'', ''on'') }}'
+      sequence:
+      - service: input_select.select_option
+        target:
+          entity_id: input_select.ground_toilet_occupancy
+        data:
+          option: Outside
+    - alias: Just Entered -> Stayed Inside when motion stays on
+      conditions:
+      - condition: state
+        entity_id: input_select.ground_toilet_occupancy
+        state: Just Entered
+      - condition: template
+        value_template: '{{ is_state(''group.ground_toilet_motion_group'', ''on'') and (as_timestamp(now()) - as_timestamp(states[''group.ground_toilet_motion_group''].last_changed)) >= 150 }}'
+      sequence:
+      - service: input_select.select_option
+        target:
+          entity_id: input_select.ground_toilet_occupancy
+        data:
+          option: Stayed Inside
+    - alias: Just Entered -> Outside when motion stays off
+      conditions:
+      - condition: state
+        entity_id: input_select.ground_toilet_occupancy
+        state: Just Entered
+      - condition: template
+        value_template: '{{ is_state(''group.ground_toilet_motion_group'', ''off'') and (as_timestamp(now()) - as_timestamp(states[''group.ground_toilet_motion_group''].last_changed)) >= 30 }}'
+      sequence:
+      - service: input_select.select_option
+        target:
+          entity_id: input_select.ground_toilet_occupancy
+        data:
+          option: Outside
+    - alias: Just Entered -> Just Entered by default
+      conditions:
+      - condition: state
+        entity_id: input_select.ground_toilet_occupancy
+        state: Just Entered
+      sequence:
+      - service: input_select.select_option
+        target:
+          entity_id: input_select.ground_toilet_occupancy
+        data:
+          option: Just Entered
+    - alias: Stayed Inside -> In Sleep when sleep time and stayed long enough
+      conditions:
+      - condition: state
+        entity_id: input_select.ground_toilet_occupancy
+        state: Stayed Inside
+      - condition: state
+        entity_id: input_boolean.always_off_constant
+        state: 'on'
+      - condition: template
+        value_template: '{{ is_state(''input_select.ground_toilet_occupancy'', ''Stayed Inside'') and (as_timestamp(now()) - as_timestamp(states[''input_select.ground_toilet_occupancy''].last_changed)) > 1800 }}'
+      sequence:
+      - service: input_select.select_option
+        target:
+          entity_id: input_select.ground_toilet_occupancy
+        data:
+          option: In Sleep
+    - alias: Stayed Inside -> Outside when motion stays off
+      conditions:
+      - condition: state
+        entity_id: input_select.ground_toilet_occupancy
+        state: Stayed Inside
+      - condition: template
+        value_template: '{{ is_state(''group.ground_toilet_motion_group'', ''off'') and (as_timestamp(now()) - as_timestamp(states[''group.ground_toilet_motion_group''].last_changed)) >= 30 }}'
+      sequence:
+      - service: input_select.select_option
+        target:
+          entity_id: input_select.ground_toilet_occupancy
+        data:
+          option: Outside
+    - alias: Stayed Inside -> Stayed Inside by default
+      conditions:
+      - condition: state
+        entity_id: input_select.ground_toilet_occupancy
+        state: Stayed Inside
+      sequence:
+      - service: input_select.select_option
+        target:
+          entity_id: input_select.ground_toilet_occupancy
+        data:
+          option: Stayed Inside
+    - alias: In Sleep -> Stayed Inside when sleep time ends
+      conditions:
+      - condition: state
+        entity_id: input_select.ground_toilet_occupancy
+        state: In Sleep
+      - condition: template
+        value_template: '{{ not is_state(''input_boolean.always_off_constant'', ''on'') }}'
+      sequence:
+      - service: input_select.select_option
+        target:
+          entity_id: input_select.ground_toilet_occupancy
+        data:
+          option: Stayed Inside
+    - alias: In Sleep -> Outside when motion stays off
+      conditions:
+      - condition: state
+        entity_id: input_select.ground_toilet_occupancy
+        state: In Sleep
+      - condition: template
+        value_template: '{{ is_state(''group.ground_toilet_motion_group'', ''off'') and (as_timestamp(now()) - as_timestamp(states[''group.ground_toilet_motion_group''].last_changed)) > 3600 }}'
+      sequence:
+      - service: input_select.select_option
+        target:
+          entity_id: input_select.ground_toilet_occupancy
+        data:
+          option: Outside
+    - alias: In Sleep -> In Sleep by default
+      conditions:
+      - condition: state
+        entity_id: input_select.ground_toilet_occupancy
+        state: In Sleep
+      sequence:
+      - service: input_select.select_option
+        target:
+          entity_id: input_select.ground_toilet_occupancy
+        data:
+          option: In Sleep
+    default:
+    - service: script.do_nothing
+- alias: ZOc-0T Occupancy Override and sync to Timer-Ground Toilet
+  mode: single
+  trigger:
+  - platform: state
+    entity_id: input_boolean.ground_toilet_auto_off_suspended
+  action:
+  - choose:
+    - conditions:
+      - condition: state
+        entity_id: input_boolean.ground_toilet_auto_off_suspended
+        state: 'on'
+      sequence:
+      - service: timer.start
+        target:
+          entity_id: timer.ground_toilet_auto_off_suspended_timer
+      - alias: Turn automation.zoc_0t_occupancy_update_ground_toilet state=off
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          service: homeassistant.turn_off
+          entity_id: automation.zoc_0t_occupancy_update_ground_toilet
+      - service: input_select.select_option
+        target:
+          entity_id: input_select.ground_toilet_occupancy
+        data:
+          option: Stayed Inside
+    - conditions:
+      - condition: state
+        entity_id: input_boolean.ground_toilet_auto_off_suspended
+        state: 'off'
+      sequence:
+      - service: timer.cancel
+        target:
+          entity_id: timer.ground_toilet_auto_off_suspended_timer
+      - alias: Turn automation.zoc_0t_occupancy_update_ground_toilet state=on
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          service: homeassistant.turn_on
+          entity_id: automation.zoc_0t_occupancy_update_ground_toilet
+  id: automation.zoc_0t_occupancy_override_and_sync_to_timer_ground_toilet
+- alias: ZOc-0T Occupancy Override Sync from Timer-Ground Toilet
+  mode: single
+  trigger:
+  - platform: state
+    entity_id: timer.ground_toilet_auto_off_suspended_timer
+  - trigger: homeassistant
+    event: start
+  - minutes: /10
+    seconds: '30'
+    trigger: time_pattern
+  action:
+  - choose:
+    - conditions:
+      - condition: state
+        entity_id: timer.ground_toilet_auto_off_suspended_timer
+        state: active
+      sequence:
+      - service: input_boolean.turn_on
+        target:
+          entity_id: input_boolean.ground_toilet_auto_off_suspended
+    - conditions:
+      - condition: or
+        conditions:
+        - condition: state
+          entity_id: timer.ground_toilet_auto_off_suspended_timer
+          state: paused
+        - condition: state
+          entity_id: timer.ground_toilet_auto_off_suspended_timer
+          state: idle
+      sequence:
+      - service: input_boolean.turn_off
+        target:
+          entity_id: input_boolean.ground_toilet_auto_off_suspended
+  id: automation.zoc_0t_occupancy_override_sync_from_timer_ground_toilet
+input_select:
+  ground_toilet_scene:
+    name: Ground Toilet Scene
+    options:
+    - Idle
+    - All White
+    - Ceiling Light White
+    - All Off
+  ground_toilet_occupancy:
+    name: Ground Toilet Occupancy
+    options:
+    - Outside
+    - Just Entered
+    - Stayed Inside
+    - In Sleep
+input_boolean:
+  ceiling_light_control_intense_light_summer_ground_toilet:
+    name: Ceiling Light Control Intense Light Summer Ground Toilet
+  lamp_control_intense_light_summer_ground_toilet:
+    name: Lamp Control Intense Light Summer Ground Toilet
+    initial: 'off'
+  led_control_intense_light_summer_ground_toilet:
+    name: Led Control Intense Light Summer Ground Toilet
+    initial: 'off'
+  curtain_control_intense_light_summer_ground_toilet:
+    name: Curtain Control Intense Light Summer Ground Toilet
+    initial: 'off'
+  ground_toilet_heating_override:
+    name: Ground Toilet Heating Override
+    initial: 'off'
+  ceiling_light_control_moderate_light_outdoor_ground_toilet:
+    name: Ceiling Light Control Moderate Light Outdoor Ground Toilet
+  lamp_control_moderate_light_outdoor_ground_toilet:
+    name: Lamp Control Moderate Light Outdoor Ground Toilet
+    initial: 'off'
+  led_control_moderate_light_outdoor_ground_toilet:
+    name: Led Control Moderate Light Outdoor Ground Toilet
+    initial: 'off'
+  curtain_control_moderate_light_outdoor_ground_toilet:
+    name: Curtain Control Moderate Light Outdoor Ground Toilet
+    initial: 'off'
+  ceiling_light_control_low_light_outdoor_ground_toilet:
+    name: Ceiling Light Control Low Light Outdoor Ground Toilet
+  lamp_control_low_light_outdoor_ground_toilet:
+    name: Lamp Control Low Light Outdoor Ground Toilet
+    initial: 'off'
+  led_control_low_light_outdoor_ground_toilet:
+    name: Led Control Low Light Outdoor Ground Toilet
+    initial: 'off'
+  curtain_control_low_light_outdoor_ground_toilet:
+    name: Curtain Control Low Light Outdoor Ground Toilet
+    initial: 'off'
+  ceiling_light_control_sleep_mode_ground_toilet:
+    name: Ceiling Light Control Sleep Mode Ground Toilet
+  lamp_control_sleep_mode_ground_toilet:
+    name: Lamp Control Sleep Mode Ground Toilet
+    initial: 'off'
+  led_control_sleep_mode_ground_toilet:
+    name: Led Control Sleep Mode Ground Toilet
+    initial: 'off'
+  curtain_control_sleep_mode_ground_toilet:
+    name: Curtain Control Sleep Mode Ground Toilet
+    initial: 'off'
+  ground_toilet_auto_off_suspended:
+    name: Ground Toilet Auto Off Suspended
+    icon: mdi:timer-sand
+  ground_toilet_tado_heater:
+    name: Ground Toilet Tado Heater
+input_datetime:
+  noon_time_ground_toilet:
+    name: Noon Time Ground Toilet
+    has_date: false
+    has_time: true
+input_number:
+  ground_toilet_min_value_as_bright:
+    name: Ground Toilet Min Value As Bright
+    min: 0
+    max: 4000
+    step: 1
+    mode: box
+  intensity_threshold_intense_light_summer_ground_toilet:
+    name: Intensity Threshold Intense Light Summer Ground Toilet
+    min: 0
+    max: 100
+    step: 0.1
+    mode: box
+  intensity_threshold_moderate_light_outdoor_ground_toilet:
+    name: Intensity Threshold Moderate Light Outdoor Ground Toilet
+    min: 0
+    max: 100
+    step: 0.1
+    mode: box
+sensor:
+- platform: history_stats
+  name: Ground Toilet Motion On Ratio For Last 4 Minutes
+  entity_id: group.ground_toilet_motion_group
+  state: 'on'
+  type: ratio
+  duration:
+    minutes: '4'
+  end: '{{ (now() | as_timestamp) | as_datetime | as_local }}'
+- platform: history_stats
+  name: Ground Toilet Motion On Ratio For Last 8 Minutes
+  entity_id: group.ground_toilet_motion_group
+  state: 'on'
+  type: ratio
+  duration:
+    minutes: '8'
+  end: '{{ (now() | as_timestamp) | as_datetime | as_local }}'
+- name: Ground Toilet Temperature Sensor Battery Median
+  platform: statistics
+  entity_id: sensor.a4c1387c09bd_battery
+  precision: 0
+  state_characteristic: median
+  max_age:
+    hours: 24
+- name: Ground Toilet Occupancy Sensor Battery Median
+  platform: statistics
+  entity_id: sensor.a4c1385ab801_battery
+  precision: 0
+  state_characteristic: median
+  max_age:
+    hours: 24
+- name: Ground Toilet Xiaomi Home Occupancy Sensor Battery Median
+  platform: statistics
+  entity_id: sensor.linp_cn_blt_3_1kas24de8ck00_es2_battery_level_p_4_1003
+  precision: 0
+  state_characteristic: median
+  max_age:
+    hours: 24
+- name: Ground Toilet Entrance Motion Sensor Battery Median
+  platform: statistics
+  entity_id: sensor.54ef44e58345_battery
+  precision: 0
+  state_characteristic: median
+  max_age:
+    hours: 24
+- name: Ground Toilet Min Battery
+  platform: min_max
+  type: min
+  entity_ids:
+  - sensor.ground_toilet_temperature_sensor_battery
+  - sensor.ground_toilet_occupancy_sensor_battery
+  - sensor.ground_toilet_xiaomi_home_occupancy_sensor_battery
+  - sensor.ground_toilet_entrance_motion_sensor_battery
+timer:
+  ground_toilet_auto_off_suspended_timer:
+    name: Ground Toilet Auto Off Suspended Timer
+    duration: 02:00:00
+button: []
+switch:
+- platform: group
+  name: Ground Toilet Wall Switch 1
+  entities: switch.0x00158d0005435643_channel_1
+- platform: group
+  name: Ground Toilet Wall Switch 2
+  entities: switch.0x00158d0005435643_channel_2
+cover: []
+climate:
+- platform: generic_thermostat
+  name: Ground Toilet
+  heater: input_boolean.ground_toilet_tado_heater
+  target_sensor: sensor.ground_toilet_temperature_sensor
+  min_temp: 16
+  max_temp: 27
+  ac_mode: false
+  cold_tolerance: 0
+  precision: 0.1
+  target_temp_step: 0.5
+  min_cycle_duration: 00:01:30
+template:
+- sensor:
+  - name: Ground Toilet Temperature Sensor
+    unit_of_measurement: "\xB0C"
+    state: '{{states.sensor["a4c1387c09bd_temperature"].state | float(22) | round(1)}}'
+- sensor:
+  - name: Ground Toilet Temperature Sensor Battery
+    unit_of_measurement: '%'
+    device_class: battery
+    state_class: measurement
+    state: '{% set s = states(''sensor.ground_toilet_temperature_sensor_battery_median'') %}{{ s | int if s not in [''unknown'', ''unavailable'', ''''] else ''unknown'' }}'
+- sensor:
+  - name: Ground Toilet Humidity Sensor
+    unit_of_measurement: '%'
+    state: '{{states.sensor["a4c1387c09bd_humidity"].state | float(40) | round(1)}}'
+- binary_sensor:
+  - name: Ground Toilet Occupancy Sensor Occupancy
+    state: '{% if states.sensor["a4c1385ab801_no_one_duration"].state == ''unavailable'' or states.sensor["a4c1385ab801_no_one_duration"].state  == ''unknown''%}
+
+      {{states.binary_sensor["a4c1385ab801_occupancy"].state}}
+
+      {% elif states.sensor["a4c1385ab801_no_one_duration"].state == ''0'' %}
+
+      {{states.binary_sensor["a4c1385ab801_occupancy"].state}}
+
+      {# else is equivilence to elif states.sensor["a4c1385ab801_no_one_duration"].state > "0" #}
+
+      {% else %}
+
+      off
+
+      {% endif %}
+
+      '
+    device_class: occupancy
+- sensor:
+  - name: Ground Toilet Occupancy Sensor Battery
+    unit_of_measurement: '%'
+    device_class: battery
+    state_class: measurement
+    state: '{% set s = states(''sensor.ground_toilet_occupancy_sensor_battery_median'') %}{{ s | int if s not in [''unknown'', ''unavailable'', ''''] else ''unknown'' }}'
+- binary_sensor:
+  - name: Ground Toilet Xiaomi Home Occupancy Sensor Occupancy
+    state: '{% if states.sensor["linp_cn_blt_3_1kas24de8ck00_es2_no_one_duration_p_2_1079"].state == ''unavailable'' or states.sensor["linp_cn_blt_3_1kas24de8ck00_es2_no_one_duration_p_2_1079"].state  == ''unknown''%}
+
+      {{states.binary_sensor["linp_cn_blt_3_1kas24de8ck00_es2_occupancy_status_p_2_1078"].state}}
+
+      {% elif states.sensor["linp_cn_blt_3_1kas24de8ck00_es2_no_one_duration_p_2_1079"].state == ''0'' %}
+
+      {{states.binary_sensor["linp_cn_blt_3_1kas24de8ck00_es2_occupancy_status_p_2_1078"].state}}
+
+      {# else is equivilence to elif states.sensor["linp_cn_blt_3_1kas24de8ck00_es2_no_one_duration_p_2_1079"].state > "0" #}
+
+      {% else %}
+
+      off
+
+      {% endif %}
+
+      '
+    device_class: occupancy
+- sensor:
+  - name: Ground Toilet Xiaomi Home Occupancy Sensor Battery
+    unit_of_measurement: '%'
+    device_class: battery
+    state_class: measurement
+    state: '{% set s = states(''sensor.ground_toilet_xiaomi_home_occupancy_sensor_battery_median'') %}{{ s | int if s not in [''unknown'', ''unavailable'', ''''] else ''unknown'' }}'
+- sensor:
+  - name: Ground Toilet Entrance Motion Sensor Battery
+    unit_of_measurement: '%'
+    device_class: battery
+    state_class: measurement
+    state: '{% set s = states(''sensor.ground_toilet_entrance_motion_sensor_battery_median'') %}{{ s | int if s not in [''unknown'', ''unavailable'', ''''] else ''unknown'' }}'
+- sensor:
+  - name: Ground Toilet Wall Button
+    state: '{{states.sensor["0x00158d0005435643_action"].state}}'
+- sensor:
+  - name: Ground Toilet Tado Availiabity
+    unit_of_measurement: "\xB0C"
+    state: '{{states("sensor.tado_smart_radiator_thermostat_va2241008640_current_temperature") | float(22) | round(1)}}'
+- binary_sensor:
+  - name: Ground Toilet Heating Required
+    state: '{% set climate = "climate.tado_smart_radiator_thermostat_va2241008640" %}{% if states(climate) == "unavailable" or states(climate) == "off" or (state_attr(climate, "temperature") <= state_attr(climate, "current_temperature"))  %}off{% else %} on{% endif %}'
+- binary_sensor:
+  - name: Ground Toilet Unavailable Entities
+    state: '{% set added_device_entities =  [''sensor.ground_toilet_temperature_sensor'', ''sensor.ground_toilet_temperature_sensor_battery'', ''sensor.ground_toilet_humidity_sensor'', ''binary_sensor.ground_toilet_occupancy_sensor_occupancy'', ''sensor.ground_toilet_occupancy_sensor_battery'', ''binary_sensor.ground_toilet_xiaomi_home_occupancy_sensor_occupancy'', ''sensor.ground_toilet_xiaomi_home_occupancy_sensor_battery'', ''sensor.ground_toilet_entrance_motion_sensor_battery'', ''sensor.ground_toilet_wall_button'', ''sensor.ground_toilet_tado_availiabity'', ''binary_sensor.ground_toilet_heating_required'', ''binary_sensor.ground_toilet_entrance_motion_sensor_motion'', ''switch.ground_toilet_wall_switch_1'', ''switch.ground_toilet_wall_switch_2'', ''light.ground_toilet_ceiling_light''] %}{% set ns = namespace() %}{% set ns.num_unavail_devices = 0 %}{% for device in added_device_entities %}   {% if states(device) in [''unavailable'', ''unknown'', ''none''] %}      {% set ns.num_unavail_devices = ns.num_unavail_devices + 1 %}   {% endif %}{% endfor %}{% if ns.num_unavail_devices > 0%}  on  {% else %}  off {% endif %}'
+    attributes:
+      value: '{% set added_device_entities =  [''sensor.ground_toilet_temperature_sensor'', ''sensor.ground_toilet_temperature_sensor_battery'', ''sensor.ground_toilet_humidity_sensor'', ''binary_sensor.ground_toilet_occupancy_sensor_occupancy'', ''sensor.ground_toilet_occupancy_sensor_battery'', ''binary_sensor.ground_toilet_xiaomi_home_occupancy_sensor_occupancy'', ''sensor.ground_toilet_xiaomi_home_occupancy_sensor_battery'', ''sensor.ground_toilet_entrance_motion_sensor_battery'', ''sensor.ground_toilet_wall_button'', ''sensor.ground_toilet_tado_availiabity'', ''binary_sensor.ground_toilet_heating_required'', ''binary_sensor.ground_toilet_entrance_motion_sensor_motion'', ''switch.ground_toilet_wall_switch_1'', ''switch.ground_toilet_wall_switch_2'', ''light.ground_toilet_ceiling_light''] %}{% set ns = namespace() %}{% set ns.unavail_devices = '''' %}{% for device in added_device_entities %}   {% if states(device) in [''unavailable'', ''unknown'', ''none''] %}   {% set ns.unavail_devices = ns.unavail_devices + ''
+
+        '' +device %} {% endif %}{% endfor %}{{ns.unavail_devices}}'
+- binary_sensor:
+  - name: Ground Toilet Low Battery
+    state: '{% set state = states("sensor.ground_toilet_min_battery") %} {% if state == "unavailable" or state == "unknown" or int(state) > 20 %} off {% else%} on {% endif %}'
+binary_sensor:
+- platform: group
+  name: Ground Toilet Entrance Motion Sensor Motion
+  device_class: motion
+  entities: binary_sensor.54ef44e58345_motion
+event: []
+lock: []
+light:
+- platform: group
+  name: Ground Toilet Ceiling Light
+  entities: light.ground_toilet_ceiling_light_hue
+group:
+  ground_toilet_occupancy_group:
+    name: Ground Toilet Occupancy Group
+    entities:
+    - input_select.ground_toilet_occupancy
+    - group.ground_toilet_motion_group
+    - binary_sensor.ground_toilet_entrance_motion_sensor_motion
+    - binary_sensor.ground_toilet_xiaomi_home_occupancy_sensor_occupancy
+    - binary_sensor.ground_toilet_occupancy_sensor_occupancy
+    - automation.zoc_0t_occupancy_update_ground_toilet
+  ground_toilet_motion_group:
+    name: Ground Toilet Motion Group
+    entities:
+    - binary_sensor.ground_toilet_entrance_motion_sensor_motion
+    - binary_sensor.ground_toilet_xiaomi_home_occupancy_sensor_occupancy
+    - binary_sensor.ground_toilet_occupancy_sensor_occupancy
+  ground_toilet_light_group:
+    name: Ground Toilet Light Group
+    entities:
+    - light.ground_toilet_ceiling_light
+  ground_toilet_timeout_window_group:
+    name: Ground Toilet Timeout Window Group
+    entities: []
+  ground_toilet_curtain_group:
+    name: Ground Toilet Curtain Group
+    entities: []
+  ground_toilet_battery:
+    name: Ground Toilet Battery
+    entities:
+    - sensor.ground_toilet_temperature_sensor_battery
+    - sensor.ground_toilet_occupancy_sensor_battery
+    - sensor.ground_toilet_xiaomi_home_occupancy_sensor_battery
+    - sensor.ground_toilet_entrance_motion_sensor_battery
+  ground_toilet_auto_gen_automations:
+    name: Ground Toilet Auto Gen Automations
+    entities:
+    - input_boolean.ground_toilet_auto_off_suspended
+    - timer.ground_toilet_auto_off_suspended_timer
+    - input_number.intensity_threshold_intense_light_summer_ground_toilet
+    - input_number.intensity_threshold_moderate_light_outdoor_ground_toilet
+    - sensor.living_room_light_intensity
+    - climate.tado_smart_radiator_thermostat_va2241008640
+    - binary_sensor.ground_toilet_heating_required
+    - input_boolean.ceiling_light_control_intense_light_summer_ground_toilet
+    - input_boolean.ceiling_light_control_moderate_light_outdoor_ground_toilet
+    - input_boolean.ceiling_light_control_low_light_outdoor_ground_toilet
+    - input_boolean.ceiling_light_control_sleep_mode_ground_toilet
+    - automation.zh_0t_set_radiator_valve_target_temperature_based_on_external_sensor_temperature_difference_ground_toilet
+    - automation.zl_0t_curtain_states_when_no_person_present_ground_toilet
+    - automation.zl_0t_lights_on_if_entering_to_room_ground_toilet
+    - automation.zl_0t_lights_off_if_no_person_ground_toilet
+    - automation.zl_0t_disable_entering_lights_on_automation_if_any_people_are_in_the_room_ground_toilet
+    - automation.zh_0t_heating_schedule_on_if_staying_in_the_room_ground_toilet
+    - automation.zh_0t_heating_schedule_off_if_people_left_the_room_ground_toilet
+    - automation.zh_0t_heating_manual_override_ground_toilet
+    - automation.zl_0t_applies_different_scenes_based_on_scene_selections_state_execution_ground_toilet
+    - automation.zlb_0t_wall_switch_single_press_toggle_ceiling_light_ground_toilet
+    - automation.zlb_0t_wall_switch_double_click_leave_room_and_turn_off_everything_ground_toilet
+    - automation.zoc_0t_occupancy_update_ground_toilet
+    - automation.zoc_0t_occupancy_override_and_sync_to_timer_ground_toilet
+    - automation.zoc_0t_occupancy_override_sync_from_timer_ground_toilet
+    - switch.0x00158d0005435643_channel_1
+    - switch.0x00158d0005435643_channel_2
+    - switch.0x00158d0005435643_wireless_1
+    - switch.0x00158d0005435643_wireless_2
+    - switch.adaptive_lighting_sleep_mode_ground_toilet
+    - sensor.living_room_east_side_light_sensor
+    - group.ground_toilet_battery

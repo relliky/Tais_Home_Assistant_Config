@@ -1,0 +1,3333 @@
+#############################################################################
+# DO NOT MODIFY. This is an automatically generated file.                   # 
+#############################################################################
+adaptive_lighting:
+- name: Guest Room
+  lights:
+  - light.guest_room_ceiling_light
+  - light.guest_room_lamp
+  prefer_rgb_color: false
+  transition: 45
+  initial_transition: 1
+  interval: 90
+  min_brightness: 100
+  max_brightness: 100
+  min_color_temp: 2700
+  max_color_temp: 6500
+  sleep_brightness: 1
+  sleep_color_temp: 2200
+  min_sunset_time: '17:30'
+  take_over_control: true
+  autoreset_control_seconds: 86400
+  detect_non_ha_changes: false
+  only_once: false
+  adapt_only_on_bare_turn_on: true
+  separate_turn_on_commands: false
+  send_split_delay: 500
+  adapt_delay: 0.5
+  intercept: true
+  multi_light_intercept: true
+  include_config_in_attributes: false
+automation:
+- alias: ZH-GR Set Radiator Valve Target Temperature Based on External Sensor Temperature Difference-Guest Room
+  triggers:
+  - trigger: state
+    entity_id: input_boolean.guest_room_tado_heater
+  - trigger: state
+    entity_id: climate.tado_smart_radiator_thermostat_va1049826304
+    attribute: temperature
+  - trigger: state
+    entity_id: climate.tado_smart_radiator_thermostat_va1049826304
+    attribute: current_temperature
+  - trigger: homeassistant
+    event: start
+  - minutes: /30
+    seconds: '2'
+    trigger: time_pattern
+  mode: single
+  actions:
+  - if:
+    - condition: state
+      entity_id: input_boolean.guest_room_tado_heater
+      state: 'on'
+    then:
+    - action: climate.set_temperature
+      data:
+        hvac_mode: heat
+        temperature: '{%set room_helper_entity = ''climate.guest_room'' %}{%set tado_valve_entity  = ''climate.tado_smart_radiator_thermostat_va1049826304'' %}  {%set room_cur_temp      = state_attr(room_helper_entity, ''current_temperature'') | float %}  {%set room_target_temp   = state_attr(room_helper_entity, ''temperature'')         | float %}  {%set tado_cur_temp      = state_attr(tado_valve_entity,  ''current_temperature'') | float %}  {#diff = room_target_temp - room_cur_temp = tado_target_temp_nxt - tado_cur_temp #}{% set tado_target_temp_nxt = ((room_target_temp - room_cur_temp + tado_cur_temp) * 2) | float(22) | round / 2 %} {# round to 0.5 #}{%set tado_target_temp_nxt_sat = [[tado_target_temp_nxt, 25]|min,5]|max %} {# set lower and upper limit to [5,25] #}{{tado_target_temp_nxt_sat}}'
+      target:
+        entity_id: climate.tado_smart_radiator_thermostat_va1049826304
+    - delay: 00:05:00
+    else:
+    - action: climate.turn_off
+      target:
+        entity_id: climate.tado_smart_radiator_thermostat_va1049826304
+  id: automation.zh_gr_set_radiator_valve_target_temperature_based_on_external_sensor_temperature_difference_guest_room
+- alias: ZL-GR Curtain States When No Person Present-Guest Room
+  id: automation.zl_gr_curtain_states_when_no_person_present_guest_room
+  trigger:
+  - platform: state
+    entity_id: input_select.guest_room_occupancy
+    to: Outside
+    for: 00:03:00
+  - trigger: homeassistant
+    event: start
+  - minutes: /10
+    seconds: '37'
+    trigger: time_pattern
+  conditions:
+  - condition: state
+    entity_id: input_select.guest_room_occupancy
+    state: Outside
+    for: 00:03:00
+  action:
+  - alias: If it is intense light summer
+    if:
+    - condition: template
+      value_template: '{{ states(''sensor.living_room_light_intensity'') | float(0) > states(''input_number.intensity_threshold_intense_light_summer_guest_room'') | float(0) }}'
+    - condition: numeric_state
+      entity_id: sensor.met_office_cambridge_city_airport_temperature_3_hourly
+      above: '15'
+    - condition: template
+      value_template: '{{ now().month > 4 and now().month < 9 }}'
+    - condition: state
+      entity_id: switch.adaptive_lighting_sleep_mode_guest_room
+      state: 'off'
+    then:
+      alias: curtain states when intense light summer
+      if:
+      - '{{ 1 == 1 }}'
+      then:
+      - parallel:
+        - parallel:
+          - if:
+              condition: state
+              entity_id: input_boolean.curtain_control_intense_light_summer_guest_room
+              state: 'on'
+            then:
+              alias: Turn cover.guest_room_curtain state=on
+              if:
+              - '{{ 1 == 1 }}'
+              then:
+                alias: ''
+                if:
+                - '{{ 1 == 1 }}'
+                then:
+                - service: cover.stop_cover
+                  entity_id:
+                  - cover.guest_room_curtain
+                - if:
+                    condition: numeric_state
+                    entity_id:
+                    - cover.guest_room_curtain
+                    attribute: current_position
+                    below: 5
+                  then:
+                    service: cover.open_cover
+                    entity_id:
+                    - cover.guest_room_curtain
+            else:
+              alias: Turn cover.guest_room_curtain state=off
+              if:
+              - '{{ 1 == 1 }}'
+              then:
+                alias: ''
+                if:
+                - '{{ 1 == 1 }}'
+                then:
+                - service: cover.stop_cover
+                  entity_id:
+                  - cover.guest_room_curtain
+                - if:
+                    condition: numeric_state
+                    entity_id:
+                    - cover.guest_room_curtain
+                    attribute: current_position
+                    above: 95
+                  then:
+                    service: cover.close_cover
+                    entity_id:
+                    - cover.guest_room_curtain
+    else:
+      alias: If it is moderate light outdoor
+      if:
+      - condition: template
+        value_template: '{{ states(''sensor.living_room_light_intensity'') | float(0) > states(''input_number.intensity_threshold_moderate_light_outdoor_guest_room'') | float(0) }}'
+      - condition: state
+        entity_id: switch.adaptive_lighting_sleep_mode_guest_room
+        state: 'off'
+      then:
+        alias: curtain states when moderate light outdoor
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+        - parallel:
+          - parallel:
+            - if:
+                condition: state
+                entity_id: input_boolean.curtain_control_moderate_light_outdoor_guest_room
+                state: 'on'
+              then:
+                alias: Turn cover.guest_room_curtain state=on
+                if:
+                - '{{ 1 == 1 }}'
+                then:
+                  alias: ''
+                  if:
+                  - '{{ 1 == 1 }}'
+                  then:
+                  - service: cover.stop_cover
+                    entity_id:
+                    - cover.guest_room_curtain
+                  - if:
+                      condition: numeric_state
+                      entity_id:
+                      - cover.guest_room_curtain
+                      attribute: current_position
+                      below: 5
+                    then:
+                      service: cover.open_cover
+                      entity_id:
+                      - cover.guest_room_curtain
+              else:
+                alias: Turn cover.guest_room_curtain state=off
+                if:
+                - '{{ 1 == 1 }}'
+                then:
+                  alias: ''
+                  if:
+                  - '{{ 1 == 1 }}'
+                  then:
+                  - service: cover.stop_cover
+                    entity_id:
+                    - cover.guest_room_curtain
+                  - if:
+                      condition: numeric_state
+                      entity_id:
+                      - cover.guest_room_curtain
+                      attribute: current_position
+                      above: 95
+                    then:
+                      service: cover.close_cover
+                      entity_id:
+                      - cover.guest_room_curtain
+      else:
+        alias: If it is low light outdoor
+        if:
+        - condition: template
+          value_template: '{{ states(''sensor.living_room_light_intensity'') | float(0) <= states(''input_number.intensity_threshold_moderate_light_outdoor_guest_room'') | float(0) }}'
+        - condition: state
+          entity_id: switch.adaptive_lighting_sleep_mode_guest_room
+          state: 'off'
+        then:
+          alias: curtain states when low light outdoor
+          if:
+          - '{{ 1 == 1 }}'
+          then:
+          - parallel:
+            - parallel:
+              - if:
+                  condition: state
+                  entity_id: input_boolean.curtain_control_low_light_outdoor_guest_room
+                  state: 'on'
+                then:
+                  alias: Turn cover.guest_room_curtain state=on
+                  if:
+                  - '{{ 1 == 1 }}'
+                  then:
+                    alias: ''
+                    if:
+                    - '{{ 1 == 1 }}'
+                    then:
+                    - service: cover.stop_cover
+                      entity_id:
+                      - cover.guest_room_curtain
+                    - if:
+                        condition: numeric_state
+                        entity_id:
+                        - cover.guest_room_curtain
+                        attribute: current_position
+                        below: 5
+                      then:
+                        service: cover.open_cover
+                        entity_id:
+                        - cover.guest_room_curtain
+                else:
+                  alias: Turn cover.guest_room_curtain state=off
+                  if:
+                  - '{{ 1 == 1 }}'
+                  then:
+                    alias: ''
+                    if:
+                    - '{{ 1 == 1 }}'
+                    then:
+                    - service: cover.stop_cover
+                      entity_id:
+                      - cover.guest_room_curtain
+                    - if:
+                        condition: numeric_state
+                        entity_id:
+                        - cover.guest_room_curtain
+                        attribute: current_position
+                        above: 95
+                      then:
+                        service: cover.close_cover
+                        entity_id:
+                        - cover.guest_room_curtain
+        else:
+          alias: If it is sleep mode
+          if:
+          - condition: state
+            entity_id: switch.adaptive_lighting_sleep_mode_guest_room
+            state: 'on'
+          then:
+            alias: curtain states when sleep mode
+            if:
+            - '{{ 1 == 1 }}'
+            then:
+            - parallel:
+              - parallel:
+                - if:
+                    condition: state
+                    entity_id: input_boolean.curtain_control_sleep_mode_guest_room
+                    state: 'on'
+                  then:
+                    alias: Turn cover.guest_room_curtain state=on
+                    if:
+                    - '{{ 1 == 1 }}'
+                    then:
+                      alias: ''
+                      if:
+                      - '{{ 1 == 1 }}'
+                      then:
+                      - service: cover.stop_cover
+                        entity_id:
+                        - cover.guest_room_curtain
+                      - if:
+                          condition: numeric_state
+                          entity_id:
+                          - cover.guest_room_curtain
+                          attribute: current_position
+                          below: 5
+                        then:
+                          service: cover.open_cover
+                          entity_id:
+                          - cover.guest_room_curtain
+                  else:
+                    alias: Turn cover.guest_room_curtain state=off
+                    if:
+                    - '{{ 1 == 1 }}'
+                    then:
+                      alias: ''
+                      if:
+                      - '{{ 1 == 1 }}'
+                      then:
+                      - service: cover.stop_cover
+                        entity_id:
+                        - cover.guest_room_curtain
+                      - if:
+                          condition: numeric_state
+                          entity_id:
+                          - cover.guest_room_curtain
+                          attribute: current_position
+                          above: 95
+                        then:
+                          service: cover.close_cover
+                          entity_id:
+                          - cover.guest_room_curtain
+          else:
+            alias: Default
+            service: script.do_nothing
+- alias: ZL-GR Lights On If Entering to Room-Guest Room
+  id: automation.zl_gr_lights_on_if_entering_to_room_guest_room
+  trigger:
+    entity_id:
+    - binary_sensor.guest_room_entrance_motion_sensor_motion
+    platform: state
+    to: 'on'
+    from: 'off'
+  action:
+  - service: automation.turn_off
+    entity_id: automation.zl_gr_lights_on_if_entering_to_room_guest_room
+    data:
+      stop_actions: false
+  - service: script.call_room_scene
+    data:
+      room_scene_select: input_select.guest_room_scene
+      scene: Idle
+  - alias: If it is bright morning
+    if:
+    - condition: template
+      value_template: '{{ states(''sensor.living_room_light_intensity'') | float(0) > states(''input_number.intensity_threshold_intense_light_summer_guest_room'') | float(0) }}'
+    - condition: numeric_state
+      entity_id: sensor.met_office_cambridge_city_airport_temperature_3_hourly
+      above: '15'
+    - condition: template
+      value_template: '{{ now().month > 4 and now().month < 9 }}'
+    - condition: state
+      entity_id: switch.adaptive_lighting_sleep_mode_guest_room
+      state: 'off'
+    then:
+      alias: light states when intense light summer
+      if:
+      - '{{ 1 == 1 }}'
+      then:
+      - parallel:
+        - parallel:
+          - if:
+              condition: state
+              entity_id: input_boolean.ceiling_light_control_intense_light_summer_guest_room
+              state: 'on'
+            then:
+              alias: Turn light.guest_room_ceiling_light state=on
+              if:
+              - '{{ 1 == 1 }}'
+              then:
+                service: light.turn_on
+                entity_id:
+                - light.guest_room_ceiling_light
+            else:
+              alias: Turn light.guest_room_ceiling_light state=off
+              if:
+              - '{{ 1 == 1 }}'
+              then:
+                service: light.turn_off
+                entity_id:
+                - light.guest_room_ceiling_light
+          - if:
+              condition: state
+              entity_id: input_boolean.lamp_control_intense_light_summer_guest_room
+              state: 'on'
+            then:
+              alias: Turn light.guest_room_lamp state=on
+              if:
+              - '{{ 1 == 1 }}'
+              then:
+                service: light.turn_on
+                entity_id:
+                - light.guest_room_lamp
+            else:
+              alias: Turn light.guest_room_lamp state=off
+              if:
+              - '{{ 1 == 1 }}'
+              then:
+                service: light.turn_off
+                entity_id:
+                - light.guest_room_lamp
+          - if:
+              condition: state
+              entity_id: input_boolean.led_control_intense_light_summer_guest_room
+              state: 'on'
+            then:
+              alias: Turn light.guest_room_desk_screen_led state=on
+              if:
+              - '{{ 1 == 1 }}'
+              then:
+                service: light.turn_on
+                entity_id:
+                - light.guest_room_desk_screen_led
+            else:
+              alias: Turn light.guest_room_desk_screen_led state=off
+              if:
+              - '{{ 1 == 1 }}'
+              then:
+                service: light.turn_off
+                entity_id:
+                - light.guest_room_desk_screen_led
+    else:
+      alias: If it is bright afternoon
+      if:
+      - condition: template
+        value_template: '{{ states(''sensor.living_room_light_intensity'') | float(0) > states(''input_number.intensity_threshold_moderate_light_outdoor_guest_room'') | float(0) }}'
+      - condition: state
+        entity_id: switch.adaptive_lighting_sleep_mode_guest_room
+        state: 'off'
+      then:
+        alias: light states when moderate light outdoor
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+        - parallel:
+          - parallel:
+            - if:
+                condition: state
+                entity_id: input_boolean.ceiling_light_control_moderate_light_outdoor_guest_room
+                state: 'on'
+              then:
+                alias: Turn light.guest_room_ceiling_light state=on
+                if:
+                - '{{ 1 == 1 }}'
+                then:
+                  service: light.turn_on
+                  entity_id:
+                  - light.guest_room_ceiling_light
+              else:
+                alias: Turn light.guest_room_ceiling_light state=off
+                if:
+                - '{{ 1 == 1 }}'
+                then:
+                  service: light.turn_off
+                  entity_id:
+                  - light.guest_room_ceiling_light
+            - if:
+                condition: state
+                entity_id: input_boolean.lamp_control_moderate_light_outdoor_guest_room
+                state: 'on'
+              then:
+                alias: Turn light.guest_room_lamp state=on
+                if:
+                - '{{ 1 == 1 }}'
+                then:
+                  service: light.turn_on
+                  entity_id:
+                  - light.guest_room_lamp
+              else:
+                alias: Turn light.guest_room_lamp state=off
+                if:
+                - '{{ 1 == 1 }}'
+                then:
+                  service: light.turn_off
+                  entity_id:
+                  - light.guest_room_lamp
+            - if:
+                condition: state
+                entity_id: input_boolean.led_control_moderate_light_outdoor_guest_room
+                state: 'on'
+              then:
+                alias: Turn light.guest_room_desk_screen_led state=on
+                if:
+                - '{{ 1 == 1 }}'
+                then:
+                  service: light.turn_on
+                  entity_id:
+                  - light.guest_room_desk_screen_led
+              else:
+                alias: Turn light.guest_room_desk_screen_led state=off
+                if:
+                - '{{ 1 == 1 }}'
+                then:
+                  service: light.turn_off
+                  entity_id:
+                  - light.guest_room_desk_screen_led
+      else:
+        alias: If it is bright afternoon
+        if:
+        - condition: template
+          value_template: '{{ states(''sensor.living_room_light_intensity'') | float(0) <= states(''input_number.intensity_threshold_moderate_light_outdoor_guest_room'') | float(0) }}'
+        - condition: state
+          entity_id: switch.adaptive_lighting_sleep_mode_guest_room
+          state: 'off'
+        then:
+          alias: light states when low light outdoor
+          if:
+          - '{{ 1 == 1 }}'
+          then:
+          - parallel:
+            - parallel:
+              - if:
+                  condition: state
+                  entity_id: input_boolean.ceiling_light_control_low_light_outdoor_guest_room
+                  state: 'on'
+                then:
+                  alias: Turn light.guest_room_ceiling_light state=on
+                  if:
+                  - '{{ 1 == 1 }}'
+                  then:
+                    service: light.turn_on
+                    entity_id:
+                    - light.guest_room_ceiling_light
+                else:
+                  alias: Turn light.guest_room_ceiling_light state=off
+                  if:
+                  - '{{ 1 == 1 }}'
+                  then:
+                    service: light.turn_off
+                    entity_id:
+                    - light.guest_room_ceiling_light
+              - if:
+                  condition: state
+                  entity_id: input_boolean.lamp_control_low_light_outdoor_guest_room
+                  state: 'on'
+                then:
+                  alias: Turn light.guest_room_lamp state=on
+                  if:
+                  - '{{ 1 == 1 }}'
+                  then:
+                    service: light.turn_on
+                    entity_id:
+                    - light.guest_room_lamp
+                else:
+                  alias: Turn light.guest_room_lamp state=off
+                  if:
+                  - '{{ 1 == 1 }}'
+                  then:
+                    service: light.turn_off
+                    entity_id:
+                    - light.guest_room_lamp
+              - if:
+                  condition: state
+                  entity_id: input_boolean.led_control_low_light_outdoor_guest_room
+                  state: 'on'
+                then:
+                  alias: Turn light.guest_room_desk_screen_led state=on
+                  if:
+                  - '{{ 1 == 1 }}'
+                  then:
+                    service: light.turn_on
+                    entity_id:
+                    - light.guest_room_desk_screen_led
+                else:
+                  alias: Turn light.guest_room_desk_screen_led state=off
+                  if:
+                  - '{{ 1 == 1 }}'
+                  then:
+                    service: light.turn_off
+                    entity_id:
+                    - light.guest_room_desk_screen_led
+        else:
+          alias: If it is bright afternoon
+          if:
+          - condition: state
+            entity_id: switch.adaptive_lighting_sleep_mode_guest_room
+            state: 'on'
+          then:
+            alias: light states when sleep mode
+            if:
+            - '{{ 1 == 1 }}'
+            then:
+            - parallel:
+              - parallel:
+                - if:
+                    condition: state
+                    entity_id: input_boolean.ceiling_light_control_sleep_mode_guest_room
+                    state: 'on'
+                  then:
+                    alias: Turn light.guest_room_ceiling_light state=on
+                    if:
+                    - '{{ 1 == 1 }}'
+                    then:
+                      service: light.turn_on
+                      entity_id:
+                      - light.guest_room_ceiling_light
+                  else:
+                    alias: Turn light.guest_room_ceiling_light state=off
+                    if:
+                    - '{{ 1 == 1 }}'
+                    then:
+                      service: light.turn_off
+                      entity_id:
+                      - light.guest_room_ceiling_light
+                - if:
+                    condition: state
+                    entity_id: input_boolean.lamp_control_sleep_mode_guest_room
+                    state: 'on'
+                  then:
+                    alias: Turn light.guest_room_lamp state=on
+                    if:
+                    - '{{ 1 == 1 }}'
+                    then:
+                      service: light.turn_on
+                      entity_id:
+                      - light.guest_room_lamp
+                  else:
+                    alias: Turn light.guest_room_lamp state=off
+                    if:
+                    - '{{ 1 == 1 }}'
+                    then:
+                      service: light.turn_off
+                      entity_id:
+                      - light.guest_room_lamp
+                - if:
+                    condition: state
+                    entity_id: input_boolean.led_control_sleep_mode_guest_room
+                    state: 'on'
+                  then:
+                    alias: Turn light.guest_room_desk_screen_led state=on
+                    if:
+                    - '{{ 1 == 1 }}'
+                    then:
+                      service: light.turn_on
+                      entity_id:
+                      - light.guest_room_desk_screen_led
+                  else:
+                    alias: Turn light.guest_room_desk_screen_led state=off
+                    if:
+                    - '{{ 1 == 1 }}'
+                    then:
+                      service: light.turn_off
+                      entity_id:
+                      - light.guest_room_desk_screen_led
+          else:
+            alias: Default
+            service: script.do_nothing
+  - service: automation.trigger
+    entity_id: automation.zl_gr_curtain_states_when_no_person_present_guest_room
+- alias: ZL-GR Lights Off If No Person-Guest Room
+  id: automation.zl_gr_lights_off_if_no_person_guest_room
+  trigger:
+  - platform: state
+    entity_id: input_select.guest_room_occupancy
+    to: Outside
+  - trigger: homeassistant
+    event: start
+  - minutes: /30
+    seconds: '39'
+    trigger: time_pattern
+  condition:
+  - condition: state
+    entity_id: input_select.guest_room_occupancy
+    state: Outside
+  - condition: state
+    entity_id: group.guest_room_motion_group
+    state: 'off'
+    for: 00:01:00
+  action:
+    parallel:
+    - alias: Turn automation.zl_gr_lights_on_if_entering_to_room_guest_room state=on
+      if:
+      - '{{ 1 == 1 }}'
+      then:
+        service: homeassistant.turn_on
+        entity_id: automation.zl_gr_lights_on_if_entering_to_room_guest_room
+    - service: script.do_nothing
+    - service: script.call_room_scene
+      data:
+        room_scene_select: input_select.guest_room_scene
+        scene: Idle
+    - alias: All Off
+      if:
+      - '{{ 1 == 1 }}'
+      then:
+      - parallel:
+        - alias: Turn light.guest_room_ceiling_light state=off
+          if:
+          - '{{ 1 == 1 }}'
+          then:
+            service: light.turn_off
+            entity_id:
+            - light.guest_room_ceiling_light
+        - alias: Turn light.guest_room_lamp state=off
+          if:
+          - '{{ 1 == 1 }}'
+          then:
+            service: light.turn_off
+            entity_id:
+            - light.guest_room_lamp
+        - alias: Turn light.guest_room_desk_screen_led state=off
+          if:
+          - '{{ 1 == 1 }}'
+          then:
+            service: light.turn_off
+            entity_id:
+            - light.guest_room_desk_screen_led
+        - service: script.do_nothing
+    - service: script.do_nothing
+- alias: ZL-GR Disable Entering Lights-on Automation If any People are in the Room-Guest Room
+  trigger:
+  - platform: state
+    entity_id: input_select.guest_room_occupancy
+    to:
+    - Just Entered
+    - In Sleep
+    - Stayed Inside
+  action:
+  - delay: 00:00:10
+  - service: automation.turn_off
+    entity_id: automation.zl_gr_lights_on_if_entering_to_room_guest_room
+    data:
+      stop_actions: 'false'
+  id: automation.zl_gr_disable_entering_lights_on_automation_if_any_people_are_in_the_room_guest_room
+- alias: ZH-GR Heating Schedule On If Staying In the Room-Guest Room
+  id: automation.zh_gr_heating_schedule_on_if_staying_in_the_room_guest_room
+  trigger:
+  - platform: state
+    entity_id: input_select.guest_room_occupancy
+    from:
+    - Just Entered
+    - Outside
+    to:
+    - Stayed Inside
+    - In Sleep
+  action:
+  - if:
+    - condition: not
+      conditions:
+      - condition: state
+        entity_id: climate.guest_room
+        state: heat
+    then:
+      alias: Turn heating state=on
+      if:
+      - '{{ 1 == 1 }}'
+      then:
+        alias: ''
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+        - alias: Turn climate.guest_room state=on
+          if:
+          - '{{ 1 == 1 }}'
+          then:
+            service: climate.set_hvac_mode
+            data:
+              hvac_mode: heat
+            entity_id: climate.guest_room
+        - alias: Turn switch.schedule_guest_room_temperature state=on
+          if:
+          - '{{ 1 == 1 }}'
+          then:
+            service: homeassistant.turn_on
+            entity_id: switch.schedule_guest_room_temperature
+- alias: ZH-GR Heating Schedule Off If People Left the Room-Guest Room
+  id: automation.zh_gr_heating_schedule_off_if_people_left_the_room_guest_room
+  trigger:
+  - platform: state
+    entity_id: input_select.guest_room_occupancy
+    to: Outside
+  - trigger: homeassistant
+    event: start
+  - minutes: /30
+    seconds: '4'
+    trigger: time_pattern
+  action:
+  - condition: state
+    entity_id: input_select.guest_room_occupancy
+    state: Outside
+  - service: script.do_nothing
+  - condition: state
+    entity_id: input_boolean.guest_room_heating_override
+    state: 'off'
+  - alias: Turn heating state=off
+    if:
+    - '{{ 1 == 1 }}'
+    then:
+      alias: ''
+      if:
+      - '{{ 1 == 1 }}'
+      then:
+      - alias: Turn climate.guest_room state=off
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          service: climate.set_hvac_mode
+          data:
+            hvac_mode: 'off'
+          entity_id: climate.guest_room
+      - alias: Turn switch.schedule_guest_room_temperature state=off
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          service: homeassistant.turn_off
+          entity_id: switch.schedule_guest_room_temperature
+- alias: ZH-GR Heating Manual Override-Guest Room
+  mode: restart
+  trigger:
+  - platform: state
+    entity_id: input_boolean.guest_room_heating_override
+  action:
+  - if:
+    - condition: state
+      entity_id: input_boolean.guest_room_heating_override
+      state: 'off'
+    then:
+    - service: automation.trigger
+      entity_id:
+      - automation.zh_gr_heating_schedule_off_if_people_left_the_room_guest_room
+    else:
+    - service: automation.trigger
+      entity_id:
+      - automation.zh_gr_heating_schedule_on_if_staying_in_the_room_guest_room
+    - delay:
+        hours: 4
+    - service: homeassistant.turn_off
+      entity_id: input_boolean.guest_room_heating_override
+    - service: automation.trigger
+      entity_id:
+      - automation.zh_gr_heating_schedule_on_if_staying_in_the_room_guest_room
+  id: automation.zh_gr_heating_manual_override_guest_room
+- alias: ZLB-GR Single Button Control-Guest Room
+  trigger:
+  - platform: state
+    entity_id:
+    - sensor.guest_room_button_1
+    - sensor.guest_room_button_2
+    to:
+    - single
+    - '1'
+    id: CYCLE_SCENES
+  - platform: state
+    entity_id:
+    - sensor.guest_room_button_1
+    - sensor.guest_room_button_2
+    to:
+    - double
+    - '2'
+    id: TOGGLE_CURTAINS
+  - platform: state
+    entity_id: sensor.guest_room_button_1
+    to:
+    - hold
+    id: TOGGLE_LAMP_0
+  - platform: state
+    entity_id: sensor.guest_room_button_2
+    to:
+    - hold
+    id: TOGGLE_LAMP_1
+  - platform: state
+    entity_id:
+    - sensor.guest_room_button_1
+    - sensor.guest_room_button_2
+    to:
+    - triple
+    - '3'
+    id: DO_NOTHING
+  - platform: state
+    entity_id:
+    - sensor.guest_room_button_1
+    - sensor.guest_room_button_2
+    to:
+    - quadruple
+    id: DO_NOTHING
+  - platform: state
+    entity_id:
+    - sensor.guest_room_button_1
+    - sensor.guest_room_button_2
+    to:
+    - many
+    id: DO_NOTHING
+  - platform: state
+    entity_id:
+    - sensor.guest_room_button_1
+    - sensor.guest_room_button_2
+    to:
+    - release
+    id: DO_NOTHING
+  mode: queued
+  action:
+    choose:
+    - conditions:
+        condition: trigger
+        id: CYCLE_SCENES
+      sequence:
+        choose:
+        - conditions:
+            condition: state
+            entity_id: input_select.guest_room_scene
+            state: All Off
+          sequence:
+            service: script.call_room_scene
+            data:
+              room_scene_select: input_select.guest_room_scene
+              scene: All White
+        - conditions:
+            condition: state
+            entity_id: input_select.guest_room_scene
+            state: All White
+          sequence:
+            service: script.call_room_scene
+            data:
+              room_scene_select: input_select.guest_room_scene
+              scene: Lamp LED White
+        - conditions:
+            condition: state
+            entity_id: input_select.guest_room_scene
+            state: Lamp LED White
+          sequence:
+            service: script.call_room_scene
+            data:
+              room_scene_select: input_select.guest_room_scene
+              scene: All Off
+        default:
+          service: script.call_room_scene
+          data:
+            room_scene_select: input_select.guest_room_scene
+            scene: All White
+    - conditions:
+        condition: trigger
+        id: DO_NOTHING
+      sequence:
+      - service: script.do_nothing
+    - conditions:
+        condition: trigger
+        id: TOGGLE_AL_SLEEP_MODE
+      sequence:
+      - alias: Turn switch.adaptive_lighting_sleep_mode_guest_room state=toggle
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          if:
+          - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
+            condition: state
+            entity_id: switch.adaptive_lighting_sleep_mode_guest_room
+            state: 'on'
+            match: any
+          then:
+            alias: Turn switch.adaptive_lighting_sleep_mode_guest_room state=off
+            if:
+            - '{{ 1 == 1 }}'
+            then:
+              service: homeassistant.turn_off
+              entity_id: switch.adaptive_lighting_sleep_mode_guest_room
+          else:
+            alias: Turn switch.adaptive_lighting_sleep_mode_guest_room state=on
+            if:
+            - '{{ 1 == 1 }}'
+            then:
+              service: homeassistant.turn_on
+              entity_id: switch.adaptive_lighting_sleep_mode_guest_room
+    - conditions:
+        condition: trigger
+        id: TOGGLE_CURTAINS
+      sequence:
+      - alias: Turn cover.guest_room_curtain state=toggle
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          alias: ''
+          if:
+          - '{{ 1 == 1 }}'
+          then:
+          - service: cover.stop_cover
+            entity_id:
+            - cover.guest_room_curtain
+          - if:
+            - alias: 'toggle all curtains together: if any of curtains is on, turn off all curtains, otherwise turn on all curtains'
+              condition: state
+              entity_id:
+              - cover.guest_room_curtain
+              state:
+              - open
+              - opening
+              match: any
+            then:
+              alias: Turn cover.guest_room_curtain state=off
+              if:
+              - '{{ 1 == 1 }}'
+              then:
+                alias: ''
+                if:
+                - '{{ 1 == 1 }}'
+                then:
+                - service: cover.stop_cover
+                  entity_id:
+                  - cover.guest_room_curtain
+                - if:
+                    condition: numeric_state
+                    entity_id:
+                    - cover.guest_room_curtain
+                    attribute: current_position
+                    above: 95
+                  then:
+                    service: cover.close_cover
+                    entity_id:
+                    - cover.guest_room_curtain
+            else:
+              alias: Turn cover.guest_room_curtain state=on
+              if:
+              - '{{ 1 == 1 }}'
+              then:
+                alias: ''
+                if:
+                - '{{ 1 == 1 }}'
+                then:
+                - service: cover.stop_cover
+                  entity_id:
+                  - cover.guest_room_curtain
+                - if:
+                    condition: numeric_state
+                    entity_id:
+                    - cover.guest_room_curtain
+                    attribute: current_position
+                    below: 5
+                  then:
+                    service: cover.open_cover
+                    entity_id:
+                    - cover.guest_room_curtain
+    - conditions:
+        condition: trigger
+        id: TOGGLE_CURTAIN_0
+      sequence:
+      - alias: Turn cover.guest_room_curtain state=toggle
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          if:
+          - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
+            condition: state
+            entity_id: cover.guest_room_curtain
+            state: 'on'
+            match: any
+          then:
+            alias: Turn cover.guest_room_curtain state=off
+            if:
+            - '{{ 1 == 1 }}'
+            then:
+              service: homeassistant.turn_off
+              entity_id: cover.guest_room_curtain
+          else:
+            alias: Turn cover.guest_room_curtain state=on
+            if:
+            - '{{ 1 == 1 }}'
+            then:
+              service: homeassistant.turn_on
+              entity_id: cover.guest_room_curtain
+    - conditions:
+        condition: trigger
+        id: INCREMENT_CURTAINS
+      sequence:
+      - alias: Turn cover.guest_room_curtain state=increment
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          alias: ''
+          if:
+          - '{{ 1 == 1 }}'
+          then:
+          - service: cover.stop_cover
+            entity_id:
+            - cover.guest_room_curtain
+          - service: cover.set_cover_position
+            target:
+              entity_id:
+              - cover.guest_room_curtain
+            data:
+              position: '{{ [[ (state_attr(''cover.guest_room_curtain'', ''current_position'')) + 51 ,0]|max,100]|min}}'
+    - conditions:
+        condition: trigger
+        id: DECREMENT_CURTAINS
+      sequence:
+      - alias: Turn cover.guest_room_curtain state=decrement
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          alias: ''
+          if:
+          - '{{ 1 == 1 }}'
+          then:
+          - service: cover.stop_cover
+            entity_id:
+            - cover.guest_room_curtain
+          - service: cover.set_cover_position
+            target:
+              entity_id:
+              - cover.guest_room_curtain
+            data:
+              position: '{{ [[ (state_attr(''cover.guest_room_curtain'', ''current_position'')) + -51 ,0]|max,100]|min}}'
+    - conditions:
+        condition: trigger
+        id: INCREMENT_CURTAIN_0
+      sequence:
+      - alias: Turn cover.guest_room_curtain state=increment
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          service: script.do_nothing
+    - conditions:
+        condition: trigger
+        id: DECREMENT_CURTAIN_0
+      sequence:
+      - alias: Turn cover.guest_room_curtain state=decrement
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          service: script.do_nothing
+    - conditions:
+        condition: trigger
+        id: TOGGLE_ALL_LIGHTS
+      sequence:
+      - alias: Turn light.guest_room_desk_screen_led light.guest_room_lamp light.guest_room_ceiling_light state=toggle
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          if:
+          - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
+            condition: state
+            entity_id:
+            - light.guest_room_desk_screen_led
+            - light.guest_room_lamp
+            - light.guest_room_ceiling_light
+            state: 'on'
+            match: any
+          then:
+            alias: Turn light.guest_room_desk_screen_led light.guest_room_lamp light.guest_room_ceiling_light state=off
+            if:
+            - '{{ 1 == 1 }}'
+            then:
+              service: light.turn_off
+              entity_id:
+              - light.guest_room_desk_screen_led
+              - light.guest_room_lamp
+              - light.guest_room_ceiling_light
+          else:
+            alias: Turn light.guest_room_desk_screen_led light.guest_room_lamp light.guest_room_ceiling_light state=on
+            if:
+            - '{{ 1 == 1 }}'
+            then:
+              service: light.turn_on
+              entity_id:
+              - light.guest_room_desk_screen_led
+              - light.guest_room_lamp
+              - light.guest_room_ceiling_light
+    - conditions:
+        condition: trigger
+        id: TOGGLE_LAMP_0
+      sequence:
+      - alias: Turn light.guest_room_lamp state=toggle
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          if:
+          - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
+            condition: state
+            entity_id: light.guest_room_lamp
+            state: 'on'
+            match: any
+          then:
+            alias: Turn light.guest_room_lamp state=off
+            if:
+            - '{{ 1 == 1 }}'
+            then:
+              service: light.turn_off
+              entity_id: light.guest_room_lamp
+          else:
+            alias: Turn light.guest_room_lamp state=on
+            if:
+            - '{{ 1 == 1 }}'
+            then:
+              service: light.turn_on
+              entity_id: light.guest_room_lamp
+    - conditions:
+        condition: trigger
+        id: INCREMENT_LAMP_0
+      sequence:
+      - alias: Turn light.guest_room_lamp state=increment
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          if:
+          - alias: increment brightness unless it is off, set the brightness to 1 percent
+            condition: state
+            entity_id: light.guest_room_lamp
+            state: 'off'
+          then:
+          - alias: Turn light.guest_room_lamp state=on light_brightness=1
+            if:
+            - '{{ 1 == 1 }}'
+            then:
+              service: light.turn_on
+              entity_id: light.guest_room_lamp
+              data:
+                brightness_pct: 1
+          else:
+            service: light.turn_on
+            target:
+              entity_id: light.guest_room_lamp
+            data:
+              brightness_step_pct: 34
+    - conditions:
+        condition: trigger
+        id: DECREMENT_LAMP_0
+      sequence:
+      - alias: Turn light.guest_room_lamp state=decrement
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          if:
+          - alias: increment brightness unless it is off, set the brightness to 1 percent
+            condition: state
+            entity_id: light.guest_room_lamp
+            state: 'off'
+          then:
+          - alias: Turn light.guest_room_lamp state=on light_brightness=1
+            if:
+            - '{{ 1 == 1 }}'
+            then:
+              service: light.turn_on
+              entity_id: light.guest_room_lamp
+              data:
+                brightness_pct: 1
+          else:
+            service: light.turn_on
+            target:
+              entity_id: light.guest_room_lamp
+            data:
+              brightness_step_pct: -34
+    - conditions:
+        condition: trigger
+        id: CYCLE_LAMP_0
+      sequence:
+      - alias: Turn light.guest_room_lamp state=cycle
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          if:
+            condition: state
+            entity_id: light.guest_room_lamp
+            state: 'off'
+          then:
+          - service: light.turn_on
+            entity_id: light.guest_room_lamp
+            data:
+              brightness: 3
+          else:
+            service: light.turn_on
+            entity_id: light.guest_room_lamp
+            data_template:
+              brightness: '{% set brightness = state_attr(''light.guest_room_lamp'', ''brightness'') | int(0) %}{% if brightness == 0 or is_state(''light.guest_room_lamp'', ''off'') %}3{% elif brightness <= 83 %}84{% elif brightness <= 167 %}168{% elif brightness <= 254 %}255{% else %}0{% endif %}'
+    - conditions:
+        condition: trigger
+        id: TOGGLE_CEILING_LIGHTS
+      sequence:
+      - alias: Turn light.guest_room_ceiling_light state=toggle
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          if:
+          - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
+            condition: state
+            entity_id:
+            - light.guest_room_ceiling_light
+            state: 'on'
+            match: any
+          then:
+            alias: Turn light.guest_room_ceiling_light state=off
+            if:
+            - '{{ 1 == 1 }}'
+            then:
+              service: light.turn_off
+              entity_id:
+              - light.guest_room_ceiling_light
+          else:
+            alias: Turn light.guest_room_ceiling_light state=on
+            if:
+            - '{{ 1 == 1 }}'
+            then:
+              service: light.turn_on
+              entity_id:
+              - light.guest_room_ceiling_light
+    - conditions:
+        condition: trigger
+        id: INCREMENT_CEILING_LIGHTS
+      sequence:
+      - alias: Turn light.guest_room_ceiling_light state=increment
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          if:
+          - alias: increment brightness unless it is off, set the brightness to 1 percent
+            condition: state
+            entity_id:
+            - light.guest_room_ceiling_light
+            state: 'off'
+          then:
+          - alias: Turn light.guest_room_ceiling_light state=on light_brightness=1
+            if:
+            - '{{ 1 == 1 }}'
+            then:
+              service: light.turn_on
+              entity_id:
+              - light.guest_room_ceiling_light
+              data:
+                brightness_pct: 1
+          else:
+            service: light.turn_on
+            target:
+              entity_id:
+              - light.guest_room_ceiling_light
+            data:
+              brightness_step_pct: 34
+    - conditions:
+        condition: trigger
+        id: DECREMENT_CEILING_LIGHTS
+      sequence:
+      - alias: Turn light.guest_room_ceiling_light state=decrement
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          if:
+          - alias: increment brightness unless it is off, set the brightness to 1 percent
+            condition: state
+            entity_id:
+            - light.guest_room_ceiling_light
+            state: 'off'
+          then:
+          - alias: Turn light.guest_room_ceiling_light state=on light_brightness=1
+            if:
+            - '{{ 1 == 1 }}'
+            then:
+              service: light.turn_on
+              entity_id:
+              - light.guest_room_ceiling_light
+              data:
+                brightness_pct: 1
+          else:
+            service: light.turn_on
+            target:
+              entity_id:
+              - light.guest_room_ceiling_light
+            data:
+              brightness_step_pct: -34
+    - conditions:
+        condition: trigger
+        id: CYCLE_CEILING_LIGHTS
+      sequence:
+      - alias: Turn light.guest_room_ceiling_light state=cycle
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          if:
+            condition: state
+            entity_id:
+            - light.guest_room_ceiling_light
+            state: 'off'
+          then:
+          - service: light.turn_on
+            entity_id:
+            - light.guest_room_ceiling_light
+            data:
+              brightness: 3
+          else:
+            service: light.turn_on
+            entity_id:
+            - light.guest_room_ceiling_light
+            data_template:
+              brightness: '{% set brightness = state_attr(''light.guest_room_ceiling_light'', ''brightness'') | int(0) %}{% if brightness == 0 or is_state(''light.guest_room_ceiling_light'', ''off'') %}3{% elif brightness <= 83 %}84{% elif brightness <= 167 %}168{% elif brightness <= 254 %}255{% else %}0{% endif %}'
+    - conditions:
+        condition: trigger
+        id: TOGGLE_LEDS
+      sequence:
+      - alias: Turn light.guest_room_desk_screen_led state=toggle
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          if:
+          - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
+            condition: state
+            entity_id:
+            - light.guest_room_desk_screen_led
+            state: 'on'
+            match: any
+          then:
+            alias: Turn light.guest_room_desk_screen_led state=off
+            if:
+            - '{{ 1 == 1 }}'
+            then:
+              service: light.turn_off
+              entity_id:
+              - light.guest_room_desk_screen_led
+          else:
+            alias: Turn light.guest_room_desk_screen_led state=on
+            if:
+            - '{{ 1 == 1 }}'
+            then:
+              service: light.turn_on
+              entity_id:
+              - light.guest_room_desk_screen_led
+    - conditions:
+        condition: trigger
+        id: CYCLE_LEDS
+      sequence:
+      - alias: Turn light.guest_room_desk_screen_led state=cycle
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          if:
+            condition: state
+            entity_id:
+            - light.guest_room_desk_screen_led
+            state: 'off'
+          then:
+          - service: light.turn_on
+            entity_id:
+            - light.guest_room_desk_screen_led
+            data:
+              brightness: 3
+          else:
+            service: light.turn_on
+            entity_id:
+            - light.guest_room_desk_screen_led
+            data_template:
+              brightness: '{% set brightness = state_attr(''light.guest_room_desk_screen_led'', ''brightness'') | int(0) %}{% if brightness == 0 or is_state(''light.guest_room_desk_screen_led'', ''off'') %}3{% elif brightness <= 83 %}84{% elif brightness <= 167 %}168{% elif brightness <= 254 %}255{% else %}0{% endif %}'
+    - conditions:
+        condition: trigger
+        id: INCREMENT_LEDS
+      sequence:
+      - alias: Turn light.guest_room_desk_screen_led state=increment
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          if:
+          - alias: increment brightness unless it is off, set the brightness to 1 percent
+            condition: state
+            entity_id:
+            - light.guest_room_desk_screen_led
+            state: 'off'
+          then:
+          - alias: Turn light.guest_room_desk_screen_led state=on
+            if:
+            - '{{ 1 == 1 }}'
+            then:
+              service: light.turn_on
+              entity_id:
+              - light.guest_room_desk_screen_led
+          else:
+            service: light.turn_on
+            target:
+              entity_id:
+              - light.guest_room_desk_screen_led
+            data:
+              brightness_step_pct: 34
+    - conditions:
+        condition: trigger
+        id: DECREMENT_LEDS
+      sequence:
+      - alias: Turn light.guest_room_desk_screen_led state=decrement
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          if:
+          - alias: increment brightness unless it is off, set the brightness to 1 percent
+            condition: state
+            entity_id:
+            - light.guest_room_desk_screen_led
+            state: 'off'
+          then:
+          - alias: Turn light.guest_room_desk_screen_led state=on
+            if:
+            - '{{ 1 == 1 }}'
+            then:
+              service: light.turn_on
+              entity_id:
+              - light.guest_room_desk_screen_led
+          else:
+            service: light.turn_on
+            target:
+              entity_id:
+              - light.guest_room_desk_screen_led
+            data:
+              brightness_step_pct: -34
+    - conditions:
+        condition: trigger
+        id: TOGGLE_HEATING
+      sequence:
+      - alias: Turn heating state=toggle
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          if:
+            condition: state
+            entity_id: climate.guest_room
+            state: 'off'
+          then:
+            alias: Turn heating state=on
+            if:
+            - '{{ 1 == 1 }}'
+            then:
+              alias: ''
+              if:
+              - '{{ 1 == 1 }}'
+              then:
+              - alias: Turn climate.guest_room state=on
+                if:
+                - '{{ 1 == 1 }}'
+                then:
+                  service: climate.set_hvac_mode
+                  data:
+                    hvac_mode: heat
+                  entity_id: climate.guest_room
+              - alias: Turn switch.schedule_guest_room_temperature state=on
+                if:
+                - '{{ 1 == 1 }}'
+                then:
+                  service: homeassistant.turn_on
+                  entity_id: switch.schedule_guest_room_temperature
+          else:
+            alias: Turn heating state=off
+            if:
+            - '{{ 1 == 1 }}'
+            then:
+              alias: ''
+              if:
+              - '{{ 1 == 1 }}'
+              then:
+              - alias: Turn climate.guest_room state=off
+                if:
+                - '{{ 1 == 1 }}'
+                then:
+                  service: climate.set_hvac_mode
+                  data:
+                    hvac_mode: 'off'
+                  entity_id: climate.guest_room
+              - alias: Turn switch.schedule_guest_room_temperature state=off
+                if:
+                - '{{ 1 == 1 }}'
+                then:
+                  service: homeassistant.turn_off
+                  entity_id: switch.schedule_guest_room_temperature
+    - conditions:
+        condition: trigger
+        id: INCREMENT_HEATING
+      sequence:
+      - alias: Turn heating state=increment
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          service: climate.set_temperature
+          target:
+            entity_id: climate.guest_room
+          data:
+            temperature: '{{ (state_attr(''climate.guest_room'', ''temperature'')) + 1}}'
+    - conditions:
+        condition: trigger
+        id: DECREMENT_HEATING
+      sequence:
+      - alias: Turn heating state=decrement
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          service: climate.set_temperature
+          target:
+            entity_id: climate.guest_room
+          data:
+            temperature: '{{ (state_attr(''climate.guest_room'', ''temperature'')) + -1}}'
+  id: automation.zlb_gr_single_button_control_guest_room
+- alias: ZLB-GR Eight Key Knob Control-Guest Room
+  trigger:
+  - platform: state
+    entity_id:
+    - sensor.ca6e1b6a8f89_action
+    to: button_1_single
+    id: TOGGLE_AL_SLEEP_MODE
+  - platform: state
+    entity_id:
+    - sensor.ca6e1b6a8f89_action
+    to:
+    - button_1_double
+    - button_1_hold
+    - knob_clockwise_after_toggling_button_1
+    - knob_clockwise_after_toggling_button_1_and_knob
+    - knob_anticlockwise_after_toggling_button_1
+    - knob_anticlockwise_after_toggling_button_1_and_knob
+    id: CYCLE_SCENES
+  - platform: state
+    entity_id:
+    - sensor.ca6e1b6a8f89_action
+    to: button_2_single
+    id: TOGGLE_CEILING_LIGHTS
+  - platform: state
+    entity_id:
+    - sensor.ca6e1b6a8f89_action
+    to:
+    - knob_clockwise_after_toggling_button_2
+    - knob_clockwise_after_toggling_button_2_and_knob
+    id: INCREMENT_CEILING_LIGHTS
+  - platform: state
+    entity_id:
+    - sensor.ca6e1b6a8f89_action
+    to:
+    - knob_anticlockwise_after_toggling_button_2
+    - knob_anticlockwise_after_toggling_button_2_and_knob
+    id: DECREMENT_CEILING_LIGHTS
+  - platform: state
+    entity_id:
+    - sensor.ca6e1b6a8f89_action
+    to: button_4_single
+    id: CYCLE_TV_BRIGHTNESS
+  - platform: state
+    entity_id:
+    - sensor.ca6e1b6a8f89_action
+    to: button_4_hold
+    id: TOGGLE_TV_POWER
+  - platform: state
+    entity_id:
+    - sensor.ca6e1b6a8f89_action
+    to:
+    - knob_clockwise_after_toggling_button_4
+    - knob_clockwise_after_toggling_button_4_and_knob
+    id: INCREMENT_TV_VOLUME
+  - platform: state
+    entity_id:
+    - sensor.ca6e1b6a8f89_action
+    to:
+    - knob_anticlockwise_after_toggling_button_4
+    - knob_anticlockwise_after_toggling_button_4_and_knob
+    id: DECREMENT_TV_VOLUME
+  - platform: state
+    entity_id:
+    - sensor.ca6e1b6a8f89_action
+    to: button_5_single
+    id: TOGGLE_LEDS
+  - platform: state
+    entity_id:
+    - sensor.ca6e1b6a8f89_action
+    to: button_5_double
+    id: TOGGLE_SCREEN_LED
+  - platform: state
+    entity_id:
+    - sensor.ca6e1b6a8f89_action
+    to:
+    - knob_clockwise_after_toggling_button_5
+    - knob_clockwise_after_toggling_button_5_and_knob
+    id: INCREMENT_LEDS
+  - platform: state
+    entity_id:
+    - sensor.ca6e1b6a8f89_action
+    to:
+    - knob_anticlockwise_after_toggling_button_5
+    - knob_anticlockwise_after_toggling_button_5_and_knob
+    id: DECREMENT_LEDS
+  - platform: state
+    entity_id:
+    - sensor.ca6e1b6a8f89_action
+    to: button_6_single
+    id: TOGGLE_CURTAINS
+  - platform: state
+    entity_id:
+    - sensor.ca6e1b6a8f89_action
+    to:
+    - knob_clockwise_after_toggling_button_6
+    - knob_clockwise_after_toggling_button_6_and_knob
+    id: INCREMENT_CURTAINS
+  - platform: state
+    entity_id:
+    - sensor.ca6e1b6a8f89_action
+    to:
+    - knob_anticlockwise_after_toggling_button_6
+    - knob_anticlockwise_after_toggling_button_6_and_knob
+    id: DECREMENT_CURTAINS
+  - platform: state
+    entity_id:
+    - sensor.ca6e1b6a8f89_action
+    to: button_7_single
+    id: TOGGLE_LAMP_0
+  - platform: state
+    entity_id:
+    - sensor.ca6e1b6a8f89_action
+    to:
+    - knob_clockwise_after_toggling_button_7
+    - knob_clockwise_after_toggling_button_7_and_knob
+    id: INCREMENT_LAMP_0
+  - platform: state
+    entity_id:
+    - sensor.ca6e1b6a8f89_action
+    to:
+    - knob_anticlockwise_after_toggling_button_7
+    - knob_anticlockwise_after_toggling_button_7_and_knob
+    id: DECREMENT_LAMP_0
+  - platform: state
+    entity_id:
+    - sensor.ca6e1b6a8f89_action
+    to: button_8_single
+    id: TOGGLE_LAMP_1
+  - platform: state
+    entity_id:
+    - sensor.ca6e1b6a8f89_action
+    to:
+    - knob_clockwise_after_toggling_button_8
+    - knob_clockwise_after_toggling_button_8_and_knob
+    id: INCREMENT_LAMP_1
+  - platform: state
+    entity_id:
+    - sensor.ca6e1b6a8f89_action
+    to:
+    - knob_anticlockwise_after_toggling_button_8
+    - knob_anticlockwise_after_toggling_button_8_and_knob
+    id: DECREMENT_LAMP_1
+  mode: parallel
+  action:
+    choose:
+    - conditions:
+        condition: trigger
+        id: CYCLE_SCENES
+      sequence:
+        choose:
+        - conditions:
+            condition: state
+            entity_id: input_select.guest_room_scene
+            state: All Off
+          sequence:
+            service: script.call_room_scene
+            data:
+              room_scene_select: input_select.guest_room_scene
+              scene: All White
+        - conditions:
+            condition: state
+            entity_id: input_select.guest_room_scene
+            state: All White
+          sequence:
+            service: script.call_room_scene
+            data:
+              room_scene_select: input_select.guest_room_scene
+              scene: Lamp LED White
+        - conditions:
+            condition: state
+            entity_id: input_select.guest_room_scene
+            state: Lamp LED White
+          sequence:
+            service: script.call_room_scene
+            data:
+              room_scene_select: input_select.guest_room_scene
+              scene: All Off
+        default:
+          service: script.call_room_scene
+          data:
+            room_scene_select: input_select.guest_room_scene
+            scene: All White
+    - conditions:
+        condition: trigger
+        id: DO_NOTHING
+      sequence:
+      - service: script.do_nothing
+    - conditions:
+        condition: trigger
+        id: TOGGLE_AL_SLEEP_MODE
+      sequence:
+      - alias: Turn switch.adaptive_lighting_sleep_mode_guest_room state=toggle
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          if:
+          - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
+            condition: state
+            entity_id: switch.adaptive_lighting_sleep_mode_guest_room
+            state: 'on'
+            match: any
+          then:
+            alias: Turn switch.adaptive_lighting_sleep_mode_guest_room state=off
+            if:
+            - '{{ 1 == 1 }}'
+            then:
+              service: homeassistant.turn_off
+              entity_id: switch.adaptive_lighting_sleep_mode_guest_room
+          else:
+            alias: Turn switch.adaptive_lighting_sleep_mode_guest_room state=on
+            if:
+            - '{{ 1 == 1 }}'
+            then:
+              service: homeassistant.turn_on
+              entity_id: switch.adaptive_lighting_sleep_mode_guest_room
+    - conditions:
+        condition: trigger
+        id: TOGGLE_CURTAINS
+      sequence:
+      - alias: Turn cover.guest_room_curtain state=toggle
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          alias: ''
+          if:
+          - '{{ 1 == 1 }}'
+          then:
+          - service: cover.stop_cover
+            entity_id:
+            - cover.guest_room_curtain
+          - if:
+            - alias: 'toggle all curtains together: if any of curtains is on, turn off all curtains, otherwise turn on all curtains'
+              condition: state
+              entity_id:
+              - cover.guest_room_curtain
+              state:
+              - open
+              - opening
+              match: any
+            then:
+              alias: Turn cover.guest_room_curtain state=off
+              if:
+              - '{{ 1 == 1 }}'
+              then:
+                alias: ''
+                if:
+                - '{{ 1 == 1 }}'
+                then:
+                - service: cover.stop_cover
+                  entity_id:
+                  - cover.guest_room_curtain
+                - if:
+                    condition: numeric_state
+                    entity_id:
+                    - cover.guest_room_curtain
+                    attribute: current_position
+                    above: 95
+                  then:
+                    service: cover.close_cover
+                    entity_id:
+                    - cover.guest_room_curtain
+            else:
+              alias: Turn cover.guest_room_curtain state=on
+              if:
+              - '{{ 1 == 1 }}'
+              then:
+                alias: ''
+                if:
+                - '{{ 1 == 1 }}'
+                then:
+                - service: cover.stop_cover
+                  entity_id:
+                  - cover.guest_room_curtain
+                - if:
+                    condition: numeric_state
+                    entity_id:
+                    - cover.guest_room_curtain
+                    attribute: current_position
+                    below: 5
+                  then:
+                    service: cover.open_cover
+                    entity_id:
+                    - cover.guest_room_curtain
+    - conditions:
+        condition: trigger
+        id: TOGGLE_CURTAIN_0
+      sequence:
+      - alias: Turn cover.guest_room_curtain state=toggle
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          if:
+          - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
+            condition: state
+            entity_id: cover.guest_room_curtain
+            state: 'on'
+            match: any
+          then:
+            alias: Turn cover.guest_room_curtain state=off
+            if:
+            - '{{ 1 == 1 }}'
+            then:
+              service: homeassistant.turn_off
+              entity_id: cover.guest_room_curtain
+          else:
+            alias: Turn cover.guest_room_curtain state=on
+            if:
+            - '{{ 1 == 1 }}'
+            then:
+              service: homeassistant.turn_on
+              entity_id: cover.guest_room_curtain
+    - conditions:
+        condition: trigger
+        id: INCREMENT_CURTAINS
+      sequence:
+      - alias: Turn cover.guest_room_curtain state=increment
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          alias: ''
+          if:
+          - '{{ 1 == 1 }}'
+          then:
+          - service: cover.stop_cover
+            entity_id:
+            - cover.guest_room_curtain
+          - service: cover.set_cover_position
+            target:
+              entity_id:
+              - cover.guest_room_curtain
+            data:
+              position: '{{ [[ (state_attr(''cover.guest_room_curtain'', ''current_position'')) + 51 ,0]|max,100]|min}}'
+    - conditions:
+        condition: trigger
+        id: DECREMENT_CURTAINS
+      sequence:
+      - alias: Turn cover.guest_room_curtain state=decrement
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          alias: ''
+          if:
+          - '{{ 1 == 1 }}'
+          then:
+          - service: cover.stop_cover
+            entity_id:
+            - cover.guest_room_curtain
+          - service: cover.set_cover_position
+            target:
+              entity_id:
+              - cover.guest_room_curtain
+            data:
+              position: '{{ [[ (state_attr(''cover.guest_room_curtain'', ''current_position'')) + -51 ,0]|max,100]|min}}'
+    - conditions:
+        condition: trigger
+        id: INCREMENT_CURTAIN_0
+      sequence:
+      - alias: Turn cover.guest_room_curtain state=increment
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          service: script.do_nothing
+    - conditions:
+        condition: trigger
+        id: DECREMENT_CURTAIN_0
+      sequence:
+      - alias: Turn cover.guest_room_curtain state=decrement
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          service: script.do_nothing
+    - conditions:
+        condition: trigger
+        id: TOGGLE_ALL_LIGHTS
+      sequence:
+      - alias: Turn light.guest_room_desk_screen_led light.guest_room_lamp light.guest_room_ceiling_light state=toggle
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          if:
+          - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
+            condition: state
+            entity_id:
+            - light.guest_room_desk_screen_led
+            - light.guest_room_lamp
+            - light.guest_room_ceiling_light
+            state: 'on'
+            match: any
+          then:
+            alias: Turn light.guest_room_desk_screen_led light.guest_room_lamp light.guest_room_ceiling_light state=off
+            if:
+            - '{{ 1 == 1 }}'
+            then:
+              service: light.turn_off
+              entity_id:
+              - light.guest_room_desk_screen_led
+              - light.guest_room_lamp
+              - light.guest_room_ceiling_light
+          else:
+            alias: Turn light.guest_room_desk_screen_led light.guest_room_lamp light.guest_room_ceiling_light state=on
+            if:
+            - '{{ 1 == 1 }}'
+            then:
+              service: light.turn_on
+              entity_id:
+              - light.guest_room_desk_screen_led
+              - light.guest_room_lamp
+              - light.guest_room_ceiling_light
+    - conditions:
+        condition: trigger
+        id: TOGGLE_LAMP_0
+      sequence:
+      - alias: Turn light.guest_room_lamp state=toggle
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          if:
+          - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
+            condition: state
+            entity_id: light.guest_room_lamp
+            state: 'on'
+            match: any
+          then:
+            alias: Turn light.guest_room_lamp state=off
+            if:
+            - '{{ 1 == 1 }}'
+            then:
+              service: light.turn_off
+              entity_id: light.guest_room_lamp
+          else:
+            alias: Turn light.guest_room_lamp state=on
+            if:
+            - '{{ 1 == 1 }}'
+            then:
+              service: light.turn_on
+              entity_id: light.guest_room_lamp
+    - conditions:
+        condition: trigger
+        id: INCREMENT_LAMP_0
+      sequence:
+      - alias: Turn light.guest_room_lamp state=increment
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          if:
+          - alias: increment brightness unless it is off, set the brightness to 1 percent
+            condition: state
+            entity_id: light.guest_room_lamp
+            state: 'off'
+          then:
+          - alias: Turn light.guest_room_lamp state=on light_brightness=1
+            if:
+            - '{{ 1 == 1 }}'
+            then:
+              service: light.turn_on
+              entity_id: light.guest_room_lamp
+              data:
+                brightness_pct: 1
+          else:
+            service: light.turn_on
+            target:
+              entity_id: light.guest_room_lamp
+            data:
+              brightness_step_pct: 34
+    - conditions:
+        condition: trigger
+        id: DECREMENT_LAMP_0
+      sequence:
+      - alias: Turn light.guest_room_lamp state=decrement
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          if:
+          - alias: increment brightness unless it is off, set the brightness to 1 percent
+            condition: state
+            entity_id: light.guest_room_lamp
+            state: 'off'
+          then:
+          - alias: Turn light.guest_room_lamp state=on light_brightness=1
+            if:
+            - '{{ 1 == 1 }}'
+            then:
+              service: light.turn_on
+              entity_id: light.guest_room_lamp
+              data:
+                brightness_pct: 1
+          else:
+            service: light.turn_on
+            target:
+              entity_id: light.guest_room_lamp
+            data:
+              brightness_step_pct: -34
+    - conditions:
+        condition: trigger
+        id: CYCLE_LAMP_0
+      sequence:
+      - alias: Turn light.guest_room_lamp state=cycle
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          if:
+            condition: state
+            entity_id: light.guest_room_lamp
+            state: 'off'
+          then:
+          - service: light.turn_on
+            entity_id: light.guest_room_lamp
+            data:
+              brightness: 3
+          else:
+            service: light.turn_on
+            entity_id: light.guest_room_lamp
+            data_template:
+              brightness: '{% set brightness = state_attr(''light.guest_room_lamp'', ''brightness'') | int(0) %}{% if brightness == 0 or is_state(''light.guest_room_lamp'', ''off'') %}3{% elif brightness <= 83 %}84{% elif brightness <= 167 %}168{% elif brightness <= 254 %}255{% else %}0{% endif %}'
+    - conditions:
+        condition: trigger
+        id: TOGGLE_CEILING_LIGHTS
+      sequence:
+      - alias: Turn light.guest_room_ceiling_light state=toggle
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          if:
+          - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
+            condition: state
+            entity_id:
+            - light.guest_room_ceiling_light
+            state: 'on'
+            match: any
+          then:
+            alias: Turn light.guest_room_ceiling_light state=off
+            if:
+            - '{{ 1 == 1 }}'
+            then:
+              service: light.turn_off
+              entity_id:
+              - light.guest_room_ceiling_light
+          else:
+            alias: Turn light.guest_room_ceiling_light state=on
+            if:
+            - '{{ 1 == 1 }}'
+            then:
+              service: light.turn_on
+              entity_id:
+              - light.guest_room_ceiling_light
+    - conditions:
+        condition: trigger
+        id: INCREMENT_CEILING_LIGHTS
+      sequence:
+      - alias: Turn light.guest_room_ceiling_light state=increment
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          if:
+          - alias: increment brightness unless it is off, set the brightness to 1 percent
+            condition: state
+            entity_id:
+            - light.guest_room_ceiling_light
+            state: 'off'
+          then:
+          - alias: Turn light.guest_room_ceiling_light state=on light_brightness=1
+            if:
+            - '{{ 1 == 1 }}'
+            then:
+              service: light.turn_on
+              entity_id:
+              - light.guest_room_ceiling_light
+              data:
+                brightness_pct: 1
+          else:
+            service: light.turn_on
+            target:
+              entity_id:
+              - light.guest_room_ceiling_light
+            data:
+              brightness_step_pct: 34
+    - conditions:
+        condition: trigger
+        id: DECREMENT_CEILING_LIGHTS
+      sequence:
+      - alias: Turn light.guest_room_ceiling_light state=decrement
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          if:
+          - alias: increment brightness unless it is off, set the brightness to 1 percent
+            condition: state
+            entity_id:
+            - light.guest_room_ceiling_light
+            state: 'off'
+          then:
+          - alias: Turn light.guest_room_ceiling_light state=on light_brightness=1
+            if:
+            - '{{ 1 == 1 }}'
+            then:
+              service: light.turn_on
+              entity_id:
+              - light.guest_room_ceiling_light
+              data:
+                brightness_pct: 1
+          else:
+            service: light.turn_on
+            target:
+              entity_id:
+              - light.guest_room_ceiling_light
+            data:
+              brightness_step_pct: -34
+    - conditions:
+        condition: trigger
+        id: CYCLE_CEILING_LIGHTS
+      sequence:
+      - alias: Turn light.guest_room_ceiling_light state=cycle
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          if:
+            condition: state
+            entity_id:
+            - light.guest_room_ceiling_light
+            state: 'off'
+          then:
+          - service: light.turn_on
+            entity_id:
+            - light.guest_room_ceiling_light
+            data:
+              brightness: 3
+          else:
+            service: light.turn_on
+            entity_id:
+            - light.guest_room_ceiling_light
+            data_template:
+              brightness: '{% set brightness = state_attr(''light.guest_room_ceiling_light'', ''brightness'') | int(0) %}{% if brightness == 0 or is_state(''light.guest_room_ceiling_light'', ''off'') %}3{% elif brightness <= 83 %}84{% elif brightness <= 167 %}168{% elif brightness <= 254 %}255{% else %}0{% endif %}'
+    - conditions:
+        condition: trigger
+        id: TOGGLE_LEDS
+      sequence:
+      - alias: Turn light.guest_room_desk_screen_led state=toggle
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          if:
+          - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
+            condition: state
+            entity_id:
+            - light.guest_room_desk_screen_led
+            state: 'on'
+            match: any
+          then:
+            alias: Turn light.guest_room_desk_screen_led state=off
+            if:
+            - '{{ 1 == 1 }}'
+            then:
+              service: light.turn_off
+              entity_id:
+              - light.guest_room_desk_screen_led
+          else:
+            alias: Turn light.guest_room_desk_screen_led state=on
+            if:
+            - '{{ 1 == 1 }}'
+            then:
+              service: light.turn_on
+              entity_id:
+              - light.guest_room_desk_screen_led
+    - conditions:
+        condition: trigger
+        id: CYCLE_LEDS
+      sequence:
+      - alias: Turn light.guest_room_desk_screen_led state=cycle
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          if:
+            condition: state
+            entity_id:
+            - light.guest_room_desk_screen_led
+            state: 'off'
+          then:
+          - service: light.turn_on
+            entity_id:
+            - light.guest_room_desk_screen_led
+            data:
+              brightness: 3
+          else:
+            service: light.turn_on
+            entity_id:
+            - light.guest_room_desk_screen_led
+            data_template:
+              brightness: '{% set brightness = state_attr(''light.guest_room_desk_screen_led'', ''brightness'') | int(0) %}{% if brightness == 0 or is_state(''light.guest_room_desk_screen_led'', ''off'') %}3{% elif brightness <= 83 %}84{% elif brightness <= 167 %}168{% elif brightness <= 254 %}255{% else %}0{% endif %}'
+    - conditions:
+        condition: trigger
+        id: INCREMENT_LEDS
+      sequence:
+      - alias: Turn light.guest_room_desk_screen_led state=increment
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          if:
+          - alias: increment brightness unless it is off, set the brightness to 1 percent
+            condition: state
+            entity_id:
+            - light.guest_room_desk_screen_led
+            state: 'off'
+          then:
+          - alias: Turn light.guest_room_desk_screen_led state=on
+            if:
+            - '{{ 1 == 1 }}'
+            then:
+              service: light.turn_on
+              entity_id:
+              - light.guest_room_desk_screen_led
+          else:
+            service: light.turn_on
+            target:
+              entity_id:
+              - light.guest_room_desk_screen_led
+            data:
+              brightness_step_pct: 34
+    - conditions:
+        condition: trigger
+        id: DECREMENT_LEDS
+      sequence:
+      - alias: Turn light.guest_room_desk_screen_led state=decrement
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          if:
+          - alias: increment brightness unless it is off, set the brightness to 1 percent
+            condition: state
+            entity_id:
+            - light.guest_room_desk_screen_led
+            state: 'off'
+          then:
+          - alias: Turn light.guest_room_desk_screen_led state=on
+            if:
+            - '{{ 1 == 1 }}'
+            then:
+              service: light.turn_on
+              entity_id:
+              - light.guest_room_desk_screen_led
+          else:
+            service: light.turn_on
+            target:
+              entity_id:
+              - light.guest_room_desk_screen_led
+            data:
+              brightness_step_pct: -34
+    - conditions:
+        condition: trigger
+        id: TOGGLE_HEATING
+      sequence:
+      - alias: Turn heating state=toggle
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          if:
+            condition: state
+            entity_id: climate.guest_room
+            state: 'off'
+          then:
+            alias: Turn heating state=on
+            if:
+            - '{{ 1 == 1 }}'
+            then:
+              alias: ''
+              if:
+              - '{{ 1 == 1 }}'
+              then:
+              - alias: Turn climate.guest_room state=on
+                if:
+                - '{{ 1 == 1 }}'
+                then:
+                  service: climate.set_hvac_mode
+                  data:
+                    hvac_mode: heat
+                  entity_id: climate.guest_room
+              - alias: Turn switch.schedule_guest_room_temperature state=on
+                if:
+                - '{{ 1 == 1 }}'
+                then:
+                  service: homeassistant.turn_on
+                  entity_id: switch.schedule_guest_room_temperature
+          else:
+            alias: Turn heating state=off
+            if:
+            - '{{ 1 == 1 }}'
+            then:
+              alias: ''
+              if:
+              - '{{ 1 == 1 }}'
+              then:
+              - alias: Turn climate.guest_room state=off
+                if:
+                - '{{ 1 == 1 }}'
+                then:
+                  service: climate.set_hvac_mode
+                  data:
+                    hvac_mode: 'off'
+                  entity_id: climate.guest_room
+              - alias: Turn switch.schedule_guest_room_temperature state=off
+                if:
+                - '{{ 1 == 1 }}'
+                then:
+                  service: homeassistant.turn_off
+                  entity_id: switch.schedule_guest_room_temperature
+    - conditions:
+        condition: trigger
+        id: INCREMENT_HEATING
+      sequence:
+      - alias: Turn heating state=increment
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          service: climate.set_temperature
+          target:
+            entity_id: climate.guest_room
+          data:
+            temperature: '{{ (state_attr(''climate.guest_room'', ''temperature'')) + 1}}'
+    - conditions:
+        condition: trigger
+        id: DECREMENT_HEATING
+      sequence:
+      - alias: Turn heating state=decrement
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          service: climate.set_temperature
+          target:
+            entity_id: climate.guest_room
+          data:
+            temperature: '{{ (state_attr(''climate.guest_room'', ''temperature'')) + -1}}'
+  id: automation.zlb_gr_eight_key_knob_control_guest_room
+- alias: ZL-GR Applies Different Scenes Based on Scene Selections (State Execution)-Guest Room
+  trigger:
+  - platform: state
+    entity_id: input_select.guest_room_scene
+  mode: restart
+  action:
+  - choose:
+    - conditions:
+      - condition: state
+        entity_id: input_select.guest_room_scene
+        state: All White
+      sequence:
+        alias: All White
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+        - parallel:
+          - alias: Turn light.guest_room_lamp state=on
+            if:
+            - '{{ 1 == 1 }}'
+            then:
+              service: light.turn_on
+              entity_id:
+              - light.guest_room_lamp
+          - alias: Turn light.guest_room_ceiling_light state=on
+            if:
+            - '{{ 1 == 1 }}'
+            then:
+              service: light.turn_on
+              entity_id:
+              - light.guest_room_ceiling_light
+          - alias: Turn light.guest_room_desk_screen_led state=on
+            if:
+            - '{{ 1 == 1 }}'
+            then:
+              service: light.turn_on
+              entity_id:
+              - light.guest_room_desk_screen_led
+          - service: script.do_nothing
+    - conditions:
+      - condition: state
+        entity_id: input_select.guest_room_scene
+        state: Ceiling Light White
+      sequence:
+        alias: Ceiling Light White
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+        - parallel:
+          - alias: Turn light.guest_room_lamp state=off
+            if:
+            - '{{ 1 == 1 }}'
+            then:
+              service: light.turn_off
+              entity_id:
+              - light.guest_room_lamp
+          - alias: Turn light.guest_room_desk_screen_led state=off
+            if:
+            - '{{ 1 == 1 }}'
+            then:
+              service: light.turn_off
+              entity_id:
+              - light.guest_room_desk_screen_led
+          - alias: Turn light.guest_room_ceiling_light state=on
+            if:
+            - '{{ 1 == 1 }}'
+            then:
+              service: light.turn_on
+              entity_id:
+              - light.guest_room_ceiling_light
+          - service: script.do_nothing
+    - conditions:
+      - condition: state
+        entity_id: input_select.guest_room_scene
+        state: Lamp LED White
+      sequence:
+        alias: Lamp LED White
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+        - parallel:
+          - alias: Turn light.guest_room_ceiling_light state=off
+            if:
+            - '{{ 1 == 1 }}'
+            then:
+              service: light.turn_off
+              entity_id:
+              - light.guest_room_ceiling_light
+          - alias: Turn light.guest_room_lamp state=on
+            if:
+            - '{{ 1 == 1 }}'
+            then:
+              service: light.turn_on
+              entity_id:
+              - light.guest_room_lamp
+          - alias: Turn light.guest_room_desk_screen_led state=on
+            if:
+            - '{{ 1 == 1 }}'
+            then:
+              service: light.turn_on
+              entity_id:
+              - light.guest_room_desk_screen_led
+    - conditions:
+      - condition: state
+        entity_id: input_select.guest_room_scene
+        state: LED White
+      sequence:
+        alias: LED White
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+        - parallel:
+          - alias: Turn light.guest_room_desk_screen_led state=on
+            if:
+            - '{{ 1 == 1 }}'
+            then:
+              service: light.turn_on
+              entity_id:
+              - light.guest_room_desk_screen_led
+    - conditions:
+      - condition: state
+        entity_id: input_select.guest_room_scene
+        state: Hue
+      sequence:
+        alias: Hue
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+        - service: pyscript.turn_rgb_light
+          data:
+            light_list:
+            - light.guest_room_lamp
+            - light.guest_room_ceiling_light
+            - light.guest_room_desk_screen_led
+            state: 'off'
+            rgb: non_rgb_only
+        - service: pyscript.turn_rgb_light
+          data:
+            light_list:
+            - light.guest_room_lamp
+            - light.guest_room_ceiling_light
+            - light.guest_room_desk_screen_led
+        - service: script.do_nothing
+    - conditions:
+      - condition: state
+        entity_id: input_select.guest_room_scene
+        state: Night Mode
+      sequence:
+        alias: Night Mode
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+        - parallel:
+          - service: homeassistant.turn_on
+            entity_id: scene.guest_room_night_mode
+          - service: script.do_nothing
+    - conditions:
+      - condition: state
+        entity_id: input_select.guest_room_scene
+        state: Dark Night Mode
+      sequence:
+        alias: Dark Night Mode
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+        - parallel:
+          - service: homeassistant.turn_on
+            entity_id: scene.guest_room_dark_night_mode
+          - service: script.do_nothing
+    - conditions:
+      - condition: state
+        entity_id: input_select.guest_room_scene
+        state: Sleep Mode
+      sequence:
+        alias: Sleep Mode
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+        - parallel:
+          - service: homeassistant.turn_on
+            entity_id: scene.guest_room_sleep_mode
+    - conditions:
+      - condition: state
+        entity_id: input_select.guest_room_scene
+        state: All Off
+      sequence:
+        alias: All Off
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+        - parallel:
+          - alias: Turn light.guest_room_ceiling_light state=off
+            if:
+            - '{{ 1 == 1 }}'
+            then:
+              service: light.turn_off
+              entity_id:
+              - light.guest_room_ceiling_light
+          - alias: Turn light.guest_room_lamp state=off
+            if:
+            - '{{ 1 == 1 }}'
+            then:
+              service: light.turn_off
+              entity_id:
+              - light.guest_room_lamp
+          - alias: Turn light.guest_room_desk_screen_led state=off
+            if:
+            - '{{ 1 == 1 }}'
+            then:
+              service: light.turn_off
+              entity_id:
+              - light.guest_room_desk_screen_led
+          - service: script.do_nothing
+  id: automation.zl_gr_applies_different_scenes_based_on_scene_selections_state_execution_guest_room
+- alias: ZM-GR Sonos Pause Playing After People Left-Guest Room
+  trigger:
+  - platform: state
+    entity_id: input_select.guest_room_occupancy
+    to: Outside
+    for: 00:00:01
+  - trigger: homeassistant
+    event: start
+  - minutes: /30
+    seconds: '31'
+    trigger: time_pattern
+  action:
+  - condition: state
+    entity_id: input_select.guest_room_occupancy
+    state: Outside
+    for: 00:00:01
+  - alias: Turn media_player.xiaomi_lx5a_a862_play_control state=off
+    if:
+    - '{{ 1 == 1 }}'
+    then:
+      if:
+        condition: state
+        entity_id:
+        - media_player.xiaomi_lx5a_a862_play_control
+        state: playing
+      then:
+        alias: Turn media_player.xiaomi_lx5a_a862_play_control state=toggle
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          service: media_player.media_play_pause
+          entity_id:
+          - media_player.xiaomi_lx5a_a862_play_control
+  id: automation.zm_gr_sonos_pause_playing_after_people_left_guest_room
+- alias: ZLB-GR Wall Switch - Single Press - Toggle Ceiling Light-Guest Room
+  trigger:
+  - platform: state
+    entity_id:
+    - sensor.guest_room_wall_button
+    - sensor.guest_room_wall_button_2
+    to:
+    - '1'
+    - single
+    - single_left
+    - single_right
+    - single_center
+    - button_1_single
+    - button_2_single
+    - button_3_single
+  action:
+  - alias: Turn light.guest_room_ceiling_light state=toggle
+    if:
+    - '{{ 1 == 1 }}'
+    then:
+      if:
+      - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
+        condition: state
+        entity_id:
+        - light.guest_room_ceiling_light
+        state: 'on'
+        match: any
+      then:
+        alias: Turn light.guest_room_ceiling_light state=off
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          service: light.turn_off
+          entity_id:
+          - light.guest_room_ceiling_light
+      else:
+        alias: Turn light.guest_room_ceiling_light state=on
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          service: light.turn_on
+          entity_id:
+          - light.guest_room_ceiling_light
+  id: automation.zlb_gr_wall_switch_single_press_toggle_ceiling_light_guest_room
+- alias: ZLB-GR Wall Switch - Double Click - Leave Room and Turn Off Everything-Guest Room
+  trigger:
+  - platform: state
+    entity_id:
+    - sensor.guest_room_wall_button
+    - sensor.guest_room_wall_button_2
+    to:
+    - '2'
+    - double
+    - double_left
+    - double_right
+    - double_center
+    - button_1_double
+    - button_2_double
+    - button_3_double
+  action:
+  - service: automation.trigger
+    entity_id:
+    - automation.zl_gr_lights_off_if_no_person_guest_room
+    - automation.zh_gr_heating_schedule_off_if_people_left_the_room_guest_room
+  - service: input_select.select_option
+    target:
+      entity_id: input_select.guest_room_occupancy
+    data:
+      option: Outside
+  id: automation.zlb_gr_wall_switch_double_click_leave_room_and_turn_off_everything_guest_room
+- alias: ZOc-GR Occupancy Update-Guest Room
+  id: automation.zoc_gr_occupancy_update_guest_room
+  trigger:
+  - entity_id: group.guest_room_motion_group
+    platform: state
+    to: 'on'
+  - entity_id: group.guest_room_motion_group
+    platform: state
+    to: 'on'
+    for:
+      seconds: 150
+  - entity_id: group.guest_room_motion_group
+    platform: state
+    to: 'on'
+    for:
+      seconds: 1800
+  - entity_id: group.guest_room_motion_group
+    platform: state
+    to: 'off'
+  - entity_id: group.guest_room_motion_group
+    platform: state
+    to: 'off'
+    for:
+      seconds: 120
+  - entity_id: group.guest_room_motion_group
+    platform: state
+    to: 'off'
+    for:
+      seconds: 300
+  - trigger: homeassistant
+    event: start
+  - minutes: /3
+    seconds: '11'
+    trigger: time_pattern
+  action:
+  - choose:
+    - alias: Outside -> Just Entered when motion is on
+      conditions:
+      - condition: state
+        entity_id: input_select.guest_room_occupancy
+        state: Outside
+      - condition: state
+        entity_id: group.guest_room_motion_group
+        state: 'on'
+      sequence:
+      - service: input_select.select_option
+        target:
+          entity_id: input_select.guest_room_occupancy
+        data:
+          option: Just Entered
+    - alias: Outside -> Outside when motion is not on
+      conditions:
+      - condition: state
+        entity_id: input_select.guest_room_occupancy
+        state: Outside
+      - condition: template
+        value_template: '{{ not is_state(''group.guest_room_motion_group'', ''on'') }}'
+      sequence:
+      - service: input_select.select_option
+        target:
+          entity_id: input_select.guest_room_occupancy
+        data:
+          option: Outside
+    - alias: Just Entered -> Stayed Inside when motion stays on
+      conditions:
+      - condition: state
+        entity_id: input_select.guest_room_occupancy
+        state: Just Entered
+      - condition: template
+        value_template: '{{ is_state(''group.guest_room_motion_group'', ''on'') and (as_timestamp(now()) - as_timestamp(states[''group.guest_room_motion_group''].last_changed)) >= 150 }}'
+      sequence:
+      - service: input_select.select_option
+        target:
+          entity_id: input_select.guest_room_occupancy
+        data:
+          option: Stayed Inside
+    - alias: Just Entered -> Outside when motion stays off
+      conditions:
+      - condition: state
+        entity_id: input_select.guest_room_occupancy
+        state: Just Entered
+      - condition: template
+        value_template: '{{ is_state(''group.guest_room_motion_group'', ''off'') and (as_timestamp(now()) - as_timestamp(states[''group.guest_room_motion_group''].last_changed)) >= 120 }}'
+      sequence:
+      - service: input_select.select_option
+        target:
+          entity_id: input_select.guest_room_occupancy
+        data:
+          option: Outside
+    - alias: Just Entered -> Just Entered by default
+      conditions:
+      - condition: state
+        entity_id: input_select.guest_room_occupancy
+        state: Just Entered
+      sequence:
+      - service: input_select.select_option
+        target:
+          entity_id: input_select.guest_room_occupancy
+        data:
+          option: Just Entered
+    - alias: Stayed Inside -> In Sleep when sleep time and stayed long enough
+      conditions:
+      - condition: state
+        entity_id: input_select.guest_room_occupancy
+        state: Stayed Inside
+      - condition: state
+        entity_id: input_boolean.guest_room_sleep_time
+        state: 'on'
+      - condition: template
+        value_template: '{{ is_state(''input_select.guest_room_occupancy'', ''Stayed Inside'') and (as_timestamp(now()) - as_timestamp(states[''input_select.guest_room_occupancy''].last_changed)) > 1800 }}'
+      sequence:
+      - service: input_select.select_option
+        target:
+          entity_id: input_select.guest_room_occupancy
+        data:
+          option: In Sleep
+    - alias: Stayed Inside -> Outside when motion stays off
+      conditions:
+      - condition: state
+        entity_id: input_select.guest_room_occupancy
+        state: Stayed Inside
+      - condition: template
+        value_template: '{{ is_state(''group.guest_room_motion_group'', ''off'') and (as_timestamp(now()) - as_timestamp(states[''group.guest_room_motion_group''].last_changed)) >= 120 }}'
+      sequence:
+      - service: input_select.select_option
+        target:
+          entity_id: input_select.guest_room_occupancy
+        data:
+          option: Outside
+    - alias: Stayed Inside -> Stayed Inside by default
+      conditions:
+      - condition: state
+        entity_id: input_select.guest_room_occupancy
+        state: Stayed Inside
+      sequence:
+      - service: input_select.select_option
+        target:
+          entity_id: input_select.guest_room_occupancy
+        data:
+          option: Stayed Inside
+    - alias: In Sleep -> Stayed Inside when sleep time ends
+      conditions:
+      - condition: state
+        entity_id: input_select.guest_room_occupancy
+        state: In Sleep
+      - condition: template
+        value_template: '{{ not is_state(''input_boolean.guest_room_sleep_time'', ''on'') }}'
+      sequence:
+      - service: input_select.select_option
+        target:
+          entity_id: input_select.guest_room_occupancy
+        data:
+          option: Stayed Inside
+    - alias: In Sleep -> Outside when motion stays off
+      conditions:
+      - condition: state
+        entity_id: input_select.guest_room_occupancy
+        state: In Sleep
+      - condition: template
+        value_template: '{{ is_state(''group.guest_room_motion_group'', ''off'') and (as_timestamp(now()) - as_timestamp(states[''group.guest_room_motion_group''].last_changed)) > 300 }}'
+      sequence:
+      - service: input_select.select_option
+        target:
+          entity_id: input_select.guest_room_occupancy
+        data:
+          option: Outside
+    - alias: In Sleep -> In Sleep by default
+      conditions:
+      - condition: state
+        entity_id: input_select.guest_room_occupancy
+        state: In Sleep
+      sequence:
+      - service: input_select.select_option
+        target:
+          entity_id: input_select.guest_room_occupancy
+        data:
+          option: In Sleep
+    default:
+    - service: script.do_nothing
+- alias: ZOc-GR Occupancy Override and sync to Timer-Guest Room
+  mode: single
+  trigger:
+  - platform: state
+    entity_id: input_boolean.guest_room_auto_off_suspended
+  action:
+  - choose:
+    - conditions:
+      - condition: state
+        entity_id: input_boolean.guest_room_auto_off_suspended
+        state: 'on'
+      sequence:
+      - service: timer.start
+        target:
+          entity_id: timer.guest_room_auto_off_suspended_timer
+      - alias: Turn automation.zoc_gr_occupancy_update_guest_room state=off
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          service: homeassistant.turn_off
+          entity_id: automation.zoc_gr_occupancy_update_guest_room
+      - service: input_select.select_option
+        target:
+          entity_id: input_select.guest_room_occupancy
+        data:
+          option: Stayed Inside
+    - conditions:
+      - condition: state
+        entity_id: input_boolean.guest_room_auto_off_suspended
+        state: 'off'
+      sequence:
+      - service: timer.cancel
+        target:
+          entity_id: timer.guest_room_auto_off_suspended_timer
+      - alias: Turn automation.zoc_gr_occupancy_update_guest_room state=on
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          service: homeassistant.turn_on
+          entity_id: automation.zoc_gr_occupancy_update_guest_room
+  id: automation.zoc_gr_occupancy_override_and_sync_to_timer_guest_room
+- alias: ZOc-GR Occupancy Override Sync from Timer-Guest Room
+  mode: single
+  trigger:
+  - platform: state
+    entity_id: timer.guest_room_auto_off_suspended_timer
+  - trigger: homeassistant
+    event: start
+  - minutes: /10
+    seconds: '22'
+    trigger: time_pattern
+  action:
+  - choose:
+    - conditions:
+      - condition: state
+        entity_id: timer.guest_room_auto_off_suspended_timer
+        state: active
+      sequence:
+      - service: input_boolean.turn_on
+        target:
+          entity_id: input_boolean.guest_room_auto_off_suspended
+    - conditions:
+      - condition: or
+        conditions:
+        - condition: state
+          entity_id: timer.guest_room_auto_off_suspended_timer
+          state: paused
+        - condition: state
+          entity_id: timer.guest_room_auto_off_suspended_timer
+          state: idle
+      sequence:
+      - service: input_boolean.turn_off
+        target:
+          entity_id: input_boolean.guest_room_auto_off_suspended
+  id: automation.zoc_gr_occupancy_override_sync_from_timer_guest_room
+input_select:
+  guest_room_scene:
+    name: Guest Room Scene
+    options:
+    - Idle
+    - Lamp LED White
+    - LED White
+    - All White
+    - Ceiling Light White
+    - All Off
+  guest_room_occupancy:
+    name: Guest Room Occupancy
+    options:
+    - Outside
+    - Just Entered
+    - Stayed Inside
+    - In Sleep
+input_boolean:
+  ceiling_light_control_intense_light_summer_guest_room:
+    name: Ceiling Light Control Intense Light Summer Guest Room
+  lamp_control_intense_light_summer_guest_room:
+    name: Lamp Control Intense Light Summer Guest Room
+  led_control_intense_light_summer_guest_room:
+    name: Led Control Intense Light Summer Guest Room
+  curtain_control_intense_light_summer_guest_room:
+    name: Curtain Control Intense Light Summer Guest Room
+  guest_room_heating_override:
+    name: Guest Room Heating Override
+    initial: 'off'
+  ceiling_light_control_moderate_light_outdoor_guest_room:
+    name: Ceiling Light Control Moderate Light Outdoor Guest Room
+  lamp_control_moderate_light_outdoor_guest_room:
+    name: Lamp Control Moderate Light Outdoor Guest Room
+  led_control_moderate_light_outdoor_guest_room:
+    name: Led Control Moderate Light Outdoor Guest Room
+  curtain_control_moderate_light_outdoor_guest_room:
+    name: Curtain Control Moderate Light Outdoor Guest Room
+  ceiling_light_control_low_light_outdoor_guest_room:
+    name: Ceiling Light Control Low Light Outdoor Guest Room
+  lamp_control_low_light_outdoor_guest_room:
+    name: Lamp Control Low Light Outdoor Guest Room
+  led_control_low_light_outdoor_guest_room:
+    name: Led Control Low Light Outdoor Guest Room
+  curtain_control_low_light_outdoor_guest_room:
+    name: Curtain Control Low Light Outdoor Guest Room
+  ceiling_light_control_sleep_mode_guest_room:
+    name: Ceiling Light Control Sleep Mode Guest Room
+  lamp_control_sleep_mode_guest_room:
+    name: Lamp Control Sleep Mode Guest Room
+  led_control_sleep_mode_guest_room:
+    name: Led Control Sleep Mode Guest Room
+  curtain_control_sleep_mode_guest_room:
+    name: Curtain Control Sleep Mode Guest Room
+  guest_room_sleep_time:
+    name: Guest Room Sleep Time
+  guest_room_auto_off_suspended:
+    name: Guest Room Auto Off Suspended
+    icon: mdi:timer-sand
+  guest_room_tado_heater:
+    name: Guest Room Tado Heater
+input_datetime:
+  noon_time_guest_room:
+    name: Noon Time Guest Room
+    has_date: false
+    has_time: true
+input_number:
+  guest_room_min_value_as_bright:
+    name: Guest Room Min Value As Bright
+    min: 0
+    max: 4000
+    step: 1
+    mode: box
+  intensity_threshold_intense_light_summer_guest_room:
+    name: Intensity Threshold Intense Light Summer Guest Room
+    min: 0
+    max: 100
+    step: 0.1
+    mode: box
+  intensity_threshold_moderate_light_outdoor_guest_room:
+    name: Intensity Threshold Moderate Light Outdoor Guest Room
+    min: 0
+    max: 100
+    step: 0.1
+    mode: box
+sensor:
+- platform: history_stats
+  name: Guest Room Motion On Ratio For Last 4 Minutes
+  entity_id: group.guest_room_motion_group
+  state: 'on'
+  type: ratio
+  duration:
+    minutes: '4'
+  end: '{{ (now() | as_timestamp) | as_datetime | as_local }}'
+- platform: history_stats
+  name: Guest Room Motion On Ratio For Last 8 Minutes
+  entity_id: group.guest_room_motion_group
+  state: 'on'
+  type: ratio
+  duration:
+    minutes: '8'
+  end: '{{ (now() | as_timestamp) | as_datetime | as_local }}'
+- name: Guest Room Unsmoothed Temperature Sensor Battery Median
+  platform: statistics
+  entity_id: sensor.582d343483e9_battery
+  precision: 0
+  state_characteristic: median
+  max_age:
+    hours: 24
+- name: Guest Room Temperature Sensor
+  platform: filter
+  entity_id: sensor.guest_room_unsmoothed_temperature_sensor
+  filters:
+    filter: lowpass
+    time_constant: 4
+    precision: 1
+- name: Guest Room Entrance Motion Sensor Battery Median
+  platform: statistics
+  entity_id: sensor.18c23c27fc55_battery
+  precision: 0
+  state_characteristic: median
+  max_age:
+    hours: 24
+- name: Guest Room Bed Xiaomi Home Occupancy Sensor Battery Median
+  platform: statistics
+  entity_id: sensor.linp_cn_blt_3_1o91vfk5s4402_es5b_battery_level_p_7_1003
+  precision: 0
+  state_characteristic: median
+  max_age:
+    hours: 24
+- name: Guest Room Min Battery
+  platform: min_max
+  type: min
+  entity_ids:
+  - sensor.guest_room_unsmoothed_temperature_sensor_battery
+  - sensor.guest_room_entrance_motion_sensor_battery
+  - sensor.guest_room_bed_xiaomi_home_occupancy_sensor_battery
+timer:
+  guest_room_auto_off_suspended_timer:
+    name: Guest Room Auto Off Suspended Timer
+    duration: 03:00:00
+button: []
+switch:
+- platform: group
+  name: Guest Room Desk Screen LED
+  entities: switch.sonoff_1001e49dd9_1
+- platform: group
+  name: 'Guest Room Wall Switch '
+  entities: switch.0x00158d00047b69d2_switch
+cover: []
+climate:
+- platform: generic_thermostat
+  name: Guest Room
+  heater: input_boolean.guest_room_tado_heater
+  target_sensor: sensor.guest_room_temperature_sensor
+  min_temp: 16
+  max_temp: 27
+  ac_mode: false
+  cold_tolerance: 0
+  precision: 0.1
+  target_temp_step: 0.5
+  min_cycle_duration: 00:01:30
+template:
+- sensor:
+  - name: Guest Room Unsmoothed Temperature Sensor
+    unit_of_measurement: "\xB0C"
+    state: '{{states.sensor["582d343483e9_temperature"].state | float(22) | round(1)}}'
+- sensor:
+  - name: Guest Room Unsmoothed Temperature Sensor Battery
+    unit_of_measurement: '%'
+    device_class: battery
+    state_class: measurement
+    state: '{% set s = states(''sensor.guest_room_unsmoothed_temperature_sensor_battery_median'') %}{{ s | int if s not in [''unknown'', ''unavailable'', ''''] else ''unknown'' }}'
+- sensor:
+  - name: Guest Room Unsmoothed Humidity Sensor
+    unit_of_measurement: '%'
+    state: '{{states.sensor["582d343483e9_humidity"].state | float(40) | round(1)}}'
+- sensor:
+  - name: Guest Room Wall Button
+    state: '{{states.sensor["0x00158d00047b69d2_action"].state}}'
+- sensor:
+  - name: Guest Room Entrance Motion Sensor Battery
+    unit_of_measurement: '%'
+    device_class: battery
+    state_class: measurement
+    state: '{% set s = states(''sensor.guest_room_entrance_motion_sensor_battery_median'') %}{{ s | int if s not in [''unknown'', ''unavailable'', ''''] else ''unknown'' }}'
+- binary_sensor:
+  - name: Guest Room Bed Xiaomi Home Occupancy Sensor Occupancy
+    state: '{% if states.sensor["linp_cn_blt_3_1o91vfk5s4402_es5b_no_one_duration_p_2_1082"].state == ''unavailable'' or states.sensor["linp_cn_blt_3_1o91vfk5s4402_es5b_no_one_duration_p_2_1082"].state  == ''unknown''%}
+
+      {{states.binary_sensor["linp_cn_blt_3_1o91vfk5s4402_es5b_occupancy_status_p_2_1078"].state}}
+
+      {% elif states.sensor["linp_cn_blt_3_1o91vfk5s4402_es5b_no_one_duration_p_2_1082"].state == ''0'' %}
+
+      {{states.binary_sensor["linp_cn_blt_3_1o91vfk5s4402_es5b_occupancy_status_p_2_1078"].state}}
+
+      {# else is equivilence to elif states.sensor["linp_cn_blt_3_1o91vfk5s4402_es5b_no_one_duration_p_2_1082"].state > "0" #}
+
+      {% else %}
+
+      off
+
+      {% endif %}
+
+      '
+    device_class: occupancy
+- sensor:
+  - name: Guest Room Bed Xiaomi Home Occupancy Sensor Battery
+    unit_of_measurement: '%'
+    device_class: battery
+    state_class: measurement
+    state: '{% set s = states(''sensor.guest_room_bed_xiaomi_home_occupancy_sensor_battery_median'') %}{{ s | int if s not in [''unknown'', ''unavailable'', ''''] else ''unknown'' }}'
+- sensor:
+  - name: Guest Room Tado Availiabity
+    unit_of_measurement: "\xB0C"
+    state: '{{states("sensor.tado_smart_radiator_thermostat_va1049826304_current_temperature") | float(22) | round(1)}}'
+- binary_sensor:
+  - name: Guest Room Heating Required
+    state: '{% set climate = "climate.tado_smart_radiator_thermostat_va1049826304" %}{% if states(climate) == "unavailable" or states(climate) == "off" or (state_attr(climate, "temperature") <= state_attr(climate, "current_temperature"))  %}off{% else %} on{% endif %}'
+- binary_sensor:
+  - name: Guest Room Unavailable Entities
+    state: '{% set added_device_entities =  [''sensor.guest_room_unsmoothed_temperature_sensor'', ''sensor.guest_room_unsmoothed_temperature_sensor_battery'', ''sensor.guest_room_unsmoothed_humidity_sensor'', ''sensor.guest_room_wall_button'', ''sensor.guest_room_entrance_motion_sensor_battery'', ''binary_sensor.guest_room_bed_xiaomi_home_occupancy_sensor_occupancy'', ''sensor.guest_room_bed_xiaomi_home_occupancy_sensor_battery'', ''sensor.guest_room_tado_availiabity'', ''binary_sensor.guest_room_heating_required'', ''binary_sensor.guest_room_entrance_motion_sensor_motion'', ''switch.guest_room_desk_screen_led'', ''switch.guest_room_wall_switch'', ''light.guest_room_ceiling_light'', ''light.guest_room_lamp_1'', ''light.guest_room_lamp_2'', ''light.guest_room_lamp_3'', ''light.guest_room_lamp''] %}{% set ns = namespace() %}{% set ns.num_unavail_devices = 0 %}{% for device in added_device_entities %}   {% if states(device) in [''unavailable'', ''unknown'', ''none''] %}      {% set ns.num_unavail_devices = ns.num_unavail_devices + 1 %}   {% endif %}{% endfor %}{% if ns.num_unavail_devices > 0%}  on  {% else %}  off {% endif %}'
+    attributes:
+      value: '{% set added_device_entities =  [''sensor.guest_room_unsmoothed_temperature_sensor'', ''sensor.guest_room_unsmoothed_temperature_sensor_battery'', ''sensor.guest_room_unsmoothed_humidity_sensor'', ''sensor.guest_room_wall_button'', ''sensor.guest_room_entrance_motion_sensor_battery'', ''binary_sensor.guest_room_bed_xiaomi_home_occupancy_sensor_occupancy'', ''sensor.guest_room_bed_xiaomi_home_occupancy_sensor_battery'', ''sensor.guest_room_tado_availiabity'', ''binary_sensor.guest_room_heating_required'', ''binary_sensor.guest_room_entrance_motion_sensor_motion'', ''switch.guest_room_desk_screen_led'', ''switch.guest_room_wall_switch'', ''light.guest_room_ceiling_light'', ''light.guest_room_lamp_1'', ''light.guest_room_lamp_2'', ''light.guest_room_lamp_3'', ''light.guest_room_lamp''] %}{% set ns = namespace() %}{% set ns.unavail_devices = '''' %}{% for device in added_device_entities %}   {% if states(device) in [''unavailable'', ''unknown'', ''none''] %}   {% set ns.unavail_devices = ns.unavail_devices + ''
+
+        '' +device %} {% endif %}{% endfor %}{{ns.unavail_devices}}'
+- binary_sensor:
+  - name: Guest Room Low Battery
+    state: '{% set state = states("sensor.guest_room_min_battery") %} {% if state == "unavailable" or state == "unknown" or int(state) > 20 %} off {% else%} on {% endif %}'
+binary_sensor:
+- platform: group
+  name: Guest Room Entrance Motion Sensor Motion
+  device_class: motion
+  entities: binary_sensor.18c23c27fc55_motion
+event: []
+lock: []
+light:
+- platform: group
+  name: Guest Room Ceiling Light
+  entities: light.lemesh_cn_1005553423_wy0c09_s_2
+- platform: group
+  name: Guest Room Lamp 1
+  entities: light.50ec50ded70f_light
+- platform: group
+  name: Guest Room Lamp 2
+  entities: light.hue_ambiance_lamp_3
+- platform: group
+  name: Guest Room Lamp 3
+  entities: light.50ec50dd67be_light
+- platform: group
+  name: Guest Room Lamp
+  entities:
+  - light.guest_room_lamp_1
+  - light.guest_room_lamp_2
+  - light.guest_room_lamp_3
+group:
+  guest_room_occupancy_group:
+    name: Guest Room Occupancy Group
+    entities:
+    - input_select.guest_room_occupancy
+    - group.guest_room_motion_group
+    - binary_sensor.guest_room_entrance_motion_sensor_motion
+    - binary_sensor.guest_room_bed_xiaomi_home_occupancy_sensor_occupancy
+    - automation.zoc_gr_occupancy_update_guest_room
+  guest_room_motion_group:
+    name: Guest Room Motion Group
+    entities:
+    - binary_sensor.guest_room_entrance_motion_sensor_motion
+    - binary_sensor.guest_room_bed_xiaomi_home_occupancy_sensor_occupancy
+  guest_room_light_group:
+    name: Guest Room Light Group
+    entities:
+    - light.guest_room_desk_screen_led
+    - light.guest_room_lamp
+    - light.guest_room_ceiling_light
+  guest_room_timeout_window_group:
+    name: Guest Room Timeout Window Group
+    entities: []
+  guest_room_curtain_group:
+    name: Guest Room Curtain Group
+    entities:
+    - cover.guest_room_curtain
+  guest_room_battery:
+    name: Guest Room Battery
+    entities:
+    - sensor.guest_room_unsmoothed_temperature_sensor_battery
+    - sensor.guest_room_entrance_motion_sensor_battery
+    - sensor.guest_room_bed_xiaomi_home_occupancy_sensor_battery
+  guest_room_auto_gen_automations:
+    name: Guest Room Auto Gen Automations
+    entities:
+    - input_boolean.guest_room_auto_off_suspended
+    - timer.guest_room_auto_off_suspended_timer
+    - input_number.intensity_threshold_intense_light_summer_guest_room
+    - input_number.intensity_threshold_moderate_light_outdoor_guest_room
+    - sensor.living_room_light_intensity
+    - climate.tado_smart_radiator_thermostat_va1049826304
+    - binary_sensor.guest_room_heating_required
+    - input_boolean.ceiling_light_control_intense_light_summer_guest_room
+    - input_boolean.lamp_control_intense_light_summer_guest_room
+    - input_boolean.led_control_intense_light_summer_guest_room
+    - input_boolean.curtain_control_intense_light_summer_guest_room
+    - input_boolean.ceiling_light_control_moderate_light_outdoor_guest_room
+    - input_boolean.lamp_control_moderate_light_outdoor_guest_room
+    - input_boolean.led_control_moderate_light_outdoor_guest_room
+    - input_boolean.curtain_control_moderate_light_outdoor_guest_room
+    - input_boolean.ceiling_light_control_low_light_outdoor_guest_room
+    - input_boolean.lamp_control_low_light_outdoor_guest_room
+    - input_boolean.led_control_low_light_outdoor_guest_room
+    - input_boolean.curtain_control_low_light_outdoor_guest_room
+    - input_boolean.ceiling_light_control_sleep_mode_guest_room
+    - input_boolean.lamp_control_sleep_mode_guest_room
+    - input_boolean.led_control_sleep_mode_guest_room
+    - input_boolean.curtain_control_sleep_mode_guest_room
+    - automation.zh_gr_set_radiator_valve_target_temperature_based_on_external_sensor_temperature_difference_guest_room
+    - automation.zl_gr_curtain_states_when_no_person_present_guest_room
+    - automation.zl_gr_lights_on_if_entering_to_room_guest_room
+    - automation.zl_gr_lights_off_if_no_person_guest_room
+    - automation.zl_gr_disable_entering_lights_on_automation_if_any_people_are_in_the_room_guest_room
+    - automation.zh_gr_heating_schedule_on_if_staying_in_the_room_guest_room
+    - automation.zh_gr_heating_schedule_off_if_people_left_the_room_guest_room
+    - automation.zh_gr_heating_manual_override_guest_room
+    - automation.zlb_gr_single_button_control_guest_room
+    - automation.zlb_gr_eight_key_knob_control_guest_room
+    - automation.zl_gr_applies_different_scenes_based_on_scene_selections_state_execution_guest_room
+    - automation.zm_gr_sonos_pause_playing_after_people_left_guest_room
+    - automation.zlb_gr_wall_switch_single_press_toggle_ceiling_light_guest_room
+    - automation.zlb_gr_wall_switch_double_click_leave_room_and_turn_off_everything_guest_room
+    - automation.zoc_gr_occupancy_update_guest_room
+    - automation.zoc_gr_occupancy_override_and_sync_to_timer_guest_room
+    - automation.zoc_gr_occupancy_override_sync_from_timer_guest_room
+    - switch.0x00158d00047b69d2_switch
+    - switch.0x00158d00047b69d2_wireless
+    - switch.adaptive_lighting_sleep_mode_guest_room
+    - sensor.living_room_east_side_light_sensor
+    - group.guest_room_battery
+    - automation.l_od_tai_s_desk_light_on_if_people_present_sits_in_the_chair
+    - automation.l_od_tai_s_desk_light_off_if_person_left_the_chair

@@ -1,0 +1,1447 @@
+#############################################################################
+# DO NOT MODIFY. This is an automatically generated file.                   # 
+#############################################################################
+adaptive_lighting:
+- name: Corridor Ground Floor
+  lights:
+  - light.ground_corridor_light
+  prefer_rgb_color: false
+  transition: 45
+  initial_transition: 1
+  interval: 90
+  min_brightness: 50
+  max_brightness: 100
+  min_color_temp: 2700
+  max_color_temp: 4000
+  sleep_brightness: 20
+  sleep_color_temp: 2200
+  min_sunset_time: '17:30'
+  take_over_control: true
+  autoreset_control_seconds: 86400
+  detect_non_ha_changes: false
+  only_once: false
+  adapt_only_on_bare_turn_on: true
+  separate_turn_on_commands: false
+  send_split_delay: 500
+  adapt_delay: 0.5
+  intercept: true
+  multi_light_intercept: true
+  include_config_in_attributes: false
+- name: Corridor First Floor
+  lights:
+  - light.first_corridor_light
+  prefer_rgb_color: false
+  transition: 45
+  initial_transition: 1
+  interval: 90
+  min_brightness: 50
+  max_brightness: 100
+  min_color_temp: 2700
+  max_color_temp: 4000
+  sleep_brightness: 5
+  sleep_color_temp: 2200
+  min_sunset_time: '17:30'
+  take_over_control: true
+  autoreset_control_seconds: 86400
+  detect_non_ha_changes: false
+  only_once: false
+  adapt_only_on_bare_turn_on: true
+  separate_turn_on_commands: false
+  send_split_delay: 500
+  adapt_delay: 0.5
+  intercept: true
+  multi_light_intercept: true
+  include_config_in_attributes: false
+automation:
+- alias: ZLB-CR Flex Wall Switch On Postion 1- Automatically Turn on the Wall Switch Back When Turned Off -Corridor
+  trigger:
+  - platform: state
+    entity_id: switch.0x00158d00048783e5_channel_1
+    to: 'off'
+  action:
+  - alias: Turn switch.0x00158d00048783e5_channel_1 state=on
+    if:
+    - '{{ 1 == 1 }}'
+    then:
+      service: homeassistant.turn_on
+      entity_id: switch.0x00158d00048783e5_channel_1
+  - delay: 00:00:01
+  - alias: Turn switch.0x00158d00048783e5_channel_1 state=on
+    if:
+    - '{{ 1 == 1 }}'
+    then:
+      service: homeassistant.turn_on
+      entity_id: switch.0x00158d00048783e5_channel_1
+  - delay: 00:00:01
+  - alias: Turn switch.0x00158d00048783e5_channel_1 state=on
+    if:
+    - '{{ 1 == 1 }}'
+    then:
+      service: homeassistant.turn_on
+      entity_id: switch.0x00158d00048783e5_channel_1
+  mode: queued
+  id: automation.zlb_cr_flex_wall_switch_on_postion_1_automatically_turn_on_the_wall_switch_back_when_turned_off_corridor
+- alias: ZH-CR Rename Thermostat-Corridor
+  triggers:
+  - trigger: state
+    entity_id: climate.corridor
+    attribute: temperature
+  - trigger: state
+    entity_id: climate.corridor
+  - trigger: homeassistant
+    event: start
+  - minutes: /30
+    seconds: '35'
+    trigger: time_pattern
+  actions:
+  - action: climate.set_temperature
+    data:
+      temperature: '{{states.climate.corridor.attributes.temperature}}'
+      hvac_mode: '{{states.climate.corridor.state}}'
+    target:
+      entity_id: climate.tado_smart_radiator_thermostat_va0395514880
+  id: automation.zh_cr_rename_thermostat_corridor
+- alias: ZL-CR Curtain States When No Person Present-Corridor
+  id: automation.zl_cr_curtain_states_when_no_person_present_corridor
+  trigger:
+  - platform: state
+    entity_id: input_select.corridor_occupancy
+    to: Outside
+    for: 00:03:00
+  - trigger: homeassistant
+    event: start
+  - minutes: /10
+    seconds: '11'
+    trigger: time_pattern
+  conditions:
+  - condition: state
+    entity_id: input_select.corridor_occupancy
+    state: Outside
+    for: 00:03:00
+  action:
+  - alias: If it is intense light summer
+    if:
+    - condition: template
+      value_template: '{{ states(''sensor.living_room_light_intensity'') | float(0) > states(''input_number.intensity_threshold_intense_light_summer_corridor'') | float(0) }}'
+    - condition: numeric_state
+      entity_id: sensor.met_office_cambridge_city_airport_temperature_3_hourly
+      above: '15'
+    - condition: template
+      value_template: '{{ now().month > 4 and now().month < 9 }}'
+    - condition: state
+      entity_id:
+      - switch.adaptive_lighting_sleep_mode_corridor_first_floor
+      - switch.adaptive_lighting_sleep_mode_corridor_ground_floor
+      state: 'off'
+    then:
+      alias: curtain states when intense light summer
+      if:
+      - '{{ 1 == 1 }}'
+      then:
+      - parallel:
+        - parallel:
+          - if:
+              condition: state
+              entity_id: input_boolean.curtain_control_intense_light_summer_corridor
+              state: 'on'
+            then:
+              service: script.do_nothing
+            else:
+              service: script.do_nothing
+    else:
+      alias: If it is moderate light outdoor
+      if:
+      - condition: template
+        value_template: '{{ states(''sensor.living_room_light_intensity'') | float(0) > states(''input_number.intensity_threshold_moderate_light_outdoor_corridor'') | float(0) }}'
+      - condition: state
+        entity_id:
+        - switch.adaptive_lighting_sleep_mode_corridor_first_floor
+        - switch.adaptive_lighting_sleep_mode_corridor_ground_floor
+        state: 'off'
+      then:
+        alias: curtain states when moderate light outdoor
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+        - parallel:
+          - parallel:
+            - if:
+                condition: state
+                entity_id: input_boolean.curtain_control_moderate_light_outdoor_corridor
+                state: 'on'
+              then:
+                service: script.do_nothing
+              else:
+                service: script.do_nothing
+      else:
+        alias: If it is low light outdoor
+        if:
+        - condition: template
+          value_template: '{{ states(''sensor.living_room_light_intensity'') | float(0) <= states(''input_number.intensity_threshold_moderate_light_outdoor_corridor'') | float(0) }}'
+        - condition: state
+          entity_id:
+          - switch.adaptive_lighting_sleep_mode_corridor_first_floor
+          - switch.adaptive_lighting_sleep_mode_corridor_ground_floor
+          state: 'off'
+        then:
+          alias: curtain states when low light outdoor
+          if:
+          - '{{ 1 == 1 }}'
+          then:
+          - parallel:
+            - parallel:
+              - if:
+                  condition: state
+                  entity_id: input_boolean.curtain_control_low_light_outdoor_corridor
+                  state: 'on'
+                then:
+                  service: script.do_nothing
+                else:
+                  service: script.do_nothing
+        else:
+          alias: If it is sleep mode
+          if:
+          - condition: state
+            entity_id:
+            - switch.adaptive_lighting_sleep_mode_corridor_first_floor
+            - switch.adaptive_lighting_sleep_mode_corridor_ground_floor
+            state: 'on'
+          then:
+            alias: curtain states when sleep mode
+            if:
+            - '{{ 1 == 1 }}'
+            then:
+            - parallel:
+              - parallel:
+                - if:
+                    condition: state
+                    entity_id: input_boolean.curtain_control_sleep_mode_corridor
+                    state: 'on'
+                  then:
+                    service: script.do_nothing
+                  else:
+                    service: script.do_nothing
+          else:
+            alias: Default
+            service: script.do_nothing
+- alias: ZL-CR Lights On If Entering to Room-Corridor
+  id: automation.zl_cr_lights_on_if_entering_to_room_corridor
+  trigger:
+    entity_id:
+    - group.corridor_motion_group
+    platform: state
+    to: 'on'
+    from: 'off'
+  action:
+  - service: automation.turn_off
+    entity_id: automation.zl_cr_lights_on_if_entering_to_room_corridor
+    data:
+      stop_actions: false
+  - service: script.call_room_scene
+    data:
+      room_scene_select: input_select.corridor_scene
+      scene: Idle
+  - alias: If it is bright morning
+    if:
+    - condition: template
+      value_template: '{{ states(''sensor.living_room_light_intensity'') | float(0) > states(''input_number.intensity_threshold_intense_light_summer_corridor'') | float(0) }}'
+    - condition: numeric_state
+      entity_id: sensor.met_office_cambridge_city_airport_temperature_3_hourly
+      above: '15'
+    - condition: template
+      value_template: '{{ now().month > 4 and now().month < 9 }}'
+    - condition: state
+      entity_id:
+      - switch.adaptive_lighting_sleep_mode_corridor_first_floor
+      - switch.adaptive_lighting_sleep_mode_corridor_ground_floor
+      state: 'off'
+    then:
+      alias: light states when intense light summer
+      if:
+      - '{{ 1 == 1 }}'
+      then:
+      - parallel:
+        - parallel:
+          - if:
+              condition: state
+              entity_id: input_boolean.ceiling_light_control_intense_light_summer_corridor
+              state: 'on'
+            then:
+              alias: Turn light.first_corridor_light light.ground_corridor_light state=on
+              if:
+              - '{{ 1 == 1 }}'
+              then:
+                service: light.turn_on
+                entity_id:
+                - light.first_corridor_light
+                - light.ground_corridor_light
+            else:
+              alias: Turn light.first_corridor_light light.ground_corridor_light state=off
+              if:
+              - '{{ 1 == 1 }}'
+              then:
+                service: light.turn_off
+                entity_id:
+                - light.first_corridor_light
+                - light.ground_corridor_light
+          - if:
+              condition: state
+              entity_id: input_boolean.lamp_control_intense_light_summer_corridor
+              state: 'on'
+            then:
+              service: script.do_nothing
+            else:
+              service: script.do_nothing
+          - if:
+              condition: state
+              entity_id: input_boolean.led_control_intense_light_summer_corridor
+              state: 'on'
+            then:
+              service: script.do_nothing
+            else:
+              service: script.do_nothing
+    else:
+      alias: If it is bright afternoon
+      if:
+      - condition: template
+        value_template: '{{ states(''sensor.living_room_light_intensity'') | float(0) > states(''input_number.intensity_threshold_moderate_light_outdoor_corridor'') | float(0) }}'
+      - condition: state
+        entity_id:
+        - switch.adaptive_lighting_sleep_mode_corridor_first_floor
+        - switch.adaptive_lighting_sleep_mode_corridor_ground_floor
+        state: 'off'
+      then:
+        alias: light states when moderate light outdoor
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+        - parallel:
+          - parallel:
+            - if:
+                condition: state
+                entity_id: input_boolean.ceiling_light_control_moderate_light_outdoor_corridor
+                state: 'on'
+              then:
+                alias: Turn light.first_corridor_light light.ground_corridor_light state=on
+                if:
+                - '{{ 1 == 1 }}'
+                then:
+                  service: light.turn_on
+                  entity_id:
+                  - light.first_corridor_light
+                  - light.ground_corridor_light
+              else:
+                alias: Turn light.first_corridor_light light.ground_corridor_light state=off
+                if:
+                - '{{ 1 == 1 }}'
+                then:
+                  service: light.turn_off
+                  entity_id:
+                  - light.first_corridor_light
+                  - light.ground_corridor_light
+            - if:
+                condition: state
+                entity_id: input_boolean.lamp_control_moderate_light_outdoor_corridor
+                state: 'on'
+              then:
+                service: script.do_nothing
+              else:
+                service: script.do_nothing
+            - if:
+                condition: state
+                entity_id: input_boolean.led_control_moderate_light_outdoor_corridor
+                state: 'on'
+              then:
+                service: script.do_nothing
+              else:
+                service: script.do_nothing
+      else:
+        alias: If it is bright afternoon
+        if:
+        - condition: template
+          value_template: '{{ states(''sensor.living_room_light_intensity'') | float(0) <= states(''input_number.intensity_threshold_moderate_light_outdoor_corridor'') | float(0) }}'
+        - condition: state
+          entity_id:
+          - switch.adaptive_lighting_sleep_mode_corridor_first_floor
+          - switch.adaptive_lighting_sleep_mode_corridor_ground_floor
+          state: 'off'
+        then:
+          alias: light states when low light outdoor
+          if:
+          - '{{ 1 == 1 }}'
+          then:
+          - parallel:
+            - parallel:
+              - if:
+                  condition: state
+                  entity_id: input_boolean.ceiling_light_control_low_light_outdoor_corridor
+                  state: 'on'
+                then:
+                  alias: Turn light.first_corridor_light light.ground_corridor_light state=on
+                  if:
+                  - '{{ 1 == 1 }}'
+                  then:
+                    service: light.turn_on
+                    entity_id:
+                    - light.first_corridor_light
+                    - light.ground_corridor_light
+                else:
+                  alias: Turn light.first_corridor_light light.ground_corridor_light state=off
+                  if:
+                  - '{{ 1 == 1 }}'
+                  then:
+                    service: light.turn_off
+                    entity_id:
+                    - light.first_corridor_light
+                    - light.ground_corridor_light
+              - if:
+                  condition: state
+                  entity_id: input_boolean.lamp_control_low_light_outdoor_corridor
+                  state: 'on'
+                then:
+                  service: script.do_nothing
+                else:
+                  service: script.do_nothing
+              - if:
+                  condition: state
+                  entity_id: input_boolean.led_control_low_light_outdoor_corridor
+                  state: 'on'
+                then:
+                  service: script.do_nothing
+                else:
+                  service: script.do_nothing
+        else:
+          alias: If it is bright afternoon
+          if:
+          - condition: state
+            entity_id:
+            - switch.adaptive_lighting_sleep_mode_corridor_first_floor
+            - switch.adaptive_lighting_sleep_mode_corridor_ground_floor
+            state: 'on'
+          then:
+            alias: light states when sleep mode
+            if:
+            - '{{ 1 == 1 }}'
+            then:
+            - parallel:
+              - parallel:
+                - if:
+                    condition: state
+                    entity_id: input_boolean.ceiling_light_control_sleep_mode_corridor
+                    state: 'on'
+                  then:
+                    alias: Turn light.first_corridor_light light.ground_corridor_light state=on
+                    if:
+                    - '{{ 1 == 1 }}'
+                    then:
+                      service: light.turn_on
+                      entity_id:
+                      - light.first_corridor_light
+                      - light.ground_corridor_light
+                  else:
+                    alias: Turn light.first_corridor_light light.ground_corridor_light state=off
+                    if:
+                    - '{{ 1 == 1 }}'
+                    then:
+                      service: light.turn_off
+                      entity_id:
+                      - light.first_corridor_light
+                      - light.ground_corridor_light
+                - if:
+                    condition: state
+                    entity_id: input_boolean.lamp_control_sleep_mode_corridor
+                    state: 'on'
+                  then:
+                    service: script.do_nothing
+                  else:
+                    service: script.do_nothing
+                - if:
+                    condition: state
+                    entity_id: input_boolean.led_control_sleep_mode_corridor
+                    state: 'on'
+                  then:
+                    service: script.do_nothing
+                  else:
+                    service: script.do_nothing
+          else:
+            alias: Default
+            service: script.do_nothing
+  - service: automation.trigger
+    entity_id: automation.zl_cr_curtain_states_when_no_person_present_corridor
+- alias: ZL-CR Lights Off If No Person-Corridor
+  id: automation.zl_cr_lights_off_if_no_person_corridor
+  trigger:
+  - platform: state
+    entity_id: input_select.corridor_occupancy
+    to: Outside
+  - trigger: homeassistant
+    event: start
+  - minutes: /30
+    seconds: '23'
+    trigger: time_pattern
+  condition:
+  - condition: state
+    entity_id: input_select.corridor_occupancy
+    state: Outside
+  action:
+    parallel:
+    - alias: Turn automation.zl_cr_lights_on_if_entering_to_room_corridor state=on
+      if:
+      - '{{ 1 == 1 }}'
+      then:
+        service: homeassistant.turn_on
+        entity_id: automation.zl_cr_lights_on_if_entering_to_room_corridor
+    - service: script.do_nothing
+    - service: script.call_room_scene
+      data:
+        room_scene_select: input_select.corridor_scene
+        scene: Idle
+    - alias: All Off
+      if:
+      - '{{ 1 == 1 }}'
+      then:
+      - parallel:
+        - alias: Turn light.first_corridor_light light.ground_corridor_light state=off
+          if:
+          - '{{ 1 == 1 }}'
+          then:
+            service: light.turn_off
+            entity_id:
+            - light.first_corridor_light
+            - light.ground_corridor_light
+        - service: script.do_nothing
+        - service: script.do_nothing
+        - service: script.do_nothing
+    - service: script.do_nothing
+- alias: ZL-CR Disable Entering Lights-on Automation If any People are in the Room-Corridor
+  trigger:
+  - platform: state
+    entity_id: input_select.corridor_occupancy
+    to:
+    - Just Entered
+    - In Sleep
+    - Stayed Inside
+  action:
+  - delay: 00:00:10
+  - service: automation.turn_off
+    entity_id: automation.zl_cr_lights_on_if_entering_to_room_corridor
+    data:
+      stop_actions: 'false'
+  id: automation.zl_cr_disable_entering_lights_on_automation_if_any_people_are_in_the_room_corridor
+- alias: ZH-CR Heating Schedule On If Staying In the Room-Corridor
+  id: automation.zh_cr_heating_schedule_on_if_staying_in_the_room_corridor
+  trigger:
+  - platform: state
+    entity_id: input_select.corridor_occupancy
+    from:
+    - Just Entered
+    - Outside
+    to:
+    - Stayed Inside
+    - In Sleep
+  action:
+  - if:
+    - condition: not
+      conditions:
+      - condition: state
+        entity_id: climate.corridor
+        state: heat
+    then:
+      alias: Turn heating state=on
+      if:
+      - '{{ 1 == 1 }}'
+      then:
+        alias: ''
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+        - alias: Turn climate.corridor state=on
+          if:
+          - '{{ 1 == 1 }}'
+          then:
+            service: climate.set_hvac_mode
+            data:
+              hvac_mode: heat
+            entity_id: climate.corridor
+        - alias: Turn switch.schedule_corridor_temperature state=on
+          if:
+          - '{{ 1 == 1 }}'
+          then:
+            service: homeassistant.turn_on
+            entity_id: switch.schedule_corridor_temperature
+- alias: ZH-CR Heating Schedule Off If People Left the Room-Corridor
+  id: automation.zh_cr_heating_schedule_off_if_people_left_the_room_corridor
+  trigger:
+  - platform: state
+    entity_id: input_select.corridor_occupancy
+    to: Outside
+  - trigger: homeassistant
+    event: start
+  - minutes: /30
+    seconds: '21'
+    trigger: time_pattern
+  action:
+  - condition: state
+    entity_id: input_select.corridor_occupancy
+    state: Outside
+  - service: script.do_nothing
+  - condition: state
+    entity_id: input_boolean.corridor_heating_override
+    state: 'off'
+  - alias: Turn heating state=off
+    if:
+    - '{{ 1 == 1 }}'
+    then:
+      alias: ''
+      if:
+      - '{{ 1 == 1 }}'
+      then:
+      - alias: Turn climate.corridor state=off
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          service: climate.set_hvac_mode
+          data:
+            hvac_mode: 'off'
+          entity_id: climate.corridor
+      - alias: Turn switch.schedule_corridor_temperature state=off
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          service: homeassistant.turn_off
+          entity_id: switch.schedule_corridor_temperature
+- alias: ZH-CR Heating Manual Override-Corridor
+  mode: restart
+  trigger:
+  - platform: state
+    entity_id: input_boolean.corridor_heating_override
+  action:
+  - if:
+    - condition: state
+      entity_id: input_boolean.corridor_heating_override
+      state: 'off'
+    then:
+    - service: automation.trigger
+      entity_id:
+      - automation.zh_cr_heating_schedule_off_if_people_left_the_room_corridor
+    else:
+    - service: automation.trigger
+      entity_id:
+      - automation.zh_cr_heating_schedule_on_if_staying_in_the_room_corridor
+    - delay:
+        hours: 4
+    - service: homeassistant.turn_off
+      entity_id: input_boolean.corridor_heating_override
+    - service: automation.trigger
+      entity_id:
+      - automation.zh_cr_heating_schedule_on_if_staying_in_the_room_corridor
+  id: automation.zh_cr_heating_manual_override_corridor
+- alias: ZM-CR Sonos Pause Playing After People Left-Corridor
+  trigger:
+  - platform: state
+    entity_id: input_select.corridor_occupancy
+    to: Outside
+    for: 00:10:00
+  - trigger: homeassistant
+    event: start
+  - minutes: /30
+    seconds: '19'
+    trigger: time_pattern
+  action:
+  - condition: state
+    entity_id: input_select.corridor_occupancy
+    state: Outside
+    for: 00:10:00
+  - alias: Turn media_player.first_corridor_sonos state=off
+    if:
+    - '{{ 1 == 1 }}'
+    then:
+      if:
+        condition: state
+        entity_id:
+        - media_player.first_corridor_sonos
+        state: playing
+      then:
+        alias: Turn media_player.first_corridor_sonos state=toggle
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          service: media_player.media_play_pause
+          entity_id:
+          - media_player.first_corridor_sonos
+  id: automation.zm_cr_sonos_pause_playing_after_people_left_corridor
+- alias: ZLB-CR Wall Switch - Double Click - Leave Room and Turn Off Everything-Corridor
+  trigger:
+  - platform: state
+    entity_id:
+    - sensor.ground_corridor_wall_button
+    - sensor.first_corridor_wall_button
+    to:
+    - '2'
+    - double
+    - double_left
+    - double_right
+    - double_center
+    - button_1_double
+    - button_2_double
+    - button_3_double
+  action:
+  - service: automation.trigger
+    entity_id:
+    - automation.zl_cr_lights_off_if_no_person_corridor
+    - automation.zh_cr_heating_schedule_off_if_people_left_the_room_corridor
+  - service: input_select.select_option
+    target:
+      entity_id: input_select.corridor_occupancy
+    data:
+      option: Outside
+  id: automation.zlb_cr_wall_switch_double_click_leave_room_and_turn_off_everything_corridor
+- alias: ZOc-CR Occupancy Update-Corridor
+  id: automation.zoc_cr_occupancy_update_corridor
+  trigger:
+  - entity_id: group.corridor_motion_group
+    platform: state
+    to: 'on'
+  - entity_id: group.corridor_motion_group
+    platform: state
+    to: 'on'
+    for:
+      seconds: 150
+  - entity_id: group.corridor_motion_group
+    platform: state
+    to: 'on'
+    for:
+      seconds: 1800
+  - entity_id: group.corridor_motion_group
+    platform: state
+    to: 'off'
+  - entity_id: group.corridor_motion_group
+    platform: state
+    to: 'off'
+    for:
+      seconds: 60
+  - entity_id: group.corridor_motion_group
+    platform: state
+    to: 'off'
+    for:
+      seconds: 3600
+  - trigger: homeassistant
+    event: start
+  - minutes: /3
+    seconds: '20'
+    trigger: time_pattern
+  action:
+  - choose:
+    - alias: Outside -> Just Entered when motion is on
+      conditions:
+      - condition: state
+        entity_id: input_select.corridor_occupancy
+        state: Outside
+      - condition: state
+        entity_id: group.corridor_motion_group
+        state: 'on'
+      sequence:
+      - service: input_select.select_option
+        target:
+          entity_id: input_select.corridor_occupancy
+        data:
+          option: Just Entered
+    - alias: Outside -> Outside when motion is not on
+      conditions:
+      - condition: state
+        entity_id: input_select.corridor_occupancy
+        state: Outside
+      - condition: template
+        value_template: '{{ not is_state(''group.corridor_motion_group'', ''on'') }}'
+      sequence:
+      - service: input_select.select_option
+        target:
+          entity_id: input_select.corridor_occupancy
+        data:
+          option: Outside
+    - alias: Just Entered -> Stayed Inside when motion stays on
+      conditions:
+      - condition: state
+        entity_id: input_select.corridor_occupancy
+        state: Just Entered
+      - condition: template
+        value_template: '{{ is_state(''group.corridor_motion_group'', ''on'') and (as_timestamp(now()) - as_timestamp(states[''group.corridor_motion_group''].last_changed)) >= 150 }}'
+      sequence:
+      - service: input_select.select_option
+        target:
+          entity_id: input_select.corridor_occupancy
+        data:
+          option: Stayed Inside
+    - alias: Just Entered -> Outside when motion stays off
+      conditions:
+      - condition: state
+        entity_id: input_select.corridor_occupancy
+        state: Just Entered
+      - condition: template
+        value_template: '{{ is_state(''group.corridor_motion_group'', ''off'') and (as_timestamp(now()) - as_timestamp(states[''group.corridor_motion_group''].last_changed)) >= 60 }}'
+      sequence:
+      - service: input_select.select_option
+        target:
+          entity_id: input_select.corridor_occupancy
+        data:
+          option: Outside
+    - alias: Just Entered -> Just Entered by default
+      conditions:
+      - condition: state
+        entity_id: input_select.corridor_occupancy
+        state: Just Entered
+      sequence:
+      - service: input_select.select_option
+        target:
+          entity_id: input_select.corridor_occupancy
+        data:
+          option: Just Entered
+    - alias: Stayed Inside -> In Sleep when sleep time and stayed long enough
+      conditions:
+      - condition: state
+        entity_id: input_select.corridor_occupancy
+        state: Stayed Inside
+      - condition: state
+        entity_id: input_boolean.always_off_constant
+        state: 'on'
+      - condition: template
+        value_template: '{{ is_state(''input_select.corridor_occupancy'', ''Stayed Inside'') and (as_timestamp(now()) - as_timestamp(states[''input_select.corridor_occupancy''].last_changed)) > 1800 }}'
+      sequence:
+      - service: input_select.select_option
+        target:
+          entity_id: input_select.corridor_occupancy
+        data:
+          option: In Sleep
+    - alias: Stayed Inside -> Outside when motion stays off
+      conditions:
+      - condition: state
+        entity_id: input_select.corridor_occupancy
+        state: Stayed Inside
+      - condition: template
+        value_template: '{{ is_state(''group.corridor_motion_group'', ''off'') and (as_timestamp(now()) - as_timestamp(states[''group.corridor_motion_group''].last_changed)) >= 60 }}'
+      sequence:
+      - service: input_select.select_option
+        target:
+          entity_id: input_select.corridor_occupancy
+        data:
+          option: Outside
+    - alias: Stayed Inside -> Stayed Inside by default
+      conditions:
+      - condition: state
+        entity_id: input_select.corridor_occupancy
+        state: Stayed Inside
+      sequence:
+      - service: input_select.select_option
+        target:
+          entity_id: input_select.corridor_occupancy
+        data:
+          option: Stayed Inside
+    - alias: In Sleep -> Stayed Inside when sleep time ends
+      conditions:
+      - condition: state
+        entity_id: input_select.corridor_occupancy
+        state: In Sleep
+      - condition: template
+        value_template: '{{ not is_state(''input_boolean.always_off_constant'', ''on'') }}'
+      sequence:
+      - service: input_select.select_option
+        target:
+          entity_id: input_select.corridor_occupancy
+        data:
+          option: Stayed Inside
+    - alias: In Sleep -> Outside when motion stays off
+      conditions:
+      - condition: state
+        entity_id: input_select.corridor_occupancy
+        state: In Sleep
+      - condition: template
+        value_template: '{{ is_state(''group.corridor_motion_group'', ''off'') and (as_timestamp(now()) - as_timestamp(states[''group.corridor_motion_group''].last_changed)) > 3600 }}'
+      sequence:
+      - service: input_select.select_option
+        target:
+          entity_id: input_select.corridor_occupancy
+        data:
+          option: Outside
+    - alias: In Sleep -> In Sleep by default
+      conditions:
+      - condition: state
+        entity_id: input_select.corridor_occupancy
+        state: In Sleep
+      sequence:
+      - service: input_select.select_option
+        target:
+          entity_id: input_select.corridor_occupancy
+        data:
+          option: In Sleep
+    default:
+    - service: script.do_nothing
+- alias: ZOc-CR Occupancy Override and sync to Timer-Corridor
+  mode: single
+  trigger:
+  - platform: state
+    entity_id: input_boolean.corridor_auto_off_suspended
+  action:
+  - choose:
+    - conditions:
+      - condition: state
+        entity_id: input_boolean.corridor_auto_off_suspended
+        state: 'on'
+      sequence:
+      - service: timer.start
+        target:
+          entity_id: timer.corridor_auto_off_suspended_timer
+      - alias: Turn automation.zoc_cr_occupancy_update_corridor state=off
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          service: homeassistant.turn_off
+          entity_id: automation.zoc_cr_occupancy_update_corridor
+      - service: input_select.select_option
+        target:
+          entity_id: input_select.corridor_occupancy
+        data:
+          option: Stayed Inside
+    - conditions:
+      - condition: state
+        entity_id: input_boolean.corridor_auto_off_suspended
+        state: 'off'
+      sequence:
+      - service: timer.cancel
+        target:
+          entity_id: timer.corridor_auto_off_suspended_timer
+      - alias: Turn automation.zoc_cr_occupancy_update_corridor state=on
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          service: homeassistant.turn_on
+          entity_id: automation.zoc_cr_occupancy_update_corridor
+  id: automation.zoc_cr_occupancy_override_and_sync_to_timer_corridor
+- alias: ZOc-CR Occupancy Override Sync from Timer-Corridor
+  mode: single
+  trigger:
+  - platform: state
+    entity_id: timer.corridor_auto_off_suspended_timer
+  - trigger: homeassistant
+    event: start
+  - minutes: /10
+    seconds: '55'
+    trigger: time_pattern
+  action:
+  - choose:
+    - conditions:
+      - condition: state
+        entity_id: timer.corridor_auto_off_suspended_timer
+        state: active
+      sequence:
+      - service: input_boolean.turn_on
+        target:
+          entity_id: input_boolean.corridor_auto_off_suspended
+    - conditions:
+      - condition: or
+        conditions:
+        - condition: state
+          entity_id: timer.corridor_auto_off_suspended_timer
+          state: paused
+        - condition: state
+          entity_id: timer.corridor_auto_off_suspended_timer
+          state: idle
+      sequence:
+      - service: input_boolean.turn_off
+        target:
+          entity_id: input_boolean.corridor_auto_off_suspended
+  id: automation.zoc_cr_occupancy_override_sync_from_timer_corridor
+- alias: ZN-CR Notify Window Left Open When Tai is Leaving Zone-Corridor
+  trigger:
+  - platform: zone
+    entity_id: device_tracker.tais_iphone_13
+    zone: zone.home
+    event: leave
+  condition:
+  - condition: state
+    entity_id: group.corridor_window_group
+    state: 'on'
+  action:
+  - service: script.notify_alexa_speakers_and_phones
+    data:
+      tts_message: Corridor windows or locks are left open. But you have left home. Is that ok?
+      notify_tai: 'yes'
+  id: automation.zn_cr_notify_window_left_open_when_tai_is_leaving_zone_corridor
+- alias: ZN-CR Notify Window Left Open When Ke is Leaving Zone-Corridor
+  trigger:
+  - platform: zone
+    entity_id: device_tracker.kes_iphone_14_pro_max
+    zone: zone.home
+    event: leave
+  condition:
+  - condition: state
+    entity_id: group.corridor_window_group
+    state: 'on'
+  action:
+  - service: script.notify_alexa_speakers_and_phones
+    data:
+      tts_message: Corridor windows or locks are left open. But you have left home. Is that ok?
+      notify_ke: 'yes'
+  id: automation.zn_cr_notify_window_left_open_when_ke_is_leaving_zone_corridor
+- alias: ZN-CR Notify Window Left Open in Bedtime -Corridor
+  trigger:
+  - platform: time
+    at:
+    - '21:00:00'
+    - '22:00:00'
+    - '23:00:00'
+    - 00:00:00
+    - 01:00:00
+    - 02:00:00
+    - 03:00:00
+  condition:
+  - condition: state
+    entity_id: group.corridor_window_group
+    state: 'on'
+  action:
+  - service: script.notify_alexa_speakers_and_phones
+    data:
+      tts_message: Corridor windows or locks are left open. But it's almost bedtime time. Is that ok?
+      notify_tai: 'yes'
+      notify_ke: 'yes'
+  id: automation.zn_cr_notify_window_left_open_in_bedtime_corridor
+input_select:
+  corridor_occupancy:
+    name: Corridor Occupancy
+    options:
+    - Outside
+    - Just Entered
+    - Stayed Inside
+    - In Sleep
+input_boolean:
+  ceiling_light_control_intense_light_summer_corridor:
+    name: Ceiling Light Control Intense Light Summer Corridor
+  lamp_control_intense_light_summer_corridor:
+    name: Lamp Control Intense Light Summer Corridor
+    initial: 'off'
+  led_control_intense_light_summer_corridor:
+    name: Led Control Intense Light Summer Corridor
+    initial: 'off'
+  curtain_control_intense_light_summer_corridor:
+    name: Curtain Control Intense Light Summer Corridor
+    initial: 'off'
+  corridor_heating_override:
+    name: Corridor Heating Override
+    initial: 'off'
+  ceiling_light_control_moderate_light_outdoor_corridor:
+    name: Ceiling Light Control Moderate Light Outdoor Corridor
+  lamp_control_moderate_light_outdoor_corridor:
+    name: Lamp Control Moderate Light Outdoor Corridor
+    initial: 'off'
+  led_control_moderate_light_outdoor_corridor:
+    name: Led Control Moderate Light Outdoor Corridor
+    initial: 'off'
+  curtain_control_moderate_light_outdoor_corridor:
+    name: Curtain Control Moderate Light Outdoor Corridor
+    initial: 'off'
+  ceiling_light_control_low_light_outdoor_corridor:
+    name: Ceiling Light Control Low Light Outdoor Corridor
+  lamp_control_low_light_outdoor_corridor:
+    name: Lamp Control Low Light Outdoor Corridor
+    initial: 'off'
+  led_control_low_light_outdoor_corridor:
+    name: Led Control Low Light Outdoor Corridor
+    initial: 'off'
+  curtain_control_low_light_outdoor_corridor:
+    name: Curtain Control Low Light Outdoor Corridor
+    initial: 'off'
+  ceiling_light_control_sleep_mode_corridor:
+    name: Ceiling Light Control Sleep Mode Corridor
+  lamp_control_sleep_mode_corridor:
+    name: Lamp Control Sleep Mode Corridor
+    initial: 'off'
+  led_control_sleep_mode_corridor:
+    name: Led Control Sleep Mode Corridor
+    initial: 'off'
+  curtain_control_sleep_mode_corridor:
+    name: Curtain Control Sleep Mode Corridor
+    initial: 'off'
+  corridor_auto_off_suspended:
+    name: Corridor Auto Off Suspended
+    icon: mdi:timer-sand
+  corridor_dummy_heater_entity:
+    name: Corridor Dummy Heater Entity
+    initial: 'off'
+input_datetime:
+  noon_time_corridor:
+    name: Noon Time Corridor
+    has_date: false
+    has_time: true
+input_number:
+  corridor_min_value_as_bright:
+    name: Corridor Min Value As Bright
+    min: 0
+    max: 4000
+    step: 1
+    mode: box
+  intensity_threshold_intense_light_summer_corridor:
+    name: Intensity Threshold Intense Light Summer Corridor
+    min: 0
+    max: 100
+    step: 0.1
+    mode: box
+  intensity_threshold_moderate_light_outdoor_corridor:
+    name: Intensity Threshold Moderate Light Outdoor Corridor
+    min: 0
+    max: 100
+    step: 0.1
+    mode: box
+sensor:
+- platform: history_stats
+  name: Corridor Motion On Ratio For Last 4 Minutes
+  entity_id: group.corridor_motion_group
+  state: 'on'
+  type: ratio
+  duration:
+    minutes: '4'
+  end: '{{ (now() | as_timestamp) | as_datetime | as_local }}'
+- platform: history_stats
+  name: Corridor Motion On Ratio For Last 8 Minutes
+  entity_id: group.corridor_motion_group
+  state: 'on'
+  type: ratio
+  duration:
+    minutes: '8'
+  end: '{{ (now() | as_timestamp) | as_datetime | as_local }}'
+- name: Front Doorbell Ring Battery Median
+  platform: statistics
+  entity_id: sensor.front_door_battery
+  precision: 0
+  state_characteristic: median
+  max_age:
+    hours: 24
+- name: Ground Corridor Motion Sensor 1 Battery Median
+  platform: statistics
+  entity_id: sensor.0x00158d0004667569_battery
+  precision: 0
+  state_characteristic: median
+  max_age:
+    hours: 24
+- name: Ground Corridor Motion Sensor 2 Battery Median
+  platform: statistics
+  entity_id: sensor.0x00158d00045019fd_battery
+  precision: 0
+  state_characteristic: median
+  max_age:
+    hours: 24
+- name: Ground Corridor Occupancy Sensor Battery Median
+  platform: statistics
+  entity_id: sensor.a4c138961632_battery
+  precision: 0
+  state_characteristic: median
+  max_age:
+    hours: 24
+- name: Ground Corridor Xiaomi Home Occupancy Sensor Battery Median
+  platform: statistics
+  entity_id: sensor.linp_cn_blt_3_1kfc872k0k800_es2_battery_level_p_4_1003
+  precision: 0
+  state_characteristic: median
+  max_age:
+    hours: 24
+- name: First Corridor Motion Sensor 1 Battery Median
+  platform: statistics
+  entity_id: sensor.0x00158d0004525183_battery
+  precision: 0
+  state_characteristic: median
+  max_age:
+    hours: 24
+- name: First Corridor Motion Sensor 2 Battery Median
+  platform: statistics
+  entity_id: sensor.e0798dba9ae1_battery
+  precision: 0
+  state_characteristic: median
+  max_age:
+    hours: 24
+- name: Corridor Min Battery
+  platform: min_max
+  type: min
+  entity_ids:
+  - sensor.front_doorbell_ring_battery
+  - sensor.ground_corridor_motion_sensor_1_battery
+  - sensor.ground_corridor_motion_sensor_2_battery
+  - sensor.ground_corridor_occupancy_sensor_battery
+  - sensor.ground_corridor_xiaomi_home_occupancy_sensor_battery
+  - sensor.first_corridor_motion_sensor_1_battery
+  - sensor.first_corridor_motion_sensor_2_battery
+timer:
+  corridor_auto_off_suspended_timer:
+    name: Corridor Auto Off Suspended Timer
+    duration: 03:00:00
+button: []
+switch:
+- platform: group
+  name: Ground Corridor Wall Switch 1
+  entities: switch.0x00158d00048783e5_channel_1
+- platform: group
+  name: Ground Corridor Wall Switch 2
+  entities: switch.0x00158d00048783e5_channel_2
+- platform: group
+  name: First Corridor Wall Switch 1
+  entities: switch.0x00158d0005210fcf_channel_1
+- platform: group
+  name: First Corridor Wall Switch 2
+  entities: switch.0x00158d0005210fcf_channel_2
+- platform: group
+  name: Downstairs Heating
+  entities: switch.0x00158d0005227632_channel_1
+- platform: group
+  name: Water Heater
+  entities: switch.0x00158d0005227632_channel_2
+- platform: group
+  name: Upstairs Heating
+  entities: switch.0x00158d0008cb1681_switch
+cover: []
+climate:
+- platform: generic_thermostat
+  name: Corridor
+  heater: input_boolean.corridor_dummy_heater_entity
+  target_sensor: sensor.tado_smart_radiator_thermostat_va0395514880_current_temperature
+  min_temp: 7
+  max_temp: 25
+  ac_mode: false
+  cold_tolerance: 0
+  precision: 0.1
+  target_temp_step: 0.5
+  min_cycle_duration: 00:01:30
+template:
+- sensor:
+  - name: Front Doorbell Ring Battery
+    unit_of_measurement: '%'
+    device_class: battery
+    state_class: measurement
+    state: '{% set s = states(''sensor.front_doorbell_ring_battery_median'') %}{{ s | int if s not in [''unknown'', ''unavailable'', ''''] else ''unknown'' }}'
+- sensor:
+  - name: Ground Corridor Motion Sensor 1 Battery
+    unit_of_measurement: '%'
+    device_class: battery
+    state_class: measurement
+    state: '{% set s = states(''sensor.ground_corridor_motion_sensor_1_battery_median'') %}{{ s | int if s not in [''unknown'', ''unavailable'', ''''] else ''unknown'' }}'
+- sensor:
+  - name: Ground Corridor Motion Sensor 2 Battery
+    unit_of_measurement: '%'
+    device_class: battery
+    state_class: measurement
+    state: '{% set s = states(''sensor.ground_corridor_motion_sensor_2_battery_median'') %}{{ s | int if s not in [''unknown'', ''unavailable'', ''''] else ''unknown'' }}'
+- binary_sensor:
+  - name: Ground Corridor Occupancy Sensor Occupancy
+    state: '{% if states.sensor["a4c138961632_no_one_duration"].state == ''unavailable'' or states.sensor["a4c138961632_no_one_duration"].state  == ''unknown''%}
+
+      {{states.binary_sensor["a4c138961632_occupancy"].state}}
+
+      {% elif states.sensor["a4c138961632_no_one_duration"].state == ''0'' %}
+
+      {{states.binary_sensor["a4c138961632_occupancy"].state}}
+
+      {# else is equivilence to elif states.sensor["a4c138961632_no_one_duration"].state > "0" #}
+
+      {% else %}
+
+      off
+
+      {% endif %}
+
+      '
+    device_class: occupancy
+- sensor:
+  - name: Ground Corridor Occupancy Sensor Battery
+    unit_of_measurement: '%'
+    device_class: battery
+    state_class: measurement
+    state: '{% set s = states(''sensor.ground_corridor_occupancy_sensor_battery_median'') %}{{ s | int if s not in [''unknown'', ''unavailable'', ''''] else ''unknown'' }}'
+- binary_sensor:
+  - name: Ground Corridor Xiaomi Home Occupancy Sensor Occupancy
+    state: '{% if states.sensor["linp_cn_blt_3_1kfc872k0k800_es2_no_one_duration_p_2_1079"].state == ''unavailable'' or states.sensor["linp_cn_blt_3_1kfc872k0k800_es2_no_one_duration_p_2_1079"].state  == ''unknown''%}
+
+      {{states.binary_sensor["linp_cn_blt_3_1kfc872k0k800_es2_occupancy_status_p_2_1078"].state}}
+
+      {% elif states.sensor["linp_cn_blt_3_1kfc872k0k800_es2_no_one_duration_p_2_1079"].state == ''0'' %}
+
+      {{states.binary_sensor["linp_cn_blt_3_1kfc872k0k800_es2_occupancy_status_p_2_1078"].state}}
+
+      {# else is equivilence to elif states.sensor["linp_cn_blt_3_1kfc872k0k800_es2_no_one_duration_p_2_1079"].state > "0" #}
+
+      {% else %}
+
+      off
+
+      {% endif %}
+
+      '
+    device_class: occupancy
+- sensor:
+  - name: Ground Corridor Xiaomi Home Occupancy Sensor Battery
+    unit_of_measurement: '%'
+    device_class: battery
+    state_class: measurement
+    state: '{% set s = states(''sensor.ground_corridor_xiaomi_home_occupancy_sensor_battery_median'') %}{{ s | int if s not in [''unknown'', ''unavailable'', ''''] else ''unknown'' }}'
+- sensor:
+  - name: First Corridor Motion Sensor 1 Battery
+    unit_of_measurement: '%'
+    device_class: battery
+    state_class: measurement
+    state: '{% set s = states(''sensor.first_corridor_motion_sensor_1_battery_median'') %}{{ s | int if s not in [''unknown'', ''unavailable'', ''''] else ''unknown'' }}'
+- sensor:
+  - name: First Corridor Motion Sensor 2 Battery
+    unit_of_measurement: '%'
+    device_class: battery
+    state_class: measurement
+    state: '{% set s = states(''sensor.first_corridor_motion_sensor_2_battery_median'') %}{{ s | int if s not in [''unknown'', ''unavailable'', ''''] else ''unknown'' }}'
+- sensor:
+  - name: Ground Corridor Wall Button
+    state: '{{states.sensor["0x00158d00048783e5_action"].state}}'
+- sensor:
+  - name: First Corridor Wall Button
+    state: '{{states.sensor["0x00158d0005210fcf_action"].state}}'
+- sensor:
+  - name: Corridor Tado Availiabity
+    unit_of_measurement: "\xB0C"
+    state: '{{states("sensor.tado_smart_radiator_thermostat_va0395514880_current_temperature") | float(22) | round(1)}}'
+- binary_sensor:
+  - name: Corridor Heating Required
+    state: '{% set climate = "climate.tado_smart_radiator_thermostat_va0395514880" %}{% if states(climate) == "unavailable" or states(climate) == "off" or (state_attr(climate, "temperature") <= state_attr(climate, "current_temperature"))  %}off{% else %} on{% endif %}'
+- binary_sensor:
+  - name: Corridor Unavailable Entities
+    state: '{% set added_device_entities =  [''sensor.front_doorbell_ring_battery'', ''sensor.ground_corridor_motion_sensor_1_battery'', ''sensor.ground_corridor_motion_sensor_2_battery'', ''binary_sensor.ground_corridor_occupancy_sensor_occupancy'', ''sensor.ground_corridor_occupancy_sensor_battery'', ''binary_sensor.ground_corridor_xiaomi_home_occupancy_sensor_occupancy'', ''sensor.ground_corridor_xiaomi_home_occupancy_sensor_battery'', ''sensor.first_corridor_motion_sensor_1_battery'', ''sensor.first_corridor_motion_sensor_2_battery'', ''sensor.ground_corridor_wall_button'', ''sensor.first_corridor_wall_button'', ''sensor.corridor_tado_availiabity'', ''binary_sensor.corridor_heating_required'', ''binary_sensor.ground_corridor_motion_sensor_motion_1'', ''binary_sensor.ground_corridor_motion_sensor_motion_2'', ''binary_sensor.first_corridor_motion_sensor_motion_1'', ''binary_sensor.first_corridor_motion_sensor_motion_2'', ''switch.ground_corridor_wall_switch_1'', ''switch.ground_corridor_wall_switch_2'', ''switch.first_corridor_wall_switch_1'', ''switch.first_corridor_wall_switch_2'', ''switch.downstairs_heating'', ''switch.water_heater'', ''switch.upstairs_heating'', ''light.corridor_ceiling_light'', ''light.first_corridor_light'', ''light.ground_corridor_light''] %}{% set ns = namespace() %}{% set ns.num_unavail_devices = 0 %}{% for device in added_device_entities %}   {% if states(device) in [''unavailable'', ''unknown'', ''none''] %}      {% set ns.num_unavail_devices = ns.num_unavail_devices + 1 %}   {% endif %}{% endfor %}{% if ns.num_unavail_devices > 0%}  on  {% else %}  off {% endif %}'
+    attributes:
+      value: '{% set added_device_entities =  [''sensor.front_doorbell_ring_battery'', ''sensor.ground_corridor_motion_sensor_1_battery'', ''sensor.ground_corridor_motion_sensor_2_battery'', ''binary_sensor.ground_corridor_occupancy_sensor_occupancy'', ''sensor.ground_corridor_occupancy_sensor_battery'', ''binary_sensor.ground_corridor_xiaomi_home_occupancy_sensor_occupancy'', ''sensor.ground_corridor_xiaomi_home_occupancy_sensor_battery'', ''sensor.first_corridor_motion_sensor_1_battery'', ''sensor.first_corridor_motion_sensor_2_battery'', ''sensor.ground_corridor_wall_button'', ''sensor.first_corridor_wall_button'', ''sensor.corridor_tado_availiabity'', ''binary_sensor.corridor_heating_required'', ''binary_sensor.ground_corridor_motion_sensor_motion_1'', ''binary_sensor.ground_corridor_motion_sensor_motion_2'', ''binary_sensor.first_corridor_motion_sensor_motion_1'', ''binary_sensor.first_corridor_motion_sensor_motion_2'', ''switch.ground_corridor_wall_switch_1'', ''switch.ground_corridor_wall_switch_2'', ''switch.first_corridor_wall_switch_1'', ''switch.first_corridor_wall_switch_2'', ''switch.downstairs_heating'', ''switch.water_heater'', ''switch.upstairs_heating'', ''light.corridor_ceiling_light'', ''light.first_corridor_light'', ''light.ground_corridor_light''] %}{% set ns = namespace() %}{% set ns.unavail_devices = '''' %}{% for device in added_device_entities %}   {% if states(device) in [''unavailable'', ''unknown'', ''none''] %}   {% set ns.unavail_devices = ns.unavail_devices + ''
+
+        '' +device %} {% endif %}{% endfor %}{{ns.unavail_devices}}'
+- binary_sensor:
+  - name: Corridor Low Battery
+    state: '{% set state = states("sensor.corridor_min_battery") %} {% if state == "unavailable" or state == "unknown" or int(state) > 20 %} off {% else%} on {% endif %}'
+binary_sensor:
+- platform: group
+  name: Ground Corridor Motion Sensor Motion 1
+  device_class: motion
+  entities: binary_sensor.0x00158d0004667569_motion
+- platform: group
+  name: Ground Corridor Motion Sensor Motion 2
+  device_class: motion
+  entities: binary_sensor.0x00158d00045019fd_motion
+- platform: group
+  name: First Corridor Motion Sensor Motion 1
+  device_class: motion
+  entities: binary_sensor.0x00158d0004525183_motion
+- platform: group
+  name: First Corridor Motion Sensor Motion 2
+  device_class: motion
+  entities: binary_sensor.e0798dba9ae1_motion
+event: []
+lock: []
+light:
+- platform: group
+  name: Corridor Ceiling Light
+  entities:
+  - light.first_corridor_light
+  - light.ground_corridor_light
+- platform: group
+  name: First Corridor Light
+  entities: light.msl120_0a57_lightbulb
+- platform: group
+  name: Ground Corridor Light
+  entities: light.50ec50df9323_light
+group:
+  corridor_occupancy_group:
+    name: Corridor Occupancy Group
+    entities:
+    - input_select.corridor_occupancy
+    - group.corridor_motion_group
+    - binary_sensor.ground_corridor_xiaomi_home_occupancy_sensor_occupancy
+    - binary_sensor.ground_corridor_motion_sensor_motion_1
+    - binary_sensor.ground_corridor_motion_sensor_motion_2
+    - binary_sensor.first_corridor_motion_sensor_motion_1
+    - binary_sensor.first_corridor_motion_sensor_motion_2
+    - binary_sensor.en_suite_room_entrance_motion_sensor_motion
+    - binary_sensor.living_room_entrance_motion_sensor_motion
+    - binary_sensor.master_room_entrance_motion_sensor_motion
+    - automation.zoc_cr_occupancy_update_corridor
+  corridor_motion_group:
+    name: Corridor Motion Group
+    entities:
+    - binary_sensor.ground_corridor_xiaomi_home_occupancy_sensor_occupancy
+    - binary_sensor.ground_corridor_motion_sensor_motion_1
+    - binary_sensor.ground_corridor_motion_sensor_motion_2
+    - binary_sensor.first_corridor_motion_sensor_motion_1
+    - binary_sensor.first_corridor_motion_sensor_motion_2
+    - binary_sensor.en_suite_room_entrance_motion_sensor_motion
+    - binary_sensor.living_room_entrance_motion_sensor_motion
+    - binary_sensor.master_room_entrance_motion_sensor_motion
+  corridor_light_group:
+    name: Corridor Light Group
+    entities:
+    - light.corridor_ceiling_light
+  corridor_window_group:
+    name: Corridor Window Group
+    entities:
+    - binary_sensor.front_door
+  corridor_timeout_window_group:
+    name: Corridor Timeout Window Group
+    entities:
+    - binary_sensor.front_door
+  corridor_curtain_group:
+    name: Corridor Curtain Group
+    entities: []
+  corridor_battery:
+    name: Corridor Battery
+    entities:
+    - sensor.front_doorbell_ring_battery
+    - sensor.ground_corridor_motion_sensor_1_battery
+    - sensor.ground_corridor_motion_sensor_2_battery
+    - sensor.ground_corridor_occupancy_sensor_battery
+    - sensor.ground_corridor_xiaomi_home_occupancy_sensor_battery
+    - sensor.first_corridor_motion_sensor_1_battery
+    - sensor.first_corridor_motion_sensor_2_battery
+  corridor_auto_gen_automations:
+    name: Corridor Auto Gen Automations
+    entities:
+    - input_boolean.corridor_auto_off_suspended
+    - timer.corridor_auto_off_suspended_timer
+    - input_number.intensity_threshold_intense_light_summer_corridor
+    - input_number.intensity_threshold_moderate_light_outdoor_corridor
+    - sensor.living_room_light_intensity
+    - climate.tado_smart_radiator_thermostat_va0395514880
+    - binary_sensor.corridor_heating_required
+    - input_boolean.ceiling_light_control_intense_light_summer_corridor
+    - input_boolean.ceiling_light_control_moderate_light_outdoor_corridor
+    - input_boolean.ceiling_light_control_low_light_outdoor_corridor
+    - input_boolean.ceiling_light_control_sleep_mode_corridor
+    - automation.zlb_cr_flex_wall_switch_on_postion_1_automatically_turn_on_the_wall_switch_back_when_turned_off_corridor
+    - automation.zh_cr_rename_thermostat_corridor
+    - automation.zl_cr_curtain_states_when_no_person_present_corridor
+    - automation.zl_cr_lights_on_if_entering_to_room_corridor
+    - automation.zl_cr_lights_off_if_no_person_corridor
+    - automation.zl_cr_disable_entering_lights_on_automation_if_any_people_are_in_the_room_corridor
+    - automation.zh_cr_heating_schedule_on_if_staying_in_the_room_corridor
+    - automation.zh_cr_heating_schedule_off_if_people_left_the_room_corridor
+    - automation.zh_cr_heating_manual_override_corridor
+    - automation.zm_cr_sonos_pause_playing_after_people_left_corridor
+    - automation.zlb_cr_wall_switch_double_click_leave_room_and_turn_off_everything_corridor
+    - automation.zoc_cr_occupancy_update_corridor
+    - automation.zoc_cr_occupancy_override_and_sync_to_timer_corridor
+    - automation.zoc_cr_occupancy_override_sync_from_timer_corridor
+    - automation.zn_cr_notify_window_left_open_when_tai_is_leaving_zone_corridor
+    - automation.zn_cr_notify_window_left_open_when_ke_is_leaving_zone_corridor
+    - automation.zn_cr_notify_window_left_open_in_bedtime_corridor
+    - switch.0x00158d00048783e5_channel_1
+    - switch.0x00158d00048783e5_channel_2
+    - switch.0x00158d0005210fcf_channel_1
+    - switch.0x00158d0005210fcf_channel_2
+    - switch.0x00158d00048783e5_wireless_1
+    - switch.0x00158d00048783e5_wireless_2
+    - switch.0x00158d0005210fcf_wireless_1
+    - switch.0x00158d0005210fcf_wireless_2
+    - switch.adaptive_lighting_sleep_mode_corridor_ground_floor
+    - switch.adaptive_lighting_sleep_mode_corridor_first_floor
+    - sensor.living_room_east_side_light_sensor
+    - group.corridor_battery
+    - automation.h_downstairs_zone_heating_off_when_no_heating_required
+    - automation.h_downstairs_zone_heating_on_when_heating_required
+    - automation.h_upstairs_zone_heating_off_when_no_heating_required
+    - automation.h_upstairs_zone_heating_on_when_heating_required
+    - automation.h_workaround_upstairs_downstair_zone_heating_off_when_no_heating_required
+    - automation.h_workaround_upstairs_downstair_zone_heating_on_when_heating_required
+    - group.corridor_window_group

@@ -1,0 +1,428 @@
+#############################################################################
+# DO NOT MODIFY. This is an automatically generated file.                   # 
+#############################################################################
+adaptive_lighting: []
+automation:
+- alias: ZOc-WH Occupancy Update-Whole Home
+  id: automation.zoc_wh_occupancy_update_whole_home
+  trigger:
+  - entity_id: group.whole_home_motion_group
+    platform: state
+    to: 'on'
+  - entity_id: group.whole_home_motion_group
+    platform: state
+    to: 'on'
+    for:
+      seconds: 150
+  - entity_id: group.whole_home_motion_group
+    platform: state
+    to: 'on'
+    for:
+      seconds: 1800
+  - entity_id: group.whole_home_motion_group
+    platform: state
+    to: 'off'
+  - entity_id: group.whole_home_motion_group
+    platform: state
+    to: 'off'
+    for:
+      seconds: 300
+  - entity_id: group.whole_home_motion_group
+    platform: state
+    to: 'off'
+    for:
+      seconds: 3600
+  - trigger: homeassistant
+    event: start
+  - minutes: /3
+    seconds: '21'
+    trigger: time_pattern
+  action:
+  - choose:
+    - alias: Outside -> Just Entered when motion is on
+      conditions:
+      - condition: state
+        entity_id: input_select.whole_home_occupancy
+        state: Outside
+      - condition: state
+        entity_id: group.whole_home_motion_group
+        state: 'on'
+      sequence:
+      - service: input_select.select_option
+        target:
+          entity_id: input_select.whole_home_occupancy
+        data:
+          option: Just Entered
+    - alias: Outside -> Outside when motion is not on
+      conditions:
+      - condition: state
+        entity_id: input_select.whole_home_occupancy
+        state: Outside
+      - condition: template
+        value_template: '{{ not is_state(''group.whole_home_motion_group'', ''on'') }}'
+      sequence:
+      - service: input_select.select_option
+        target:
+          entity_id: input_select.whole_home_occupancy
+        data:
+          option: Outside
+    - alias: Just Entered -> Stayed Inside when motion stays on
+      conditions:
+      - condition: state
+        entity_id: input_select.whole_home_occupancy
+        state: Just Entered
+      - condition: template
+        value_template: '{{ is_state(''group.whole_home_motion_group'', ''on'') and (as_timestamp(now()) - as_timestamp(states[''group.whole_home_motion_group''].last_changed)) >= 150 }}'
+      sequence:
+      - service: input_select.select_option
+        target:
+          entity_id: input_select.whole_home_occupancy
+        data:
+          option: Stayed Inside
+    - alias: Just Entered -> Outside when motion stays off
+      conditions:
+      - condition: state
+        entity_id: input_select.whole_home_occupancy
+        state: Just Entered
+      - condition: template
+        value_template: '{{ is_state(''group.whole_home_motion_group'', ''off'') and (as_timestamp(now()) - as_timestamp(states[''group.whole_home_motion_group''].last_changed)) >= 300 }}'
+      sequence:
+      - service: input_select.select_option
+        target:
+          entity_id: input_select.whole_home_occupancy
+        data:
+          option: Outside
+    - alias: Just Entered -> Just Entered by default
+      conditions:
+      - condition: state
+        entity_id: input_select.whole_home_occupancy
+        state: Just Entered
+      sequence:
+      - service: input_select.select_option
+        target:
+          entity_id: input_select.whole_home_occupancy
+        data:
+          option: Just Entered
+    - alias: Stayed Inside -> In Sleep when sleep time and stayed long enough
+      conditions:
+      - condition: state
+        entity_id: input_select.whole_home_occupancy
+        state: Stayed Inside
+      - condition: state
+        entity_id: input_boolean.always_off_constant
+        state: 'on'
+      - condition: template
+        value_template: '{{ is_state(''input_select.whole_home_occupancy'', ''Stayed Inside'') and (as_timestamp(now()) - as_timestamp(states[''input_select.whole_home_occupancy''].last_changed)) > 1800 }}'
+      sequence:
+      - service: input_select.select_option
+        target:
+          entity_id: input_select.whole_home_occupancy
+        data:
+          option: In Sleep
+    - alias: Stayed Inside -> Outside when motion stays off
+      conditions:
+      - condition: state
+        entity_id: input_select.whole_home_occupancy
+        state: Stayed Inside
+      - condition: template
+        value_template: '{{ is_state(''group.whole_home_motion_group'', ''off'') and (as_timestamp(now()) - as_timestamp(states[''group.whole_home_motion_group''].last_changed)) >= 300 }}'
+      sequence:
+      - service: input_select.select_option
+        target:
+          entity_id: input_select.whole_home_occupancy
+        data:
+          option: Outside
+    - alias: Stayed Inside -> Stayed Inside by default
+      conditions:
+      - condition: state
+        entity_id: input_select.whole_home_occupancy
+        state: Stayed Inside
+      sequence:
+      - service: input_select.select_option
+        target:
+          entity_id: input_select.whole_home_occupancy
+        data:
+          option: Stayed Inside
+    - alias: In Sleep -> Stayed Inside when sleep time ends
+      conditions:
+      - condition: state
+        entity_id: input_select.whole_home_occupancy
+        state: In Sleep
+      - condition: template
+        value_template: '{{ not is_state(''input_boolean.always_off_constant'', ''on'') }}'
+      sequence:
+      - service: input_select.select_option
+        target:
+          entity_id: input_select.whole_home_occupancy
+        data:
+          option: Stayed Inside
+    - alias: In Sleep -> Outside when motion stays off
+      conditions:
+      - condition: state
+        entity_id: input_select.whole_home_occupancy
+        state: In Sleep
+      - condition: template
+        value_template: '{{ is_state(''group.whole_home_motion_group'', ''off'') and (as_timestamp(now()) - as_timestamp(states[''group.whole_home_motion_group''].last_changed)) > 3600 }}'
+      sequence:
+      - service: input_select.select_option
+        target:
+          entity_id: input_select.whole_home_occupancy
+        data:
+          option: Outside
+    - alias: In Sleep -> In Sleep by default
+      conditions:
+      - condition: state
+        entity_id: input_select.whole_home_occupancy
+        state: In Sleep
+      sequence:
+      - service: input_select.select_option
+        target:
+          entity_id: input_select.whole_home_occupancy
+        data:
+          option: In Sleep
+    default:
+    - service: script.do_nothing
+- alias: ZOc-WH Occupancy Override and sync to Timer-Whole Home
+  mode: single
+  trigger:
+  - platform: state
+    entity_id: input_boolean.whole_home_auto_off_suspended
+  action:
+  - choose:
+    - conditions:
+      - condition: state
+        entity_id: input_boolean.whole_home_auto_off_suspended
+        state: 'on'
+      sequence:
+      - service: timer.start
+        target:
+          entity_id: timer.whole_home_auto_off_suspended_timer
+      - alias: Turn automation.zoc_wh_occupancy_update_whole_home state=off
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          service: homeassistant.turn_off
+          entity_id: automation.zoc_wh_occupancy_update_whole_home
+      - service: input_select.select_option
+        target:
+          entity_id: input_select.whole_home_occupancy
+        data:
+          option: Stayed Inside
+    - conditions:
+      - condition: state
+        entity_id: input_boolean.whole_home_auto_off_suspended
+        state: 'off'
+      sequence:
+      - service: timer.cancel
+        target:
+          entity_id: timer.whole_home_auto_off_suspended_timer
+      - alias: Turn automation.zoc_wh_occupancy_update_whole_home state=on
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          service: homeassistant.turn_on
+          entity_id: automation.zoc_wh_occupancy_update_whole_home
+  id: automation.zoc_wh_occupancy_override_and_sync_to_timer_whole_home
+- alias: ZOc-WH Occupancy Override Sync from Timer-Whole Home
+  mode: single
+  trigger:
+  - platform: state
+    entity_id: timer.whole_home_auto_off_suspended_timer
+  - trigger: homeassistant
+    event: start
+  - minutes: /10
+    seconds: '4'
+    trigger: time_pattern
+  action:
+  - choose:
+    - conditions:
+      - condition: state
+        entity_id: timer.whole_home_auto_off_suspended_timer
+        state: active
+      sequence:
+      - service: input_boolean.turn_on
+        target:
+          entity_id: input_boolean.whole_home_auto_off_suspended
+    - conditions:
+      - condition: or
+        conditions:
+        - condition: state
+          entity_id: timer.whole_home_auto_off_suspended_timer
+          state: paused
+        - condition: state
+          entity_id: timer.whole_home_auto_off_suspended_timer
+          state: idle
+      sequence:
+      - service: input_boolean.turn_off
+        target:
+          entity_id: input_boolean.whole_home_auto_off_suspended
+  id: automation.zoc_wh_occupancy_override_sync_from_timer_whole_home
+input_select:
+  whole_home_occupancy:
+    name: Whole Home Occupancy
+    options:
+    - Outside
+    - Just Entered
+    - Stayed Inside
+    - In Sleep
+input_boolean:
+  ceiling_light_control_intense_light_summer_whole_home:
+    name: Ceiling Light Control Intense Light Summer Whole Home
+  lamp_control_intense_light_summer_whole_home:
+    name: Lamp Control Intense Light Summer Whole Home
+    initial: 'off'
+  led_control_intense_light_summer_whole_home:
+    name: Led Control Intense Light Summer Whole Home
+    initial: 'off'
+  curtain_control_intense_light_summer_whole_home:
+    name: Curtain Control Intense Light Summer Whole Home
+    initial: 'off'
+  ceiling_light_control_moderate_light_outdoor_whole_home:
+    name: Ceiling Light Control Moderate Light Outdoor Whole Home
+  lamp_control_moderate_light_outdoor_whole_home:
+    name: Lamp Control Moderate Light Outdoor Whole Home
+    initial: 'off'
+  led_control_moderate_light_outdoor_whole_home:
+    name: Led Control Moderate Light Outdoor Whole Home
+    initial: 'off'
+  curtain_control_moderate_light_outdoor_whole_home:
+    name: Curtain Control Moderate Light Outdoor Whole Home
+    initial: 'off'
+  ceiling_light_control_low_light_outdoor_whole_home:
+    name: Ceiling Light Control Low Light Outdoor Whole Home
+  lamp_control_low_light_outdoor_whole_home:
+    name: Lamp Control Low Light Outdoor Whole Home
+    initial: 'off'
+  led_control_low_light_outdoor_whole_home:
+    name: Led Control Low Light Outdoor Whole Home
+    initial: 'off'
+  curtain_control_low_light_outdoor_whole_home:
+    name: Curtain Control Low Light Outdoor Whole Home
+    initial: 'off'
+  ceiling_light_control_sleep_mode_whole_home:
+    name: Ceiling Light Control Sleep Mode Whole Home
+  lamp_control_sleep_mode_whole_home:
+    name: Lamp Control Sleep Mode Whole Home
+    initial: 'off'
+  led_control_sleep_mode_whole_home:
+    name: Led Control Sleep Mode Whole Home
+    initial: 'off'
+  curtain_control_sleep_mode_whole_home:
+    name: Curtain Control Sleep Mode Whole Home
+    initial: 'off'
+  whole_home_auto_off_suspended:
+    name: Whole Home Auto Off Suspended
+    icon: mdi:timer-sand
+input_datetime:
+  noon_time_whole_home:
+    name: Noon Time Whole Home
+    has_date: false
+    has_time: true
+input_number:
+  whole_home_min_value_as_bright:
+    name: Whole Home Min Value As Bright
+    min: 0
+    max: 4000
+    step: 1
+    mode: box
+  intensity_threshold_intense_light_summer_whole_home:
+    name: Intensity Threshold Intense Light Summer Whole Home
+    min: 0
+    max: 100
+    step: 0.1
+    mode: box
+  intensity_threshold_moderate_light_outdoor_whole_home:
+    name: Intensity Threshold Moderate Light Outdoor Whole Home
+    min: 0
+    max: 100
+    step: 0.1
+    mode: box
+sensor:
+- platform: history_stats
+  name: Whole Home Motion On Ratio For Last 4 Minutes
+  entity_id: group.whole_home_motion_group
+  state: 'on'
+  type: ratio
+  duration:
+    minutes: '4'
+  end: '{{ (now() | as_timestamp) | as_datetime | as_local }}'
+- platform: history_stats
+  name: Whole Home Motion On Ratio For Last 8 Minutes
+  entity_id: group.whole_home_motion_group
+  state: 'on'
+  type: ratio
+  duration:
+    minutes: '8'
+  end: '{{ (now() | as_timestamp) | as_datetime | as_local }}'
+- name: Whole Home Min Battery
+  platform: min_max
+  type: min
+  entity_ids: []
+timer:
+  whole_home_auto_off_suspended_timer:
+    name: Whole Home Auto Off Suspended Timer
+    duration: 02:00:00
+button: []
+switch: []
+cover: []
+climate: []
+template:
+- binary_sensor:
+  - name: Whole Home Unavailable Entities
+    state: '{% set added_device_entities =  [] %}{% set ns = namespace() %}{% set ns.num_unavail_devices = 0 %}{% for device in added_device_entities %}   {% if states(device) in [''unavailable'', ''unknown'', ''none''] %}      {% set ns.num_unavail_devices = ns.num_unavail_devices + 1 %}   {% endif %}{% endfor %}{% if ns.num_unavail_devices > 0%}  on  {% else %}  off {% endif %}'
+    attributes:
+      value: '{% set added_device_entities =  [] %}{% set ns = namespace() %}{% set ns.unavail_devices = '''' %}{% for device in added_device_entities %}   {% if states(device) in [''unavailable'', ''unknown'', ''none''] %}   {% set ns.unavail_devices = ns.unavail_devices + ''
+
+        '' +device %} {% endif %}{% endfor %}{{ns.unavail_devices}}'
+- binary_sensor:
+  - name: Whole Home Low Battery
+    state: '{% set state = states("sensor.whole_home_min_battery") %} {% if state == "unavailable" or state == "unknown" or int(state) > 20 %} off {% else%} on {% endif %}'
+binary_sensor: []
+event: []
+lock: []
+light: []
+group:
+  whole_home_occupancy_group:
+    name: Whole Home Occupancy Group
+    entities:
+    - input_select.whole_home_occupancy
+    - group.whole_home_motion_group
+    - group.living_room_motion_group
+    - group.kitchen_motion_group
+    - group.corridor_motion_group
+    - group.study_motion_group
+    - group.ground_toilet_motion_group
+    - group.master_room_motion_group
+    - group.master_toilet_motion_group
+    - group.en_suite_room_motion_group
+    - group.en_suite_toilet_motion_group
+    - group.guest_room_motion_group
+    - group.guest_toilet_motion_group
+    - automation.zoc_wh_occupancy_update_whole_home
+  whole_home_motion_group:
+    name: Whole Home Motion Group
+    entities:
+    - group.living_room_motion_group
+    - group.kitchen_motion_group
+    - group.corridor_motion_group
+    - group.study_motion_group
+    - group.ground_toilet_motion_group
+    - group.master_room_motion_group
+    - group.master_toilet_motion_group
+    - group.en_suite_room_motion_group
+    - group.en_suite_toilet_motion_group
+    - group.guest_room_motion_group
+    - group.guest_toilet_motion_group
+  whole_home_light_group:
+    name: Whole Home Light Group
+    entities:
+    - light.whole_home_ceiling_light
+  whole_home_timeout_window_group:
+    name: Whole Home Timeout Window Group
+    entities: []
+  whole_home_curtain_group:
+    name: Whole Home Curtain Group
+    entities: []
+  whole_home_battery:
+    name: Whole Home Battery
+    entities: []
