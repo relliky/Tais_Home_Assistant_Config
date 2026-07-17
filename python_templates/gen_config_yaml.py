@@ -11,6 +11,7 @@ import configured_entity_filter
 import dashboard_colors
 import dashboard_generator
 import dashboard_restrictions
+import dashboard_settings
 import dashboard_view_helpers
 import entity_declaration_builders
 import entity_naming
@@ -4830,23 +4831,11 @@ class RoomBase:
 
 
   def getDashboardSettings(self):
-    self.dashboard_default_root = '/Uninitliazed_dashboard_root'
-    self.dashboard_view_name = 'Uninitliazed_dashboard_view_name'
-    self.room_icon           = 'Uninitliazed_room_icon'
-
-    import random
-
-    ios_themes = [
-    'ios-dark-mode-blue-red',
-    'ios-dark-mode-dark-blue',
-    'ios-dark-mode-dark-green',
-    'ios-dark-mode-light-blue',
-    'ios-dark-mode-light-green',
-    'ios-dark-mode-orange',
-    'ios-dark-mode-red'
-    ]
-
-    self.room_theme          = ios_themes[random.randint(0,6)]
+    settings = dashboard_settings.default_dashboard_settings()
+    self.dashboard_default_root = settings["dashboard_default_root"]
+    self.dashboard_view_name = settings["dashboard_view_name"]
+    self.room_icon = settings["room_icon"]
+    self.room_theme = settings["room_theme"]
 
   def addView(self, viewPath='',
                     cards=[],
