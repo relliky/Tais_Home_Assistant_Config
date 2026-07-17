@@ -96,6 +96,21 @@ class SensorDeclarationBuildersTest(unittest.TestCase):
             },
         )
 
+    def test_average_temperature_sensor(self):
+        sensor = sensor_declaration_builders.average_temperature_sensor(
+            "sensor.left",
+            "sensor.right",
+            "sensor.average",
+            fake_name_from_entity,
+        )
+
+        self.assertEqual(sensor["sensor"][0]["name"], "Name for sensor.average")
+        self.assertEqual(sensor["sensor"][0]["unit_of_measurement"], "°C")
+        self.assertIn("states('sensor.left')", sensor["sensor"][0]["state"])
+        self.assertIn("states('sensor.right')", sensor["sensor"][0]["state"])
+        self.assertIn("{{ ((sensor_1 + sensor_2) / 2) | round(1) }}", sensor["sensor"][0]["state"])
+        self.assertEqual(sensor["configured"], True)
+
     def test_smooth_power_sensor(self):
         self.assertEqual(
             sensor_declaration_builders.smooth_power_sensor(

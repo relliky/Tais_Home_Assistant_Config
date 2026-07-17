@@ -57,6 +57,32 @@ def battery_sensor_declarations(mac, name, get_entity_from_name, get_name_from_e
   }
 
 
+def average_temperature_sensor(sensor_1, sensor_2, sensor_out, get_name_from_entity):
+  return {
+    "sensor": [
+      {
+        "name": get_name_from_entity(sensor_out),
+        "unit_of_measurement": "°C",
+        "state": "" +
+            "{% if   states('"+sensor_1 +"') != 'unavailable' and states('" + sensor_2 + "') == 'unavailable' %}" +
+               "{{states('"+sensor_1 +"')}}" +
+            "{% elif states('"+sensor_1 +"') == 'unavailable' and states('" + sensor_2 + "') != 'unavailable' %}" +
+               "{{states('"+sensor_2 +"')}}" +
+            "{% else %}" +
+              "{% set sensor_1 = states('"+sensor_1 +"') | float(22) | round(1) %}" +
+              "{% set sensor_2 = states('"+sensor_2 +"') | float(22) | round(1) %}" +
+              "{% if sensor_1 < 1.0 or sensor_2 < 1.0 or (sensor_1 + sensor_2) < 1.0 %}" +
+                 "22.0" +
+              "{% else %}" +
+                 "{{ ((sensor_1 + sensor_2) / 2) | round(1) }}" +
+              "{% endif %}" +
+            "{% endif %}"
+      }
+    ],
+    "configured": True
+  }
+
+
 def smooth_power_sensor(sensor_in, sensor_out, get_name_from_entity):
   return smooth_filter_sensor(
     sensor_in,

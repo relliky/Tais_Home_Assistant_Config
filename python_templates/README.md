@@ -17,7 +17,7 @@ package YAML and Lovelace dashboard YAML from room-specific Python classes.
   alias naming helpers.
 - `entity_declaration_builders.py` contains small entity/group/automation
   declaration builders.
-- `sensor_declaration_builders.py` contains small battery, template, and
+- `sensor_declaration_builders.py` contains battery, temperature, template, and
   filter sensor declaration builders.
 - `entity_interface_defaults.py` contains the default entity-interface
   containers used during room generation.
@@ -182,8 +182,8 @@ Completed foundations:
 32. Move occupancy ratio sensor config generation into its own module.
 33. Move default room config flags into their own module.
 34. Move dashboard root selection into dashboard settings.
-35. Move small battery, template, and filter sensor declaration builders into
-    their own module.
+35. Move battery, temperature, template, and filter sensor declaration builders
+    into their own module.
 
 Recommended next steps:
 
