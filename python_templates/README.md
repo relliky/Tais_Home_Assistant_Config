@@ -38,6 +38,8 @@ package YAML and Lovelace dashboard YAML from room-specific Python classes.
   generation.
 - `room_properties.py` contains derived room metadata such as entity name,
   dashboard path, room type, and west-facing-window classification.
+- `room_remote_entities.py` contains default remote button and wall-switch
+  entity list builders.
 - `room_time_settings.py` contains default sleep-time and light-time settings.
 - `rooms.py` contains room-specific classes such as `MasterRoom`, `Kitchen`,
   `LivingRoom`, and `Study`.
@@ -151,6 +153,7 @@ Completed foundations:
 22. Move Lovelace `card_mod` style builders into their own module.
 23. Move derived room metadata helpers into their own module.
 24. Move default room time settings into their own module.
+25. Move default remote button and wall-switch entities into their own module.
 
 Recommended next steps:
 

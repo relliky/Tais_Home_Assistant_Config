@@ -24,6 +24,7 @@ import occupancy_state_machine
 import package_writer
 import room_properties
 import room_registry
+import room_remote_entities
 import room_time_settings
 import rooms
 import re
@@ -231,25 +232,24 @@ class RoomBase:
                                 self.occupancy_override_timer_entity]
 
   def get_remote_entities(self):
-    # Button (sensor) entities
-    self.xiaomi_buttons          = []
-    for i in range(self.num_of_xiaomi_button):
-      self.xiaomi_buttons       += ["sensor." + self.room_entity + "_button"]
-      if self.num_of_xiaomi_button != 1:
-        self.xiaomi_buttons[i]  += "_" + str(i+1)
-    self.wall_buttons            = ["sensor." + self.room_entity + "_wall_button",
-                                    "sensor." + self.room_entity + "_wall_button_2",] # sometimes the entity is duplicated and need _2 postfix
-    self.buttons                 = self.wall_buttons + self.xiaomi_buttons
-    self.curtain_buttons         = []
-    self.six_key_buttons         = []
-    self.four_key_buttons        = []
-    self.eight_key_knob_buttons  = []
+    entities = room_remote_entities.default_remote_entities(
+      self.room_entity,
+      self.num_of_xiaomi_button,
+    )
+    self.xiaomi_buttons = entities["xiaomi_buttons"]
+    self.wall_buttons = entities["wall_buttons"]
+    self.buttons = entities["buttons"]
+    self.curtain_buttons = entities["curtain_buttons"]
+    self.six_key_buttons = entities["six_key_buttons"]
+    self.four_key_buttons = entities["four_key_buttons"]
+    self.eight_key_knob_buttons = entities["eight_key_knob_buttons"]
 
   def get_wall_switches(self):
-    self.wall_switches          = []
-    self.decouple_wall_switches = []
-    self.raw_wall_switches      = []
-    self.alias_wall_switches    = []
+    switches = room_remote_entities.default_wall_switches()
+    self.wall_switches = switches["wall_switches"]
+    self.decouple_wall_switches = switches["decouple_wall_switches"]
+    self.raw_wall_switches = switches["raw_wall_switches"]
+    self.alias_wall_switches = switches["alias_wall_switches"]
 
 
   def get_light_entities(self):
