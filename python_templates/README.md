@@ -22,6 +22,7 @@ package YAML and Lovelace dashboard YAML from room-specific Python classes.
 - `occupancy_state_machine.py` contains the room occupancy choose/action
   generation logic.
 - `dashboard_colors.py` contains dashboard CSS color aliases.
+- `dashboard_card_mod.py` contains Lovelace `card_mod` style builders.
 - `dashboard_settings.py` contains default dashboard settings and theme
   selection.
 - `dashboard_restrictions.py` contains Lovelace restriction-card wrappers and
@@ -144,6 +145,7 @@ Completed foundations:
 19. Move dashboard restriction-card helpers into their own module.
 20. Move package/customize YAML writing orchestration into its own module.
 21. Move default dashboard settings into their own module.
+22. Move Lovelace `card_mod` style builders into their own module.
 
 Recommended next steps:
 
