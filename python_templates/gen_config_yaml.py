@@ -7,6 +7,7 @@
 
 from HA_Composite_Card_Lib.src.main import HA_Composite_Card_Lib
 import automation_helpers
+import dashboard_colors
 import dashboard_generator
 import entity_naming
 import generator_cli
@@ -2761,28 +2762,7 @@ class RoomBase:
     }
 
   def getColor(self, color):
-    # The last digit of rgba represents opacity and the value of it is between 0.0 and 1.0
-    # !! always needs to follow the rgba format to maintain a compatibility
-    if color == 'transparent':
-      return "rgba(245, 245, 245, 0)"
-    elif color == 'more_transparent_grey':
-      return "rgba(10, 10, 10, 0.4)"
-    elif color == 'less_transparent_grey':
-      return "rgba(10, 10, 10, 0.7)"
-    elif color == 'most_transparent_white':
-      return "rgba(245, 245, 245, 0.1)"
-    elif color == 'more_transparent_white':
-      return "rgba(245, 245, 245, 0.3)"
-    elif color == 'less_transparent_white':
-      return "rgba(245, 245, 245, 0.9)"
-    elif color == 'dark_grey':
-      return "rgba(100, 100, 100, 1)"
-    elif color == 'light_grey':
-      return "rgba(220, 220, 220, 1)"
-    elif color == 'ios_yellow':
-      return "rgba(253,204,0,1)"
-    else:
-      return color
+    return dashboard_colors.get_color(color)
 
   def getCardModColor(self, color):
     return self.getCardMod('background_color_select', color=color)

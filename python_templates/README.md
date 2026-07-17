@@ -14,6 +14,7 @@ package YAML and Lovelace dashboard YAML from room-specific Python classes.
   alias naming helpers.
 - `automation_helpers.py` contains small Home Assistant trigger, action, and
   condition dict builders.
+- `dashboard_colors.py` contains dashboard CSS color aliases.
 - `dashboard_generator.py` contains the overall Lovelace dashboard aggregation
   logic.
 - `ha_entity_registry.py` contains helper functions for inspecting and cleaning
@@ -120,6 +121,7 @@ Completed foundations:
 11. Move entity naming helpers into their own module.
 12. Move small automation trigger/action/condition helpers into their own
     module.
+13. Move dashboard color aliases into their own module.
 
 Recommended next steps:
 
