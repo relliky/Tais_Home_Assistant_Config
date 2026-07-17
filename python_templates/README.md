@@ -17,6 +17,8 @@ package YAML and Lovelace dashboard YAML from room-specific Python classes.
   alias naming helpers.
 - `entity_declaration_builders.py` contains small entity/group/automation
   declaration builders.
+- `entity_interface_defaults.py` contains the default entity-interface
+  containers used during room generation.
 - `configured_entity_filter.py` contains filtering for generated declarations
   guarded by a `configured` flag.
 - `automation_helpers.py` contains small Home Assistant trigger, action, and
@@ -167,6 +169,7 @@ Completed foundations:
     own module.
 29. Move default light entities, adaptive-lighting config, and light-control
     entities into their own module.
+30. Move entity-interface container defaults into their own module.
 
 Recommended next steps:
 

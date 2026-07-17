@@ -15,6 +15,7 @@ import dashboard_restrictions
 import dashboard_settings
 import dashboard_view_helpers
 import entity_declaration_builders
+import entity_interface_defaults
 import entity_naming
 import generator_cli
 import generator_io
@@ -373,34 +374,8 @@ class RoomBase:
       self.gui_ctl_group = "group." + self.room_entity + "_auto_gen_automations"
 
   def initialize_entity_intf(self):
-    self.automation_list        = []
-    self.entity_declarations    = {}
-    self.input_select_dict      = {}
-    self.sensor_list            = []
-    self.group_dict             = {}
-    self.timer_dict             = {}
-    self.button_list            = []
-    self.input_boolean_dict     = {}
-    self.input_datetime_dict    = {}
-    self.input_number_dict      = {}
-    self.script_dict            = {}
-    self.switch_list            = []
-    self.cover_list             = []
-    self.template_list          = []
-    self.climate_list           = []
-    self.binary_sensor_list     = []
-    self.event_list             = []
-    self.lock_list              = []
-    self.light_list             = []
-    self.room_cards             = []
-    self.views                  = []
-    self.dashboard_type         = None
-    self.header_card_list       = []
-    self.main_card_list         = []
-    self.tail_card_list         = []
-    self.al_light_list          = []
-    self.gui_ctl_entity_list    = []
-    self.customize_dict         = {}
+    for key, value in entity_interface_defaults.default_entity_interface().items():
+      setattr(self, key, value)
 
   def get_occupancy_ratio_sensor_config(self, x_minutes_multiple_str):
     x_minutes_multiple =  1 if x_minutes_multiple_str == '1x' else \
