@@ -8,6 +8,7 @@
 from HA_Composite_Card_Lib.src.main import HA_Composite_Card_Lib
 import dashboard_generator
 import ha_entity_registry
+import room_registry
 import re
 import yaml
 import os
@@ -7273,39 +7274,11 @@ class CN_MasterRoom(RoomBase):
 
 
 def create_package_rooms():
-  return [
-    LivingRoom(),
-    Kitchen(),
-    GuestRoom(),
-    Study(),
-    GuestToilet(),
-    Garden(),
-    Corridor(),
-    EnSuiteToilet(),
-    EnSuiteRoom(),
-    GroundToilet(),
-    MasterRoom(),
-    MasterToilet(),
-    WholeHome()
-  ]
+  return room_registry.create_package_rooms(globals())
 
 
 def get_dashboard_room_classes():
-  return [
-    LivingRoom,
-    Kitchen,
-    MasterRoom,
-    MasterToilet,
-    Study,
-    System,
-    GuestRoom,
-    Corridor,
-    GuestToilet,
-    Garden,
-    EnSuiteRoom,
-    GroundToilet,
-    EnSuiteToilet,
-  ]
+  return room_registry.get_dashboard_room_classes(globals())
 
 
 

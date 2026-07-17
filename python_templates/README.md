@@ -10,6 +10,8 @@ package YAML and Lovelace dashboard YAML from room-specific Python classes.
   logic.
 - `ha_entity_registry.py` contains helper functions for inspecting and cleaning
   Home Assistant's `core.entity_registry`.
+- `room_registry.py` defines the room order used by package and dashboard
+  generation.
 - `auto_gen_overall_dashboard.yaml` is the generated Lovelace dashboard YAML.
 - `tests/` contains unit tests and generated YAML consistency baselines.
 - `HA_Composite_Card_Lib/` contains helper code used while building dashboard cards.
@@ -101,6 +103,7 @@ Completed foundations:
 4. Split command-line parsing and generation orchestration out of `main()`.
 5. Move entity-registry inspection helpers into their own module.
 6. Move dashboard generation into its own module.
+7. Move package/dashboard room ordering into its own module.
 
 Recommended next steps:
 
