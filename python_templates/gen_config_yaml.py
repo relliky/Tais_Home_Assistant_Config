@@ -29,6 +29,7 @@ import room_motion_entities
 import room_properties
 import room_registry
 import room_remote_entities
+import room_scene_defaults
 import room_time_settings
 import rooms
 import re
@@ -363,15 +364,14 @@ class RoomBase:
     self.room_heating_override = entities["room_heating_override"]
 
   def get_post_room_config(self):
-
-    # Scene
-    self.room_scene_ctl          = "input_select." + self.room_entity + "_scene"
-
-    # Scene automation internal variable
-    self.cur_scene           = 'unintialized_cur_scene'
-
-    if self.cfg_group_auto:
-      self.gui_ctl_group = "group." + self.room_entity + "_auto_gen_automations"
+    config = room_scene_defaults.default_post_room_config(
+      self.room_entity,
+      self.cfg_group_auto,
+    )
+    self.room_scene_ctl = config["room_scene_ctl"]
+    self.cur_scene = config["cur_scene"]
+    if "gui_ctl_group" in config:
+      self.gui_ctl_group = config["gui_ctl_group"]
 
   def initialize_entity_intf(self):
     for key, value in entity_interface_defaults.default_entity_interface().items():

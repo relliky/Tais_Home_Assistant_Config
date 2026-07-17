@@ -42,6 +42,8 @@ package YAML and Lovelace dashboard YAML from room-specific Python classes.
   generation.
 - `room_properties.py` contains derived room metadata such as entity name,
   dashboard path, room type, and west-facing-window classification.
+- `room_scene_defaults.py` contains default scene-control entities and internal
+  scene state values.
 - `room_remote_entities.py` contains default remote button and wall-switch
   entity list builders.
 - `room_motion_entities.py` contains default motion, occupancy, and occupancy
@@ -170,6 +172,7 @@ Completed foundations:
 29. Move default light entities, adaptive-lighting config, and light-control
     entities into their own module.
 30. Move entity-interface container defaults into their own module.
+31. Move default scene-control entities into their own module.
 
 Recommended next steps:
 
