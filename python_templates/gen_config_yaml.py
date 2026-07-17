@@ -19,6 +19,7 @@ import generator_io
 import ha_entity_registry
 import message_helpers
 import occupancy_state_machine
+import package_writer
 import room_registry
 import rooms
 import re
@@ -5043,23 +5044,21 @@ class RoomBase:
 
   # Create a new yaml and write to it
   def writeConfig (self):
+    write_result = package_writer.write_room_package(
+      room_entity=self.room_entity,
+      entity_declarations=self.entity_declarations,
+      customize_dict=self.customize_dict,
+      script_dir=SCRIPT_DIR,
+      auto_generated_packages_dir=AUTO_GENERATED_PACKAGES_DIR,
+      packages_dir=PACKAGES_DIR,
+      write_yaml_file=write_yaml_file
+    )
 
-    #if type not in ['package', 'overall_dashboard']:
-    #  raise TypeError("Yaml type " + type + " is not supported.")
-
-    #if type == 'package':
-      # File Path
-      self.script_dir         = SCRIPT_DIR
-      self.auto_gen_dir       = AUTO_GENERATED_PACKAGES_DIR
-      self.auto_gen_config_path = os.path.join(self.auto_gen_dir, "auto_gen_" + self.room_entity + ".yaml")
-
-      write_yaml_file(self.auto_gen_config_path, self.entity_declarations, include_header=True)
-
-      # Customize have to take level 1 directory as it only accept 1 level of directory, which is 'packages' in this case.
-      self.auto_gen_customize_dir  = PACKAGES_DIR
-      self.auto_gen_config_path    = os.path.join(self.auto_gen_customize_dir, "auto_gen_customize_" + self.room_entity + ".yaml")
-      self.customize_declaration   = {'homeassistant': {'customize': self.customize_dict}}
-      write_yaml_file(self.auto_gen_config_path, self.customize_declaration, include_header=True)
+    self.script_dir = write_result["script_dir"]
+    self.auto_gen_dir = write_result["auto_gen_dir"]
+    self.auto_gen_config_path = write_result["auto_gen_config_path"]
+    self.auto_gen_customize_dir = write_result["auto_gen_customize_dir"]
+    self.customize_declaration = write_result["customize_declaration"]
 
 
       #for category_name in self.entity_declarations:

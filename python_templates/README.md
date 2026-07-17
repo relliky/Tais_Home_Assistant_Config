@@ -8,6 +8,7 @@ package YAML and Lovelace dashboard YAML from room-specific Python classes.
 - `gen_config_yaml.py` is the main generator.
 - `generator_io.py` contains output path configuration and YAML/JSON writing
   helpers.
+- `package_writer.py` contains package/customize YAML write orchestration.
 - `generator_cli.py` contains command-line argument parsing and dashboard flag
   interpretation.
 - `entity_naming.py` contains entity ID, postfix, display-name, and automation
@@ -139,6 +140,7 @@ Completed foundations:
 17. Move configured entity filtering into its own module.
 18. Move small dashboard view/layout helpers into their own module.
 19. Move dashboard restriction-card helpers into their own module.
+20. Move package/customize YAML writing orchestration into its own module.
 
 Recommended next steps:
 
