@@ -25,6 +25,8 @@ package YAML and Lovelace dashboard YAML from room-specific Python classes.
   condition dict builders.
 - `occupancy_state_machine.py` contains the room occupancy choose/action
   generation logic.
+- `occupancy_ratio_sensor.py` contains history-stats occupancy ratio sensor
+  config builders.
 - `dashboard_colors.py` contains dashboard CSS color aliases.
 - `dashboard_card_mod.py` contains Lovelace `card_mod` style builders.
 - `dashboard_settings.py` contains default dashboard settings and theme
@@ -173,6 +175,7 @@ Completed foundations:
     entities into their own module.
 30. Move entity-interface container defaults into their own module.
 31. Move default scene-control entities into their own module.
+32. Move occupancy ratio sensor config generation into its own module.
 
 Recommended next steps:
 

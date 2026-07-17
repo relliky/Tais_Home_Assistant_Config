@@ -22,6 +22,7 @@ import generator_io
 import ha_entity_registry
 import message_helpers
 import occupancy_state_machine
+import occupancy_ratio_sensor
 import package_writer
 import room_device_defaults
 import room_light_entities
@@ -378,34 +379,18 @@ class RoomBase:
       setattr(self, key, value)
 
   def get_occupancy_ratio_sensor_config(self, x_minutes_multiple_str):
-    x_minutes_multiple =  1 if x_minutes_multiple_str == '1x' else \
-                          2 if x_minutes_multiple_str == '2x' else \
-                          0;
-
-    x_minutes_total = x_minutes_multiple * self.occupancy_state_duration
-    sensor_name = self.room_name + " Motion On Ratio For Last " + str(x_minutes_total) +" Minutes"
-
-
-    if   x_minutes_multiple == 1:
-      self.occupancy_on_x_min_ratio_sensor = "sensor." + self.getEntityFromName(sensor_name)
-    elif x_minutes_multiple == 2:
-      self.occupancy_on_2x_min_ratio_sensor = "sensor." + self.getEntityFromName(sensor_name)
-
-    #print (self.room_name + " occupancy_on_x_min_ratio_sensor is " + self.occupancy_on_x_min_ratio_sensor)
-
-    ratio_sensor_config = {
-        "platform": "history_stats",
-        "name": sensor_name,
-        "entity_id": self.motion_group,
-        "state": "on",
-        "type": "ratio",
-        "duration": {
-          "minutes": str(x_minutes_total)
-        },
-        "end": "{{ (now() | as_timestamp) | as_datetime | as_local }}",
-        "configured": self.cfg_occupancy
-      }
-    return ratio_sensor_config
+    result = occupancy_ratio_sensor.build_occupancy_ratio_sensor_config(
+      x_minutes_multiple_str,
+      self.occupancy_state_duration,
+      self.room_name,
+      self.motion_group,
+      self.cfg_occupancy,
+      self.getEntityFromName,
+    )
+    sensor_update = result["sensor_update"]
+    if sensor_update != {}:
+      setattr(self, sensor_update["attribute"], sensor_update["entity"])
+    return result["ratio_sensor_config"]
 
 #  def addEntityCard(self, entity, entity_name=None, entity_name_translation=None,
 #                          card_name=None, card_type=None,card_icon=None,card_icon_color=None,double_tab_action=None, card_group=None):
