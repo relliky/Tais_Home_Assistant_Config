@@ -1,3 +1,319 @@
+sensor:
+  - platform: filter
+    name: "Living Room East Side Light 15 Min Moving Average"
+    entity_id: sensor.living_room_east_side_light_sensor
+    filters:
+      # 1. Outlier filter: Drops extreme spikes that deviate too fast from the median
+      - filter: outlier
+        window_size: 5
+        radius: 20000
+      # 2. Moving Average: Smooths the remaining data over a rolling 15-minute window
+      - filter: time_simple_moving_average
+        window_size: "00:15:00"
+        precision: 0
+
+  - platform: filter
+    name: "Living Room East Side Light 30 Min Moving Average"
+    entity_id: sensor.living_room_east_side_light_sensor
+    filters:
+      # 1. Outlier filter: Drops extreme spikes that deviate too fast from the median
+      - filter: outlier
+        window_size: 5
+        radius: 20000
+      # 2. Moving Average: Smooths the remaining data over a rolling 15-minute window
+      - filter: time_simple_moving_average
+        window_size: "00:30:00"
+        precision: 0
+
+
+  - platform: filter
+    name: "Living Room East Side Light 45 Min Moving Average"
+    entity_id: sensor.living_room_east_side_light_sensor
+    filters:
+      # 1. Outlier filter: Drops extreme spikes that deviate too fast from the median
+      - filter: outlier
+        window_size: 5
+        radius: 20000
+      # 2. Moving Average: Smooths the remaining data over a rolling 15-minute window
+      - filter: time_simple_moving_average
+        window_size: "00:45:00"
+        precision: 0
+
+  - platform: filter
+    name: "Living Room East Side Light 60 Min Moving Average"
+    entity_id: sensor.living_room_east_side_light_sensor
+    filters:
+      # 1. Outlier filter: Drops extreme spikes that deviate too fast from the median
+      - filter: outlier
+        window_size: 5
+        radius: 20000
+      # 2. Moving Average: Smooths the remaining data over a rolling 15-minute window
+      - filter: time_simple_moving_average
+        window_size: "00:60:00"
+        precision: 0
+
+  - platform: filter
+    name: "Master Room West Side Light 15 Min Moving Average"
+    entity_id: sensor.master_room_west_side_light_sensor
+    filters:
+      # 1. Outlier filter: Drops extreme spikes that deviate too fast from the median
+      - filter: outlier
+        window_size: 5
+        radius: 20000
+      # 2. Moving Average: Smooths the remaining data over a rolling 15-minute window
+      - filter: time_simple_moving_average
+        window_size: "00:15:00"
+        precision: 0
+
+  - platform: filter
+    name: "Master Room West Side Light 30 Min Moving Average"
+    entity_id: sensor.master_room_west_side_light_sensor
+    filters:
+      # 1. Outlier filter: Drops extreme spikes that deviate too fast from the median
+      - filter: outlier
+        window_size: 5
+        radius: 20000
+      # 2. Moving Average: Smooths the remaining data over a rolling 15-minute window
+      - filter: time_simple_moving_average
+        window_size: "00:30:00"
+        precision: 0
+
+
+  - platform: filter
+    name: "Master Room West Side Light 45 Min Moving Average"
+    entity_id: sensor.master_room_west_side_light_sensor
+    filters:
+      # 1. Outlier filter: Drops extreme spikes that deviate too fast from the median
+      - filter: outlier
+        window_size: 5
+        radius: 20000
+      # 2. Moving Average: Smooths the remaining data over a rolling 15-minute window
+      - filter: time_simple_moving_average
+        window_size: "00:45:00"
+        precision: 0
+
+  - platform: filter
+    name: "Master Room West Side Light 60 Min Moving Average"
+    entity_id: sensor.master_room_west_side_light_sensor
+    filters:
+      # 1. Outlier filter: Drops extreme spikes that deviate too fast from the median
+      - filter: outlier
+        window_size: 5
+        radius: 20000
+      # 2. Moving Average: Smooths the remaining data over a rolling 15-minute window
+      - filter: time_simple_moving_average
+        window_size: "00:60:00"
+        precision: 0
+
+template:
+  - sensor:
+      - name: "Living Room East Side Light 15 Min Moving Average Percentage"
+        unit_of_measurement: "%"
+        icon: mdi:eye
+        state: >
+          {% set lux = states('sensor.living_room_east_side_light_15_min_moving_average') | float(0) %}
+          {# Map max expected daylight (70,000 lx) down to a 0-1 scale #}
+          {# y represents Relative Luminance (0.0 to 1.0) #}
+          {% set y = lux / 70000 %}
+
+          {% if y <= 0 %}
+            0
+          {% elif y <= 0.008856 %}
+            {# LINEAR TAIL FOR DEEP SHADOWS #}
+            {# 0.008856 is exactly (6/29)^3. It is the intersection threshold. #}
+            {# 903.3 is exactly (29/3)^3. It is the slope that perfectly matches the curve below. #}
+            {{ (y * 903.3) | round(1) }}
+          {% else %}
+            {# STEVENS' POWER LAW CUBE ROOT CURVE FOR DAYLIGHT #}
+            {# 116 and 16 are scaling factors ensuring that when y=1, output is exactly 100 #}
+            {% set perceived = ((y ** (1/3)) * 116) - 16 %}
+
+            {# Cap at 100% in case a summer glare pushes lux over 70,000 #}
+            {{ ([perceived, 100] | min) | round(1) }}
+          {% endif %}
+
+  - sensor:
+      - name: "Living Room East Side Light 30 Min Moving Average Percentage"
+        unit_of_measurement: "%"
+        icon: mdi:eye
+        state: >
+          {% set lux = states('sensor.living_room_east_side_light_30_min_moving_average') | float(0) %}
+          {# Map max expected daylight (70,000 lx) down to a 0-1 scale #}
+          {# y represents Relative Luminance (0.0 to 1.0) #}
+          {% set y = lux / 70000 %}
+
+          {% if y <= 0 %}
+            0
+          {% elif y <= 0.008856 %}
+            {# LINEAR TAIL FOR DEEP SHADOWS #}
+            {# 0.008856 is exactly (6/29)^3. It is the intersection threshold. #}
+            {# 903.3 is exactly (29/3)^3. It is the slope that perfectly matches the curve below. #}
+            {{ (y * 903.3) | round(1) }}
+          {% else %}
+            {# STEVENS' POWER LAW CUBE ROOT CURVE FOR DAYLIGHT #}
+            {# 116 and 16 are scaling factors ensuring that when y=1, output is exactly 100 #}
+            {% set perceived = ((y ** (1/3)) * 116) - 16 %}
+
+            {# Cap at 100% in case a summer glare pushes lux over 70,000 #}
+            {{ ([perceived, 100] | min) | round(1) }}
+          {% endif %}
+
+  - sensor:
+      - name: "Living Room East Side Light 45 Min Moving Average Percentage"
+        unit_of_measurement: "%"
+        icon: mdi:eye
+        state: >
+          {% set lux = states('sensor.living_room_east_side_light_45_min_moving_average') | float(0) %}
+          {# Map max expected daylight (70,000 lx) down to a 0-1 scale #}
+          {# y represents Relative Luminance (0.0 to 1.0) #}
+          {% set y = lux / 70000 %}
+
+          {% if y <= 0 %}
+            0
+          {% elif y <= 0.008856 %}
+            {# LINEAR TAIL FOR DEEP SHADOWS #}
+            {# 0.008856 is exactly (6/29)^3. It is the intersection threshold. #}
+            {# 903.3 is exactly (29/3)^3. It is the slope that perfectly matches the curve below. #}
+            {{ (y * 903.3) | round(1) }}
+          {% else %}
+            {# STEVENS' POWER LAW CUBE ROOT CURVE FOR DAYLIGHT #}
+            {# 116 and 16 are scaling factors ensuring that when y=1, output is exactly 100 #}
+            {% set perceived = ((y ** (1/3)) * 116) - 16 %}
+
+            {# Cap at 100% in case a summer glare pushes lux over 70,000 #}
+            {{ ([perceived, 100] | min) | round(1) }}
+          {% endif %}
+
+  - sensor:
+      - name: "Living Room East Side Light 60 Min Moving Average Percentage"
+        unit_of_measurement: "%"
+        icon: mdi:eye
+        state: >
+          {% set lux = states('sensor.living_room_east_side_light_60_min_moving_average') | float(0) %}
+          {# Map max expected daylight (70,000 lx) down to a 0-1 scale #}
+          {# y represents Relative Luminance (0.0 to 1.0) #}
+          {% set y = lux / 70000 %}
+
+          {% if y <= 0 %}
+            0
+          {% elif y <= 0.008856 %}
+            {# LINEAR TAIL FOR DEEP SHADOWS #}
+            {# 0.008856 is exactly (6/29)^3. It is the intersection threshold. #}
+            {# 903.3 is exactly (29/3)^3. It is the slope that perfectly matches the curve below. #}
+            {{ (y * 903.3) | round(1) }}
+          {% else %}
+            {# STEVENS' POWER LAW CUBE ROOT CURVE FOR DAYLIGHT #}
+            {# 116 and 16 are scaling factors ensuring that when y=1, output is exactly 100 #}
+            {% set perceived = ((y ** (1/3)) * 116) - 16 %}
+
+            {# Cap at 100% in case a summer glare pushes lux over 70,000 #}
+            {{ ([perceived, 100] | min) | round(1) }}
+          {% endif %}
+  - sensor:
+      - name: "Master Room West Side Light 15 Min Moving Average Percentage"
+        unit_of_measurement: "%"
+        icon: mdi:eye
+        state: >
+          {% set lux = states('sensor.master_room_west_side_light_15_min_moving_average') | float(0) %}
+          {# Map max expected daylight (70,000 lx) down to a 0-1 scale #}
+          {# y represents Relative Luminance (0.0 to 1.0) #}
+          {% set y = lux / 70000 %}
+
+          {% if y <= 0 %}
+            0
+          {% elif y <= 0.008856 %}
+            {# LINEAR TAIL FOR DEEP SHADOWS #}
+            {# 0.008856 is exactly (6/29)^3. It is the intersection threshold. #}
+            {# 903.3 is exactly (29/3)^3. It is the slope that perfectly matches the curve below. #}
+            {{ (y * 903.3) | round(1) }}
+          {% else %}
+            {# STEVENS' POWER LAW CUBE ROOT CURVE FOR DAYLIGHT #}
+            {# 116 and 16 are scaling factors ensuring that when y=1, output is exactly 100 #}
+            {% set perceived = ((y ** (1/3)) * 116) - 16 %}
+
+            {# Cap at 100% in case a summer glare pushes lux over 70,000 #}
+            {{ ([perceived, 100] | min) | round(1) }}
+          {% endif %}
+
+  - sensor:
+      - name: "Master Room West Side Light 30 Min Moving Average Percentage"
+        unit_of_measurement: "%"
+        icon: mdi:eye
+        state: >
+          {% set lux = states('sensor.master_room_west_side_light_30_min_moving_average') | float(0) %}
+          {# Map max expected daylight (70,000 lx) down to a 0-1 scale #}
+          {# y represents Relative Luminance (0.0 to 1.0) #}
+          {% set y = lux / 70000 %}
+
+          {% if y <= 0 %}
+            0
+          {% elif y <= 0.008856 %}
+            {# LINEAR TAIL FOR DEEP SHADOWS #}
+            {# 0.008856 is exactly (6/29)^3. It is the intersection threshold. #}
+            {# 903.3 is exactly (29/3)^3. It is the slope that perfectly matches the curve below. #}
+            {{ (y * 903.3) | round(1) }}
+          {% else %}
+            {# STEVENS' POWER LAW CUBE ROOT CURVE FOR DAYLIGHT #}
+            {# 116 and 16 are scaling factors ensuring that when y=1, output is exactly 100 #}
+            {% set perceived = ((y ** (1/3)) * 116) - 16 %}
+
+            {# Cap at 100% in case a summer glare pushes lux over 70,000 #}
+            {{ ([perceived, 100] | min) | round(1) }}
+          {% endif %}
+
+  - sensor:
+      - name: "Master Room West Side Light 45 Min Moving Average Percentage"
+        unit_of_measurement: "%"
+        icon: mdi:eye
+        state: >
+          {% set lux = states('sensor.master_room_west_side_light_45_min_moving_average') | float(0) %}
+          {# Map max expected daylight (70,000 lx) down to a 0-1 scale #}
+          {# y represents Relative Luminance (0.0 to 1.0) #}
+          {% set y = lux / 70000 %}
+
+          {% if y <= 0 %}
+            0
+          {% elif y <= 0.008856 %}
+            {# LINEAR TAIL FOR DEEP SHADOWS #}
+            {# 0.008856 is exactly (6/29)^3. It is the intersection threshold. #}
+            {# 903.3 is exactly (29/3)^3. It is the slope that perfectly matches the curve below. #}
+            {{ (y * 903.3) | round(1) }}
+          {% else %}
+            {# STEVENS' POWER LAW CUBE ROOT CURVE FOR DAYLIGHT #}
+            {# 116 and 16 are scaling factors ensuring that when y=1, output is exactly 100 #}
+            {% set perceived = ((y ** (1/3)) * 116) - 16 %}
+
+            {# Cap at 100% in case a summer glare pushes lux over 70,000 #}
+            {{ ([perceived, 100] | min) | round(1) }}
+          {% endif %}
+
+  - sensor:
+      - name: "Master Room West Side Light 60 Min Moving Average Percentage"
+        unit_of_measurement: "%"
+        icon: mdi:eye
+        state: >
+          {% set lux = states('sensor.master_room_west_side_light_60_min_moving_average') | float(0) %}
+          {# Map max expected daylight (70,000 lx) down to a 0-1 scale #}
+          {# y represents Relative Luminance (0.0 to 1.0) #}
+          {% set y = lux / 70000 %}
+
+          {% if y <= 0 %}
+            0
+          {% elif y <= 0.008856 %}
+            {# LINEAR TAIL FOR DEEP SHADOWS #}
+            {# 0.008856 is exactly (6/29)^3. It is the intersection threshold. #}
+            {# 903.3 is exactly (29/3)^3. It is the slope that perfectly matches the curve below. #}
+            {{ (y * 903.3) | round(1) }}
+          {% else %}
+            {# STEVENS' POWER LAW CUBE ROOT CURVE FOR DAYLIGHT #}
+            {# 116 and 16 are scaling factors ensuring that when y=1, output is exactly 100 #}
+            {% set perceived = ((y ** (1/3)) * 116) - 16 %}
+
+            {# Cap at 100% in case a summer glare pushes lux over 70,000 #}
+            {{ ([perceived, 100] | min) | round(1) }}
+          {% endif %}
+
+
 ###########################################
 #
 # Smart Sensor Renaming For Postfix

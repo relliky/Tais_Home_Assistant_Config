@@ -1,3 +1,18 @@
+# Using Gmail SMTP to send email notifications.
+notify:
+  - name: "notify_using_tais_gmail"
+    platform: smtp
+    server: "smtp.gmail.com"
+    port: 587
+    timeout: 15
+    sender: "tailishome@gmail.com"
+    encryption: starttls
+    username: !secret google_username
+    password: !secret google_password
+    recipient:
+      - "taili.theuk@gmail.com"
+    sender_name: "Tai's HA"
+
 ######################################
 #                                    #
 # Global Enables for notifications   #
@@ -16,6 +31,7 @@ input_boolean:
 
 script noti:
   notify_alexa_speakers_and_phones:
+    mode: parallel
     fields:
       tts_message:
         default: 'Home Assistant Test Message Body'
@@ -56,7 +72,7 @@ script noti:
                     state: "on"
                 then:
                   - service: notify.mobile_app_ke_ba_ba_shou_ji
-                    continue_on_error: true                  
+                    continue_on_error: true
                     data:
                       message: "{{tts_message}}"
                       data:
@@ -73,7 +89,7 @@ script noti:
                     state: "on"
                 then:
                   - service: notify.mobile_app_ke_ma_ma_shou_ji
-                    continue_on_error: true                  
+                    continue_on_error: true
                     data:
                       message: "{{tts_message}}"
                       data:
@@ -90,11 +106,16 @@ script noti:
                     state: "on"
                 then:
                   - parallel:
+                    - action: notify.notify_using_tais_gmail
+                      data:
+                        message: ""
+                        title: "HA: {{tts_message}}"
+                        target: 350861326@qq.com
                     - service: notify.mobile_app_tais_vivo_x_fold_3_pro
                       continue_on_error: true
                       data:
-                        message: "{{tts_message}}"
-                        title: "{{tts_message_title}}"
+                        message: ""
+                        title: "HA: {{tts_message}}"
                         data:
                           push:
                             name: default
@@ -109,7 +130,7 @@ script noti:
                           push:
                             name: default
                             critical: 1
-                            volume: 1               
+                            volume: 1
                     # - service: notify.mobile_app_tais_vivo_x_fold3_pro_duckdns
                     #   continue_on_error: true
                     #   data:
@@ -119,7 +140,7 @@ script noti:
                     #       push:
                     #         name: default
                     #         critical: 1
-                    #         volume: 1       
+                    #         volume: 1
                     - service: notify.mobile_app_tais_gt_pro
                       continue_on_error: true
                       data:
@@ -129,7 +150,7 @@ script noti:
                           push:
                             name: default
                             critical: 1
-                            volume: 1                                                                        
+                            volume: 1
           - if:
               - "{{notify_ke == 'yes'}}"
             then:
@@ -138,6 +159,11 @@ script noti:
                     entity_id: input_boolean.kes_notification_enable
                     state: "on"
                 then:
+                  - action: notify.notify_using_tais_gmail
+                    data:
+                      message: "{{tts_message}}"
+                      title: "{{tts_message_title}}"
+                      target: keli.theuk@gmail.com
                   - service: notify.mobile_app_ke_honor_flip_v2
                     continue_on_error: true
                     data:
@@ -181,8 +207,6 @@ script noti:
                       critical: 1
                       volume: 1
 
-
-
 automation:
   - alias: "N- Reminding Washing Machine Completed - Tai/Ke/Amazon Speaker"
     id: "1679255860573"
@@ -211,33 +235,33 @@ automation:
             - media_player.kitchen_echo
     mode: single
 
-  - alias: "N- Reminding Turn Off Feeding Bottle Warmer"
-    id: "fdasjklfdjkslafjkldsakgvbnkfdanbklfd"
-    trigger:
-      - platform: state
-        entity_id:
-          - binary_sensor.feeding_bottle_warmer
-        from: "off"
-        to: "on"
-        for:
-          hours: 0
-          minutes: 20
-          seconds: 0
-    action:
-      - service: script.notify_alexa_speakers_and_phones
-        data:
-          tts_message: 暖奶器已经工作了20分钟。已经自动关闭。如果需要长时间暖奶，不需要自动关闭，和李泰说让他只提醒你但不关闭。
-          tts_message_tilte: abc
-          notify_tai: "yes"
-          #notify_kes_dad: "yes"
-          #notify_kes_mom: "yes"
-          notify_ke: "yes"
-      - service: switch.turn_off
-        entity_id: switch.feeding_bottle_warmer
-      - delay: "00:00:01"
-      - service: switch.turn_on
-        entity_id: switch.feeding_bottle_warmer
-    mode: single
+  # - alias: "N- Reminding Turn Off Feeding Bottle Warmer"
+  #   id: "fdasjklfdjkslafjkldsakgvbnkfdanbklfd"
+  #   trigger:
+  #     - platform: state
+  #       entity_id:
+  #         - binary_sensor.feeding_bottle_warmer
+  #       from: "off"
+  #       to: "on"
+  #       for:
+  #         hours: 0
+  #         minutes: 20
+  #         seconds: 0
+  #   action:
+  #     - service: script.notify_alexa_speakers_and_phones
+  #       data:
+  #         tts_message: 暖奶器已经工作了20分钟。已经自动关闭。如果需要长时间暖奶，不需要自动关闭，和李泰说让他只提醒你但不关闭。
+  #         tts_message_tilte: abc
+  #         notify_tai: "yes"
+  #         #notify_kes_dad: "yes"
+  #         #notify_kes_mom: "yes"
+  #         notify_ke: "yes"
+  #     - service: switch.turn_off
+  #       entity_id: switch.feeding_bottle_warmer
+  #     - delay: "00:00:01"
+  #     - service: switch.turn_on
+  #       entity_id: switch.feeding_bottle_warmer
+  #   mode: single
 
   - alias: "N- Alert - Ring Doorbell Baterry Low"
     id: "9324832fjkdlsa302"
@@ -251,7 +275,7 @@ automation:
     action:
       - service: script.notify_alexa_speakers_and_phones
         data:
-          tts_message: 门铃电量低于20%。Ring Doorbell Baterry Is Lower Than 20%! 
+          tts_message: 门铃电量低于20%。Ring Doorbell Baterry Is Lower Than 20%!
           notify_tai: "yes"
           notify_kes_dad: "yes"
           notify_kes_mom: "yes"
@@ -297,6 +321,32 @@ automation:
           notify_en_suite_room_tenant: "yes"
     mode: single
 
+
+  - alias: "N- Alert - Kitchen Water Leaks - Tai/Ke"
+    id: "3287rt0fhdnsvaudsa9fjdksafjdaslfd"
+    trigger:
+      - platform: state
+        entity_id: binary_sensor.kitchen_water_leak_sensor
+        from: "off"
+        to: "on"
+      - platform: time_pattern
+        minutes: "/10"
+    condition:
+      - condition: state
+        entity_id: binary_sensor.kitchen_water_leak_sensor
+        state: "on"
+    action:
+      - service: script.notify_alexa_speakers_and_phones
+        data:
+          tts_message: Kitchen water leak detected. 厨房发现漏水。
+          #notify_kes_dad: "yes"
+          #notify_kes_mom: "yes"
+          notify_tai: "yes"
+          notify_ke: "yes"
+          #notify_guest_room_tenant: "yes"
+          #notify_en_suite_room_tenant: "yes"
+    mode: single
+
   - alias: "N- Alert - Hot water schedule is not working - Tai"
     id: "16794321343213"
     trigger:
@@ -332,7 +382,7 @@ automation:
       - platform: calendar
         event: start
         offset: "-6:0:0"
-        entity_id: calendar.bins_schedule        
+        entity_id: calendar.bins_schedule
     condition: []
     action:
       - wait_for_trigger:
@@ -357,6 +407,106 @@ automation:
           notify_kes_dad: "yes"
           notify_kes_mom: "yes"
           notify_ke: "yes"
+          notify_guest_room_tenant: "yes"
+          notify_en_suite_room_tenant: "yes"
+          alexa_speaker_list:
+            - media_player.kitchen_echo
+            - media_player.living_room_echo
+            - media_player.master_room_echo
+            - media_player.master_toilet_echo
+    mode: restart
+
+  - alias: "N- Black Bin Bag - Tai/Ke/Amazon Speaker"
+    id: bin_bag_reminder
+    description: ""
+    trigger:
+      - platform: calendar
+        event: start
+        offset: "+12:0:0"
+        entity_id: calendar.bins_schedule
+      - platform: calendar
+        event: start
+        offset: "+18:0:0"
+        entity_id: calendar.bins_schedule
+    condition: []
+    action:
+      - wait_for_trigger:
+          - trigger: state
+            entity_id:
+              - group.corridor_motion_group
+              - group.master_room_motion_group
+              - group.master_toilet_motion_group
+              - group.living_room_motion_group
+              - group.kitchen_motion_group
+            to: "on"
+        timeout:
+          hours: 9
+          minutes: 0
+          seconds: 0
+          milliseconds: 0
+      # check if it's black bin collection day and it's in summer time (April to September)
+      - condition: template
+        value_template: "{{state_attr('calendar.bins_schedule', 'message') == 'Black Bin Collection'}}"
+      - condition: template
+        value_template: "{{ now().month >= 4 and now().month <= 9 }}"
+      - service: script.notify_alexa_speakers_and_phones
+        data:
+          tts_message: |
+            Remind to put bin bags on the clean black wheelie bin when it's clean to prevent it grows maggots at the bottom. 记得把干净的黑桶套上袋子，以免夏天长虫难以清理。
+          notify_tai: "yes"
+          notify_ke: "yes"
+          notify_kes_dad: "yes"
+          notify_kes_mom: "yes"
+          notify_guest_room_tenant: "yes"
+          notify_en_suite_room_tenant: "yes"
+          alexa_speaker_list:
+            - media_player.kitchen_echo
+            - media_player.living_room_echo
+            - media_player.master_room_echo
+            - media_player.master_toilet_echo
+    mode: restart
+
+  - alias: "N- Black Bin Clean - Tai/Ke/Amazon Speaker"
+    id: bin_clean_reminder
+    description: ""
+    trigger:
+      - platform: calendar
+        event: start
+        offset: "-12:0:0"
+        entity_id: calendar.bins_schedule
+      - platform: calendar
+        event: start
+        offset: "-6:0:0"
+        entity_id: calendar.bins_schedule
+    condition: []
+    action:
+      - wait_for_trigger:
+          - trigger: state
+            entity_id:
+              - group.corridor_motion_group
+              - group.master_room_motion_group
+              - group.master_toilet_motion_group
+              - group.living_room_motion_group
+              - group.kitchen_motion_group
+            to: "on"
+        timeout:
+          hours: 9
+          minutes: 0
+          seconds: 0
+          milliseconds: 0
+      # check if it's not the black bin collection day(i.e. it is the blue bin collection day) and it's in summer time (April to September)
+      - condition: template
+        value_template: "{{state_attr('calendar.bins_schedule', 'message') != 'Black Bin Collection'}}"
+      - condition: template
+        value_template: "{{ now().month >= 4 and now().month <= 9 }}"
+      - service: script.notify_alexa_speakers_and_phones
+        data:
+          tts_message: |
+            Remind to put Bleach or Bin Buddy into the outdoor black wheelie bin to prevent it grows maggots in the summer. 记得给黑桶倒84或者bin buddy, 以免夏天长虫。
+          notify_tai: "yes"
+          notify_ke: "yes"
+          notify_kes_dad: "yes"
+          notify_kes_mom: "yes"
           notify_guest_room_tenant: "yes"
           notify_en_suite_room_tenant: "yes"
           alexa_speaker_list:

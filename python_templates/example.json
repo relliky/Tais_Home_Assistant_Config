@@ -1,121 +1,22 @@
 
-  "automation": [
+  self.template_list += [
     {
-      "alias": "Timer control from input boolean",
-      "mode": "single",
       "trigger": [
         {
           "platform": "state",
-          "entity_id": self.occupancy_override_entity
-        }
-      ],
-      "action": [
-        {
-          "choose": [
-            {
-              "conditions": [
-                {
-                  "condition": "state",
-                  "entity_id": self.occupancy_override_entity,
-                  "state": "on"
-                }
-              ],
-              "sequence": [
-                {
-                  "service": "timer.start",
-                  "target": {
-                    "entity_id": self.occupancy_override_timer_entity
-                  }
-                }
-              ]
-            },
-            {
-              "conditions": [
-                {
-                  "condition": "state",
-                  "entity_id": self.occupancy_override_entity,
-                  "state": "off"
-                }
-              ],
-              "sequence": [
-                {
-                  "service": "timer.pause",
-                  "target": {
-                    "entity_id": self.occupancy_override_timer_entity
-                  }
-                }
-              ]
-            }
+          "entity_id": 'event.' + mac,
+          "not_from": [
+            "unknown",
+            "unavailable"
           ]
         }
-      ]
-    },
-
-
-
-
-    {
-      "alias": "Sync input boolean with timer state",
-      "mode": "single",
-      "trigger": [
-        {
-          "platform": "state",
-          "entity_id": self.occupancy_override_timer_entity
-        }
       ],
-      "action": [
+      "binary_sensor": [
         {
-          "choose": [
-            {
-              "conditions": [
-                {
-                  "condition": "state",
-                  "entity_id": self.occupancy_override_timer_entity,
-                  "state": "active"
-                }
-              ],
-              "sequence": [
-                {
-                  "service": "input_boolean.turn_on",
-                  "target": {
-                    "entity_id": self.occupancy_override_entity
-                  }
-                }
-              ]
-            },
-            {
-              "conditions": [
-                {
-                  "condition": "or",
-                  "conditions": [
-                    {
-                      "condition": "state",
-                      "entity_id": self.occupancy_override_timer_entity,
-                      "state": "paused"
-                    },
-                    {
-                      "condition": "state",
-                      "entity_id": self.occupancy_override_timer_entity,
-                      "state": "idle"
-                    }
-                  ]
-                }
-              ],
-              "sequence": [
-                {
-                  "service": "input_boolean.turn_off",
-                  "target": {
-                    "entity_id": self.occupancy_override_entity
-                  }
-                }
-              ]
-            }
-          ]
+          "name": name + " Button Clicked" + name_postfix,
+          "state": "{{ trigger.to_state.attributes['" + attribute_name + "'] == " + value_literal + " }}\n",
+          "auto_off": 0.2
         }
       ]
     }
-
-
-    
   ]
-}

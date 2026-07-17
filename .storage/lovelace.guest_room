@@ -333,16 +333,6 @@
                   "entity": "climate.guest_toilet"
                 },
                 {
-                  "type": "custom:mushroom-entity-card",
-                  "fill_container": true,
-                  "tap_action": {
-                    "action": "toggle"
-                  },
-                  "name": " Floor Led",
-                  "icon": "mdi:led-strip",
-                  "entity": "switch.guest_toilet_floor_led"
-                },
-                {
                   "type": "custom:mushroom-light-card",
                   "fill_container": true,
                   "use_light_color": false,
@@ -356,6 +346,45 @@
                   "card_mod": {
                     "style": ":host {\n--ha-card-background:    {% if (states(config.entity) in ['on']) and (states('sun.sun') != 'below_horizon')%} rgba(245, 245, 245, 0.9)  {% else  %} rgba(10, 10, 10, 0.4)  {% endif %};\n--primary-text-color:    {% if (states(config.entity) in ['on']) and (states('sun.sun') != 'below_horizon')%} black                                            {% else  %} white                                           {% endif %};\n--secondary-text-color : {% if (states(config.entity) in ['on']) and (states('sun.sun') != 'below_horizon')%} rgba(100, 100, 100, 1){% else  %} rgba(220, 220, 220, 1) {% endif %};\n;}\nha-card > mushroom-card > mushroom-state-item > mushroom-shape-icon > ha-state-icon {\n--mdc-icon-size: 0.6em;;}\nha-card > mushroom-card > mushroom-state-item > mushroom-shape-icon { \n--icon-color-disabled:   rgba(253,204,0,1);\n--shape-color-disabled:  rgba(10, 10, 10, 0.4);\n--icon-color:            white;\n--shape-color:            {% if state_attr(config.entity, 'color_mode') == 'color_temp' %} \nrgba(253,204,0,1) \n{% else  %} \n   rgb{{state_attr(config.entity, 'rgb_color')}} \n{% endif%};\n}\nha-card > mushroom-card > div > mushroom-light-brightness-control { \n--slider-color:           {% if state_attr(config.entity, 'color_mode') == 'color_temp' %} \nrgba(253,204,0,1) \n{% else  %} \n   rgb{{state_attr(config.entity, 'rgb_color')}} \n{% endif%};\n--slider-bg-color:        {% if state_attr(config.entity, 'color_mode') == 'color_temp' %} \n{{ 'rgba(253,204,0,1)' | regex_replace(',([\\d\\.])+\\)$', ',0.2)') }} \n{% else  %} \n   rgba{{(state_attr(config.entity, 'rgb_color')|string)[0:-1]}}, 0.2) \n{% endif%};\n}\nha-card > mushroom-card > div > mushroom-button:nth-child(2) {  --bg-color: {% if  (states(config.entity) in ['on']) and (states('sun.sun') != 'below_horizon') %} rgba(245, 245, 245, 0.9) {% else %} rgba(var(--rgb-primary-text-color), 0.05) {% endif %};}\nha-card > mushroom-card > div > mushroom-button:nth-child(3) {  --bg-color: {% if  (states(config.entity) in ['on']) and (states('sun.sun') != 'below_horizon') %} rgba(245, 245, 245, 0.9) {% else %} rgba(var(--rgb-primary-text-color), 0.05) {% endif %};}\n"
                   }
+                },
+                {
+                  "type": "custom:mushroom-entity-card",
+                  "fill_container": true,
+                  "entity": "switch.guest_toilet_mirror_led",
+                  "name": "Mirror LED",
+                  "icon": "mdi:mirror-rectangle",
+                  "tap_action": {
+                    "action": "toggle"
+                  },
+                  "hold_action": {
+                    "action": "more-info"
+                  },
+                  "icon_color": "cyan"
+                },
+                {
+                  "type": "custom:mushroom-entity-card",
+                  "fill_container": true,
+                  "tap_action": {
+                    "action": "toggle"
+                  },
+                  "name": " Floor Led",
+                  "icon": "mdi:led-strip",
+                  "entity": "switch.guest_toilet_floor_led",
+                  "icon_color": "amber"
+                },
+                {
+                  "type": "custom:mushroom-entity-card",
+                  "fill_container": true,
+                  "entity": "switch.guest_toilet_mirror_demister",
+                  "name": "Mirror Demister",
+                  "icon": "mdi:hvac",
+                  "tap_action": {
+                    "action": "toggle"
+                  },
+                  "hold_action": {
+                    "action": "more-info"
+                  },
+                  "icon_color": "red"
                 },
                 {
                   "type": "custom:mushroom-entity-card",
@@ -376,10 +405,11 @@
                       "primary": "Temperature",
                       "secondary": "{{ states('sensor.guest_toilet_temperature_sensor') | round(0) }}°C\n",
                       "icon": "mdi:thermometer",
-                      "icon_color": "{% set value = states('sensor.guest_toilet_temperature_sensor') | int %}\n{% if value < 18 %}\n  blue\n{% elif value < 28 %}\n  light-green\n{% elif value < 40 %}\n  red\n{% else %}\n  green\n{% endif %}",
                       "tap_action": {
                         "action": "more-info"
                       },
+                      "color": "{% set value = states('sensor.guest_toilet_temperature_sensor') | int %}\n{% if value < 18 %}\n  blue\n{% elif value < 28 %}\n  light-green\n{% elif value < 40 %}\n  red\n{% else %}\n  green\n{% endif %}",
+                      "features_position": "bottom",
                       "card_mod": {
                         "style": ":host { --ha-card-background:rgba(245, 245, 245, 0);}\n"
                       }
@@ -482,15 +512,6 @@
                 },
                 {
                   "type": "tile",
-                  "entity": "binary_sensor.guest_toilet_mirror_sensor",
-                  "name": "Mirror Light",
-                  "icon": "mdi:mirror",
-                  "show_entity_picture": false,
-                  "vertical": false,
-                  "features_position": "bottom"
-                },
-                {
-                  "type": "tile",
                   "entity": "sensor.guest_toilet_humidity_sensor",
                   "name": "Humidity",
                   "features_position": "bottom",
@@ -501,6 +522,15 @@
                       "type": "trend-graph"
                     }
                   ]
+                },
+                {
+                  "type": "tile",
+                  "entity": "binary_sensor.guest_toilet_mirror_sensor",
+                  "name": "Mirror Light Sensor",
+                  "icon": "mdi:mirror",
+                  "show_entity_picture": false,
+                  "vertical": false,
+                  "features_position": "bottom"
                 }
               ]
             },

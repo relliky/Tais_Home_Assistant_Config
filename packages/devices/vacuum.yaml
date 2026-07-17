@@ -12,14 +12,14 @@ template:
               驱动轮困难，请把扫地机器人移到别的地方。Vacuum robot wheel got stuck, please move it to other places.
           {% elif is_state('sensor.x1_error', '109') %}
               滚刷被缠绕，请解救扫地机器人。Vacuum robot got stuck, please untangle it。
-          {% else %}    
+          {% else %}
               扫地机器人发生不明错误，请查看。Vacuum Robot has unknown error. Please check if it's working ok.
           {% endif %}
 
 # Ecovacs X1 battery sensor
   - sensor:
       - name: "X1 Battery"
-        state: "{{states.vacuum.x1.attributes.battery_level}}"
+        state: "{{ state_attr('vacuum.x1', 'battery_level') }}"
         unit_of_measurement: "%"
 
 automation errors:
@@ -88,23 +88,24 @@ automation errors:
           entity_id: vacuum.x1
     mode: single
 
-  - alias: V-LR Vaccum start in the night based on presense in living room
-    id: 3902jgfrngfd89bvfdsjkfdjiafuew312ir329fj3232398
-    description: ""
-    trigger:
-      - trigger: time
-        at: "02:05:00"
-    action:
-      - if:
-          - condition: state
-            entity_id: input_select.living_room_occupancy
-            state: In Sleep
-        then:
-          - action: script.ask_vacuum_to_clean_kitchen
-        else:
-          - action: script.ask_vacuum_to_start
-    mode: single
-
+# Disable as Lucas still got woke up even kitchen door is closed as long as his bedroom door is open
+#
+#  - alias: V-LR Vaccum start in the night based on presense in living room
+#    id: 3902jgfrngfd89bvfdsjkfdjiafuew312ir329fj3232398
+#    description: ""
+#    trigger:
+#      - trigger: time
+#        at: "02:05:00"
+#    action:
+#      - if:
+#          - condition: state
+#            entity_id: input_select.living_room_occupancy
+#            state: In Sleep
+#        then:
+#          - action: script.ask_vacuum_to_clean_kitchen
+#        else:
+#          - action: script.ask_vacuum_to_start
+#    mode: single
 
 script button:
   ask_vacuum_to_clean_kitchen:
@@ -173,17 +174,17 @@ automation button:
         then:
           - service: script.ask_vacuum_to_return_to_base
         else:
-          # Clean 
+          # Clean
           choose:
           - conditions:
             - condition: trigger
               id: KITCHEN
-            sequence:          
+            sequence:
             - service: script.ask_vacuum_to_clean_kitchen
           - conditions:
             - condition: trigger
               id: LIVING_ROOM
-            sequence:          
+            sequence:
             - service: script.ask_vacuum_to_clean_living_room
 
 

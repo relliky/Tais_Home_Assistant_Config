@@ -1,0 +1,268 @@
+script:
+  notify_if_garden_lock_is_jammed:
+    alias: Notify if garden lock Is Jammed
+    mode: parallel
+    sequence:
+      - delay: '00:00:30' # check after 30 seconds
+      - condition: or
+        conditions:
+        - condition: state
+          entity_id: lock.garden_door_lock
+          state: 'unlocking'
+          for: '00:00:20'
+        - condition: state
+          entity_id: lock.garden_door_lock_bluetooth
+          state: 'unlocking'
+          for: '00:00:20'
+        - condition: state
+          entity_id: lock.garden_door_lock
+          state: 'locking'
+          for: '00:00:20'
+        - condition: state
+          entity_id: lock.garden_door_lock_bluetooth
+          state: 'locking'
+          for: '00:00:20'
+      - service: script.notify_alexa_speakers_and_phones
+        data:
+          tts_message: "The lock seems to be jammed and not able to recover by itself"
+          notify_tai: "yes"
+          #notify_ke: "yes"
+          #notify_kes_dad: "yes"
+          #notify_kes_mom: "yes"
+          #notify_guest_room_tenant: "yes"
+          #notify_en_suite_room_tenant: "yes"
+          #alexa_speaker_list:
+          #  - media_player.kitchen_echo
+          #  - media_player.living_room_echo
+          #  - media_player.master_room_echo
+          #  - media_player.master_toilet_echo
+
+  flash_room_lights_when_occupied:
+    alias: Flash Room Lights When Occupied
+    mode: parallel
+    fields:
+      room:
+        default: 'study'
+    sequence:
+    #- condition: template
+    #  value_template: "{{ states('input_select.' + room + '_occupancy') != 'Outside' }}"
+    #- service: homeassistant.turn_off
+    #  target:
+    #    entity_id: "group.{{ room }}_light_group"
+    #- delay: "00:00:01"
+    #- service: homeassistant.turn_on
+    #  target:
+    #    entity_id: "group.{{ room }}_light_group"
+    #- delay: "00:00:01"
+    - condition: template
+      value_template: "{{ states('input_select.' + room + '_occupancy') != 'Outside' }}"
+    - repeat:
+        count: 2
+        sequence:
+          - service: homeassistant.turn_off
+            target:
+              entity_id: "group.{{ room }}_light_group"
+          - delay: "00:00:01"
+          - service: homeassistant.turn_on
+            target:
+              entity_id: "group.{{ room }}_light_group"
+          - delay: "00:00:01"
+    # Make sure out-of-sync lights get turned on at the end of the script
+    - delay: "00:00:02"
+    - service: homeassistant.turn_on
+      target:
+        entity_id: "group.{{ room }}_light_group"
+
+automation garden_door:
+- alias: D-LR Lock Garden Door When Handle Lifted - Living Room
+  id: fdioasjblkdfnasoivdiwajeiokfwn8934u82oirfnjkewdsj
+  description: ""
+  triggers:
+    - trigger: state
+      entity_id:
+        - binary_sensor.garden_door_handle
+      from: "on"
+      to: "off"
+  actions:
+    - action: lock.lock
+      target:
+        entity_id: lock.garden_door_lock
+    - action: script.notify_if_garden_lock_is_jammed
+  mode: restart
+
+- alias: D-LR Unlock Garden Door When Confirmed Jammed - Living Room
+  id: fdioasjblkdfnasoivdiwajeiokfwn8934u82oirfnjkewdsj54328958049309gfjdzasjk
+  description: ""
+  triggers:
+    - trigger: state
+      entity_id: lock.garden_door_lock_bluetooth
+      to: "jammed"
+  actions:
+    - action: lock.unlock
+      target:
+        entity_id: lock.garden_door_lock_bluetooth
+    - action: script.notify_if_garden_lock_is_jammed
+  mode: restart
+
+- alias: D-LR Open Curtain When Door Is Unlocking - Living Room
+  id: 8954306jtklrjedglfdiu9agf0rewrljflkwejuf
+  description: ""
+  triggers:
+    - trigger: state
+      entity_id: lock.garden_door_lock_bluetooth
+      from:
+      - 'locked'
+      - 'locking'
+      to:
+        - 'unlocking'
+        - 'unlocked'
+    - trigger: state
+      entity_id: lock.garden_door_lock
+      from:
+      - 'locked'
+      - 'locking'
+      to:
+        - 'unlocking'
+        - 'unlocked'
+  condition:
+    - condition: state
+      entity_id: cover.living_room_curtain_2
+      state:
+        - 'closed'
+        - 'closing'
+  actions:
+    - action: cover.open_cover
+      target:
+        entity_id: cover.living_room_curtain_2
+  mode: single
+
+
+- alias: D-LR Attempt to Lock Garden Door Again After Handle Lifted For A While - Living Room
+  id: fdioasjblkdfnasoivdiwajeiokfwn8934u82oirfnjkewdsj09532850r4jewifo
+  description: ""
+  triggers:
+    - minutes: /5
+      seconds: '16'
+      platform: time_pattern
+  actions:
+    - condition: state
+      entity_id: binary_sensor.garden_door_handle
+      state: "off"
+      for: '00:00:10'
+    - condition: state
+      entity_id: lock.garden_door_lock
+      state: 'unlocked'
+      for: '00:00:10'
+    - parallel:
+      #- service: script.notify_alexa_speakers_and_phones
+      #  data:
+      #    tts_message: "The garden sliding door handle is lifted but the door is unlocked for a while. Locking now."
+      #    notify_tai: "yes"
+      - action: lock.lock
+        target:
+          entity_id: lock.garden_door_lock
+  mode: restart
+
+- alias: N-LR Notify Garden Door Handle Not Lifted Up When Door is Closed - Living Room
+  id: fdasjiogjewobnrjeioafjewaiofasdr4302fjerjafovjdsi
+  description: ""
+  triggers:
+    - trigger: state
+      entity_id: binary_sensor.garden_door_handle
+      to: "on"
+      for: '00:03:00'
+    - platform: time_pattern
+      minutes: /5
+  conditions:
+    - condition: state
+      entity_id: binary_sensor.garden_door_handle
+      state: "on"
+      for: '00:03:00'
+    - condition: state
+      entity_id: binary_sensor.living_room_sliding_door
+      state: "off"
+      for: '00:03:00'
+    - condition: state
+      entity_id: lock.garden_door_lock
+      state: 'unlocked'
+      for: '00:03:00'
+  actions:
+    - parallel:
+      - action: script.flash_room_lights_when_occupied
+        data:
+          room: study
+      #- action: script.flash_room_lights_when_occupied # this is a little bit confusing for tenant if the living room light is flashing when they are in the kitchen, so only flash the room we used for now.
+      #  data:
+      #    room: kitchen
+      - action: script.flash_room_lights_when_occupied
+        data:
+          room: living_room
+      #- action: script.flash_room_lights_when_occupied
+      #  data:
+      #    room: corridor
+      - service: script.notify_alexa_speakers_and_phones
+        data:
+          tts_message: Garden door handle is not lifted up when door is closed. Please lift up the handle to lock the door.
+          notify_tai: "yes"
+          notify_ke: "yes"
+  mode: restart
+
+
+automation front_door:
+- alias: D-CR Lock/Unlock Front Door Lock When Door Gets Opened/Closed - Corridor
+  id: fdioasjblkdfnasoivdiwajeiokfwn8934u82oirfnjkewdsj4231408792190423132
+  triggers:
+    - trigger: state
+      entity_id: binary_sensor.front_door
+      from: "on"
+      to: "off"
+      id: DOOR_GET_CLOSED
+    - trigger: state
+      entity_id: binary_sensor.front_door
+      from: "off"
+      to: "on"
+      id: DOOR_GET_OPENED
+  actions:
+    - choose:
+      - conditions:
+        - condition: trigger
+          id: DOOR_GET_OPENED
+        sequence:
+        - action: lock.unlock
+          target:
+            entity_id: lock.front_door
+      - conditions:
+        - condition: trigger
+          id: DOOR_GET_CLOSED
+        sequence:
+        - action: lock.lock
+          target:
+            entity_id: lock.front_door
+  mode: restart
+
+
+# - alias: D-CR Attempt to Lock Front Door Again After Door Is Closed For A While - Corridor
+#   id: fdasfdasads4321458932905rjfdjioasgfjdsalkfdksafdsa
+#   description: ""
+#   triggers:
+#     - minutes: /5
+#       seconds: '04'
+#       platform: time_pattern
+#   actions:
+#     - condition: state
+#       entity_id: binary_sensor.front_door
+#       state: "off"
+#       for: '00:00:10'
+#     - condition: state
+#       entity_id: lock.front_door
+#       state: 'unlocked'
+#       for: '00:00:10'
+#     - parallel:
+#       - service: script.notify_alexa_speakers_and_phones
+#         data:
+#           tts_message: "The front door is closed but the door is unlocked. Locking..."
+#           notify_tai: "yes"
+#       - action: lock.lock
+#         target:
+#           entity_id: lock.front_door
+#   mode: restart

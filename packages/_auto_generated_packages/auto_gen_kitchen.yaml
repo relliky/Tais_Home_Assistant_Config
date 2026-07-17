@@ -30,6 +30,30 @@ adaptive_lighting:
   multi_light_intercept: true
   include_config_in_attributes: false
 automation:
+- alias: ZR-KC Reconnect Vacuum Robot When unavailable-Kitchen
+  triggers:
+  - trigger: state
+    entity_id: vacuum.x1
+    to: unavailable
+    for: 00:03:00
+  actions:
+  - action: unifi.reconnect_client
+    data:
+      device_id: f666003acf32413fb68e8f56007ceaf9
+  - delay: 01:00:00
+  id: automation.zr_kc_reconnect_vacuum_robot_when_unavailable_kitchen
+- alias: ZR-KC Reconnect TTLock When unavailable-Kitchen
+  triggers:
+  - trigger: state
+    entity_id: lock.front_door
+    to: unavailable
+    for: 00:03:00
+  actions:
+  - action: unifi.reconnect_client
+    data:
+      device_id: 7a2c07d362d6bb09ff3edad7ffe37d7a
+  - delay: 01:00:00
+  id: automation.zr_kc_reconnect_ttlock_when_unavailable_kitchen
 - alias: ZLB-KC Flex Wall Switch On Postion 2- Automatically Turn on the Wall Switch Back When Turned Off -Kitchen
   trigger:
   - platform: state
@@ -71,7 +95,7 @@ automation:
   - trigger: homeassistant
     event: start
   - minutes: /30
-    seconds: '38'
+    seconds: '55'
     trigger: time_pattern
   mode: single
   actions:
@@ -92,16 +116,292 @@ automation:
       target:
         entity_id: climate.tado_smart_radiator_thermostat_va3767669760
   id: automation.zh_kc_set_radiator_valve_target_temperature_based_on_external_sensor_temperature_difference_kitchen
-- alias: ZL-KC Lights and Curtain On If Entering to Room-Kitchen
-  id: automation.zl_kc_lights_and_curtain_on_if_entering_to_room_kitchen
+- alias: ZL-KC Curtain States When No Person Present-Kitchen
+  id: automation.zl_kc_curtain_states_when_no_person_present_kitchen
+  trigger:
+  - platform: state
+    entity_id: input_select.kitchen_occupancy
+    to: Outside
+    for: 00:03:00
+  - trigger: homeassistant
+    event: start
+  - minutes: /10
+    seconds: '48'
+    trigger: time_pattern
+  conditions:
+  - condition: state
+    entity_id: input_select.kitchen_occupancy
+    state: Outside
+    for: 00:03:00
+  action:
+  - alias: If it is intense light summer
+    if:
+    - condition: template
+      value_template: '{{ states(''sensor.master_room_light_intensity'') | float(0) > states(''input_number.intensity_threshold_intense_light_summer_kitchen'') | float(0) }}'
+    - condition: numeric_state
+      entity_id: sensor.met_office_cambridge_city_airport_temperature_3_hourly
+      above: '12'
+    - condition: template
+      value_template: '{{ now().month > 4 and now().month < 9 }}'
+    - condition: state
+      entity_id: switch.adaptive_lighting_sleep_mode_kitchen
+      state: 'off'
+    then:
+      alias: curtain states when intense light summer
+      if:
+      - '{{ 1 == 1 }}'
+      then:
+      - parallel:
+        - parallel:
+          - if:
+              condition: state
+              entity_id: input_boolean.curtain_control_intense_light_summer_kitchen
+              state: 'on'
+            then:
+              alias: Turn cover.kitchen_curtain state=on
+              if:
+              - '{{ 1 == 1 }}'
+              then:
+                alias: ''
+                if:
+                - '{{ 1 == 1 }}'
+                then:
+                - service: cover.stop_cover
+                  entity_id:
+                  - cover.kitchen_curtain
+                - if:
+                    condition: numeric_state
+                    entity_id:
+                    - cover.kitchen_curtain
+                    attribute: current_position
+                    below: 5
+                  then:
+                    service: cover.open_cover
+                    entity_id:
+                    - cover.kitchen_curtain
+            else:
+              alias: Turn cover.kitchen_curtain state=off
+              if:
+              - '{{ 1 == 1 }}'
+              then:
+                alias: ''
+                if:
+                - '{{ 1 == 1 }}'
+                then:
+                - service: cover.stop_cover
+                  entity_id:
+                  - cover.kitchen_curtain
+                - if:
+                    condition: numeric_state
+                    entity_id:
+                    - cover.kitchen_curtain
+                    attribute: current_position
+                    above: 95
+                  then:
+                    service: cover.close_cover
+                    entity_id:
+                    - cover.kitchen_curtain
+    else:
+      alias: If it is moderate light outdoor
+      if:
+      - condition: template
+        value_template: '{{ states(''sensor.master_room_light_intensity'') | float(0) > states(''input_number.intensity_threshold_moderate_light_outdoor_kitchen'') | float(0) }}'
+      - condition: state
+        entity_id: switch.adaptive_lighting_sleep_mode_kitchen
+        state: 'off'
+      then:
+        alias: curtain states when moderate light outdoor
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+        - parallel:
+          - parallel:
+            - if:
+                condition: state
+                entity_id: input_boolean.curtain_control_moderate_light_outdoor_kitchen
+                state: 'on'
+              then:
+                alias: Turn cover.kitchen_curtain state=on
+                if:
+                - '{{ 1 == 1 }}'
+                then:
+                  alias: ''
+                  if:
+                  - '{{ 1 == 1 }}'
+                  then:
+                  - service: cover.stop_cover
+                    entity_id:
+                    - cover.kitchen_curtain
+                  - if:
+                      condition: numeric_state
+                      entity_id:
+                      - cover.kitchen_curtain
+                      attribute: current_position
+                      below: 5
+                    then:
+                      service: cover.open_cover
+                      entity_id:
+                      - cover.kitchen_curtain
+              else:
+                alias: Turn cover.kitchen_curtain state=off
+                if:
+                - '{{ 1 == 1 }}'
+                then:
+                  alias: ''
+                  if:
+                  - '{{ 1 == 1 }}'
+                  then:
+                  - service: cover.stop_cover
+                    entity_id:
+                    - cover.kitchen_curtain
+                  - if:
+                      condition: numeric_state
+                      entity_id:
+                      - cover.kitchen_curtain
+                      attribute: current_position
+                      above: 95
+                    then:
+                      service: cover.close_cover
+                      entity_id:
+                      - cover.kitchen_curtain
+      else:
+        alias: If it is low light outdoor
+        if:
+        - condition: template
+          value_template: '{{ states(''sensor.master_room_light_intensity'') | float(0) <= states(''input_number.intensity_threshold_moderate_light_outdoor_kitchen'') | float(0) }}'
+        - condition: state
+          entity_id: switch.adaptive_lighting_sleep_mode_kitchen
+          state: 'off'
+        then:
+          alias: curtain states when low light outdoor
+          if:
+          - '{{ 1 == 1 }}'
+          then:
+          - parallel:
+            - parallel:
+              - if:
+                  condition: state
+                  entity_id: input_boolean.curtain_control_low_light_outdoor_kitchen
+                  state: 'on'
+                then:
+                  alias: Turn cover.kitchen_curtain state=on
+                  if:
+                  - '{{ 1 == 1 }}'
+                  then:
+                    alias: ''
+                    if:
+                    - '{{ 1 == 1 }}'
+                    then:
+                    - service: cover.stop_cover
+                      entity_id:
+                      - cover.kitchen_curtain
+                    - if:
+                        condition: numeric_state
+                        entity_id:
+                        - cover.kitchen_curtain
+                        attribute: current_position
+                        below: 5
+                      then:
+                        service: cover.open_cover
+                        entity_id:
+                        - cover.kitchen_curtain
+                else:
+                  alias: Turn cover.kitchen_curtain state=off
+                  if:
+                  - '{{ 1 == 1 }}'
+                  then:
+                    alias: ''
+                    if:
+                    - '{{ 1 == 1 }}'
+                    then:
+                    - service: cover.stop_cover
+                      entity_id:
+                      - cover.kitchen_curtain
+                    - if:
+                        condition: numeric_state
+                        entity_id:
+                        - cover.kitchen_curtain
+                        attribute: current_position
+                        above: 95
+                      then:
+                        service: cover.close_cover
+                        entity_id:
+                        - cover.kitchen_curtain
+        else:
+          alias: If it is sleep mode
+          if:
+          - condition: state
+            entity_id: switch.adaptive_lighting_sleep_mode_kitchen
+            state: 'on'
+          then:
+            alias: curtain states when sleep mode
+            if:
+            - '{{ 1 == 1 }}'
+            then:
+            - parallel:
+              - parallel:
+                - if:
+                    condition: state
+                    entity_id: input_boolean.curtain_control_sleep_mode_kitchen
+                    state: 'on'
+                  then:
+                    alias: Turn cover.kitchen_curtain state=on
+                    if:
+                    - '{{ 1 == 1 }}'
+                    then:
+                      alias: ''
+                      if:
+                      - '{{ 1 == 1 }}'
+                      then:
+                      - service: cover.stop_cover
+                        entity_id:
+                        - cover.kitchen_curtain
+                      - if:
+                          condition: numeric_state
+                          entity_id:
+                          - cover.kitchen_curtain
+                          attribute: current_position
+                          below: 5
+                        then:
+                          service: cover.open_cover
+                          entity_id:
+                          - cover.kitchen_curtain
+                  else:
+                    alias: Turn cover.kitchen_curtain state=off
+                    if:
+                    - '{{ 1 == 1 }}'
+                    then:
+                      alias: ''
+                      if:
+                      - '{{ 1 == 1 }}'
+                      then:
+                      - service: cover.stop_cover
+                        entity_id:
+                        - cover.kitchen_curtain
+                      - if:
+                          condition: numeric_state
+                          entity_id:
+                          - cover.kitchen_curtain
+                          attribute: current_position
+                          above: 95
+                        then:
+                          service: cover.close_cover
+                          entity_id:
+                          - cover.kitchen_curtain
+          else:
+            alias: Default
+            service: script.do_nothing
+- alias: ZL-KC Lights On If Entering to Room-Kitchen
+  id: automation.zl_kc_lights_on_if_entering_to_room_kitchen
   trigger:
     entity_id:
     - group.kitchen_motion_group
     platform: state
     to: 'on'
+    from: 'off'
   action:
   - service: automation.turn_off
-    entity_id: automation.zl_kc_lights_and_curtain_on_if_entering_to_room_kitchen
+    entity_id: automation.zl_kc_lights_on_if_entering_to_room_kitchen
     data:
       stop_actions: false
   - service: script.call_room_scene
@@ -110,33 +410,18 @@ automation:
       scene: Idle
   - alias: If it is bright morning
     if:
-    - alias: Bright morning
-      condition: and
-      conditions:
-      - condition: or
-        conditions:
-        - condition: numeric_state
-          entity_id: sensor.master_room_west_side_light_sensor
-          above: input_number.kitchen_min_value_as_bright
-        - condition: state
-          entity_id: sensor.master_room_west_side_light_sensor
-          state:
-          - unavailable
-          - unknown
-      - condition: or
-        conditions:
-        - condition: state
-          entity_id: sun.sun
-          state: above_horizon
-        - condition: state
-          entity_id: sun.sun
-          state:
-          - unavailable
-          - unknown
-      - condition: time
-        before: input_datetime.noon_time_kitchen
+    - condition: template
+      value_template: '{{ states(''sensor.master_room_light_intensity'') | float(0) > states(''input_number.intensity_threshold_intense_light_summer_kitchen'') | float(0) }}'
+    - condition: numeric_state
+      entity_id: sensor.met_office_cambridge_city_airport_temperature_3_hourly
+      above: '12'
+    - condition: template
+      value_template: '{{ now().month > 4 and now().month < 9 }}'
+    - condition: state
+      entity_id: switch.adaptive_lighting_sleep_mode_kitchen
+      state: 'off'
     then:
-      alias: States when bright morning
+      alias: light states when intense light summer
       if:
       - '{{ 1 == 1 }}'
       then:
@@ -144,7 +429,7 @@ automation:
         - parallel:
           - if:
               condition: state
-              entity_id: input_boolean.ceiling_light_control_bright_morning_kitchen
+              entity_id: input_boolean.ceiling_light_control_intense_light_summer_kitchen
               state: 'on'
             then:
               alias: Turn light.kitchen_ceiling_light light.kitchen_dining_light state=on
@@ -166,7 +451,7 @@ automation:
                 - light.kitchen_dining_light
           - if:
               condition: state
-              entity_id: input_boolean.lamp_control_bright_morning_kitchen
+              entity_id: input_boolean.lamp_control_intense_light_summer_kitchen
               state: 'on'
             then:
               service: script.do_nothing
@@ -174,7 +459,7 @@ automation:
               service: script.do_nothing
           - if:
               condition: state
-              entity_id: input_boolean.led_control_bright_morning_kitchen
+              entity_id: input_boolean.led_control_intense_light_summer_kitchen
               state: 'on'
             then:
               alias: Turn switch.kitchen_floor_led light.kitchen_tv_led state=on
@@ -194,70 +479,16 @@ automation:
                 entity_id:
                 - switch.kitchen_floor_led
                 - light.kitchen_tv_led
-          - if:
-              condition: state
-              entity_id: input_boolean.curtain_control_bright_morning_kitchen
-              state: 'on'
-            then:
-              alias: Turn cover.kitchen_curtain state=on
-              if:
-              - '{{ 1 == 1 }}'
-              then:
-                alias: ''
-                if:
-                - '{{ 1 == 1 }}'
-                then:
-                - service: cover.stop_cover
-                  entity_id:
-                  - cover.kitchen_curtain
-                - service: cover.open_cover
-                  entity_id:
-                  - cover.kitchen_curtain
-            else:
-              alias: Turn cover.kitchen_curtain state=off
-              if:
-              - '{{ 1 == 1 }}'
-              then:
-                alias: ''
-                if:
-                - '{{ 1 == 1 }}'
-                then:
-                - service: cover.stop_cover
-                  entity_id:
-                  - cover.kitchen_curtain
-                - service: cover.close_cover
-                  entity_id:
-                  - cover.kitchen_curtain
     else:
-      alias: If it is dark
+      alias: If it is bright afternoon
       if:
-      - alias: Bright afternoon
-        condition: and
-        conditions:
-        - condition: or
-          conditions:
-          - condition: numeric_state
-            entity_id: sensor.master_room_west_side_light_sensor
-            above: input_number.kitchen_min_value_as_bright
-          - condition: state
-            entity_id: sensor.master_room_west_side_light_sensor
-            state:
-            - unavailable
-            - unknown
-        - condition: or
-          conditions:
-          - condition: state
-            entity_id: sun.sun
-            state: above_horizon
-          - condition: state
-            entity_id: sun.sun
-            state:
-            - unavailable
-            - unknown
-        - condition: time
-          after: input_datetime.noon_time_kitchen
+      - condition: template
+        value_template: '{{ states(''sensor.master_room_light_intensity'') | float(0) > states(''input_number.intensity_threshold_moderate_light_outdoor_kitchen'') | float(0) }}'
+      - condition: state
+        entity_id: switch.adaptive_lighting_sleep_mode_kitchen
+        state: 'off'
       then:
-        alias: States when bright afternoon
+        alias: light states when moderate light outdoor
         if:
         - '{{ 1 == 1 }}'
         then:
@@ -265,7 +496,7 @@ automation:
           - parallel:
             - if:
                 condition: state
-                entity_id: input_boolean.ceiling_light_control_bright_afternoon_kitchen
+                entity_id: input_boolean.ceiling_light_control_moderate_light_outdoor_kitchen
                 state: 'on'
               then:
                 alias: Turn light.kitchen_ceiling_light light.kitchen_dining_light state=on
@@ -287,7 +518,7 @@ automation:
                   - light.kitchen_dining_light
             - if:
                 condition: state
-                entity_id: input_boolean.lamp_control_bright_afternoon_kitchen
+                entity_id: input_boolean.lamp_control_moderate_light_outdoor_kitchen
                 state: 'on'
               then:
                 service: script.do_nothing
@@ -295,7 +526,7 @@ automation:
                 service: script.do_nothing
             - if:
                 condition: state
-                entity_id: input_boolean.led_control_bright_afternoon_kitchen
+                entity_id: input_boolean.led_control_moderate_light_outdoor_kitchen
                 state: 'on'
               then:
                 alias: Turn switch.kitchen_floor_led light.kitchen_tv_led state=on
@@ -315,133 +546,143 @@ automation:
                   entity_id:
                   - switch.kitchen_floor_led
                   - light.kitchen_tv_led
-            - if:
-                condition: state
-                entity_id: input_boolean.curtain_control_bright_afternoon_kitchen
-                state: 'on'
-              then:
-                alias: Turn cover.kitchen_curtain state=on
-                if:
-                - '{{ 1 == 1 }}'
-                then:
-                  alias: ''
-                  if:
-                  - '{{ 1 == 1 }}'
-                  then:
-                  - service: cover.stop_cover
-                    entity_id:
-                    - cover.kitchen_curtain
-                  - service: cover.open_cover
-                    entity_id:
-                    - cover.kitchen_curtain
-              else:
-                alias: Turn cover.kitchen_curtain state=off
-                if:
-                - '{{ 1 == 1 }}'
-                then:
-                  alias: ''
-                  if:
-                  - '{{ 1 == 1 }}'
-                  then:
-                  - service: cover.stop_cover
-                    entity_id:
-                    - cover.kitchen_curtain
-                  - service: cover.close_cover
-                    entity_id:
-                    - cover.kitchen_curtain
       else:
-        alias: States when dark
+        alias: If it is bright afternoon
         if:
-        - '{{ 1 == 1 }}'
+        - condition: template
+          value_template: '{{ states(''sensor.master_room_light_intensity'') | float(0) <= states(''input_number.intensity_threshold_moderate_light_outdoor_kitchen'') | float(0) }}'
+        - condition: state
+          entity_id: switch.adaptive_lighting_sleep_mode_kitchen
+          state: 'off'
         then:
-        - parallel:
+          alias: light states when low light outdoor
+          if:
+          - '{{ 1 == 1 }}'
+          then:
           - parallel:
-            - if:
-                condition: state
-                entity_id: input_boolean.ceiling_light_control_dark_kitchen
-                state: 'on'
-              then:
-                alias: Turn light.kitchen_ceiling_light light.kitchen_dining_light state=on
-                if:
-                - '{{ 1 == 1 }}'
+            - parallel:
+              - if:
+                  condition: state
+                  entity_id: input_boolean.ceiling_light_control_low_light_outdoor_kitchen
+                  state: 'on'
                 then:
-                  service: light.turn_on
-                  entity_id:
-                  - light.kitchen_ceiling_light
-                  - light.kitchen_dining_light
-              else:
-                alias: Turn light.kitchen_ceiling_light light.kitchen_dining_light state=off
-                if:
-                - '{{ 1 == 1 }}'
-                then:
-                  service: light.turn_off
-                  entity_id:
-                  - light.kitchen_ceiling_light
-                  - light.kitchen_dining_light
-            - if:
-                condition: state
-                entity_id: input_boolean.lamp_control_dark_kitchen
-                state: 'on'
-              then:
-                service: script.do_nothing
-              else:
-                service: script.do_nothing
-            - if:
-                condition: state
-                entity_id: input_boolean.led_control_dark_kitchen
-                state: 'on'
-              then:
-                alias: Turn switch.kitchen_floor_led light.kitchen_tv_led state=on
-                if:
-                - '{{ 1 == 1 }}'
-                then:
-                  service: homeassistant.turn_on
-                  entity_id:
-                  - switch.kitchen_floor_led
-                  - light.kitchen_tv_led
-              else:
-                alias: Turn switch.kitchen_floor_led light.kitchen_tv_led state=off
-                if:
-                - '{{ 1 == 1 }}'
-                then:
-                  service: homeassistant.turn_off
-                  entity_id:
-                  - switch.kitchen_floor_led
-                  - light.kitchen_tv_led
-            - if:
-                condition: state
-                entity_id: input_boolean.curtain_control_dark_kitchen
-                state: 'on'
-              then:
-                alias: Turn cover.kitchen_curtain state=on
-                if:
-                - '{{ 1 == 1 }}'
-                then:
-                  alias: ''
+                  alias: Turn light.kitchen_ceiling_light light.kitchen_dining_light state=on
                   if:
                   - '{{ 1 == 1 }}'
                   then:
-                  - service: cover.stop_cover
+                    service: light.turn_on
                     entity_id:
-                    - cover.kitchen_curtain
-                  - service: cover.open_cover
-                    entity_id:
-                    - cover.kitchen_curtain
-              else:
-                alias: Turn cover.kitchen_curtain state=off
-                if:
-                - '{{ 1 == 1 }}'
-                then:
-                  alias: ''
+                    - light.kitchen_ceiling_light
+                    - light.kitchen_dining_light
+                else:
+                  alias: Turn light.kitchen_ceiling_light light.kitchen_dining_light state=off
                   if:
                   - '{{ 1 == 1 }}'
                   then:
-                  - service: cover.stop_cover
+                    service: light.turn_off
                     entity_id:
-                    - cover.kitchen_curtain
-                  - service: cover.close_cover
+                    - light.kitchen_ceiling_light
+                    - light.kitchen_dining_light
+              - if:
+                  condition: state
+                  entity_id: input_boolean.lamp_control_low_light_outdoor_kitchen
+                  state: 'on'
+                then:
+                  service: script.do_nothing
+                else:
+                  service: script.do_nothing
+              - if:
+                  condition: state
+                  entity_id: input_boolean.led_control_low_light_outdoor_kitchen
+                  state: 'on'
+                then:
+                  alias: Turn switch.kitchen_floor_led light.kitchen_tv_led state=on
+                  if:
+                  - '{{ 1 == 1 }}'
+                  then:
+                    service: homeassistant.turn_on
                     entity_id:
-                    - cover.kitchen_curtain
+                    - switch.kitchen_floor_led
+                    - light.kitchen_tv_led
+                else:
+                  alias: Turn switch.kitchen_floor_led light.kitchen_tv_led state=off
+                  if:
+                  - '{{ 1 == 1 }}'
+                  then:
+                    service: homeassistant.turn_off
+                    entity_id:
+                    - switch.kitchen_floor_led
+                    - light.kitchen_tv_led
+        else:
+          alias: If it is bright afternoon
+          if:
+          - condition: state
+            entity_id: switch.adaptive_lighting_sleep_mode_kitchen
+            state: 'on'
+          then:
+            alias: light states when sleep mode
+            if:
+            - '{{ 1 == 1 }}'
+            then:
+            - parallel:
+              - parallel:
+                - if:
+                    condition: state
+                    entity_id: input_boolean.ceiling_light_control_sleep_mode_kitchen
+                    state: 'on'
+                  then:
+                    alias: Turn light.kitchen_ceiling_light light.kitchen_dining_light state=on
+                    if:
+                    - '{{ 1 == 1 }}'
+                    then:
+                      service: light.turn_on
+                      entity_id:
+                      - light.kitchen_ceiling_light
+                      - light.kitchen_dining_light
+                  else:
+                    alias: Turn light.kitchen_ceiling_light light.kitchen_dining_light state=off
+                    if:
+                    - '{{ 1 == 1 }}'
+                    then:
+                      service: light.turn_off
+                      entity_id:
+                      - light.kitchen_ceiling_light
+                      - light.kitchen_dining_light
+                - if:
+                    condition: state
+                    entity_id: input_boolean.lamp_control_sleep_mode_kitchen
+                    state: 'on'
+                  then:
+                    service: script.do_nothing
+                  else:
+                    service: script.do_nothing
+                - if:
+                    condition: state
+                    entity_id: input_boolean.led_control_sleep_mode_kitchen
+                    state: 'on'
+                  then:
+                    alias: Turn switch.kitchen_floor_led light.kitchen_tv_led state=on
+                    if:
+                    - '{{ 1 == 1 }}'
+                    then:
+                      service: homeassistant.turn_on
+                      entity_id:
+                      - switch.kitchen_floor_led
+                      - light.kitchen_tv_led
+                  else:
+                    alias: Turn switch.kitchen_floor_led light.kitchen_tv_led state=off
+                    if:
+                    - '{{ 1 == 1 }}'
+                    then:
+                      service: homeassistant.turn_off
+                      entity_id:
+                      - switch.kitchen_floor_led
+                      - light.kitchen_tv_led
+          else:
+            alias: Default
+            service: script.do_nothing
+  - service: automation.trigger
+    entity_id: automation.zl_kc_curtain_states_when_no_person_present_kitchen
 - alias: ZL-KC Lights Off If No Person-Kitchen
   id: automation.zl_kc_lights_off_if_no_person_kitchen
   trigger:
@@ -451,202 +692,20 @@ automation:
   - trigger: homeassistant
     event: start
   - minutes: /30
-    seconds: '26'
+    seconds: '44'
     trigger: time_pattern
   condition:
   - condition: state
     entity_id: input_select.kitchen_occupancy
     state: Outside
-  - condition: state
-    entity_id: group.kitchen_motion_group
-    state: 'off'
-    for: 00:01:00
   action:
     parallel:
-    - alias: Turn automation.zl_kc_lights_and_curtain_on_if_entering_to_room_kitchen state=on
+    - alias: Turn automation.zl_kc_lights_on_if_entering_to_room_kitchen state=on
       if:
       - '{{ 1 == 1 }}'
       then:
         service: homeassistant.turn_on
-        entity_id: automation.zl_kc_lights_and_curtain_on_if_entering_to_room_kitchen
-    - alias: If it is bright morning
-      if:
-      - alias: Bright morning
-        condition: and
-        conditions:
-        - condition: or
-          conditions:
-          - condition: numeric_state
-            entity_id: sensor.master_room_west_side_light_sensor
-            above: input_number.kitchen_min_value_as_bright
-          - condition: state
-            entity_id: sensor.master_room_west_side_light_sensor
-            state:
-            - unavailable
-            - unknown
-        - condition: or
-          conditions:
-          - condition: state
-            entity_id: sun.sun
-            state: above_horizon
-          - condition: state
-            entity_id: sun.sun
-            state:
-            - unavailable
-            - unknown
-        - condition: time
-          before: input_datetime.noon_time_kitchen
-      then:
-        alias: States when left in bright morning
-        if:
-        - '{{ 1 == 1 }}'
-        then:
-        - parallel:
-          - parallel:
-            - if:
-                condition: state
-                entity_id: input_boolean.curtain_control_bright_morning_when_left_kitchen
-                state: 'on'
-              then:
-                alias: Turn cover.kitchen_curtain state=on
-                if:
-                - '{{ 1 == 1 }}'
-                then:
-                  alias: ''
-                  if:
-                  - '{{ 1 == 1 }}'
-                  then:
-                  - service: cover.stop_cover
-                    entity_id:
-                    - cover.kitchen_curtain
-                  - service: cover.open_cover
-                    entity_id:
-                    - cover.kitchen_curtain
-              else:
-                alias: Turn cover.kitchen_curtain state=off
-                if:
-                - '{{ 1 == 1 }}'
-                then:
-                  alias: ''
-                  if:
-                  - '{{ 1 == 1 }}'
-                  then:
-                  - service: cover.stop_cover
-                    entity_id:
-                    - cover.kitchen_curtain
-                  - service: cover.close_cover
-                    entity_id:
-                    - cover.kitchen_curtain
-      else:
-        alias: If it is dark
-        if:
-        - alias: Bright afternoon
-          condition: and
-          conditions:
-          - condition: or
-            conditions:
-            - condition: numeric_state
-              entity_id: sensor.master_room_west_side_light_sensor
-              above: input_number.kitchen_min_value_as_bright
-            - condition: state
-              entity_id: sensor.master_room_west_side_light_sensor
-              state:
-              - unavailable
-              - unknown
-          - condition: or
-            conditions:
-            - condition: state
-              entity_id: sun.sun
-              state: above_horizon
-            - condition: state
-              entity_id: sun.sun
-              state:
-              - unavailable
-              - unknown
-          - condition: time
-            after: input_datetime.noon_time_kitchen
-        then:
-          alias: States when left in bright afternoon
-          if:
-          - '{{ 1 == 1 }}'
-          then:
-          - parallel:
-            - parallel:
-              - if:
-                  condition: state
-                  entity_id: input_boolean.curtain_control_bright_afternoon_when_left_kitchen
-                  state: 'on'
-                then:
-                  alias: Turn cover.kitchen_curtain state=on
-                  if:
-                  - '{{ 1 == 1 }}'
-                  then:
-                    alias: ''
-                    if:
-                    - '{{ 1 == 1 }}'
-                    then:
-                    - service: cover.stop_cover
-                      entity_id:
-                      - cover.kitchen_curtain
-                    - service: cover.open_cover
-                      entity_id:
-                      - cover.kitchen_curtain
-                else:
-                  alias: Turn cover.kitchen_curtain state=off
-                  if:
-                  - '{{ 1 == 1 }}'
-                  then:
-                    alias: ''
-                    if:
-                    - '{{ 1 == 1 }}'
-                    then:
-                    - service: cover.stop_cover
-                      entity_id:
-                      - cover.kitchen_curtain
-                    - service: cover.close_cover
-                      entity_id:
-                      - cover.kitchen_curtain
-        else:
-          alias: States when left in dark
-          if:
-          - '{{ 1 == 1 }}'
-          then:
-          - parallel:
-            - parallel:
-              - if:
-                  condition: state
-                  entity_id: input_boolean.curtain_control_dark_when_left_kitchen
-                  state: 'on'
-                then:
-                  alias: Turn cover.kitchen_curtain state=on
-                  if:
-                  - '{{ 1 == 1 }}'
-                  then:
-                    alias: ''
-                    if:
-                    - '{{ 1 == 1 }}'
-                    then:
-                    - service: cover.stop_cover
-                      entity_id:
-                      - cover.kitchen_curtain
-                    - service: cover.open_cover
-                      entity_id:
-                      - cover.kitchen_curtain
-                else:
-                  alias: Turn cover.kitchen_curtain state=off
-                  if:
-                  - '{{ 1 == 1 }}'
-                  then:
-                    alias: ''
-                    if:
-                    - '{{ 1 == 1 }}'
-                    then:
-                    - service: cover.stop_cover
-                      entity_id:
-                      - cover.kitchen_curtain
-                    - service: cover.close_cover
-                      entity_id:
-                      - cover.kitchen_curtain
+        entity_id: automation.zl_kc_lights_on_if_entering_to_room_kitchen
     - service: script.do_nothing
     - service: script.call_room_scene
       data:
@@ -693,7 +752,7 @@ automation:
   action:
   - delay: 00:00:10
   - service: automation.turn_off
-    entity_id: automation.zl_kc_lights_and_curtain_on_if_entering_to_room_kitchen
+    entity_id: automation.zl_kc_lights_on_if_entering_to_room_kitchen
     data:
       stop_actions: 'false'
   id: automation.zl_kc_disable_entering_lights_on_automation_if_any_people_are_in_the_room_kitchen
@@ -747,12 +806,13 @@ automation:
   - trigger: homeassistant
     event: start
   - minutes: /30
-    seconds: '52'
+    seconds: '58'
     trigger: time_pattern
   action:
   - condition: state
     entity_id: input_select.kitchen_occupancy
     state: Outside
+  - service: script.do_nothing
   - condition: state
     entity_id: input_boolean.kitchen_heating_override
     state: 'off'
@@ -1004,297 +1064,6 @@ automation:
               - switch.kitchen_floor_led
               - light.kitchen_tv_led
           - service: script.do_nothing
-    - conditions:
-      - condition: state
-        entity_id: input_select.kitchen_scene
-        state: States when bright morning
-      sequence:
-        alias: States when bright morning
-        if:
-        - '{{ 1 == 1 }}'
-        then:
-        - parallel:
-          - parallel:
-            - if:
-                condition: state
-                entity_id: input_boolean.ceiling_light_control_bright_morning_kitchen
-                state: 'on'
-              then:
-                alias: Turn light.kitchen_ceiling_light light.kitchen_dining_light state=on
-                if:
-                - '{{ 1 == 1 }}'
-                then:
-                  service: light.turn_on
-                  entity_id:
-                  - light.kitchen_ceiling_light
-                  - light.kitchen_dining_light
-              else:
-                alias: Turn light.kitchen_ceiling_light light.kitchen_dining_light state=off
-                if:
-                - '{{ 1 == 1 }}'
-                then:
-                  service: light.turn_off
-                  entity_id:
-                  - light.kitchen_ceiling_light
-                  - light.kitchen_dining_light
-            - if:
-                condition: state
-                entity_id: input_boolean.lamp_control_bright_morning_kitchen
-                state: 'on'
-              then:
-                service: script.do_nothing
-              else:
-                service: script.do_nothing
-            - if:
-                condition: state
-                entity_id: input_boolean.led_control_bright_morning_kitchen
-                state: 'on'
-              then:
-                alias: Turn switch.kitchen_floor_led light.kitchen_tv_led state=on
-                if:
-                - '{{ 1 == 1 }}'
-                then:
-                  service: homeassistant.turn_on
-                  entity_id:
-                  - switch.kitchen_floor_led
-                  - light.kitchen_tv_led
-              else:
-                alias: Turn switch.kitchen_floor_led light.kitchen_tv_led state=off
-                if:
-                - '{{ 1 == 1 }}'
-                then:
-                  service: homeassistant.turn_off
-                  entity_id:
-                  - switch.kitchen_floor_led
-                  - light.kitchen_tv_led
-            - if:
-                condition: state
-                entity_id: input_boolean.curtain_control_bright_morning_kitchen
-                state: 'on'
-              then:
-                alias: Turn cover.kitchen_curtain state=on
-                if:
-                - '{{ 1 == 1 }}'
-                then:
-                  alias: ''
-                  if:
-                  - '{{ 1 == 1 }}'
-                  then:
-                  - service: cover.stop_cover
-                    entity_id:
-                    - cover.kitchen_curtain
-                  - service: cover.open_cover
-                    entity_id:
-                    - cover.kitchen_curtain
-              else:
-                alias: Turn cover.kitchen_curtain state=off
-                if:
-                - '{{ 1 == 1 }}'
-                then:
-                  alias: ''
-                  if:
-                  - '{{ 1 == 1 }}'
-                  then:
-                  - service: cover.stop_cover
-                    entity_id:
-                    - cover.kitchen_curtain
-                  - service: cover.close_cover
-                    entity_id:
-                    - cover.kitchen_curtain
-    - conditions:
-      - condition: state
-        entity_id: input_select.kitchen_scene
-        state: States when bright afternoon
-      sequence:
-        alias: States when bright afternoon
-        if:
-        - '{{ 1 == 1 }}'
-        then:
-        - parallel:
-          - parallel:
-            - if:
-                condition: state
-                entity_id: input_boolean.ceiling_light_control_bright_afternoon_kitchen
-                state: 'on'
-              then:
-                alias: Turn light.kitchen_ceiling_light light.kitchen_dining_light state=on
-                if:
-                - '{{ 1 == 1 }}'
-                then:
-                  service: light.turn_on
-                  entity_id:
-                  - light.kitchen_ceiling_light
-                  - light.kitchen_dining_light
-              else:
-                alias: Turn light.kitchen_ceiling_light light.kitchen_dining_light state=off
-                if:
-                - '{{ 1 == 1 }}'
-                then:
-                  service: light.turn_off
-                  entity_id:
-                  - light.kitchen_ceiling_light
-                  - light.kitchen_dining_light
-            - if:
-                condition: state
-                entity_id: input_boolean.lamp_control_bright_afternoon_kitchen
-                state: 'on'
-              then:
-                service: script.do_nothing
-              else:
-                service: script.do_nothing
-            - if:
-                condition: state
-                entity_id: input_boolean.led_control_bright_afternoon_kitchen
-                state: 'on'
-              then:
-                alias: Turn switch.kitchen_floor_led light.kitchen_tv_led state=on
-                if:
-                - '{{ 1 == 1 }}'
-                then:
-                  service: homeassistant.turn_on
-                  entity_id:
-                  - switch.kitchen_floor_led
-                  - light.kitchen_tv_led
-              else:
-                alias: Turn switch.kitchen_floor_led light.kitchen_tv_led state=off
-                if:
-                - '{{ 1 == 1 }}'
-                then:
-                  service: homeassistant.turn_off
-                  entity_id:
-                  - switch.kitchen_floor_led
-                  - light.kitchen_tv_led
-            - if:
-                condition: state
-                entity_id: input_boolean.curtain_control_bright_afternoon_kitchen
-                state: 'on'
-              then:
-                alias: Turn cover.kitchen_curtain state=on
-                if:
-                - '{{ 1 == 1 }}'
-                then:
-                  alias: ''
-                  if:
-                  - '{{ 1 == 1 }}'
-                  then:
-                  - service: cover.stop_cover
-                    entity_id:
-                    - cover.kitchen_curtain
-                  - service: cover.open_cover
-                    entity_id:
-                    - cover.kitchen_curtain
-              else:
-                alias: Turn cover.kitchen_curtain state=off
-                if:
-                - '{{ 1 == 1 }}'
-                then:
-                  alias: ''
-                  if:
-                  - '{{ 1 == 1 }}'
-                  then:
-                  - service: cover.stop_cover
-                    entity_id:
-                    - cover.kitchen_curtain
-                  - service: cover.close_cover
-                    entity_id:
-                    - cover.kitchen_curtain
-    - conditions:
-      - condition: state
-        entity_id: input_select.kitchen_scene
-        state: States when dark
-      sequence:
-        alias: States when dark
-        if:
-        - '{{ 1 == 1 }}'
-        then:
-        - parallel:
-          - parallel:
-            - if:
-                condition: state
-                entity_id: input_boolean.ceiling_light_control_dark_kitchen
-                state: 'on'
-              then:
-                alias: Turn light.kitchen_ceiling_light light.kitchen_dining_light state=on
-                if:
-                - '{{ 1 == 1 }}'
-                then:
-                  service: light.turn_on
-                  entity_id:
-                  - light.kitchen_ceiling_light
-                  - light.kitchen_dining_light
-              else:
-                alias: Turn light.kitchen_ceiling_light light.kitchen_dining_light state=off
-                if:
-                - '{{ 1 == 1 }}'
-                then:
-                  service: light.turn_off
-                  entity_id:
-                  - light.kitchen_ceiling_light
-                  - light.kitchen_dining_light
-            - if:
-                condition: state
-                entity_id: input_boolean.lamp_control_dark_kitchen
-                state: 'on'
-              then:
-                service: script.do_nothing
-              else:
-                service: script.do_nothing
-            - if:
-                condition: state
-                entity_id: input_boolean.led_control_dark_kitchen
-                state: 'on'
-              then:
-                alias: Turn switch.kitchen_floor_led light.kitchen_tv_led state=on
-                if:
-                - '{{ 1 == 1 }}'
-                then:
-                  service: homeassistant.turn_on
-                  entity_id:
-                  - switch.kitchen_floor_led
-                  - light.kitchen_tv_led
-              else:
-                alias: Turn switch.kitchen_floor_led light.kitchen_tv_led state=off
-                if:
-                - '{{ 1 == 1 }}'
-                then:
-                  service: homeassistant.turn_off
-                  entity_id:
-                  - switch.kitchen_floor_led
-                  - light.kitchen_tv_led
-            - if:
-                condition: state
-                entity_id: input_boolean.curtain_control_dark_kitchen
-                state: 'on'
-              then:
-                alias: Turn cover.kitchen_curtain state=on
-                if:
-                - '{{ 1 == 1 }}'
-                then:
-                  alias: ''
-                  if:
-                  - '{{ 1 == 1 }}'
-                  then:
-                  - service: cover.stop_cover
-                    entity_id:
-                    - cover.kitchen_curtain
-                  - service: cover.open_cover
-                    entity_id:
-                    - cover.kitchen_curtain
-              else:
-                alias: Turn cover.kitchen_curtain state=off
-                if:
-                - '{{ 1 == 1 }}'
-                then:
-                  alias: ''
-                  if:
-                  - '{{ 1 == 1 }}'
-                  then:
-                  - service: cover.stop_cover
-                    entity_id:
-                    - cover.kitchen_curtain
-                  - service: cover.close_cover
-                    entity_id:
-                    - cover.kitchen_curtain
   id: automation.zl_kc_applies_different_scenes_based_on_scene_selections_state_execution_kitchen
 - alias: ZM-KC Sonos Pause Playing After People Left-Kitchen
   trigger:
@@ -1305,7 +1074,7 @@ automation:
   - trigger: homeassistant
     event: start
   - minutes: /30
-    seconds: '42'
+    seconds: '9'
     trigger: time_pattern
   action:
   - condition: state
@@ -1335,15 +1104,24 @@ automation:
   - platform: state
     entity_id: input_select.kitchen_occupancy
     to: Outside
-    for: 00:00:01
+    for: 00:10:00
   - trigger: homeassistant
     event: start
   - minutes: /30
-    seconds: '43'
+    seconds: '49'
     trigger: time_pattern
   actions:
     action: script.kitchen_camera_pointing_to_door
   id: automation.zm_kc_reset_camera_position_after_people_left_kitchen
+- alias: ZM-KC Point Camera To the Table When People Enter-Kitchen
+  trigger:
+  - platform: state
+    entity_id: input_select.kitchen_occupancy
+    from: Outside
+    to: Just Entered
+  actions:
+    action: script.kitchen_camera_pointing_to_dining_table
+  id: automation.zm_kc_point_camera_to_the_table_when_people_enter_kitchen
 - alias: ZLB-KC Wall Switch - Single Left Press - Toggle Ceiling Light-Kitchen
   trigger:
   - platform: state
@@ -1419,7 +1197,7 @@ automation:
           entity_id:
           - light.kitchen_worktop_led
   id: automation.zlb_kc_worktop_wall_switch_single_left_press_toggle_worktop_led_kitchen
-- alias: ZLB-KC Wall Switch - Double Press - Leave Room and Turn Off Everything-Kitchen
+- alias: ZLB-KC Wall Switch - Double Click - Leave Room and Turn Off Everything-Kitchen
   trigger:
   - platform: state
     entity_id:
@@ -1444,7 +1222,7 @@ automation:
       entity_id: input_select.kitchen_occupancy
     data:
       option: Outside
-  id: automation.zlb_kc_wall_switch_double_press_leave_room_and_turn_off_everything_kitchen
+  id: automation.zlb_kc_wall_switch_double_click_leave_room_and_turn_off_everything_kitchen
 - alias: ZOc-KC Occupancy Update-Kitchen
   id: automation.zoc_kc_occupancy_update_kitchen
   trigger:
@@ -1468,7 +1246,7 @@ automation:
     platform: state
     to: 'off'
     for:
-      seconds: 600
+      seconds: 120
   - entity_id: group.kitchen_motion_group
     platform: state
     to: 'off'
@@ -1476,20 +1254,154 @@ automation:
       seconds: 3600
   - trigger: homeassistant
     event: start
-  - minutes: /30
-    seconds: '31'
+  - minutes: /3
+    seconds: '22'
     trigger: time_pattern
   action:
-    service: pyscript.room_occupancy_state_machine
-    data:
-      occupancy_entity_str: input_select.kitchen_occupancy
-      motion_str: group.kitchen_motion_group
-      sleep_time: input_boolean.always_off_constant
-      turn_to_outside_when_no_motion: 'no'
-      entered_to_inside_timeout: 150
-      inside_to_outside_timeout: 600
-      sleep_to_outside_timesout: 3600
-      inside_to_sleep_timeout: 1800
+  - choose:
+    - alias: Outside -> Just Entered when motion is on
+      conditions:
+      - condition: state
+        entity_id: input_select.kitchen_occupancy
+        state: Outside
+      - condition: state
+        entity_id: group.kitchen_motion_group
+        state: 'on'
+      sequence:
+      - service: input_select.select_option
+        target:
+          entity_id: input_select.kitchen_occupancy
+        data:
+          option: Just Entered
+    - alias: Outside -> Outside when motion is not on
+      conditions:
+      - condition: state
+        entity_id: input_select.kitchen_occupancy
+        state: Outside
+      - condition: template
+        value_template: '{{ not is_state(''group.kitchen_motion_group'', ''on'') }}'
+      sequence:
+      - service: input_select.select_option
+        target:
+          entity_id: input_select.kitchen_occupancy
+        data:
+          option: Outside
+    - alias: Just Entered -> Stayed Inside when motion stays on
+      conditions:
+      - condition: state
+        entity_id: input_select.kitchen_occupancy
+        state: Just Entered
+      - condition: template
+        value_template: '{{ is_state(''group.kitchen_motion_group'', ''on'') and (as_timestamp(now()) - as_timestamp(states[''group.kitchen_motion_group''].last_changed)) >= 150 }}'
+      sequence:
+      - service: input_select.select_option
+        target:
+          entity_id: input_select.kitchen_occupancy
+        data:
+          option: Stayed Inside
+    - alias: Just Entered -> Outside when motion stays off
+      conditions:
+      - condition: state
+        entity_id: input_select.kitchen_occupancy
+        state: Just Entered
+      - condition: template
+        value_template: '{{ is_state(''group.kitchen_motion_group'', ''off'') and (as_timestamp(now()) - as_timestamp(states[''group.kitchen_motion_group''].last_changed)) >= 120 }}'
+      sequence:
+      - service: input_select.select_option
+        target:
+          entity_id: input_select.kitchen_occupancy
+        data:
+          option: Outside
+    - alias: Just Entered -> Just Entered by default
+      conditions:
+      - condition: state
+        entity_id: input_select.kitchen_occupancy
+        state: Just Entered
+      sequence:
+      - service: input_select.select_option
+        target:
+          entity_id: input_select.kitchen_occupancy
+        data:
+          option: Just Entered
+    - alias: Stayed Inside -> In Sleep when sleep time and stayed long enough
+      conditions:
+      - condition: state
+        entity_id: input_select.kitchen_occupancy
+        state: Stayed Inside
+      - condition: state
+        entity_id: input_boolean.always_off_constant
+        state: 'on'
+      - condition: template
+        value_template: '{{ is_state(''input_select.kitchen_occupancy'', ''Stayed Inside'') and (as_timestamp(now()) - as_timestamp(states[''input_select.kitchen_occupancy''].last_changed)) > 1800 }}'
+      sequence:
+      - service: input_select.select_option
+        target:
+          entity_id: input_select.kitchen_occupancy
+        data:
+          option: In Sleep
+    - alias: Stayed Inside -> Outside when motion stays off
+      conditions:
+      - condition: state
+        entity_id: input_select.kitchen_occupancy
+        state: Stayed Inside
+      - condition: template
+        value_template: '{{ is_state(''group.kitchen_motion_group'', ''off'') and (as_timestamp(now()) - as_timestamp(states[''group.kitchen_motion_group''].last_changed)) >= 120 }}'
+      sequence:
+      - service: input_select.select_option
+        target:
+          entity_id: input_select.kitchen_occupancy
+        data:
+          option: Outside
+    - alias: Stayed Inside -> Stayed Inside by default
+      conditions:
+      - condition: state
+        entity_id: input_select.kitchen_occupancy
+        state: Stayed Inside
+      sequence:
+      - service: input_select.select_option
+        target:
+          entity_id: input_select.kitchen_occupancy
+        data:
+          option: Stayed Inside
+    - alias: In Sleep -> Stayed Inside when sleep time ends
+      conditions:
+      - condition: state
+        entity_id: input_select.kitchen_occupancy
+        state: In Sleep
+      - condition: template
+        value_template: '{{ not is_state(''input_boolean.always_off_constant'', ''on'') }}'
+      sequence:
+      - service: input_select.select_option
+        target:
+          entity_id: input_select.kitchen_occupancy
+        data:
+          option: Stayed Inside
+    - alias: In Sleep -> Outside when motion stays off
+      conditions:
+      - condition: state
+        entity_id: input_select.kitchen_occupancy
+        state: In Sleep
+      - condition: template
+        value_template: '{{ is_state(''group.kitchen_motion_group'', ''off'') and (as_timestamp(now()) - as_timestamp(states[''group.kitchen_motion_group''].last_changed)) > 3600 }}'
+      sequence:
+      - service: input_select.select_option
+        target:
+          entity_id: input_select.kitchen_occupancy
+        data:
+          option: Outside
+    - alias: In Sleep -> In Sleep by default
+      conditions:
+      - condition: state
+        entity_id: input_select.kitchen_occupancy
+        state: In Sleep
+      sequence:
+      - service: input_select.select_option
+        target:
+          entity_id: input_select.kitchen_occupancy
+        data:
+          option: In Sleep
+    default:
+    - service: script.do_nothing
 - alias: ZOc-KC Occupancy Override and sync to Timer-Kitchen
   mode: single
   trigger:
@@ -1536,6 +1448,11 @@ automation:
   trigger:
   - platform: state
     entity_id: timer.kitchen_auto_off_suspended_timer
+  - trigger: homeassistant
+    event: start
+  - minutes: /10
+    seconds: '2'
+    trigger: time_pattern
   action:
   - choose:
     - conditions:
@@ -1633,43 +1550,41 @@ input_select:
     - Stayed Inside
     - In Sleep
 input_boolean:
+  ceiling_light_control_intense_light_summer_kitchen:
+    name: Ceiling Light Control Intense Light Summer Kitchen
+  lamp_control_intense_light_summer_kitchen:
+    name: Lamp Control Intense Light Summer Kitchen
+  led_control_intense_light_summer_kitchen:
+    name: Led Control Intense Light Summer Kitchen
+  curtain_control_intense_light_summer_kitchen:
+    name: Curtain Control Intense Light Summer Kitchen
   kitchen_heating_override:
     name: Kitchen Heating Override
     initial: 'off'
-  curtain_control_when_left_kitchen:
-    name: Curtain Control When Left Kitchen
-  curtain_control_bright_morning_when_left_kitchen:
-    name: Curtain Control Bright Morning When Left Kitchen
-  curtain_control_bright_afternoon_when_left_kitchen:
-    name: Curtain Control Bright Afternoon When Left Kitchen
-  curtain_control_dark_when_left_kitchen:
-    name: Curtain Control Dark When Left Kitchen
-  ceiling_light_control_bright_morning_kitchen:
-    name: Ceiling Light Control Bright Morning Kitchen
-  lamp_control_bright_morning_kitchen:
-    name: Lamp Control Bright Morning Kitchen
-  led_control_bright_morning_kitchen:
-    name: Led Control Bright Morning Kitchen
-  curtain_control_bright_morning_kitchen:
-    name: Curtain Control Bright Morning Kitchen
-  ceiling_light_control_bright_afternoon_kitchen:
-    name: Ceiling Light Control Bright Afternoon Kitchen
-  lamp_control_bright_afternoon_kitchen:
-    name: Lamp Control Bright Afternoon Kitchen
-    initial: 'off'
-  led_control_bright_afternoon_kitchen:
-    name: Led Control Bright Afternoon Kitchen
-  curtain_control_bright_afternoon_kitchen:
-    name: Curtain Control Bright Afternoon Kitchen
-  ceiling_light_control_dark_kitchen:
-    name: Ceiling Light Control Dark Kitchen
-  lamp_control_dark_kitchen:
-    name: Lamp Control Dark Kitchen
-    initial: 'off'
-  led_control_dark_kitchen:
-    name: Led Control Dark Kitchen
-  curtain_control_dark_kitchen:
-    name: Curtain Control Dark Kitchen
+  ceiling_light_control_moderate_light_outdoor_kitchen:
+    name: Ceiling Light Control Moderate Light Outdoor Kitchen
+  lamp_control_moderate_light_outdoor_kitchen:
+    name: Lamp Control Moderate Light Outdoor Kitchen
+  led_control_moderate_light_outdoor_kitchen:
+    name: Led Control Moderate Light Outdoor Kitchen
+  curtain_control_moderate_light_outdoor_kitchen:
+    name: Curtain Control Moderate Light Outdoor Kitchen
+  ceiling_light_control_low_light_outdoor_kitchen:
+    name: Ceiling Light Control Low Light Outdoor Kitchen
+  lamp_control_low_light_outdoor_kitchen:
+    name: Lamp Control Low Light Outdoor Kitchen
+  led_control_low_light_outdoor_kitchen:
+    name: Led Control Low Light Outdoor Kitchen
+  curtain_control_low_light_outdoor_kitchen:
+    name: Curtain Control Low Light Outdoor Kitchen
+  ceiling_light_control_sleep_mode_kitchen:
+    name: Ceiling Light Control Sleep Mode Kitchen
+  lamp_control_sleep_mode_kitchen:
+    name: Lamp Control Sleep Mode Kitchen
+  led_control_sleep_mode_kitchen:
+    name: Led Control Sleep Mode Kitchen
+  curtain_control_sleep_mode_kitchen:
+    name: Curtain Control Sleep Mode Kitchen
   kitchen_auto_off_suspended:
     name: Kitchen Auto Off Suspended
     icon: mdi:timer-sand
@@ -1686,6 +1601,18 @@ input_number:
     min: 0
     max: 4000
     step: 1
+    mode: box
+  intensity_threshold_intense_light_summer_kitchen:
+    name: Intensity Threshold Intense Light Summer Kitchen
+    min: 0
+    max: 100
+    step: 0.1
+    mode: box
+  intensity_threshold_moderate_light_outdoor_kitchen:
+    name: Intensity Threshold Moderate Light Outdoor Kitchen
+    min: 0
+    max: 100
+    step: 0.1
     mode: box
 sensor:
 - platform: history_stats
@@ -1704,7 +1631,21 @@ sensor:
   duration:
     minutes: '8'
   end: '{{ (now() | as_timestamp) | as_datetime | as_local }}'
-- name: 582d34828f85 Battery Median
+- name: Front Door Lock Battery Median
+  platform: statistics
+  entity_id: sensor.ttlock_front_door_battery
+  precision: 0
+  state_characteristic: median
+  max_age:
+    hours: 24
+- name: Front Door Battery Median
+  platform: statistics
+  entity_id: sensor.e4aaec80bc25_battery
+  precision: 0
+  state_characteristic: median
+  max_age:
+    hours: 24
+- name: Kitchen Temperature Sensor Battery Median
   platform: statistics
   entity_id: sensor.582d34828f85_battery
   precision: 0
@@ -1732,16 +1673,37 @@ sensor:
     filter: lowpass
     time_constant: 5
     precision: 1
-- name: 0x00158d00057acaac Battery Median
+- name: Kitchen Dining Motion Sensor Battery Median
   platform: statistics
   entity_id: sensor.0x00158d00057acaac_battery
   precision: 0
   state_characteristic: median
   max_age:
     hours: 24
-- name: 0x00158d0004660308 Battery Median
+- name: Kitchen Worktop Motion Sensor Battery Median
   platform: statistics
   entity_id: sensor.0x00158d0004660308_battery
+  precision: 0
+  state_characteristic: median
+  max_age:
+    hours: 24
+- name: Kitchen Table Occupancy Sensor Battery Median
+  platform: statistics
+  entity_id: sensor.a4c1387f7df0_battery
+  precision: 0
+  state_characteristic: median
+  max_age:
+    hours: 24
+- name: Kitchen Window Battery Median
+  platform: statistics
+  entity_id: sensor.e4aaec4500e4_battery
+  precision: 0
+  state_characteristic: median
+  max_age:
+    hours: 24
+- name: Kitchen Water Leak Sensor Battery Median
+  platform: statistics
+  entity_id: sensor.lumi_cn_blt_3_1h1quuv4s4g00_bmcn01_battery_level_p_3_1
   precision: 0
   state_characteristic: median
   max_age:
@@ -1755,7 +1717,9 @@ sensor:
   - sensor.kitchen_temperature_sensor_battery
   - sensor.kitchen_dining_motion_sensor_battery
   - sensor.kitchen_worktop_motion_sensor_battery
+  - sensor.kitchen_table_occupancy_sensor_battery
   - sensor.kitchen_window_battery
+  - sensor.kitchen_water_leak_sensor_battery
 timer:
   kitchen_auto_off_suspended_timer:
     name: Kitchen Auto Off Suspended Timer
@@ -1792,7 +1756,10 @@ switch:
 - platform: group
   name: Baby Food Cooker Switch
   entities: switch.0x00158d000171756e_plug
-cover: []
+cover:
+- platform: group
+  name: Kitchen Curtain
+  entities: cover.curtain_50
 climate:
 - platform: generic_thermostat
   name: Kitchen
@@ -1811,13 +1778,13 @@ template:
     unit_of_measurement: '%'
     device_class: battery
     state_class: measurement
-    state: '{% set s = states(''sensor.ttlock_front_door_battery'') %}{{ s | int if s not in [''unknown'', ''unavailable'', ''''] else ''unknown'' }}'
+    state: '{% set s = states(''sensor.front_door_lock_battery_median'') %}{{ s | int if s not in [''unknown'', ''unavailable'', ''''] else ''unknown'' }}'
 - sensor:
   - name: Front Door Battery
     unit_of_measurement: '%'
     device_class: battery
     state_class: measurement
-    state: '{% set s = states(''sensor.e4aaec80bc25_battery'') %}{{ s | int if s not in [''unknown'', ''unavailable'', ''''] else ''unknown'' }}'
+    state: '{% set s = states(''sensor.front_door_battery_median'') %}{{ s | int if s not in [''unknown'', ''unavailable'', ''''] else ''unknown'' }}'
 - sensor:
   - name: Kitchen Temperature Sensor
     unit_of_measurement: "\xB0C"
@@ -1827,7 +1794,11 @@ template:
     unit_of_measurement: '%'
     device_class: battery
     state_class: measurement
-    state: '{% set s = states(''sensor.582d34828f85_battery_median'') %}{{ s | int if s not in [''unknown'', ''unavailable'', ''''] else ''unknown'' }}'
+    state: '{% set s = states(''sensor.kitchen_temperature_sensor_battery_median'') %}{{ s | int if s not in [''unknown'', ''unavailable'', ''''] else ''unknown'' }}'
+- sensor:
+  - name: Kitchen Humidity Sensor
+    unit_of_measurement: '%'
+    state: '{{states.sensor["582d34828f85_humidity"].state | float(40) | round(1)}}'
 - sensor:
   - name: Kitchen Extractor Wall Button
     state: '{{states.sensor["0x00158d0005210fa9_action"].state}}'
@@ -1864,19 +1835,51 @@ template:
     unit_of_measurement: '%'
     device_class: battery
     state_class: measurement
-    state: '{% set s = states(''sensor.0x00158d00057acaac_battery_median'') %}{{ s | int if s not in [''unknown'', ''unavailable'', ''''] else ''unknown'' }}'
+    state: '{% set s = states(''sensor.kitchen_dining_motion_sensor_battery_median'') %}{{ s | int if s not in [''unknown'', ''unavailable'', ''''] else ''unknown'' }}'
 - sensor:
   - name: Kitchen Worktop Motion Sensor Battery
     unit_of_measurement: '%'
     device_class: battery
     state_class: measurement
-    state: '{% set s = states(''sensor.0x00158d0004660308_battery_median'') %}{{ s | int if s not in [''unknown'', ''unavailable'', ''''] else ''unknown'' }}'
+    state: '{% set s = states(''sensor.kitchen_worktop_motion_sensor_battery_median'') %}{{ s | int if s not in [''unknown'', ''unavailable'', ''''] else ''unknown'' }}'
+- binary_sensor:
+  - name: Kitchen Table Occupancy Sensor Occupancy
+    state: '{% if states.sensor["a4c1387f7df0_no_one_duration"].state == ''unavailable'' or states.sensor["a4c1387f7df0_no_one_duration"].state  == ''unknown''%}
+
+      {{states.binary_sensor["a4c1387f7df0_occupancy"].state}}
+
+      {% elif states.sensor["a4c1387f7df0_no_one_duration"].state == ''0'' %}
+
+      {{states.binary_sensor["a4c1387f7df0_occupancy"].state}}
+
+      {# else is equivilence to elif states.sensor["a4c1387f7df0_no_one_duration"].state > "0" #}
+
+      {% else %}
+
+      off
+
+      {% endif %}
+
+      '
+    device_class: occupancy
+- sensor:
+  - name: Kitchen Table Occupancy Sensor Battery
+    unit_of_measurement: '%'
+    device_class: battery
+    state_class: measurement
+    state: '{% set s = states(''sensor.kitchen_table_occupancy_sensor_battery_median'') %}{{ s | int if s not in [''unknown'', ''unavailable'', ''''] else ''unknown'' }}'
 - sensor:
   - name: Kitchen Window Battery
     unit_of_measurement: '%'
     device_class: battery
     state_class: measurement
-    state: '{% set s = states(''sensor.e4aaec4500e4_battery'') %}{{ s | int if s not in [''unknown'', ''unavailable'', ''''] else ''unknown'' }}'
+    state: '{% set s = states(''sensor.kitchen_window_battery_median'') %}{{ s | int if s not in [''unknown'', ''unavailable'', ''''] else ''unknown'' }}'
+- sensor:
+  - name: Kitchen Water Leak Sensor Battery
+    unit_of_measurement: '%'
+    device_class: battery
+    state_class: measurement
+    state: '{% set s = states(''sensor.kitchen_water_leak_sensor_battery_median'') %}{{ s | int if s not in [''unknown'', ''unavailable'', ''''] else ''unknown'' }}'
 - sensor:
   - name: Kitchen Tado Availiabity
     unit_of_measurement: "\xB0C"
@@ -1886,9 +1889,9 @@ template:
     state: '{% set climate = "climate.tado_smart_radiator_thermostat_va3767669760" %}{% if states(climate) == "unavailable" or states(climate) == "off" or (state_attr(climate, "temperature") <= state_attr(climate, "current_temperature"))  %}off{% else %} on{% endif %}'
 - binary_sensor:
   - name: Kitchen Unavailable Entities
-    state: '{% set added_device_entities =  [''sensor.front_door_lock_battery'', ''sensor.front_door_battery'', ''sensor.kitchen_temperature_sensor'', ''sensor.kitchen_temperature_sensor_battery'', ''sensor.kitchen_extractor_wall_button'', ''sensor.kitchen_wall_button'', ''binary_sensor.rice_cooker_power'', ''binary_sensor.plate_warmer_power'', ''binary_sensor.baby_food_cooker_power'', ''binary_sensor.washing_machine_power'', ''binary_sensor.dish_washer_power'', ''sensor.kitchen_dining_motion_sensor_battery'', ''sensor.kitchen_worktop_motion_sensor_battery'', ''sensor.kitchen_window_battery'', ''sensor.kitchen_tado_availiabity'', ''binary_sensor.kitchen_heating_required'', ''binary_sensor.front_door'', ''binary_sensor.kitchen_dining_motion_sensor_motion'', ''binary_sensor.kitchen_worktop_motion_sensor_motion'', ''binary_sensor.kitchen_window'', ''binary_sensor.kitchen_water_sensor'', ''switch.kitchen_extractor_wall_switch_1'', ''switch.kitchen_extractor_wall_switch_2'', ''switch.kitchen_extractor'', ''switch.kitchen_wall_switch_1'', ''switch.kitchen_wall_switch_2'', ''switch.kitchen_wall_switch_3'', ''switch.kitchen_floor_led'', ''switch.rice_cooker_switch'', ''switch.plate_warmer_switch'', ''switch.baby_food_cooker_switch'', ''lock.front_door'', ''light.kitchen_ceiling_light'', ''light.kitchen_dining_light'', ''light.kitchen_worktop_led''] %}{% set ns = namespace() %}{% set ns.num_unavail_devices = 0 %}{% for device in added_device_entities %}   {% if states(device) in [''unavailable'', ''unknown'', ''none''] %}      {% set ns.num_unavail_devices = ns.num_unavail_devices + 1 %}   {% endif %}{% endfor %}{% if ns.num_unavail_devices > 0%}  on  {% else %}  off {% endif %}'
+    state: '{% set added_device_entities =  [''sensor.front_door_lock_battery'', ''sensor.front_door_battery'', ''sensor.kitchen_temperature_sensor'', ''sensor.kitchen_temperature_sensor_battery'', ''sensor.kitchen_humidity_sensor'', ''sensor.kitchen_extractor_wall_button'', ''sensor.kitchen_wall_button'', ''binary_sensor.rice_cooker_power'', ''binary_sensor.plate_warmer_power'', ''binary_sensor.baby_food_cooker_power'', ''binary_sensor.washing_machine_power'', ''binary_sensor.dish_washer_power'', ''sensor.kitchen_dining_motion_sensor_battery'', ''sensor.kitchen_worktop_motion_sensor_battery'', ''binary_sensor.kitchen_table_occupancy_sensor_occupancy'', ''sensor.kitchen_table_occupancy_sensor_battery'', ''sensor.kitchen_window_battery'', ''sensor.kitchen_water_leak_sensor_battery'', ''sensor.kitchen_tado_availiabity'', ''binary_sensor.kitchen_heating_required'', ''binary_sensor.front_door'', ''binary_sensor.kitchen_dining_motion_sensor_motion'', ''binary_sensor.kitchen_worktop_motion_sensor_motion'', ''binary_sensor.kitchen_window'', ''binary_sensor.kitchen_water_leak_sensor'', ''switch.kitchen_extractor_wall_switch_1'', ''switch.kitchen_extractor_wall_switch_2'', ''switch.kitchen_extractor'', ''switch.kitchen_wall_switch_1'', ''switch.kitchen_wall_switch_2'', ''switch.kitchen_wall_switch_3'', ''switch.kitchen_floor_led'', ''switch.rice_cooker_switch'', ''switch.plate_warmer_switch'', ''switch.baby_food_cooker_switch'', ''cover.kitchen_curtain'', ''lock.front_door'', ''light.kitchen_ceiling_light'', ''light.kitchen_dining_light'', ''light.kitchen_worktop_led''] %}{% set ns = namespace() %}{% set ns.num_unavail_devices = 0 %}{% for device in added_device_entities %}   {% if states(device) in [''unavailable'', ''unknown'', ''none''] %}      {% set ns.num_unavail_devices = ns.num_unavail_devices + 1 %}   {% endif %}{% endfor %}{% if ns.num_unavail_devices > 0%}  on  {% else %}  off {% endif %}'
     attributes:
-      value: '{% set added_device_entities =  [''sensor.front_door_lock_battery'', ''sensor.front_door_battery'', ''sensor.kitchen_temperature_sensor'', ''sensor.kitchen_temperature_sensor_battery'', ''sensor.kitchen_extractor_wall_button'', ''sensor.kitchen_wall_button'', ''binary_sensor.rice_cooker_power'', ''binary_sensor.plate_warmer_power'', ''binary_sensor.baby_food_cooker_power'', ''binary_sensor.washing_machine_power'', ''binary_sensor.dish_washer_power'', ''sensor.kitchen_dining_motion_sensor_battery'', ''sensor.kitchen_worktop_motion_sensor_battery'', ''sensor.kitchen_window_battery'', ''sensor.kitchen_tado_availiabity'', ''binary_sensor.kitchen_heating_required'', ''binary_sensor.front_door'', ''binary_sensor.kitchen_dining_motion_sensor_motion'', ''binary_sensor.kitchen_worktop_motion_sensor_motion'', ''binary_sensor.kitchen_window'', ''binary_sensor.kitchen_water_sensor'', ''switch.kitchen_extractor_wall_switch_1'', ''switch.kitchen_extractor_wall_switch_2'', ''switch.kitchen_extractor'', ''switch.kitchen_wall_switch_1'', ''switch.kitchen_wall_switch_2'', ''switch.kitchen_wall_switch_3'', ''switch.kitchen_floor_led'', ''switch.rice_cooker_switch'', ''switch.plate_warmer_switch'', ''switch.baby_food_cooker_switch'', ''lock.front_door'', ''light.kitchen_ceiling_light'', ''light.kitchen_dining_light'', ''light.kitchen_worktop_led''] %}{% set ns = namespace() %}{% set ns.unavail_devices = '''' %}{% for device in added_device_entities %}   {% if states(device) in [''unavailable'', ''unknown'', ''none''] %}   {% set ns.unavail_devices = ns.unavail_devices + ''
+      value: '{% set added_device_entities =  [''sensor.front_door_lock_battery'', ''sensor.front_door_battery'', ''sensor.kitchen_temperature_sensor'', ''sensor.kitchen_temperature_sensor_battery'', ''sensor.kitchen_humidity_sensor'', ''sensor.kitchen_extractor_wall_button'', ''sensor.kitchen_wall_button'', ''binary_sensor.rice_cooker_power'', ''binary_sensor.plate_warmer_power'', ''binary_sensor.baby_food_cooker_power'', ''binary_sensor.washing_machine_power'', ''binary_sensor.dish_washer_power'', ''sensor.kitchen_dining_motion_sensor_battery'', ''sensor.kitchen_worktop_motion_sensor_battery'', ''binary_sensor.kitchen_table_occupancy_sensor_occupancy'', ''sensor.kitchen_table_occupancy_sensor_battery'', ''sensor.kitchen_window_battery'', ''sensor.kitchen_water_leak_sensor_battery'', ''sensor.kitchen_tado_availiabity'', ''binary_sensor.kitchen_heating_required'', ''binary_sensor.front_door'', ''binary_sensor.kitchen_dining_motion_sensor_motion'', ''binary_sensor.kitchen_worktop_motion_sensor_motion'', ''binary_sensor.kitchen_window'', ''binary_sensor.kitchen_water_leak_sensor'', ''switch.kitchen_extractor_wall_switch_1'', ''switch.kitchen_extractor_wall_switch_2'', ''switch.kitchen_extractor'', ''switch.kitchen_wall_switch_1'', ''switch.kitchen_wall_switch_2'', ''switch.kitchen_wall_switch_3'', ''switch.kitchen_floor_led'', ''switch.rice_cooker_switch'', ''switch.plate_warmer_switch'', ''switch.baby_food_cooker_switch'', ''cover.kitchen_curtain'', ''lock.front_door'', ''light.kitchen_ceiling_light'', ''light.kitchen_dining_light'', ''light.kitchen_worktop_led''] %}{% set ns = namespace() %}{% set ns.unavail_devices = '''' %}{% for device in added_device_entities %}   {% if states(device) in [''unavailable'', ''unknown'', ''none''] %}   {% set ns.unavail_devices = ns.unavail_devices + ''
 
         '' +device %} {% endif %}{% endfor %}{{ns.unavail_devices}}'
 - binary_sensor:
@@ -1910,8 +1913,8 @@ binary_sensor:
   name: Kitchen Window
   entities: binary_sensor.e4aaec4500e4_contact
 - platform: group
-  name: Kitchen Water Sensor
-  entities: binary_sensor.18c23c2caa33_water_leak
+  name: Kitchen Water Leak Sensor
+  entities: binary_sensor.lumi_cn_blt_3_1h1quuv4s4g00_bmcn01_submersion_state_p_2_1
 event: []
 lock:
 - platform: group
@@ -1978,26 +1981,38 @@ group:
     - sensor.kitchen_temperature_sensor_battery
     - sensor.kitchen_dining_motion_sensor_battery
     - sensor.kitchen_worktop_motion_sensor_battery
+    - sensor.kitchen_table_occupancy_sensor_battery
     - sensor.kitchen_window_battery
+    - sensor.kitchen_water_leak_sensor_battery
   kitchen_auto_gen_automations:
     name: Kitchen Auto Gen Automations
     entities:
+    - input_boolean.kitchen_auto_off_suspended
+    - timer.kitchen_auto_off_suspended_timer
+    - input_number.intensity_threshold_intense_light_summer_kitchen
+    - input_number.intensity_threshold_moderate_light_outdoor_kitchen
+    - sensor.master_room_light_intensity
+    - sensor.x1_battery_2
     - climate.tado_smart_radiator_thermostat_va3767669760
-    - input_boolean.curtain_control_bright_morning_when_left_kitchen
-    - input_boolean.curtain_control_bright_afternoon_when_left_kitchen
-    - input_boolean.curtain_control_dark_when_left_kitchen
-    - input_boolean.ceiling_light_control_bright_morning_kitchen
-    - input_boolean.led_control_bright_morning_kitchen
-    - input_boolean.curtain_control_bright_morning_kitchen
-    - input_boolean.ceiling_light_control_bright_afternoon_kitchen
-    - input_boolean.led_control_bright_afternoon_kitchen
-    - input_boolean.curtain_control_bright_afternoon_kitchen
-    - input_boolean.ceiling_light_control_dark_kitchen
-    - input_boolean.led_control_dark_kitchen
-    - input_boolean.curtain_control_dark_kitchen
+    - binary_sensor.kitchen_heating_required
+    - input_boolean.ceiling_light_control_intense_light_summer_kitchen
+    - input_boolean.led_control_intense_light_summer_kitchen
+    - input_boolean.curtain_control_intense_light_summer_kitchen
+    - input_boolean.ceiling_light_control_moderate_light_outdoor_kitchen
+    - input_boolean.led_control_moderate_light_outdoor_kitchen
+    - input_boolean.curtain_control_moderate_light_outdoor_kitchen
+    - input_boolean.ceiling_light_control_low_light_outdoor_kitchen
+    - input_boolean.led_control_low_light_outdoor_kitchen
+    - input_boolean.curtain_control_low_light_outdoor_kitchen
+    - input_boolean.ceiling_light_control_sleep_mode_kitchen
+    - input_boolean.led_control_sleep_mode_kitchen
+    - input_boolean.curtain_control_sleep_mode_kitchen
+    - automation.zr_kc_reconnect_vacuum_robot_when_unavailable_kitchen
+    - automation.zr_kc_reconnect_ttlock_when_unavailable_kitchen
     - automation.zlb_kc_flex_wall_switch_on_postion_2_automatically_turn_on_the_wall_switch_back_when_turned_off_kitchen
     - automation.zh_kc_set_radiator_valve_target_temperature_based_on_external_sensor_temperature_difference_kitchen
-    - automation.zl_kc_lights_and_curtain_on_if_entering_to_room_kitchen
+    - automation.zl_kc_curtain_states_when_no_person_present_kitchen
+    - automation.zl_kc_lights_on_if_entering_to_room_kitchen
     - automation.zl_kc_lights_off_if_no_person_kitchen
     - automation.zl_kc_disable_entering_lights_on_automation_if_any_people_are_in_the_room_kitchen
     - automation.zh_kc_heating_schedule_on_if_staying_in_the_room_kitchen
@@ -2006,9 +2021,10 @@ group:
     - automation.zl_kc_applies_different_scenes_based_on_scene_selections_state_execution_kitchen
     - automation.zm_kc_sonos_pause_playing_after_people_left_kitchen
     - automation.zm_kc_reset_camera_position_after_people_left_kitchen
+    - automation.zm_kc_point_camera_to_the_table_when_people_enter_kitchen
     - automation.zlb_kc_wall_switch_single_left_press_toggle_ceiling_light_kitchen
     - automation.zlb_kc_worktop_wall_switch_single_left_press_toggle_worktop_led_kitchen
-    - automation.zlb_kc_wall_switch_double_press_leave_room_and_turn_off_everything_kitchen
+    - automation.zlb_kc_wall_switch_double_click_leave_room_and_turn_off_everything_kitchen
     - automation.zoc_kc_occupancy_update_kitchen
     - automation.zoc_kc_occupancy_override_and_sync_to_timer_kitchen
     - automation.zoc_kc_occupancy_override_sync_from_timer_kitchen
@@ -2026,8 +2042,6 @@ group:
     - switch.0x04cf8cdf3c7ad647_wireless_2
     - switch.0x04cf8cdf3c7ad647_wireless_3
     - switch.adaptive_lighting_sleep_mode_kitchen
-    - input_datetime.noon_time_kitchen
     - sensor.master_room_west_side_light_sensor
-    - input_number.kitchen_min_value_as_bright
     - group.kitchen_battery
     - group.kitchen_window_group

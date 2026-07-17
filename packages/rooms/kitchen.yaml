@@ -82,6 +82,20 @@ script:
   kitchen_camera_pointing_to_dining_table:
     alias: Kitchen Camera Pointing To Dining Table
     sequence:
+      - alias: Check if camera is already pointing to dining table, if not, then point it to the dining table
+        condition: not
+        conditions:
+          - condition: and
+            conditions:
+              - condition: numeric_state
+                entity_id: sensor.kitchen_camera_ptz_pan_position
+                above: 3500
+      # Make sure has enough delay before pressing the button again to avoid the command being responding too slow
+      - action: button.press
+        target:
+          entity_id: button.kitchen_camera_ptz_stop
+      - delay: '00:00:02'
+      # Start to move camera
       - action: button.press
         target:
           entity_id: button.kitchen_camera_ptz_right
@@ -111,16 +125,22 @@ script:
       - alias: Check if camera is already pointing to door, if not, then point it to the door
         condition: not
         conditions:
-          - condition: and
+            condition: and
             conditions:
               - condition: numeric_state
                 entity_id: sensor.kitchen_camera_ptz_pan_position
-                above: 1300
-                below: 1500
+                above: 1000
+                below: 2000
               - condition: numeric_state
                 entity_id: sensor.kitchen_camera_ptz_tilt_position
-                above: 1200
-                below: 1300
+                above: 1000
+                below: 2000
+      # Make sure has enough delay before pressing the button again to avoid the command being responding too slow
+      - action: button.press
+        target:
+          entity_id: button.kitchen_camera_ptz_stop
+      - delay: '00:00:02'
+      # Set the position
       - action: button.press
         target:
           entity_id: button.kitchen_camera_ptz_right

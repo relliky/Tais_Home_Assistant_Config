@@ -41,7 +41,7 @@ automation:
   - trigger: homeassistant
     event: start
   - minutes: /30
-    seconds: '30'
+    seconds: '3'
     trigger: time_pattern
   mode: single
   actions:
@@ -62,16 +62,132 @@ automation:
       target:
         entity_id: climate.tado_smart_radiator_thermostat_va0781390848
   id: automation.zh_gt_set_radiator_valve_target_temperature_based_on_external_sensor_temperature_difference_guest_toilet
-- alias: ZL-GT Lights and Curtain On If Entering to Room-Guest Toilet
-  id: automation.zl_gt_lights_and_curtain_on_if_entering_to_room_guest_toilet
+- alias: ZL-GT Curtain States When No Person Present-Guest Toilet
+  id: automation.zl_gt_curtain_states_when_no_person_present_guest_toilet
+  trigger:
+  - platform: state
+    entity_id: input_select.guest_toilet_occupancy
+    to: Outside
+    for: 00:03:00
+  - trigger: homeassistant
+    event: start
+  - minutes: /10
+    seconds: '57'
+    trigger: time_pattern
+  conditions:
+  - condition: state
+    entity_id: input_select.guest_toilet_occupancy
+    state: Outside
+    for: 00:03:00
+  action:
+  - alias: If it is intense light summer
+    if:
+    - condition: template
+      value_template: '{{ states(''sensor.living_room_light_intensity'') | float(0) > states(''input_number.intensity_threshold_intense_light_summer_guest_toilet'') | float(0) }}'
+    - condition: numeric_state
+      entity_id: sensor.met_office_cambridge_city_airport_temperature_3_hourly
+      above: '15'
+    - condition: template
+      value_template: '{{ now().month > 4 and now().month < 9 }}'
+    - condition: state
+      entity_id: switch.adaptive_lighting_sleep_mode_guest_toilet
+      state: 'off'
+    then:
+      alias: curtain states when intense light summer
+      if:
+      - '{{ 1 == 1 }}'
+      then:
+      - parallel:
+        - parallel:
+          - if:
+              condition: state
+              entity_id: input_boolean.curtain_control_intense_light_summer_guest_toilet
+              state: 'on'
+            then:
+              service: script.do_nothing
+            else:
+              service: script.do_nothing
+    else:
+      alias: If it is moderate light outdoor
+      if:
+      - condition: template
+        value_template: '{{ states(''sensor.living_room_light_intensity'') | float(0) > states(''input_number.intensity_threshold_moderate_light_outdoor_guest_toilet'') | float(0) }}'
+      - condition: state
+        entity_id: switch.adaptive_lighting_sleep_mode_guest_toilet
+        state: 'off'
+      then:
+        alias: curtain states when moderate light outdoor
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+        - parallel:
+          - parallel:
+            - if:
+                condition: state
+                entity_id: input_boolean.curtain_control_moderate_light_outdoor_guest_toilet
+                state: 'on'
+              then:
+                service: script.do_nothing
+              else:
+                service: script.do_nothing
+      else:
+        alias: If it is low light outdoor
+        if:
+        - condition: template
+          value_template: '{{ states(''sensor.living_room_light_intensity'') | float(0) <= states(''input_number.intensity_threshold_moderate_light_outdoor_guest_toilet'') | float(0) }}'
+        - condition: state
+          entity_id: switch.adaptive_lighting_sleep_mode_guest_toilet
+          state: 'off'
+        then:
+          alias: curtain states when low light outdoor
+          if:
+          - '{{ 1 == 1 }}'
+          then:
+          - parallel:
+            - parallel:
+              - if:
+                  condition: state
+                  entity_id: input_boolean.curtain_control_low_light_outdoor_guest_toilet
+                  state: 'on'
+                then:
+                  service: script.do_nothing
+                else:
+                  service: script.do_nothing
+        else:
+          alias: If it is sleep mode
+          if:
+          - condition: state
+            entity_id: switch.adaptive_lighting_sleep_mode_guest_toilet
+            state: 'on'
+          then:
+            alias: curtain states when sleep mode
+            if:
+            - '{{ 1 == 1 }}'
+            then:
+            - parallel:
+              - parallel:
+                - if:
+                    condition: state
+                    entity_id: input_boolean.curtain_control_sleep_mode_guest_toilet
+                    state: 'on'
+                  then:
+                    service: script.do_nothing
+                  else:
+                    service: script.do_nothing
+          else:
+            alias: Default
+            service: script.do_nothing
+- alias: ZL-GT Lights On If Entering to Room-Guest Toilet
+  id: automation.zl_gt_lights_on_if_entering_to_room_guest_toilet
   trigger:
     entity_id:
     - group.guest_toilet_motion_group
     platform: state
     to: 'on'
+    from: 'off'
   action:
   - service: automation.turn_off
-    entity_id: automation.zl_gt_lights_and_curtain_on_if_entering_to_room_guest_toilet
+    entity_id: automation.zl_gt_lights_on_if_entering_to_room_guest_toilet
     data:
       stop_actions: false
   - service: script.call_room_scene
@@ -80,33 +196,18 @@ automation:
       scene: Idle
   - alias: If it is bright morning
     if:
-    - alias: Bright morning
-      condition: and
-      conditions:
-      - condition: or
-        conditions:
-        - condition: numeric_state
-          entity_id: sensor.living_room_east_side_light_sensor
-          above: input_number.guest_toilet_min_value_as_bright
-        - condition: state
-          entity_id: sensor.living_room_east_side_light_sensor
-          state:
-          - unavailable
-          - unknown
-      - condition: or
-        conditions:
-        - condition: state
-          entity_id: sun.sun
-          state: above_horizon
-        - condition: state
-          entity_id: sun.sun
-          state:
-          - unavailable
-          - unknown
-      - condition: time
-        before: input_datetime.noon_time_guest_toilet
+    - condition: template
+      value_template: '{{ states(''sensor.living_room_light_intensity'') | float(0) > states(''input_number.intensity_threshold_intense_light_summer_guest_toilet'') | float(0) }}'
+    - condition: numeric_state
+      entity_id: sensor.met_office_cambridge_city_airport_temperature_3_hourly
+      above: '15'
+    - condition: template
+      value_template: '{{ now().month > 4 and now().month < 9 }}'
+    - condition: state
+      entity_id: switch.adaptive_lighting_sleep_mode_guest_toilet
+      state: 'off'
     then:
-      alias: States when bright morning
+      alias: light states when intense light summer
       if:
       - '{{ 1 == 1 }}'
       then:
@@ -114,7 +215,7 @@ automation:
         - parallel:
           - if:
               condition: state
-              entity_id: input_boolean.ceiling_light_control_bright_morning_guest_toilet
+              entity_id: input_boolean.ceiling_light_control_intense_light_summer_guest_toilet
               state: 'on'
             then:
               alias: Turn light.guest_toilet_ceiling_light state=on
@@ -134,15 +235,27 @@ automation:
                 - light.guest_toilet_ceiling_light
           - if:
               condition: state
-              entity_id: input_boolean.lamp_control_bright_morning_guest_toilet
+              entity_id: input_boolean.lamp_control_intense_light_summer_guest_toilet
               state: 'on'
             then:
-              service: script.do_nothing
+              alias: Turn switch.guest_toilet_mirror_led state=on
+              if:
+              - '{{ 1 == 1 }}'
+              then:
+                service: homeassistant.turn_on
+                entity_id:
+                - switch.guest_toilet_mirror_led
             else:
-              service: script.do_nothing
+              alias: Turn switch.guest_toilet_mirror_led state=off
+              if:
+              - '{{ 1 == 1 }}'
+              then:
+                service: homeassistant.turn_off
+                entity_id:
+                - switch.guest_toilet_mirror_led
           - if:
               condition: state
-              entity_id: input_boolean.led_control_bright_morning_guest_toilet
+              entity_id: input_boolean.led_control_intense_light_summer_guest_toilet
               state: 'on'
             then:
               alias: Turn switch.guest_toilet_floor_led state=on
@@ -160,44 +273,16 @@ automation:
                 service: homeassistant.turn_off
                 entity_id:
                 - switch.guest_toilet_floor_led
-          - if:
-              condition: state
-              entity_id: input_boolean.curtain_control_bright_morning_guest_toilet
-              state: 'on'
-            then:
-              service: script.do_nothing
-            else:
-              service: script.do_nothing
     else:
-      alias: If it is dark
+      alias: If it is bright afternoon
       if:
-      - alias: Bright afternoon
-        condition: and
-        conditions:
-        - condition: or
-          conditions:
-          - condition: numeric_state
-            entity_id: sensor.living_room_east_side_light_sensor
-            above: input_number.guest_toilet_min_value_as_bright
-          - condition: state
-            entity_id: sensor.living_room_east_side_light_sensor
-            state:
-            - unavailable
-            - unknown
-        - condition: or
-          conditions:
-          - condition: state
-            entity_id: sun.sun
-            state: above_horizon
-          - condition: state
-            entity_id: sun.sun
-            state:
-            - unavailable
-            - unknown
-        - condition: time
-          after: input_datetime.noon_time_guest_toilet
+      - condition: template
+        value_template: '{{ states(''sensor.living_room_light_intensity'') | float(0) > states(''input_number.intensity_threshold_moderate_light_outdoor_guest_toilet'') | float(0) }}'
+      - condition: state
+        entity_id: switch.adaptive_lighting_sleep_mode_guest_toilet
+        state: 'off'
       then:
-        alias: States when bright afternoon
+        alias: light states when moderate light outdoor
         if:
         - '{{ 1 == 1 }}'
         then:
@@ -205,7 +290,7 @@ automation:
           - parallel:
             - if:
                 condition: state
-                entity_id: input_boolean.ceiling_light_control_bright_afternoon_guest_toilet
+                entity_id: input_boolean.ceiling_light_control_moderate_light_outdoor_guest_toilet
                 state: 'on'
               then:
                 alias: Turn light.guest_toilet_ceiling_light state=on
@@ -225,15 +310,27 @@ automation:
                   - light.guest_toilet_ceiling_light
             - if:
                 condition: state
-                entity_id: input_boolean.lamp_control_bright_afternoon_guest_toilet
+                entity_id: input_boolean.lamp_control_moderate_light_outdoor_guest_toilet
                 state: 'on'
               then:
-                service: script.do_nothing
+                alias: Turn switch.guest_toilet_mirror_led state=on
+                if:
+                - '{{ 1 == 1 }}'
+                then:
+                  service: homeassistant.turn_on
+                  entity_id:
+                  - switch.guest_toilet_mirror_led
               else:
-                service: script.do_nothing
+                alias: Turn switch.guest_toilet_mirror_led state=off
+                if:
+                - '{{ 1 == 1 }}'
+                then:
+                  service: homeassistant.turn_off
+                  entity_id:
+                  - switch.guest_toilet_mirror_led
             - if:
                 condition: state
-                entity_id: input_boolean.led_control_bright_afternoon_guest_toilet
+                entity_id: input_boolean.led_control_moderate_light_outdoor_guest_toilet
                 state: 'on'
               then:
                 alias: Turn switch.guest_toilet_floor_led state=on
@@ -251,77 +348,159 @@ automation:
                   service: homeassistant.turn_off
                   entity_id:
                   - switch.guest_toilet_floor_led
-            - if:
-                condition: state
-                entity_id: input_boolean.curtain_control_bright_afternoon_guest_toilet
-                state: 'on'
-              then:
-                service: script.do_nothing
-              else:
-                service: script.do_nothing
       else:
-        alias: States when dark
+        alias: If it is bright afternoon
         if:
-        - '{{ 1 == 1 }}'
+        - condition: template
+          value_template: '{{ states(''sensor.living_room_light_intensity'') | float(0) <= states(''input_number.intensity_threshold_moderate_light_outdoor_guest_toilet'') | float(0) }}'
+        - condition: state
+          entity_id: switch.adaptive_lighting_sleep_mode_guest_toilet
+          state: 'off'
         then:
-        - parallel:
+          alias: light states when low light outdoor
+          if:
+          - '{{ 1 == 1 }}'
+          then:
           - parallel:
-            - if:
-                condition: state
-                entity_id: input_boolean.ceiling_light_control_dark_guest_toilet
-                state: 'on'
-              then:
-                alias: Turn light.guest_toilet_ceiling_light state=on
-                if:
-                - '{{ 1 == 1 }}'
+            - parallel:
+              - if:
+                  condition: state
+                  entity_id: input_boolean.ceiling_light_control_low_light_outdoor_guest_toilet
+                  state: 'on'
                 then:
-                  service: light.turn_on
-                  entity_id:
-                  - light.guest_toilet_ceiling_light
-              else:
-                alias: Turn light.guest_toilet_ceiling_light state=off
-                if:
-                - '{{ 1 == 1 }}'
+                  alias: Turn light.guest_toilet_ceiling_light state=on
+                  if:
+                  - '{{ 1 == 1 }}'
+                  then:
+                    service: light.turn_on
+                    entity_id:
+                    - light.guest_toilet_ceiling_light
+                else:
+                  alias: Turn light.guest_toilet_ceiling_light state=off
+                  if:
+                  - '{{ 1 == 1 }}'
+                  then:
+                    service: light.turn_off
+                    entity_id:
+                    - light.guest_toilet_ceiling_light
+              - if:
+                  condition: state
+                  entity_id: input_boolean.lamp_control_low_light_outdoor_guest_toilet
+                  state: 'on'
                 then:
-                  service: light.turn_off
-                  entity_id:
-                  - light.guest_toilet_ceiling_light
-            - if:
-                condition: state
-                entity_id: input_boolean.lamp_control_dark_guest_toilet
-                state: 'on'
-              then:
-                service: script.do_nothing
-              else:
-                service: script.do_nothing
-            - if:
-                condition: state
-                entity_id: input_boolean.led_control_dark_guest_toilet
-                state: 'on'
-              then:
-                alias: Turn switch.guest_toilet_floor_led state=on
-                if:
-                - '{{ 1 == 1 }}'
+                  alias: Turn switch.guest_toilet_mirror_led state=on
+                  if:
+                  - '{{ 1 == 1 }}'
+                  then:
+                    service: homeassistant.turn_on
+                    entity_id:
+                    - switch.guest_toilet_mirror_led
+                else:
+                  alias: Turn switch.guest_toilet_mirror_led state=off
+                  if:
+                  - '{{ 1 == 1 }}'
+                  then:
+                    service: homeassistant.turn_off
+                    entity_id:
+                    - switch.guest_toilet_mirror_led
+              - if:
+                  condition: state
+                  entity_id: input_boolean.led_control_low_light_outdoor_guest_toilet
+                  state: 'on'
                 then:
-                  service: homeassistant.turn_on
-                  entity_id:
-                  - switch.guest_toilet_floor_led
-              else:
-                alias: Turn switch.guest_toilet_floor_led state=off
-                if:
-                - '{{ 1 == 1 }}'
-                then:
-                  service: homeassistant.turn_off
-                  entity_id:
-                  - switch.guest_toilet_floor_led
-            - if:
-                condition: state
-                entity_id: input_boolean.curtain_control_dark_guest_toilet
-                state: 'on'
-              then:
-                service: script.do_nothing
-              else:
-                service: script.do_nothing
+                  alias: Turn switch.guest_toilet_floor_led state=on
+                  if:
+                  - '{{ 1 == 1 }}'
+                  then:
+                    service: homeassistant.turn_on
+                    entity_id:
+                    - switch.guest_toilet_floor_led
+                else:
+                  alias: Turn switch.guest_toilet_floor_led state=off
+                  if:
+                  - '{{ 1 == 1 }}'
+                  then:
+                    service: homeassistant.turn_off
+                    entity_id:
+                    - switch.guest_toilet_floor_led
+        else:
+          alias: If it is bright afternoon
+          if:
+          - condition: state
+            entity_id: switch.adaptive_lighting_sleep_mode_guest_toilet
+            state: 'on'
+          then:
+            alias: light states when sleep mode
+            if:
+            - '{{ 1 == 1 }}'
+            then:
+            - parallel:
+              - parallel:
+                - if:
+                    condition: state
+                    entity_id: input_boolean.ceiling_light_control_sleep_mode_guest_toilet
+                    state: 'on'
+                  then:
+                    alias: Turn light.guest_toilet_ceiling_light state=on
+                    if:
+                    - '{{ 1 == 1 }}'
+                    then:
+                      service: light.turn_on
+                      entity_id:
+                      - light.guest_toilet_ceiling_light
+                  else:
+                    alias: Turn light.guest_toilet_ceiling_light state=off
+                    if:
+                    - '{{ 1 == 1 }}'
+                    then:
+                      service: light.turn_off
+                      entity_id:
+                      - light.guest_toilet_ceiling_light
+                - if:
+                    condition: state
+                    entity_id: input_boolean.lamp_control_sleep_mode_guest_toilet
+                    state: 'on'
+                  then:
+                    alias: Turn switch.guest_toilet_mirror_led state=on
+                    if:
+                    - '{{ 1 == 1 }}'
+                    then:
+                      service: homeassistant.turn_on
+                      entity_id:
+                      - switch.guest_toilet_mirror_led
+                  else:
+                    alias: Turn switch.guest_toilet_mirror_led state=off
+                    if:
+                    - '{{ 1 == 1 }}'
+                    then:
+                      service: homeassistant.turn_off
+                      entity_id:
+                      - switch.guest_toilet_mirror_led
+                - if:
+                    condition: state
+                    entity_id: input_boolean.led_control_sleep_mode_guest_toilet
+                    state: 'on'
+                  then:
+                    alias: Turn switch.guest_toilet_floor_led state=on
+                    if:
+                    - '{{ 1 == 1 }}'
+                    then:
+                      service: homeassistant.turn_on
+                      entity_id:
+                      - switch.guest_toilet_floor_led
+                  else:
+                    alias: Turn switch.guest_toilet_floor_led state=off
+                    if:
+                    - '{{ 1 == 1 }}'
+                    then:
+                      service: homeassistant.turn_off
+                      entity_id:
+                      - switch.guest_toilet_floor_led
+          else:
+            alias: Default
+            service: script.do_nothing
+  - service: automation.trigger
+    entity_id: automation.zl_gt_curtain_states_when_no_person_present_guest_toilet
 - alias: ZL-GT Lights Off If No Person-Guest Toilet
   id: automation.zl_gt_lights_off_if_no_person_guest_toilet
   trigger:
@@ -331,124 +510,20 @@ automation:
   - trigger: homeassistant
     event: start
   - minutes: /30
-    seconds: '47'
+    seconds: '55'
     trigger: time_pattern
   condition:
   - condition: state
     entity_id: input_select.guest_toilet_occupancy
     state: Outside
-  - condition: state
-    entity_id: group.guest_toilet_motion_group
-    state: 'off'
-    for: 00:01:00
   action:
     parallel:
-    - alias: Turn automation.zl_gt_lights_and_curtain_on_if_entering_to_room_guest_toilet state=on
+    - alias: Turn automation.zl_gt_lights_on_if_entering_to_room_guest_toilet state=on
       if:
       - '{{ 1 == 1 }}'
       then:
         service: homeassistant.turn_on
-        entity_id: automation.zl_gt_lights_and_curtain_on_if_entering_to_room_guest_toilet
-    - alias: If it is bright morning
-      if:
-      - alias: Bright morning
-        condition: and
-        conditions:
-        - condition: or
-          conditions:
-          - condition: numeric_state
-            entity_id: sensor.living_room_east_side_light_sensor
-            above: input_number.guest_toilet_min_value_as_bright
-          - condition: state
-            entity_id: sensor.living_room_east_side_light_sensor
-            state:
-            - unavailable
-            - unknown
-        - condition: or
-          conditions:
-          - condition: state
-            entity_id: sun.sun
-            state: above_horizon
-          - condition: state
-            entity_id: sun.sun
-            state:
-            - unavailable
-            - unknown
-        - condition: time
-          before: input_datetime.noon_time_guest_toilet
-      then:
-        alias: States when left in bright morning
-        if:
-        - '{{ 1 == 1 }}'
-        then:
-        - parallel:
-          - parallel:
-            - if:
-                condition: state
-                entity_id: input_boolean.curtain_control_bright_morning_when_left_guest_toilet
-                state: 'on'
-              then:
-                service: script.do_nothing
-              else:
-                service: script.do_nothing
-      else:
-        alias: If it is dark
-        if:
-        - alias: Bright afternoon
-          condition: and
-          conditions:
-          - condition: or
-            conditions:
-            - condition: numeric_state
-              entity_id: sensor.living_room_east_side_light_sensor
-              above: input_number.guest_toilet_min_value_as_bright
-            - condition: state
-              entity_id: sensor.living_room_east_side_light_sensor
-              state:
-              - unavailable
-              - unknown
-          - condition: or
-            conditions:
-            - condition: state
-              entity_id: sun.sun
-              state: above_horizon
-            - condition: state
-              entity_id: sun.sun
-              state:
-              - unavailable
-              - unknown
-          - condition: time
-            after: input_datetime.noon_time_guest_toilet
-        then:
-          alias: States when left in bright afternoon
-          if:
-          - '{{ 1 == 1 }}'
-          then:
-          - parallel:
-            - parallel:
-              - if:
-                  condition: state
-                  entity_id: input_boolean.curtain_control_bright_afternoon_when_left_guest_toilet
-                  state: 'on'
-                then:
-                  service: script.do_nothing
-                else:
-                  service: script.do_nothing
-        else:
-          alias: States when left in dark
-          if:
-          - '{{ 1 == 1 }}'
-          then:
-          - parallel:
-            - parallel:
-              - if:
-                  condition: state
-                  entity_id: input_boolean.curtain_control_dark_when_left_guest_toilet
-                  state: 'on'
-                then:
-                  service: script.do_nothing
-                else:
-                  service: script.do_nothing
+        entity_id: automation.zl_gt_lights_on_if_entering_to_room_guest_toilet
     - service: script.do_nothing
     - service: script.call_room_scene
       data:
@@ -466,7 +541,13 @@ automation:
             service: light.turn_off
             entity_id:
             - light.guest_toilet_ceiling_light
-        - service: script.do_nothing
+        - alias: Turn switch.guest_toilet_mirror_led state=off
+          if:
+          - '{{ 1 == 1 }}'
+          then:
+            service: homeassistant.turn_off
+            entity_id:
+            - switch.guest_toilet_mirror_led
         - alias: Turn switch.guest_toilet_floor_led state=off
           if:
           - '{{ 1 == 1 }}'
@@ -493,7 +574,7 @@ automation:
   action:
   - delay: 00:00:10
   - service: automation.turn_off
-    entity_id: automation.zl_gt_lights_and_curtain_on_if_entering_to_room_guest_toilet
+    entity_id: automation.zl_gt_lights_on_if_entering_to_room_guest_toilet
     data:
       stop_actions: 'false'
   id: automation.zl_gt_disable_entering_lights_on_automation_if_any_people_are_in_the_room_guest_toilet
@@ -547,12 +628,19 @@ automation:
   - trigger: homeassistant
     event: start
   - minutes: /30
-    seconds: '1'
+    seconds: '53'
     trigger: time_pattern
   action:
   - condition: state
     entity_id: input_select.guest_toilet_occupancy
     state: Outside
+  - alias: Turn switch.guest_toilet_mirror_demister state=off
+    if:
+    - '{{ 1 == 1 }}'
+    then:
+      service: homeassistant.turn_off
+      entity_id:
+      - switch.guest_toilet_mirror_demister
   - condition: state
     entity_id: input_boolean.guest_toilet_heating_override
     state: 'off'
@@ -578,6 +666,27 @@ automation:
         then:
           service: homeassistant.turn_off
           entity_id: switch.schedule_guest_toilet_temperature
+- alias: ZH-GT Demister On When Taking Shower-Guest Toilet
+  trigger:
+  - platform: state
+    entity_id:
+    - binary_sensor.guest_toilet_shower
+    to: 'on'
+  action:
+  - condition: state
+    entity_id: input_select.guest_toilet_occupancy
+    state:
+    - Just Entered
+    - In Sleep
+    - Stayed Inside
+  - alias: Turn switch.guest_toilet_mirror_demister state=on
+    if:
+    - '{{ 1 == 1 }}'
+    then:
+      service: homeassistant.turn_on
+      entity_id:
+      - switch.guest_toilet_mirror_demister
+  id: automation.zh_gt_demister_on_when_taking_shower_guest_toilet
 - alias: ZH-GT Heating Manual Override-Guest Toilet
   mode: restart
   trigger:
@@ -621,7 +730,13 @@ automation:
         - '{{ 1 == 1 }}'
         then:
         - parallel:
-          - service: script.do_nothing
+          - alias: Turn switch.guest_toilet_mirror_led state=on
+            if:
+            - '{{ 1 == 1 }}'
+            then:
+              service: homeassistant.turn_on
+              entity_id:
+              - switch.guest_toilet_mirror_led
           - alias: Turn light.guest_toilet_ceiling_light state=on
             if:
             - '{{ 1 == 1 }}'
@@ -647,7 +762,13 @@ automation:
         - '{{ 1 == 1 }}'
         then:
         - parallel:
-          - service: script.do_nothing
+          - alias: Turn switch.guest_toilet_mirror_led state=off
+            if:
+            - '{{ 1 == 1 }}'
+            then:
+              service: homeassistant.turn_off
+              entity_id:
+              - switch.guest_toilet_mirror_led
           - alias: Turn switch.guest_toilet_floor_led state=off
             if:
             - '{{ 1 == 1 }}'
@@ -680,7 +801,13 @@ automation:
               service: light.turn_off
               entity_id:
               - light.guest_toilet_ceiling_light
-          - service: script.do_nothing
+          - alias: Turn switch.guest_toilet_mirror_led state=on
+            if:
+            - '{{ 1 == 1 }}'
+            then:
+              service: homeassistant.turn_on
+              entity_id:
+              - switch.guest_toilet_mirror_led
           - alias: Turn switch.guest_toilet_floor_led state=on
             if:
             - '{{ 1 == 1 }}'
@@ -717,6 +844,7 @@ automation:
         - service: pyscript.turn_rgb_light
           data:
             light_list:
+            - switch.guest_toilet_mirror_led
             - light.guest_toilet_ceiling_light
             - switch.guest_toilet_floor_led
             state: 'off'
@@ -724,6 +852,7 @@ automation:
         - service: pyscript.turn_rgb_light
           data:
             light_list:
+            - switch.guest_toilet_mirror_led
             - light.guest_toilet_ceiling_light
             - switch.guest_toilet_floor_led
         - service: script.do_nothing
@@ -782,7 +911,13 @@ automation:
               service: light.turn_off
               entity_id:
               - light.guest_toilet_ceiling_light
-          - service: script.do_nothing
+          - alias: Turn switch.guest_toilet_mirror_led state=off
+            if:
+            - '{{ 1 == 1 }}'
+            then:
+              service: homeassistant.turn_off
+              entity_id:
+              - switch.guest_toilet_mirror_led
           - alias: Turn switch.guest_toilet_floor_led state=off
             if:
             - '{{ 1 == 1 }}'
@@ -791,208 +926,478 @@ automation:
               entity_id:
               - switch.guest_toilet_floor_led
           - service: script.do_nothing
-    - conditions:
-      - condition: state
-        entity_id: input_select.guest_toilet_scene
-        state: States when bright morning
-      sequence:
-        alias: States when bright morning
-        if:
-        - '{{ 1 == 1 }}'
-        then:
-        - parallel:
-          - parallel:
-            - if:
-                condition: state
-                entity_id: input_boolean.ceiling_light_control_bright_morning_guest_toilet
-                state: 'on'
-              then:
-                alias: Turn light.guest_toilet_ceiling_light state=on
-                if:
-                - '{{ 1 == 1 }}'
-                then:
-                  service: light.turn_on
-                  entity_id:
-                  - light.guest_toilet_ceiling_light
-              else:
-                alias: Turn light.guest_toilet_ceiling_light state=off
-                if:
-                - '{{ 1 == 1 }}'
-                then:
-                  service: light.turn_off
-                  entity_id:
-                  - light.guest_toilet_ceiling_light
-            - if:
-                condition: state
-                entity_id: input_boolean.lamp_control_bright_morning_guest_toilet
-                state: 'on'
-              then:
-                service: script.do_nothing
-              else:
-                service: script.do_nothing
-            - if:
-                condition: state
-                entity_id: input_boolean.led_control_bright_morning_guest_toilet
-                state: 'on'
-              then:
-                alias: Turn switch.guest_toilet_floor_led state=on
-                if:
-                - '{{ 1 == 1 }}'
-                then:
-                  service: homeassistant.turn_on
-                  entity_id:
-                  - switch.guest_toilet_floor_led
-              else:
-                alias: Turn switch.guest_toilet_floor_led state=off
-                if:
-                - '{{ 1 == 1 }}'
-                then:
-                  service: homeassistant.turn_off
-                  entity_id:
-                  - switch.guest_toilet_floor_led
-            - if:
-                condition: state
-                entity_id: input_boolean.curtain_control_bright_morning_guest_toilet
-                state: 'on'
-              then:
-                service: script.do_nothing
-              else:
-                service: script.do_nothing
-    - conditions:
-      - condition: state
-        entity_id: input_select.guest_toilet_scene
-        state: States when bright afternoon
-      sequence:
-        alias: States when bright afternoon
-        if:
-        - '{{ 1 == 1 }}'
-        then:
-        - parallel:
-          - parallel:
-            - if:
-                condition: state
-                entity_id: input_boolean.ceiling_light_control_bright_afternoon_guest_toilet
-                state: 'on'
-              then:
-                alias: Turn light.guest_toilet_ceiling_light state=on
-                if:
-                - '{{ 1 == 1 }}'
-                then:
-                  service: light.turn_on
-                  entity_id:
-                  - light.guest_toilet_ceiling_light
-              else:
-                alias: Turn light.guest_toilet_ceiling_light state=off
-                if:
-                - '{{ 1 == 1 }}'
-                then:
-                  service: light.turn_off
-                  entity_id:
-                  - light.guest_toilet_ceiling_light
-            - if:
-                condition: state
-                entity_id: input_boolean.lamp_control_bright_afternoon_guest_toilet
-                state: 'on'
-              then:
-                service: script.do_nothing
-              else:
-                service: script.do_nothing
-            - if:
-                condition: state
-                entity_id: input_boolean.led_control_bright_afternoon_guest_toilet
-                state: 'on'
-              then:
-                alias: Turn switch.guest_toilet_floor_led state=on
-                if:
-                - '{{ 1 == 1 }}'
-                then:
-                  service: homeassistant.turn_on
-                  entity_id:
-                  - switch.guest_toilet_floor_led
-              else:
-                alias: Turn switch.guest_toilet_floor_led state=off
-                if:
-                - '{{ 1 == 1 }}'
-                then:
-                  service: homeassistant.turn_off
-                  entity_id:
-                  - switch.guest_toilet_floor_led
-            - if:
-                condition: state
-                entity_id: input_boolean.curtain_control_bright_afternoon_guest_toilet
-                state: 'on'
-              then:
-                service: script.do_nothing
-              else:
-                service: script.do_nothing
-    - conditions:
-      - condition: state
-        entity_id: input_select.guest_toilet_scene
-        state: States when dark
-      sequence:
-        alias: States when dark
-        if:
-        - '{{ 1 == 1 }}'
-        then:
-        - parallel:
-          - parallel:
-            - if:
-                condition: state
-                entity_id: input_boolean.ceiling_light_control_dark_guest_toilet
-                state: 'on'
-              then:
-                alias: Turn light.guest_toilet_ceiling_light state=on
-                if:
-                - '{{ 1 == 1 }}'
-                then:
-                  service: light.turn_on
-                  entity_id:
-                  - light.guest_toilet_ceiling_light
-              else:
-                alias: Turn light.guest_toilet_ceiling_light state=off
-                if:
-                - '{{ 1 == 1 }}'
-                then:
-                  service: light.turn_off
-                  entity_id:
-                  - light.guest_toilet_ceiling_light
-            - if:
-                condition: state
-                entity_id: input_boolean.lamp_control_dark_guest_toilet
-                state: 'on'
-              then:
-                service: script.do_nothing
-              else:
-                service: script.do_nothing
-            - if:
-                condition: state
-                entity_id: input_boolean.led_control_dark_guest_toilet
-                state: 'on'
-              then:
-                alias: Turn switch.guest_toilet_floor_led state=on
-                if:
-                - '{{ 1 == 1 }}'
-                then:
-                  service: homeassistant.turn_on
-                  entity_id:
-                  - switch.guest_toilet_floor_led
-              else:
-                alias: Turn switch.guest_toilet_floor_led state=off
-                if:
-                - '{{ 1 == 1 }}'
-                then:
-                  service: homeassistant.turn_off
-                  entity_id:
-                  - switch.guest_toilet_floor_led
-            - if:
-                condition: state
-                entity_id: input_boolean.curtain_control_dark_guest_toilet
-                state: 'on'
-              then:
-                service: script.do_nothing
-              else:
-                service: script.do_nothing
   id: automation.zl_gt_applies_different_scenes_based_on_scene_selections_state_execution_guest_toilet
+- alias: ZLB-GT Mirror Button Control-Guest Toilet
+  trigger:
+  - platform: state
+    entity_id: binary_sensor.guest_toilet_mirror_button_single_click
+    to: 'on'
+    id: TOGGLE_LAMP_0
+  - platform: state
+    entity_id: binary_sensor.guest_toilet_mirror_button_double_click
+    to: 'on'
+    id: TOGGLE_LEDS
+  - platform: state
+    entity_id: binary_sensor.guest_toilet_mirror_button_long_press
+    to: 'on'
+    id: TOGGLE_DEMISTER
+  mode: queued
+  action:
+    choose:
+    - conditions:
+        condition: trigger
+        id: CYCLE_SCENES
+      sequence:
+        choose:
+        - conditions:
+            condition: state
+            entity_id: input_select.guest_toilet_scene
+            state: All Off
+          sequence:
+            service: script.call_room_scene
+            data:
+              room_scene_select: input_select.guest_toilet_scene
+              scene: All White
+        - conditions:
+            condition: state
+            entity_id: input_select.guest_toilet_scene
+            state: All White
+          sequence:
+            service: script.call_room_scene
+            data:
+              room_scene_select: input_select.guest_toilet_scene
+              scene: Lamp LED White
+        - conditions:
+            condition: state
+            entity_id: input_select.guest_toilet_scene
+            state: Lamp LED White
+          sequence:
+            service: script.call_room_scene
+            data:
+              room_scene_select: input_select.guest_toilet_scene
+              scene: All Off
+        default:
+          service: script.call_room_scene
+          data:
+            room_scene_select: input_select.guest_toilet_scene
+            scene: All White
+    - conditions:
+        condition: trigger
+        id: DO_NOTHING
+      sequence:
+      - service: script.do_nothing
+    - conditions:
+        condition: trigger
+        id: TOGGLE_AL_SLEEP_MODE
+      sequence:
+      - alias: Turn switch.adaptive_lighting_sleep_mode_guest_toilet state=toggle
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          if:
+          - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
+            condition: state
+            entity_id: switch.adaptive_lighting_sleep_mode_guest_toilet
+            state: 'on'
+            match: any
+          then:
+            alias: Turn switch.adaptive_lighting_sleep_mode_guest_toilet state=off
+            if:
+            - '{{ 1 == 1 }}'
+            then:
+              service: homeassistant.turn_off
+              entity_id: switch.adaptive_lighting_sleep_mode_guest_toilet
+          else:
+            alias: Turn switch.adaptive_lighting_sleep_mode_guest_toilet state=on
+            if:
+            - '{{ 1 == 1 }}'
+            then:
+              service: homeassistant.turn_on
+              entity_id: switch.adaptive_lighting_sleep_mode_guest_toilet
+    - conditions:
+        condition: trigger
+        id: TOGGLE_ALL_LIGHTS
+      sequence:
+      - alias: Turn switch.guest_toilet_floor_led switch.guest_toilet_mirror_led light.guest_toilet_ceiling_light state=toggle
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          if:
+          - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
+            condition: state
+            entity_id:
+            - switch.guest_toilet_floor_led
+            - switch.guest_toilet_mirror_led
+            - light.guest_toilet_ceiling_light
+            state: 'on'
+            match: any
+          then:
+            alias: Turn switch.guest_toilet_floor_led switch.guest_toilet_mirror_led light.guest_toilet_ceiling_light state=off
+            if:
+            - '{{ 1 == 1 }}'
+            then:
+              service: homeassistant.turn_off
+              entity_id:
+              - switch.guest_toilet_floor_led
+              - switch.guest_toilet_mirror_led
+              - light.guest_toilet_ceiling_light
+          else:
+            alias: Turn switch.guest_toilet_floor_led switch.guest_toilet_mirror_led light.guest_toilet_ceiling_light state=on
+            if:
+            - '{{ 1 == 1 }}'
+            then:
+              service: homeassistant.turn_on
+              entity_id:
+              - switch.guest_toilet_floor_led
+              - switch.guest_toilet_mirror_led
+              - light.guest_toilet_ceiling_light
+    - conditions:
+        condition: trigger
+        id: TOGGLE_LAMP_0
+      sequence:
+      - alias: Turn switch.guest_toilet_mirror_led state=toggle
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          if:
+          - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
+            condition: state
+            entity_id: switch.guest_toilet_mirror_led
+            state: 'on'
+            match: any
+          then:
+            alias: Turn switch.guest_toilet_mirror_led state=off
+            if:
+            - '{{ 1 == 1 }}'
+            then:
+              service: homeassistant.turn_off
+              entity_id: switch.guest_toilet_mirror_led
+          else:
+            alias: Turn switch.guest_toilet_mirror_led state=on
+            if:
+            - '{{ 1 == 1 }}'
+            then:
+              service: homeassistant.turn_on
+              entity_id: switch.guest_toilet_mirror_led
+    - conditions:
+        condition: trigger
+        id: INCREMENT_LAMP_0
+      sequence:
+      - alias: Turn switch.guest_toilet_mirror_led state=increment
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          service: script.do_nothing
+    - conditions:
+        condition: trigger
+        id: DECREMENT_LAMP_0
+      sequence:
+      - alias: Turn switch.guest_toilet_mirror_led state=decrement
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          service: script.do_nothing
+    - conditions:
+        condition: trigger
+        id: CYCLE_LAMP_0
+      sequence:
+      - alias: Turn switch.guest_toilet_mirror_led state=cycle
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          service: script.do_nothing
+    - conditions:
+        condition: trigger
+        id: TOGGLE_CEILING_LIGHTS
+      sequence:
+      - alias: Turn light.guest_toilet_ceiling_light state=toggle
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          if:
+          - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
+            condition: state
+            entity_id:
+            - light.guest_toilet_ceiling_light
+            state: 'on'
+            match: any
+          then:
+            alias: Turn light.guest_toilet_ceiling_light state=off
+            if:
+            - '{{ 1 == 1 }}'
+            then:
+              service: light.turn_off
+              entity_id:
+              - light.guest_toilet_ceiling_light
+          else:
+            alias: Turn light.guest_toilet_ceiling_light state=on
+            if:
+            - '{{ 1 == 1 }}'
+            then:
+              service: light.turn_on
+              entity_id:
+              - light.guest_toilet_ceiling_light
+    - conditions:
+        condition: trigger
+        id: INCREMENT_CEILING_LIGHTS
+      sequence:
+      - alias: Turn light.guest_toilet_ceiling_light state=increment
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          if:
+          - alias: increment brightness unless it is off, set the brightness to 1 percent
+            condition: state
+            entity_id:
+            - light.guest_toilet_ceiling_light
+            state: 'off'
+          then:
+          - alias: Turn light.guest_toilet_ceiling_light state=on light_brightness=1
+            if:
+            - '{{ 1 == 1 }}'
+            then:
+              service: light.turn_on
+              entity_id:
+              - light.guest_toilet_ceiling_light
+              data:
+                brightness_pct: 1
+          else:
+            service: light.turn_on
+            target:
+              entity_id:
+              - light.guest_toilet_ceiling_light
+            data:
+              brightness_step_pct: 34
+    - conditions:
+        condition: trigger
+        id: DECREMENT_CEILING_LIGHTS
+      sequence:
+      - alias: Turn light.guest_toilet_ceiling_light state=decrement
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          if:
+          - alias: increment brightness unless it is off, set the brightness to 1 percent
+            condition: state
+            entity_id:
+            - light.guest_toilet_ceiling_light
+            state: 'off'
+          then:
+          - alias: Turn light.guest_toilet_ceiling_light state=on light_brightness=1
+            if:
+            - '{{ 1 == 1 }}'
+            then:
+              service: light.turn_on
+              entity_id:
+              - light.guest_toilet_ceiling_light
+              data:
+                brightness_pct: 1
+          else:
+            service: light.turn_on
+            target:
+              entity_id:
+              - light.guest_toilet_ceiling_light
+            data:
+              brightness_step_pct: -34
+    - conditions:
+        condition: trigger
+        id: CYCLE_CEILING_LIGHTS
+      sequence:
+      - alias: Turn light.guest_toilet_ceiling_light state=cycle
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          if:
+            condition: state
+            entity_id:
+            - light.guest_toilet_ceiling_light
+            state: 'off'
+          then:
+          - service: light.turn_on
+            entity_id:
+            - light.guest_toilet_ceiling_light
+            data:
+              brightness: 3
+          else:
+            service: light.turn_on
+            entity_id:
+            - light.guest_toilet_ceiling_light
+            data_template:
+              brightness: '{% set brightness = state_attr(''light.guest_toilet_ceiling_light'', ''brightness'') | int(0) %}{% if brightness == 0 or is_state(''light.guest_toilet_ceiling_light'', ''off'') %}3{% elif brightness <= 83 %}84{% elif brightness <= 167 %}168{% elif brightness <= 254 %}255{% else %}0{% endif %}'
+    - conditions:
+        condition: trigger
+        id: TOGGLE_LEDS
+      sequence:
+      - alias: Turn switch.guest_toilet_floor_led state=toggle
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          if:
+          - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
+            condition: state
+            entity_id:
+            - switch.guest_toilet_floor_led
+            state: 'on'
+            match: any
+          then:
+            alias: Turn switch.guest_toilet_floor_led state=off
+            if:
+            - '{{ 1 == 1 }}'
+            then:
+              service: homeassistant.turn_off
+              entity_id:
+              - switch.guest_toilet_floor_led
+          else:
+            alias: Turn switch.guest_toilet_floor_led state=on
+            if:
+            - '{{ 1 == 1 }}'
+            then:
+              service: homeassistant.turn_on
+              entity_id:
+              - switch.guest_toilet_floor_led
+    - conditions:
+        condition: trigger
+        id: CYCLE_LEDS
+      sequence:
+      - alias: Turn switch.guest_toilet_floor_led state=cycle
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          service: script.do_nothing
+    - conditions:
+        condition: trigger
+        id: INCREMENT_LEDS
+      sequence:
+      - alias: Turn switch.guest_toilet_floor_led state=increment
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          service: script.do_nothing
+    - conditions:
+        condition: trigger
+        id: DECREMENT_LEDS
+      sequence:
+      - alias: Turn switch.guest_toilet_floor_led state=decrement
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          service: script.do_nothing
+    - conditions:
+        condition: trigger
+        id: TOGGLE_HEATING
+      sequence:
+      - alias: Turn heating state=toggle
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          if:
+            condition: state
+            entity_id: climate.guest_toilet
+            state: 'off'
+          then:
+            alias: Turn heating state=on
+            if:
+            - '{{ 1 == 1 }}'
+            then:
+              alias: ''
+              if:
+              - '{{ 1 == 1 }}'
+              then:
+              - alias: Turn climate.guest_toilet state=on
+                if:
+                - '{{ 1 == 1 }}'
+                then:
+                  service: climate.set_hvac_mode
+                  data:
+                    hvac_mode: heat
+                  entity_id: climate.guest_toilet
+              - alias: Turn switch.schedule_guest_toilet_temperature state=on
+                if:
+                - '{{ 1 == 1 }}'
+                then:
+                  service: homeassistant.turn_on
+                  entity_id: switch.schedule_guest_toilet_temperature
+          else:
+            alias: Turn heating state=off
+            if:
+            - '{{ 1 == 1 }}'
+            then:
+              alias: ''
+              if:
+              - '{{ 1 == 1 }}'
+              then:
+              - alias: Turn climate.guest_toilet state=off
+                if:
+                - '{{ 1 == 1 }}'
+                then:
+                  service: climate.set_hvac_mode
+                  data:
+                    hvac_mode: 'off'
+                  entity_id: climate.guest_toilet
+              - alias: Turn switch.schedule_guest_toilet_temperature state=off
+                if:
+                - '{{ 1 == 1 }}'
+                then:
+                  service: homeassistant.turn_off
+                  entity_id: switch.schedule_guest_toilet_temperature
+    - conditions:
+        condition: trigger
+        id: INCREMENT_HEATING
+      sequence:
+      - alias: Turn heating state=increment
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          service: climate.set_temperature
+          target:
+            entity_id: climate.guest_toilet
+          data:
+            temperature: '{{ (state_attr(''climate.guest_toilet'', ''temperature'')) + 1}}'
+    - conditions:
+        condition: trigger
+        id: DECREMENT_HEATING
+      sequence:
+      - alias: Turn heating state=decrement
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          service: climate.set_temperature
+          target:
+            entity_id: climate.guest_toilet
+          data:
+            temperature: '{{ (state_attr(''climate.guest_toilet'', ''temperature'')) + -1}}'
+    - conditions:
+        condition: trigger
+        id: TOGGLE_DEMISTER
+      sequence:
+      - alias: Turn switch.guest_toilet_mirror_demister state=toggle
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          if:
+          - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
+            condition: state
+            entity_id:
+            - switch.guest_toilet_mirror_demister
+            state: 'on'
+            match: any
+          then:
+            alias: Turn switch.guest_toilet_mirror_demister state=off
+            if:
+            - '{{ 1 == 1 }}'
+            then:
+              service: homeassistant.turn_off
+              entity_id:
+              - switch.guest_toilet_mirror_demister
+          else:
+            alias: Turn switch.guest_toilet_mirror_demister state=on
+            if:
+            - '{{ 1 == 1 }}'
+            then:
+              service: homeassistant.turn_on
+              entity_id:
+              - switch.guest_toilet_mirror_demister
+  id: automation.zlb_gt_mirror_button_control_guest_toilet
 - alias: ZLB-GT Wall Switch - Single Left Press - Toggle Ceiling Light-Guest Toilet
   trigger:
   - platform: state
@@ -1031,7 +1436,7 @@ automation:
           entity_id:
           - light.guest_toilet_ceiling_light
   id: automation.zlb_gt_wall_switch_single_left_press_toggle_ceiling_light_guest_toilet
-- alias: ZLB-GT Wall Switch - Double Press - Leave Room and Turn Off Everything-Guest Toilet
+- alias: ZLB-GT Wall Switch - Double Click - Leave Room and Turn Off Everything-Guest Toilet
   trigger:
   - platform: state
     entity_id:
@@ -1056,19 +1461,20 @@ automation:
       entity_id: input_select.guest_toilet_occupancy
     data:
       option: Outside
-  id: automation.zlb_gt_wall_switch_double_press_leave_room_and_turn_off_everything_guest_toilet
+  id: automation.zlb_gt_wall_switch_double_click_leave_room_and_turn_off_everything_guest_toilet
 - alias: ZLM-GT Mirror Sensor On Turns On Ceiling Light With Cool Temperature-Guest Toilet
   trigger:
   - platform: state
     entity_id:
-    - binary_sensor.guest_toilet_mirror_sensor
+    - switch.guest_toilet_mirror_led
     from: 'off'
     to: 'on'
   action:
   - condition: state
     entity_id:
-    - binary_sensor.guest_toilet_mirror_sensor
+    - switch.guest_toilet_mirror_led
     state: 'on'
+  - delay: 00:00:01
   - service: light.turn_on
     target:
       entity_id:
@@ -1081,14 +1487,16 @@ automation:
   trigger:
   - platform: state
     entity_id:
-    - binary_sensor.guest_toilet_mirror_sensor
+    - switch.guest_toilet_mirror_led
     from: 'on'
     to: 'off'
   action:
+  - delay: 00:00:01
   - condition: state
-    entity_id:
-    - binary_sensor.guest_toilet_mirror_sensor
-    state: 'off'
+    entity_id: input_select.guest_toilet_occupancy
+    state:
+    - Just Entered
+    - Stayed Inside
   - service: adaptive_lighting.apply
     data:
       entity_id: switch.adaptive_lighting_adapt_brightness_guest_toilet
@@ -1124,20 +1532,154 @@ automation:
       seconds: 3600
   - trigger: homeassistant
     event: start
-  - minutes: /30
-    seconds: '8'
+  - minutes: /3
+    seconds: '38'
     trigger: time_pattern
   action:
-    service: pyscript.room_occupancy_state_machine
-    data:
-      occupancy_entity_str: input_select.guest_toilet_occupancy
-      motion_str: group.guest_toilet_motion_group
-      sleep_time: input_boolean.always_off_constant
-      turn_to_outside_when_no_motion: 'no'
-      entered_to_inside_timeout: 150
-      inside_to_outside_timeout: 300
-      sleep_to_outside_timesout: 3600
-      inside_to_sleep_timeout: 1800
+  - choose:
+    - alias: Outside -> Just Entered when motion is on
+      conditions:
+      - condition: state
+        entity_id: input_select.guest_toilet_occupancy
+        state: Outside
+      - condition: state
+        entity_id: group.guest_toilet_motion_group
+        state: 'on'
+      sequence:
+      - service: input_select.select_option
+        target:
+          entity_id: input_select.guest_toilet_occupancy
+        data:
+          option: Just Entered
+    - alias: Outside -> Outside when motion is not on
+      conditions:
+      - condition: state
+        entity_id: input_select.guest_toilet_occupancy
+        state: Outside
+      - condition: template
+        value_template: '{{ not is_state(''group.guest_toilet_motion_group'', ''on'') }}'
+      sequence:
+      - service: input_select.select_option
+        target:
+          entity_id: input_select.guest_toilet_occupancy
+        data:
+          option: Outside
+    - alias: Just Entered -> Stayed Inside when motion stays on
+      conditions:
+      - condition: state
+        entity_id: input_select.guest_toilet_occupancy
+        state: Just Entered
+      - condition: template
+        value_template: '{{ is_state(''group.guest_toilet_motion_group'', ''on'') and (as_timestamp(now()) - as_timestamp(states[''group.guest_toilet_motion_group''].last_changed)) >= 150 }}'
+      sequence:
+      - service: input_select.select_option
+        target:
+          entity_id: input_select.guest_toilet_occupancy
+        data:
+          option: Stayed Inside
+    - alias: Just Entered -> Outside when motion stays off
+      conditions:
+      - condition: state
+        entity_id: input_select.guest_toilet_occupancy
+        state: Just Entered
+      - condition: template
+        value_template: '{{ is_state(''group.guest_toilet_motion_group'', ''off'') and (as_timestamp(now()) - as_timestamp(states[''group.guest_toilet_motion_group''].last_changed)) >= 300 }}'
+      sequence:
+      - service: input_select.select_option
+        target:
+          entity_id: input_select.guest_toilet_occupancy
+        data:
+          option: Outside
+    - alias: Just Entered -> Just Entered by default
+      conditions:
+      - condition: state
+        entity_id: input_select.guest_toilet_occupancy
+        state: Just Entered
+      sequence:
+      - service: input_select.select_option
+        target:
+          entity_id: input_select.guest_toilet_occupancy
+        data:
+          option: Just Entered
+    - alias: Stayed Inside -> In Sleep when sleep time and stayed long enough
+      conditions:
+      - condition: state
+        entity_id: input_select.guest_toilet_occupancy
+        state: Stayed Inside
+      - condition: state
+        entity_id: input_boolean.always_off_constant
+        state: 'on'
+      - condition: template
+        value_template: '{{ is_state(''input_select.guest_toilet_occupancy'', ''Stayed Inside'') and (as_timestamp(now()) - as_timestamp(states[''input_select.guest_toilet_occupancy''].last_changed)) > 1800 }}'
+      sequence:
+      - service: input_select.select_option
+        target:
+          entity_id: input_select.guest_toilet_occupancy
+        data:
+          option: In Sleep
+    - alias: Stayed Inside -> Outside when motion stays off
+      conditions:
+      - condition: state
+        entity_id: input_select.guest_toilet_occupancy
+        state: Stayed Inside
+      - condition: template
+        value_template: '{{ is_state(''group.guest_toilet_motion_group'', ''off'') and (as_timestamp(now()) - as_timestamp(states[''group.guest_toilet_motion_group''].last_changed)) >= 300 }}'
+      sequence:
+      - service: input_select.select_option
+        target:
+          entity_id: input_select.guest_toilet_occupancy
+        data:
+          option: Outside
+    - alias: Stayed Inside -> Stayed Inside by default
+      conditions:
+      - condition: state
+        entity_id: input_select.guest_toilet_occupancy
+        state: Stayed Inside
+      sequence:
+      - service: input_select.select_option
+        target:
+          entity_id: input_select.guest_toilet_occupancy
+        data:
+          option: Stayed Inside
+    - alias: In Sleep -> Stayed Inside when sleep time ends
+      conditions:
+      - condition: state
+        entity_id: input_select.guest_toilet_occupancy
+        state: In Sleep
+      - condition: template
+        value_template: '{{ not is_state(''input_boolean.always_off_constant'', ''on'') }}'
+      sequence:
+      - service: input_select.select_option
+        target:
+          entity_id: input_select.guest_toilet_occupancy
+        data:
+          option: Stayed Inside
+    - alias: In Sleep -> Outside when motion stays off
+      conditions:
+      - condition: state
+        entity_id: input_select.guest_toilet_occupancy
+        state: In Sleep
+      - condition: template
+        value_template: '{{ is_state(''group.guest_toilet_motion_group'', ''off'') and (as_timestamp(now()) - as_timestamp(states[''group.guest_toilet_motion_group''].last_changed)) > 3600 }}'
+      sequence:
+      - service: input_select.select_option
+        target:
+          entity_id: input_select.guest_toilet_occupancy
+        data:
+          option: Outside
+    - alias: In Sleep -> In Sleep by default
+      conditions:
+      - condition: state
+        entity_id: input_select.guest_toilet_occupancy
+        state: In Sleep
+      sequence:
+      - service: input_select.select_option
+        target:
+          entity_id: input_select.guest_toilet_occupancy
+        data:
+          option: In Sleep
+    default:
+    - service: script.do_nothing
 - alias: ZOc-GT Occupancy Override and sync to Timer-Guest Toilet
   mode: single
   trigger:
@@ -1184,6 +1726,11 @@ automation:
   trigger:
   - platform: state
     entity_id: timer.guest_toilet_auto_off_suspended_timer
+  - trigger: homeassistant
+    event: start
+  - minutes: /10
+    seconds: '10'
+    trigger: time_pattern
   action:
   - choose:
     - conditions:
@@ -1213,6 +1760,7 @@ input_select:
     name: Guest Toilet Scene
     options:
     - Idle
+    - Lamp LED White
     - LED White
     - All White
     - Ceiling Light White
@@ -1225,50 +1773,44 @@ input_select:
     - Stayed Inside
     - In Sleep
 input_boolean:
+  ceiling_light_control_intense_light_summer_guest_toilet:
+    name: Ceiling Light Control Intense Light Summer Guest Toilet
+  lamp_control_intense_light_summer_guest_toilet:
+    name: Lamp Control Intense Light Summer Guest Toilet
+  led_control_intense_light_summer_guest_toilet:
+    name: Led Control Intense Light Summer Guest Toilet
+  curtain_control_intense_light_summer_guest_toilet:
+    name: Curtain Control Intense Light Summer Guest Toilet
+    initial: 'off'
   guest_toilet_heating_override:
     name: Guest Toilet Heating Override
     initial: 'off'
-  curtain_control_when_left_guest_toilet:
-    name: Curtain Control When Left Guest Toilet
+  ceiling_light_control_moderate_light_outdoor_guest_toilet:
+    name: Ceiling Light Control Moderate Light Outdoor Guest Toilet
+  lamp_control_moderate_light_outdoor_guest_toilet:
+    name: Lamp Control Moderate Light Outdoor Guest Toilet
+  led_control_moderate_light_outdoor_guest_toilet:
+    name: Led Control Moderate Light Outdoor Guest Toilet
+  curtain_control_moderate_light_outdoor_guest_toilet:
+    name: Curtain Control Moderate Light Outdoor Guest Toilet
     initial: 'off'
-  curtain_control_bright_morning_when_left_guest_toilet:
-    name: Curtain Control Bright Morning When Left Guest Toilet
+  ceiling_light_control_low_light_outdoor_guest_toilet:
+    name: Ceiling Light Control Low Light Outdoor Guest Toilet
+  lamp_control_low_light_outdoor_guest_toilet:
+    name: Lamp Control Low Light Outdoor Guest Toilet
+  led_control_low_light_outdoor_guest_toilet:
+    name: Led Control Low Light Outdoor Guest Toilet
+  curtain_control_low_light_outdoor_guest_toilet:
+    name: Curtain Control Low Light Outdoor Guest Toilet
     initial: 'off'
-  curtain_control_bright_afternoon_when_left_guest_toilet:
-    name: Curtain Control Bright Afternoon When Left Guest Toilet
-    initial: 'off'
-  curtain_control_dark_when_left_guest_toilet:
-    name: Curtain Control Dark When Left Guest Toilet
-    initial: 'off'
-  ceiling_light_control_bright_morning_guest_toilet:
-    name: Ceiling Light Control Bright Morning Guest Toilet
-  lamp_control_bright_morning_guest_toilet:
-    name: Lamp Control Bright Morning Guest Toilet
-    initial: 'off'
-  led_control_bright_morning_guest_toilet:
-    name: Led Control Bright Morning Guest Toilet
-  curtain_control_bright_morning_guest_toilet:
-    name: Curtain Control Bright Morning Guest Toilet
-    initial: 'off'
-  ceiling_light_control_bright_afternoon_guest_toilet:
-    name: Ceiling Light Control Bright Afternoon Guest Toilet
-  lamp_control_bright_afternoon_guest_toilet:
-    name: Lamp Control Bright Afternoon Guest Toilet
-    initial: 'off'
-  led_control_bright_afternoon_guest_toilet:
-    name: Led Control Bright Afternoon Guest Toilet
-  curtain_control_bright_afternoon_guest_toilet:
-    name: Curtain Control Bright Afternoon Guest Toilet
-    initial: 'off'
-  ceiling_light_control_dark_guest_toilet:
-    name: Ceiling Light Control Dark Guest Toilet
-  lamp_control_dark_guest_toilet:
-    name: Lamp Control Dark Guest Toilet
-    initial: 'off'
-  led_control_dark_guest_toilet:
-    name: Led Control Dark Guest Toilet
-  curtain_control_dark_guest_toilet:
-    name: Curtain Control Dark Guest Toilet
+  ceiling_light_control_sleep_mode_guest_toilet:
+    name: Ceiling Light Control Sleep Mode Guest Toilet
+  lamp_control_sleep_mode_guest_toilet:
+    name: Lamp Control Sleep Mode Guest Toilet
+  led_control_sleep_mode_guest_toilet:
+    name: Led Control Sleep Mode Guest Toilet
+  curtain_control_sleep_mode_guest_toilet:
+    name: Curtain Control Sleep Mode Guest Toilet
     initial: 'off'
   guest_toilet_auto_off_suspended:
     name: Guest Toilet Auto Off Suspended
@@ -1287,6 +1829,18 @@ input_number:
     max: 4000
     step: 1
     mode: box
+  intensity_threshold_intense_light_summer_guest_toilet:
+    name: Intensity Threshold Intense Light Summer Guest Toilet
+    min: 0
+    max: 100
+    step: 0.1
+    mode: box
+  intensity_threshold_moderate_light_outdoor_guest_toilet:
+    name: Intensity Threshold Moderate Light Outdoor Guest Toilet
+    min: 0
+    max: 100
+    step: 0.1
+    mode: box
 sensor:
 - platform: history_stats
   name: Guest Toilet Motion On Ratio For Last 4 Minutes
@@ -1304,30 +1858,44 @@ sensor:
   duration:
     minutes: '8'
   end: '{{ (now() | as_timestamp) | as_datetime | as_local }}'
-- name: A4c1387a7b78 Battery Median
+- name: Guest Toilet Temperature Sensor Battery Median
   platform: statistics
-  entity_id: sensor.a4c1387a7b78_battery
+  entity_id: sensor.xiaomi_cn_blt_3_1oquokb4c4000_mini_battery_level_p_3_1003
   precision: 0
   state_characteristic: median
   max_age:
     hours: 24
-- name: 54ef44e3237b Battery Median
+- name: Guest Toilet Shower Motion Sensor Battery Median
   platform: statistics
   entity_id: sensor.54ef44e3237b_battery
   precision: 0
   state_characteristic: median
   max_age:
     hours: 24
-- name: E0798dba988e Battery Median
+- name: Guest Toilet Entrance Motion Sensor Battery Median
   platform: statistics
   entity_id: sensor.e0798dba988e_battery
   precision: 0
   state_characteristic: median
   max_age:
     hours: 24
-- name: 0x04cf8cdf3c7cafdc Battery Median
+- name: Guest Toilet Mirror Sensor Light Sensor Battery Median
   platform: statistics
   entity_id: sensor.0x04cf8cdf3c7cafdc_battery
+  precision: 0
+  state_characteristic: median
+  max_age:
+    hours: 24
+- name: Guest Toilet Mirror Robot Battery Median
+  platform: statistics
+  entity_id: sensor.adp_cn_1206102799_adfbt6_battery_percentage_p_3_15
+  precision: 0
+  state_characteristic: median
+  max_age:
+    hours: 24
+- name: Guest Toilet Mirror Button Battery Median
+  platform: statistics
+  entity_id: sensor.lumi_cn_blt_3_1ormnfq250400_mcn001_battery_level_p_2_1003
   precision: 0
   state_characteristic: median
   max_age:
@@ -1340,6 +1908,8 @@ sensor:
   - sensor.guest_toilet_shower_motion_sensor_battery
   - sensor.guest_toilet_entrance_motion_sensor_battery
   - sensor.guest_toilet_mirror_sensor_light_sensor_battery
+  - sensor.guest_toilet_mirror_robot_battery
+  - sensor.guest_toilet_mirror_button_battery
 timer:
   guest_toilet_auto_off_suspended_timer:
     name: Guest Toilet Auto Off Suspended Timer
@@ -1364,6 +1934,12 @@ switch:
 - platform: group
   name: Guest Toilet Extractor
   entities: switch.0x00158d0008d94c10_switch
+- platform: group
+  name: Guest Toilet Mirror LED
+  entities: switch.adp_cn_1206102799_adfbt6_switch_a_p_3_1
+- platform: group
+  name: Guest Toilet Mirror Demister
+  entities: switch.adp_cn_1206102799_adfbt6_switch_b_p_3_2
 cover: []
 climate:
 - platform: generic_thermostat
@@ -1381,17 +1957,22 @@ template:
 - sensor:
   - name: Guest Toilet Temperature Sensor
     unit_of_measurement: "\xB0C"
-    state: '{{states.sensor["a4c1387a7b78_temperature"].state | float(22) | round(1)}}'
-- sensor:
-  - name: Guest Toilet Humidity Sensor
-    unit_of_measurement: '%'
-    state: '{{states.sensor["a4c1387a7b78_humidity"].state | float(40) | round(1)}}'
+    state: '{{states.sensor["xiaomi_cn_blt_3_1oquokb4c4000_mini_temperature_p_2_1001"].state | float(22) | round(1)}}'
 - sensor:
   - name: Guest Toilet Temperature Sensor Battery
     unit_of_measurement: '%'
     device_class: battery
     state_class: measurement
-    state: '{% set s = states(''sensor.a4c1387a7b78_battery_median'') %}{{ s | int if s not in [''unknown'', ''unavailable'', ''''] else ''unknown'' }}'
+    state: '{% set s = states(''sensor.guest_toilet_temperature_sensor_battery_median'') %}{{ s | int if s not in [''unknown'', ''unavailable'', ''''] else ''unknown'' }}'
+- sensor:
+  - name: Guest Toilet Humidity Sensor
+    unit_of_measurement: '%'
+    state: '{{states.sensor["xiaomi_cn_blt_3_1oquokb4c4000_mini_relative_humidity_p_2_1002"].state | float(40) | round(1)}}'
+- binary_sensor:
+  - name: Guest Toilet Shower
+    state: '{% set h = states("sensor.guest_toilet_humidity_sensor") %}{% if h not in ["unknown", "unavailable", "none"] %}{{ h | float > 60and is_state("binary_sensor.guest_toilet_humidity_rising", "on")and not is_state("binary_sensor.guest_toilet_humidity_falling", "on") }}{% else %}false{% endif %}'
+    delay_on: 5
+    delay_off: 5
 - sensor:
   - name: Guest Toilet Wall Button
     state: '{{states.sensor["0x00158d000487851a_action"].state}}'
@@ -1403,22 +1984,22 @@ template:
     unit_of_measurement: '%'
     device_class: battery
     state_class: measurement
-    state: '{% set s = states(''sensor.54ef44e3237b_battery_median'') %}{{ s | int if s not in [''unknown'', ''unavailable'', ''''] else ''unknown'' }}'
+    state: '{% set s = states(''sensor.guest_toilet_shower_motion_sensor_battery_median'') %}{{ s | int if s not in [''unknown'', ''unavailable'', ''''] else ''unknown'' }}'
 - sensor:
   - name: Guest Toilet Entrance Motion Sensor Battery
     unit_of_measurement: '%'
     device_class: battery
     state_class: measurement
-    state: '{% set s = states(''sensor.e0798dba988e_battery_median'') %}{{ s | int if s not in [''unknown'', ''unavailable'', ''''] else ''unknown'' }}'
+    state: '{% set s = states(''sensor.guest_toilet_entrance_motion_sensor_battery_median'') %}{{ s | int if s not in [''unknown'', ''unavailable'', ''''] else ''unknown'' }}'
+- binary_sensor:
+  - name: Guest Toilet Mirror Sensor
+    state: '{{states.sensor["0x04cf8cdf3c7cafdc_illuminance"].state |int > 500 }}'
 - sensor:
   - name: Guest Toilet Mirror Sensor Light Sensor Battery
     unit_of_measurement: '%'
     device_class: battery
     state_class: measurement
-    state: '{% set s = states(''sensor.0x04cf8cdf3c7cafdc_battery_median'') %}{{ s | int if s not in [''unknown'', ''unavailable'', ''''] else ''unknown'' }}'
-- binary_sensor:
-  - name: Guest Toilet Mirror Sensor
-    state: '{{states.sensor["0x04cf8cdf3c7cafdc_illuminance"].state |int > 500 }}'
+    state: '{% set s = states(''sensor.guest_toilet_mirror_sensor_light_sensor_battery_median'') %}{{ s | int if s not in [''unknown'', ''unavailable'', ''''] else ''unknown'' }}'
 - sensor:
   - name: Guest Toilet Tado Availiabity
     unit_of_measurement: "\xB0C"
@@ -1426,17 +2007,69 @@ template:
 - binary_sensor:
   - name: Guest Toilet Heating Required
     state: '{% set climate = "climate.tado_smart_radiator_thermostat_va0781390848" %}{% if states(climate) == "unavailable" or states(climate) == "off" or (state_attr(climate, "temperature") <= state_attr(climate, "current_temperature"))  %}off{% else %} on{% endif %}'
+- sensor:
+  - name: Guest Toilet Mirror Robot Battery
+    unit_of_measurement: '%'
+    device_class: battery
+    state_class: measurement
+    state: '{% set s = states(''sensor.guest_toilet_mirror_robot_battery_median'') %}{{ s | int if s not in [''unknown'', ''unavailable'', ''''] else ''unknown'' }}'
+- trigger:
+  - platform: state
+    entity_id: event.lumi_cn_blt_3_1ormnfq250400_mcn001_click_e_3_1012
+    not_from:
+    - unknown
+    - unavailable
+  binary_sensor:
+  - name: Guest Toilet Mirror Button Single Click
+    state: '{{ trigger.to_state.attributes[''event_type''] == ''Click'' }}'
+    auto_off: 0.2
+- trigger:
+  - platform: state
+    entity_id: event.lumi_cn_blt_3_1ormnfq250400_mcn001_double_click_e_3_1013
+    not_from:
+    - unknown
+    - unavailable
+  binary_sensor:
+  - name: Guest Toilet Mirror Button Double Click
+    state: '{{ trigger.to_state.attributes[''event_type''] == ''Double Click'' }}'
+    auto_off: 0.2
+- trigger:
+  - platform: state
+    entity_id: event.lumi_cn_blt_3_1ormnfq250400_mcn001_long_press_e_3_1014
+    not_from:
+    - unknown
+    - unavailable
+  binary_sensor:
+  - name: Guest Toilet Mirror Button Long Press
+    state: '{{ trigger.to_state.attributes[''event_type''] == ''Long Press'' }}'
+    auto_off: 0.2
+- sensor:
+  - name: Guest Toilet Mirror Button Battery
+    unit_of_measurement: '%'
+    device_class: battery
+    state_class: measurement
+    state: '{% set s = states(''sensor.guest_toilet_mirror_button_battery_median'') %}{{ s | int if s not in [''unknown'', ''unavailable'', ''''] else ''unknown'' }}'
 - binary_sensor:
   - name: Guest Toilet Unavailable Entities
-    state: '{% set added_device_entities =  [''sensor.guest_toilet_temperature_sensor'', ''sensor.guest_toilet_humidity_sensor'', ''sensor.guest_toilet_temperature_sensor_battery'', ''sensor.guest_toilet_wall_button'', ''sensor.guest_toilet_extractor_wall_button'', ''sensor.guest_toilet_shower_motion_sensor_battery'', ''sensor.guest_toilet_entrance_motion_sensor_battery'', ''sensor.guest_toilet_mirror_sensor_light_sensor_battery'', ''binary_sensor.guest_toilet_mirror_sensor'', ''sensor.guest_toilet_tado_availiabity'', ''binary_sensor.guest_toilet_heating_required'', ''binary_sensor.guest_toilet_shower_motion_sensor_motion'', ''binary_sensor.guest_toilet_entrance_motion_sensor_motion'', ''switch.guest_toilet_wall_switch_1'', ''switch.guest_toilet_wall_switch_2'', ''switch.guest_toilet_floor_led'', ''switch.guest_toilet_extractor_wall_switch'', ''switch.guest_toilet_extractor'', ''light.guest_toilet_ceiling_light''] %}{% set ns = namespace() %}{% set ns.num_unavail_devices = 0 %}{% for device in added_device_entities %}   {% if states(device) in [''unavailable'', ''unknown'', ''none''] %}      {% set ns.num_unavail_devices = ns.num_unavail_devices + 1 %}   {% endif %}{% endfor %}{% if ns.num_unavail_devices > 0%}  on  {% else %}  off {% endif %}'
+    state: '{% set added_device_entities =  [''sensor.guest_toilet_temperature_sensor'', ''sensor.guest_toilet_temperature_sensor_battery'', ''sensor.guest_toilet_humidity_sensor'', ''binary_sensor.guest_toilet_shower'', ''sensor.guest_toilet_wall_button'', ''sensor.guest_toilet_extractor_wall_button'', ''sensor.guest_toilet_shower_motion_sensor_battery'', ''sensor.guest_toilet_entrance_motion_sensor_battery'', ''binary_sensor.guest_toilet_mirror_sensor'', ''sensor.guest_toilet_mirror_sensor_light_sensor_battery'', ''sensor.guest_toilet_tado_availiabity'', ''binary_sensor.guest_toilet_heating_required'', ''sensor.guest_toilet_mirror_robot_battery'', ''binary_sensor.guest_toilet_mirror_button_single_click'', ''binary_sensor.guest_toilet_mirror_button_double_click'', ''binary_sensor.guest_toilet_mirror_button_long_press'', ''sensor.guest_toilet_mirror_button_battery'', ''binary_sensor.guest_toilet_shower_motion_sensor_motion'', ''binary_sensor.guest_toilet_entrance_motion_sensor_motion'', ''switch.guest_toilet_wall_switch_1'', ''switch.guest_toilet_wall_switch_2'', ''switch.guest_toilet_floor_led'', ''switch.guest_toilet_extractor_wall_switch'', ''switch.guest_toilet_extractor'', ''switch.guest_toilet_mirror_led'', ''switch.guest_toilet_mirror_demister'', ''light.guest_toilet_ceiling_light''] %}{% set ns = namespace() %}{% set ns.num_unavail_devices = 0 %}{% for device in added_device_entities %}   {% if states(device) in [''unavailable'', ''unknown'', ''none''] %}      {% set ns.num_unavail_devices = ns.num_unavail_devices + 1 %}   {% endif %}{% endfor %}{% if ns.num_unavail_devices > 0%}  on  {% else %}  off {% endif %}'
     attributes:
-      value: '{% set added_device_entities =  [''sensor.guest_toilet_temperature_sensor'', ''sensor.guest_toilet_humidity_sensor'', ''sensor.guest_toilet_temperature_sensor_battery'', ''sensor.guest_toilet_wall_button'', ''sensor.guest_toilet_extractor_wall_button'', ''sensor.guest_toilet_shower_motion_sensor_battery'', ''sensor.guest_toilet_entrance_motion_sensor_battery'', ''sensor.guest_toilet_mirror_sensor_light_sensor_battery'', ''binary_sensor.guest_toilet_mirror_sensor'', ''sensor.guest_toilet_tado_availiabity'', ''binary_sensor.guest_toilet_heating_required'', ''binary_sensor.guest_toilet_shower_motion_sensor_motion'', ''binary_sensor.guest_toilet_entrance_motion_sensor_motion'', ''switch.guest_toilet_wall_switch_1'', ''switch.guest_toilet_wall_switch_2'', ''switch.guest_toilet_floor_led'', ''switch.guest_toilet_extractor_wall_switch'', ''switch.guest_toilet_extractor'', ''light.guest_toilet_ceiling_light''] %}{% set ns = namespace() %}{% set ns.unavail_devices = '''' %}{% for device in added_device_entities %}   {% if states(device) in [''unavailable'', ''unknown'', ''none''] %}   {% set ns.unavail_devices = ns.unavail_devices + ''
+      value: '{% set added_device_entities =  [''sensor.guest_toilet_temperature_sensor'', ''sensor.guest_toilet_temperature_sensor_battery'', ''sensor.guest_toilet_humidity_sensor'', ''binary_sensor.guest_toilet_shower'', ''sensor.guest_toilet_wall_button'', ''sensor.guest_toilet_extractor_wall_button'', ''sensor.guest_toilet_shower_motion_sensor_battery'', ''sensor.guest_toilet_entrance_motion_sensor_battery'', ''binary_sensor.guest_toilet_mirror_sensor'', ''sensor.guest_toilet_mirror_sensor_light_sensor_battery'', ''sensor.guest_toilet_tado_availiabity'', ''binary_sensor.guest_toilet_heating_required'', ''sensor.guest_toilet_mirror_robot_battery'', ''binary_sensor.guest_toilet_mirror_button_single_click'', ''binary_sensor.guest_toilet_mirror_button_double_click'', ''binary_sensor.guest_toilet_mirror_button_long_press'', ''sensor.guest_toilet_mirror_button_battery'', ''binary_sensor.guest_toilet_shower_motion_sensor_motion'', ''binary_sensor.guest_toilet_entrance_motion_sensor_motion'', ''switch.guest_toilet_wall_switch_1'', ''switch.guest_toilet_wall_switch_2'', ''switch.guest_toilet_floor_led'', ''switch.guest_toilet_extractor_wall_switch'', ''switch.guest_toilet_extractor'', ''switch.guest_toilet_mirror_led'', ''switch.guest_toilet_mirror_demister'', ''light.guest_toilet_ceiling_light''] %}{% set ns = namespace() %}{% set ns.unavail_devices = '''' %}{% for device in added_device_entities %}   {% if states(device) in [''unavailable'', ''unknown'', ''none''] %}   {% set ns.unavail_devices = ns.unavail_devices + ''
 
         '' +device %} {% endif %}{% endfor %}{{ns.unavail_devices}}'
 - binary_sensor:
   - name: Guest Toilet Low Battery
     state: '{% set state = states("sensor.guest_toilet_min_battery") %} {% if state == "unavailable" or state == "unknown" or int(state) > 20 %} off {% else%} on {% endif %}'
 binary_sensor:
+- platform: trend
+  sensors:
+    guest_toilet_humidity_rising:
+      entity_id: sensor.guest_toilet_humidity_sensor
+      sample_duration: 300
+      min_gradient: 0.002
+    guest_toilet_humidity_falling:
+      entity_id: sensor.guest_toilet_humidity_sensor
+      sample_duration: 300
+      min_gradient: -0.002
 - platform: group
   name: Guest Toilet Shower Motion Sensor Motion
   device_class: motion
@@ -1469,6 +2102,7 @@ group:
     name: Guest Toilet Light Group
     entities:
     - switch.guest_toilet_floor_led
+    - switch.guest_toilet_mirror_led
     - light.guest_toilet_ceiling_light
   guest_toilet_timeout_window_group:
     name: Guest Toilet Timeout Window Group
@@ -1483,26 +2117,44 @@ group:
     - sensor.guest_toilet_shower_motion_sensor_battery
     - sensor.guest_toilet_entrance_motion_sensor_battery
     - sensor.guest_toilet_mirror_sensor_light_sensor_battery
+    - sensor.guest_toilet_mirror_robot_battery
+    - sensor.guest_toilet_mirror_button_battery
   guest_toilet_auto_gen_automations:
     name: Guest Toilet Auto Gen Automations
     entities:
+    - input_boolean.guest_toilet_auto_off_suspended
+    - timer.guest_toilet_auto_off_suspended_timer
+    - input_number.intensity_threshold_intense_light_summer_guest_toilet
+    - input_number.intensity_threshold_moderate_light_outdoor_guest_toilet
+    - sensor.living_room_light_intensity
+    - binary_sensor.guest_toilet_shower
     - climate.tado_smart_radiator_thermostat_va0781390848
-    - input_boolean.ceiling_light_control_bright_morning_guest_toilet
-    - input_boolean.led_control_bright_morning_guest_toilet
-    - input_boolean.ceiling_light_control_bright_afternoon_guest_toilet
-    - input_boolean.led_control_bright_afternoon_guest_toilet
-    - input_boolean.ceiling_light_control_dark_guest_toilet
-    - input_boolean.led_control_dark_guest_toilet
+    - binary_sensor.guest_toilet_heating_required
+    - input_boolean.ceiling_light_control_intense_light_summer_guest_toilet
+    - input_boolean.lamp_control_intense_light_summer_guest_toilet
+    - input_boolean.led_control_intense_light_summer_guest_toilet
+    - input_boolean.ceiling_light_control_moderate_light_outdoor_guest_toilet
+    - input_boolean.lamp_control_moderate_light_outdoor_guest_toilet
+    - input_boolean.led_control_moderate_light_outdoor_guest_toilet
+    - input_boolean.ceiling_light_control_low_light_outdoor_guest_toilet
+    - input_boolean.lamp_control_low_light_outdoor_guest_toilet
+    - input_boolean.led_control_low_light_outdoor_guest_toilet
+    - input_boolean.ceiling_light_control_sleep_mode_guest_toilet
+    - input_boolean.lamp_control_sleep_mode_guest_toilet
+    - input_boolean.led_control_sleep_mode_guest_toilet
     - automation.zh_gt_set_radiator_valve_target_temperature_based_on_external_sensor_temperature_difference_guest_toilet
-    - automation.zl_gt_lights_and_curtain_on_if_entering_to_room_guest_toilet
+    - automation.zl_gt_curtain_states_when_no_person_present_guest_toilet
+    - automation.zl_gt_lights_on_if_entering_to_room_guest_toilet
     - automation.zl_gt_lights_off_if_no_person_guest_toilet
     - automation.zl_gt_disable_entering_lights_on_automation_if_any_people_are_in_the_room_guest_toilet
     - automation.zh_gt_heating_schedule_on_if_staying_in_the_room_guest_toilet
     - automation.zh_gt_heating_schedule_off_if_people_left_the_room_guest_toilet
+    - automation.zh_gt_demister_on_when_taking_shower_guest_toilet
     - automation.zh_gt_heating_manual_override_guest_toilet
     - automation.zl_gt_applies_different_scenes_based_on_scene_selections_state_execution_guest_toilet
+    - automation.zlb_gt_mirror_button_control_guest_toilet
     - automation.zlb_gt_wall_switch_single_left_press_toggle_ceiling_light_guest_toilet
-    - automation.zlb_gt_wall_switch_double_press_leave_room_and_turn_off_everything_guest_toilet
+    - automation.zlb_gt_wall_switch_double_click_leave_room_and_turn_off_everything_guest_toilet
     - automation.zlm_gt_mirror_sensor_on_turns_on_ceiling_light_with_cool_temperature_guest_toilet
     - automation.zlm_gt_mirror_sensor_off_turns_ceiling_light_with_adaptive_lighting_unless_it_s_off_guest_toilet
     - automation.zoc_gt_occupancy_update_guest_toilet
@@ -1515,7 +2167,5 @@ group:
     - switch.0x00158d000487851a_wireless_2
     - switch.0x00158d0008d94c10_wireless
     - switch.adaptive_lighting_sleep_mode_guest_toilet
-    - input_datetime.noon_time_guest_toilet
     - sensor.living_room_east_side_light_sensor
-    - input_number.guest_toilet_min_value_as_bright
     - group.guest_toilet_battery
