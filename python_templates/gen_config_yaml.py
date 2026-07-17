@@ -10,6 +10,7 @@ import automation_helpers
 import configured_entity_filter
 import dashboard_colors
 import dashboard_generator
+import dashboard_restrictions
 import dashboard_view_helpers
 import entity_declaration_builders
 import entity_naming
@@ -5037,29 +5038,7 @@ class RoomBase:
     return self.getRestricedAccess('us', room_card)
 
   def getRestricedAccess(self, user, inner_card):
-    if user not in ['us', 'en_suite_room_user', 'guest_room_user']:
-      raise TypeError( "\n" +\
-                       "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n" + \
-                       "User " + user + "is not supported for restriction card" + "\n" + \
-                       "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n")
-
-    exemption_users = [
-                        {"user": "72e8e305715145febff1ba701fd78954"}, # relliky
-                        {"user": "60652445f3d14a8f822054569404b643"}, # Ke
-                        {"user": "317c743e4c8348b8a70d671db917dbe8"}, # Tai
-                        {"user": "e9fbd5a00abd49b88122f03d68053128"}, # Guest room user
-                      ]
-
-    return {
-      "type": "custom:restriction-card",
-      "restrictions": {
-        "hide": {
-          "exemptions": exemption_users,
-        }
-      },
-      "exemptions": exemption_users,
-      "card": inner_card
-    }
+    return dashboard_restrictions.restricted_access_card(user, inner_card)
 
 
   # Create a new yaml and write to it
