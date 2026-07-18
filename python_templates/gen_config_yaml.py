@@ -3354,16 +3354,18 @@ class RoomBase:
                         alias=light_action_helpers.wall_switch_turn_on_reset_alias())
 
     elif light_brightness != None:
-        action_service = {"service" : "light.turn_on",
-                          "entity_id" : entity_list,
-                          "data": {"brightness_pct": light_brightness}}
+        action_service = light_action_helpers.turn_on_with_brightness_action(
+          entity_list,
+          light_brightness,
+        )
 
     # Adaptive light only applies when lights are turned on by light.turn_on instead of homeassistant.turn_on
     # that's not true.....
     elif is_light_list and (state == 'on' or state == 'off'):
-      action_service = {"service":"light.turn_on"  if state == 'on'     else \
-                                  "light.turn_off" if state == 'off'    else None,
-                        "entity_id": entity_list}
+      action_service = light_action_helpers.light_on_off_action(
+        entity_list,
+        state,
+      )
 
     elif is_light_list and (state == 'increment' or state == 'decrement'):
       action_service = {

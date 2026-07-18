@@ -280,6 +280,8 @@ Completed foundations:
 79. Move climate HVAC-mode and temperature-step action construction into its
     own module.
 80. Move wall-switch turn-on reset sequence construction into its own module.
+81. Move simple light brightness and on/off action construction into the light
+    action module.
 
 Recommended next steps:
 
