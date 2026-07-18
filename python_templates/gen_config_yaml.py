@@ -3641,21 +3641,27 @@ class RoomBase:
       self.getTemplateCard,
     )
 
+  def getMushroomNavigationRoomCard(self):
+    return dashboard_view_helpers.navigation_status_room_card(
+      self.getNavigationRoomTitleCard(),
+      self.getCardModColor("transparent"),
+      self.getNavigationStatusCards(),
+    )
+
+  def getButtonNavigationRoomCard(self):
+    return dashboard_view_helpers.button_navigation_room_card(
+      self.room_name,
+      self.room_icon,
+      self.dashboard_view_path,
+    )
+
   def getNavigationRoomCard (self):
     card_type = 'mushroom'
 
     if card_type == 'mushroom':
-      room_card = dashboard_view_helpers.navigation_status_room_card(
-          self.getNavigationRoomTitleCard(),
-          self.getCardModColor("transparent"),
-          self.getNavigationStatusCards(),
-      )
+      room_card = self.getMushroomNavigationRoomCard()
     elif card_type == 'button':
-      room_card = dashboard_view_helpers.button_navigation_room_card(
-        self.room_name,
-        self.room_icon,
-        self.dashboard_view_path,
-      )
+      room_card = self.getButtonNavigationRoomCard()
 
     return self.getRestricedAccess('us', room_card)
 

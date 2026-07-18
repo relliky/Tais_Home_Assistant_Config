@@ -66,6 +66,59 @@ class RoomBaseHelpersTest(unittest.TestCase):
         self.assertEqual(triggers_no_start[0]["trigger"], "time_pattern")
         self.assertEqual(triggers_no_start[0]["minutes"], "/10")
 
+    def make_navigation_room(self):
+        room = gen_config_yaml.RoomBase.__new__(gen_config_yaml.RoomBase)
+        room.room_icon = "mdi:fridge"
+        room.room_name = "Kitchen"
+        room.temperature_sensor = "sensor.kitchen_temperature"
+        room.motion_group = "group.kitchen_motion"
+        room.unavailable_entity = "binary_sensor.kitchen_unavailable"
+        room.room_battery_entity_list = []
+        room.room_low_battery_entity = "binary_sensor.kitchen_low_battery"
+        room.room_battery_entity = "group.kitchen_battery"
+        room.windows = []
+        room.window_group = "group.kitchen_window"
+        room.tvs = []
+        room.lights = []
+        room.light_group = "group.kitchen_light"
+        room.cfg_occupancy_override = False
+        room.occupancy_override_entity = "input_boolean.kitchen_override"
+        room.cfg_temp_control = False
+        room.thermostat = "climate.kitchen"
+        room.cfg_occupancy = False
+        room.room_occupancy = "input_select.kitchen_occupancy"
+        room.curtains = []
+        room.curtain_group = "cover.kitchen_curtain"
+        room.dashboard_view_path = "lovelace/kitchen"
+        room.getTemplateCard = lambda **kwargs: kwargs
+        room.getPostfix = lambda motion_group: "kitchen_motion"
+        room.getCardModColor = lambda color: {"card_mod": {"style": color}}
+        return room
+
+    def test_get_mushroom_navigation_room_card(self):
+        room = self.make_navigation_room()
+
+        card = room.getMushroomNavigationRoomCard()
+
+        self.assertEqual(card["type"], "custom:stack-in-card")
+        self.assertEqual(card["mode"], "vertical")
+        self.assertEqual(card["cards"][0]["primary"], "Kitchen")
+        self.assertEqual(card["cards"][1]["mode"], "horizontal")
+        self.assertEqual(
+            card["cards"][1]["cards"][0]["condition_entity"],
+            "binary_sensor.kitchen_unavailable",
+        )
+
+    def test_get_button_navigation_room_card(self):
+        room = self.make_navigation_room()
+
+        card = room.getButtonNavigationRoomCard()
+
+        self.assertEqual(card["type"], "custom:button-card")
+        self.assertEqual(card["name"], "Kitchen")
+        self.assertEqual(card["icon"], "mdi:fridge")
+        self.assertEqual(card["tap_action"]["navigation_path"], "lovelace/kitchen")
+
 
 
 def pyscript_occupancy_next_state(cur_state, motion, motion_state_lasts_for,

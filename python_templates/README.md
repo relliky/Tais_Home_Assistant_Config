@@ -356,6 +356,8 @@ Completed foundations:
      module.
 123. Move navigation title secondary appending into the dashboard view helper
      module.
+124. Split normal navigation room-card branch construction into small
+     `RoomBase` methods.
 
 Recommended next steps:
 
