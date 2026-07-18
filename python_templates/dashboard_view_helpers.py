@@ -108,3 +108,12 @@ def navigation_room_secondary_text(temperature_sensor, motion_group, motion_post
     " as_timestamp(states.group[motion_postfix].last_changed)) |\n"
     " timestamp_custom(\"%H:%M\", false) }} "
   )
+
+
+def unavailable_status_card(unavailable_entity, template_card):
+  return template_card(
+    icon="mdi:battery-charging-outline",
+    icon_color="red",
+    condition_state='on',
+    condition_entity=unavailable_entity,
+  )

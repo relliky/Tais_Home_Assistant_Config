@@ -185,6 +185,23 @@ class DashboardViewHelpersTest(unittest.TestCase):
             ' timestamp_custom("%H:%M", false) }} ',
         )
 
+    def test_unavailable_status_card(self):
+        def template_card(**kwargs):
+            return kwargs
+
+        self.assertEqual(
+            dashboard_view_helpers.unavailable_status_card(
+                "binary_sensor.kitchen_unavailable",
+                template_card,
+            ),
+            {
+                "icon": "mdi:battery-charging-outline",
+                "icon_color": "red",
+                "condition_state": "on",
+                "condition_entity": "binary_sensor.kitchen_unavailable",
+            },
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

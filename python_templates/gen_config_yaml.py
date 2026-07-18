@@ -3638,11 +3638,9 @@ class RoomBase:
               #  icon_color = "{% set motion = '"+self.motion_group+"' %}  \n{% if is_state(motion, 'on') %}\n  blue\n{% endif %}",
               #),
             ] + ([
-              self.getTemplateCard(
-                icon       = "mdi:battery-charging-outline",
-                icon_color = "red",
-                condition_state  = 'on',
-                condition_entity = self.unavailable_entity
+              dashboard_view_helpers.unavailable_status_card(
+                self.unavailable_entity,
+                self.getTemplateCard,
               )
             ]) + ([] if self.room_battery_entity_list == [] else [
               self.getTemplateCard(

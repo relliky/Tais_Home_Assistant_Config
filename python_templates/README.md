@@ -311,6 +311,8 @@ Completed foundations:
 98. Remove the mutable default cards list from the room view append helper.
 99. Move navigation room secondary text construction into the dashboard view
     helper module.
+100. Move unavailable-status navigation card construction into the dashboard
+     view helper module.
 
 Recommended next steps:
 
