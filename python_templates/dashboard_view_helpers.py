@@ -90,3 +90,21 @@ def button_navigation_room_card(room_name, room_icon, dashboard_view_path):
     "show_icon": True,
     "show_name": True,
   }
+
+
+def navigation_room_secondary_text(temperature_sensor, motion_group, motion_postfix):
+  temperature_sensor_template_reference = "states." + temperature_sensor + ".state"
+  return (
+    "{% if " + temperature_sensor_template_reference + " is defined %} {{ " +
+    temperature_sensor_template_reference + " }}\u00b0C {% endif %}" +
+    "{% set motion_postfix     = '" + motion_postfix + "' %}\n" +
+    "{% set motion = '" + motion_group + "' %}\n"
+    "{% if is_state(motion, 'on') %}\n"
+    "  \U0001f64b\U0001f3fb\n"
+    "{% else %}\n"
+    "  \U0001f9b6\U0001f3fb\n"
+    "{% endif %}{{\n"
+    " (as_timestamp(now()) -\n"
+    " as_timestamp(states.group[motion_postfix].last_changed)) |\n"
+    " timestamp_custom(\"%H:%M\", false) }} "
+  )

@@ -165,6 +165,26 @@ class DashboardViewHelpersTest(unittest.TestCase):
             },
         )
 
+    def test_navigation_room_secondary_text(self):
+        self.assertEqual(
+            dashboard_view_helpers.navigation_room_secondary_text(
+                "sensor.kitchen_temperature",
+                "group.kitchen_motion",
+                "kitchen_motion",
+            ),
+            "{% if states.sensor.kitchen_temperature.state is defined %} {{ states.sensor.kitchen_temperature.state }}\u00b0C {% endif %}"
+            "{% set motion_postfix     = 'kitchen_motion' %}\n"
+            "{% set motion = 'group.kitchen_motion' %}\n"
+            "{% if is_state(motion, 'on') %}\n"
+            "  \U0001f64b\U0001f3fb\n"
+            "{% else %}\n"
+            "  \U0001f9b6\U0001f3fb\n"
+            "{% endif %}{{\n"
+            " (as_timestamp(now()) -\n"
+            " as_timestamp(states.group[motion_postfix].last_changed)) |\n"
+            ' timestamp_custom("%H:%M", false) }} ',
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

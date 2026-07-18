@@ -3612,9 +3612,6 @@ class RoomBase:
   def getNavigationRoomCard (self):
     type = 'mushroom'
 
-    # e.g. output can be states.sensor.corridor_temperature_sensor.state
-    temperature_sensor_template_reference = "states." + self.temperature_sensor + ".state"
-
     if type == 'mushroom':
       room_card = {
         "type": "custom:stack-in-card",
@@ -3624,9 +3621,11 @@ class RoomBase:
             icon       = self.room_icon,
             icon_color = "blue",
             primary    = self.room_name,
-            secondary  = "{% if "+temperature_sensor_template_reference+" is defined %} {{ "+temperature_sensor_template_reference+" }}\u00b0C {% endif %}" + \
-                         "{% set motion_postfix     = '"+self.getPostfix(self.motion_group)+"' %}\n" + \
-                         "{% set motion = '"+self.motion_group+"' %}\n{% if is_state(motion, 'on') %}\n  🙋🏻\n{% else %}\n  🦶🏻\n{% endif %}{{\n (as_timestamp(now()) -\n as_timestamp(states.group[motion_postfix].last_changed)) |\n timestamp_custom(\"%H:%M\", false) }} ",
+            secondary  = dashboard_view_helpers.navigation_room_secondary_text(
+              self.temperature_sensor,
+              self.motion_group,
+              self.getPostfix(self.motion_group),
+            ),
             tap_action = 'navigate'
           ),
           # Make the bottom stack-in-card transparent

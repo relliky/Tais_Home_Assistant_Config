@@ -309,6 +309,8 @@ Completed foundations:
     helper module.
 97. Move room-view card list composition into the dashboard view helper module.
 98. Remove the mutable default cards list from the room view append helper.
+99. Move navigation room secondary text construction into the dashboard view
+    helper module.
 
 Recommended next steps:
 
