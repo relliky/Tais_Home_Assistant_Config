@@ -3659,10 +3659,9 @@ class RoomBase:
                 self.getTemplateCard,
               )
             ]) + ([] if self.lights == [] else [
-              self.getTemplateCard(
-                icon       = "{% if is_state(entity, 'on') %}\n  mdi:floor-lamp\n{% else %}\n  mdi:floor-lamp-outline\n{% endif %}",
-                icon_color = "{% if is_state(entity, 'on') %}\n  amber\n{% endif %}",
-                tap_entity = self.light_group
+              dashboard_view_helpers.light_status_card(
+                self.light_group,
+                self.getTemplateCard,
               )
             ]) + ([] if self.cfg_occupancy_override == False else [
               self.getTemplateCard(

@@ -267,6 +267,28 @@ class DashboardViewHelpersTest(unittest.TestCase):
             },
         )
 
+    def test_light_status_card(self):
+        def template_card(**kwargs):
+            return kwargs
+
+        self.assertEqual(
+            dashboard_view_helpers.light_status_card(
+                "group.kitchen_light_group",
+                template_card,
+            ),
+            {
+                "icon": "{% if is_state(entity, 'on') %}\n"
+                "  mdi:floor-lamp\n"
+                "{% else %}\n"
+                "  mdi:floor-lamp-outline\n"
+                "{% endif %}",
+                "icon_color": "{% if is_state(entity, 'on') %}\n"
+                "  amber\n"
+                "{% endif %}",
+                "tap_entity": "group.kitchen_light_group",
+            },
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

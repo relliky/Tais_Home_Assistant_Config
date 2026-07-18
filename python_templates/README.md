@@ -319,6 +319,8 @@ Completed foundations:
      helper module.
 103. Move TV-status navigation card construction into the dashboard view helper
      module.
+104. Move light-status navigation card construction into the dashboard view
+     helper module.
 
 Recommended next steps:
 

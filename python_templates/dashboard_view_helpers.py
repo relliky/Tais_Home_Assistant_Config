@@ -157,3 +157,17 @@ def tv_status_card(tv_entity, template_card):
     condition_entity=tv_entity,
     condition_state='on',
   )
+
+
+def light_status_card(light_group, template_card):
+  return template_card(
+    icon="{% if is_state(entity, 'on') %}\n"
+         "  mdi:floor-lamp\n"
+         "{% else %}\n"
+         "  mdi:floor-lamp-outline\n"
+         "{% endif %}",
+    icon_color="{% if is_state(entity, 'on') %}\n"
+               "  amber\n"
+               "{% endif %}",
+    tap_entity=light_group,
+  )
