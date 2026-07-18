@@ -577,6 +577,24 @@ class DashboardViewHelpersTest(unittest.TestCase):
             ],
         )
 
+    def test_append_navigation_title_secondary(self):
+        room_card = {
+            "card": {
+                "cards": [
+                    {"secondary": "base"},
+                    {"cards": []},
+                ]
+            }
+        }
+
+        result = dashboard_view_helpers.append_navigation_title_secondary(
+            room_card,
+            " extra",
+        )
+
+        self.assertIs(result, room_card)
+        self.assertEqual(room_card["card"]["cards"][0]["secondary"], "base extra")
+
     def test_system_navigation_title_card(self):
         self.assertEqual(
             dashboard_view_helpers.system_navigation_title_card(),

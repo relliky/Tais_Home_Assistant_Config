@@ -351,6 +351,11 @@ def prepend_navigation_status_cards(room_card, cards):
   return room_card
 
 
+def append_navigation_title_secondary(room_card, secondary_text):
+  room_card["card"]["cards"][0]["secondary"] += secondary_text
+  return room_card
+
+
 def system_navigation_title_card():
   return {
     "type": "custom:mushroom-template-card",

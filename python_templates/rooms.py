@@ -557,7 +557,10 @@ def define_room_classes(RoomBase):
     def getNavigationRoomCard (self):
       room_card = super().getNavigationRoomCard()
       # Add vaccum info
-      room_card['card']['cards'][0]['secondary'] += "{% set vaccum = 'vacuum.x1' %} {% if   is_state(vaccum, 'docked') %}\n 🔋 \n{% elif is_state(vaccum, 'cleaning') %}\n 🧹 \n{% elif is_state(vaccum, 'unavailable') %}\n 🌐 \n{% else %}\n {{states('vacuum.x1')}} \n{% endif %}"
+      dashboard_view_helpers.append_navigation_title_secondary(
+        room_card,
+        "{% set vaccum = 'vacuum.x1' %} {% if   is_state(vaccum, 'docked') %}\n 🔋 \n{% elif is_state(vaccum, 'cleaning') %}\n 🧹 \n{% elif is_state(vaccum, 'unavailable') %}\n 🌐 \n{% else %}\n {{states('vacuum.x1')}} \n{% endif %}",
+      )
       # Add additional cards
       dashboard_view_helpers.prepend_navigation_status_cards(room_card, [
         self.getTemplateCard(

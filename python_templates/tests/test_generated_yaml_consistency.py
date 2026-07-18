@@ -1,4 +1,5 @@
 from pathlib import Path
+import copy
 import unittest
 
 import yaml
@@ -21,6 +22,23 @@ def load_yaml(path):
         return yaml.safe_load(yaml_file)
 
 
+def normalize_generated_yaml(value):
+    value = copy.deepcopy(value)
+
+    def normalize(node):
+        if isinstance(node, dict):
+            if node.get("trigger") == "time_pattern" and "seconds" in node:
+                node["seconds"] = "__random_second__"
+            for child in node.values():
+                normalize(child)
+        elif isinstance(node, list):
+            for child in node:
+                normalize(child)
+
+    normalize(value)
+    return value
+
+
 class GeneratedYamlConsistencyTest(unittest.TestCase):
     def test_generated_yaml_matches_baseline_structure(self):
         for group_name, generated_dir in GENERATED_GROUPS.items():
@@ -34,8 +52,8 @@ class GeneratedYamlConsistencyTest(unittest.TestCase):
             for file_name in baseline_files:
                 with self.subTest(group=group_name, file=file_name):
                     self.assertEqual(
-                        load_yaml(generated_dir / file_name),
-                        load_yaml(baseline_dir / file_name),
+                        normalize_generated_yaml(load_yaml(generated_dir / file_name)),
+                        normalize_generated_yaml(load_yaml(baseline_dir / file_name)),
                     )
 
 

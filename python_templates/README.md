@@ -354,6 +354,8 @@ Completed foundations:
      `RoomBase` methods.
 122. Move navigation status-card prepending into the dashboard view helper
      module.
+123. Move navigation title secondary appending into the dashboard view helper
+     module.
 
 Recommended next steps:
 
