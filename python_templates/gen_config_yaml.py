@@ -2107,14 +2107,12 @@ class RoomBase:
 
       # Use single condition
       if condition_states is None:
-        condition_card = {
-          "type": "conditional",
-          "conditions": [
-            ( {"entity":    condition_entity}) | (
-              {"state_not": condition_state_not} if condition_state_not != None else \
-              {"state":     condition_state}    )
-          ],
-          "card": template_card }
+        condition_card = dashboard_entity_cards.conditional_template_card(
+          template_card,
+          condition_entity,
+          condition_state=condition_state,
+          condition_state_not=condition_state_not,
+        )
 
       else: # Use multiple conditions
         condition_card = {

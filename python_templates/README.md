@@ -199,6 +199,8 @@ Completed foundations:
     module.
 41. Move Lovelace header chips card builder into the entity-card module.
 42. Move Lovelace template-card base builders into the entity-card module.
+43. Move Lovelace single-condition template-card wrapper into the entity-card
+    module.
 
 Recommended next steps:
 

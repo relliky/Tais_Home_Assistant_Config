@@ -372,3 +372,16 @@ def template_card(
   } | ({"primary": primary} if primary != None else {}) \
     | ({"secondary": secondary} if secondary != None else {}) \
     | ({"icon_color": "{% set entity = '" + entity + "' %}\n" + icon_color} if theme == 'default' else {})
+
+
+def conditional_template_card(template_card, condition_entity, condition_state='on', condition_state_not=None):
+  return {
+    "type": "conditional",
+    "conditions": [
+      ({"entity": condition_entity}) | (
+        {"state_not": condition_state_not} if condition_state_not != None else
+        {"state": condition_state}
+      )
+    ],
+    "card": template_card
+  }

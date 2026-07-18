@@ -225,6 +225,48 @@ class DashboardEntityCardsTest(unittest.TestCase):
 
         self.assertNotIn("icon_color", card)
 
+    def test_conditional_template_card_state(self):
+        template = {"type": "custom:mushroom-template-card"}
+
+        self.assertEqual(
+            dashboard_entity_cards.conditional_template_card(
+                template,
+                "input_boolean.master_room_sleep_time",
+                condition_state="on",
+            ),
+            {
+                "type": "conditional",
+                "conditions": [
+                    {
+                        "entity": "input_boolean.master_room_sleep_time",
+                        "state": "on",
+                    }
+                ],
+                "card": template,
+            },
+        )
+
+    def test_conditional_template_card_state_not(self):
+        template = {"type": "custom:mushroom-template-card"}
+
+        self.assertEqual(
+            dashboard_entity_cards.conditional_template_card(
+                template,
+                "input_boolean.master_room_sleep_time",
+                condition_state_not="off",
+            ),
+            {
+                "type": "conditional",
+                "conditions": [
+                    {
+                        "entity": "input_boolean.master_room_sleep_time",
+                        "state_not": "off",
+                    }
+                ],
+                "card": template,
+            },
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
