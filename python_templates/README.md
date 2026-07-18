@@ -301,6 +301,8 @@ Completed foundations:
 92. Move light-intensity condition construction into the condition helper
     module.
 93. Move bright-day condition construction into the condition helper module.
+94. Move dashboard home-navigation card construction into the dashboard view
+    helper module.
 
 Recommended next steps:
 

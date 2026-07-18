@@ -46,6 +46,47 @@ class DashboardViewHelpersTest(unittest.TestCase):
         with self.assertRaises(TypeError):
             dashboard_view_helpers.layout_wrapper_cards("bad")
 
+    def test_home_navigation_card_uses_default_home_path(self):
+        self.assertEqual(
+            dashboard_view_helpers.home_navigation_card("lovelace"),
+            {
+                "type": "custom:mushroom-template-card",
+                "entity": "input_boolean.placeholder",
+                "icon": "mdi:keyboard-return",
+                "icon_color": "yellow",
+                "primary": "HOME",
+                "secondary": "",
+                "layout": "vertical",
+                "hold_action": {
+                    "action": "toggle"
+                },
+                "tap_action": {
+                    "action": "navigate",
+                    "navigation_path": "lovelace/home",
+                },
+                "icon_tap_action": {
+                    "action": "navigate",
+                    "navigation_path": "lovelace/home",
+                },
+                "card_mod": {
+                    "style": {
+                        "mushroom-state-info$": ".primary {\n  font-size: 16px !important;\n  position: relative;\n  top: 0px;\n  left: 0px;\n  overflow: visible !important;\n  white-space:  \n}\n",
+                        "mushroom-shape-icon$": ".shape {\n  position: relative;\n  left: 0px;\n  top: 0px;\n}\n",
+                        ".": ":host {\n  --mush-icon-size: 80px;\n}\n",
+                    }
+                },
+            },
+        )
+
+    def test_home_navigation_card_uses_override_path(self):
+        card = dashboard_view_helpers.home_navigation_card(
+            "lovelace",
+            navigate_path="custom/path",
+        )
+
+        self.assertEqual(card["tap_action"]["navigation_path"], "custom/path")
+        self.assertEqual(card["icon_tap_action"]["navigation_path"], "custom/path")
+
 
 if __name__ == "__main__":
     unittest.main()
