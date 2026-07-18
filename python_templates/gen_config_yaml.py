@@ -23,6 +23,7 @@ import generator_cli
 import generator_io
 import gui_control_group
 import ha_entity_registry
+import media_automation_helpers
 import message_helpers
 import motion_light_automation_helpers
 import offline_device_automation_helpers
@@ -2891,26 +2892,16 @@ class RoomBase:
 
 
   def gen_media_automations(self):
-    self.automation_list += [{
-        "alias" : "ZM-" + self.automation_room_name + "Sonos Pause Playing After People Left" + "-" + self.room_name,
-        "configured": (len(self.media_players) > 0),
-        "trigger": [
-          { "platform": "state",
-            "entity_id": self.room_occupancy,
-            "to": "Outside",
-            "for": ("00:10:00" if self.room_entity == 'corridor' else "00:00:01"),
-          }
-        ] + self.get_time_pattern_trigger(),
-        "action":
-            [
-              { "condition": "state",
-                "entity_id": self.room_occupancy,
-                "state": "Outside",
-                "for": ("00:10:00" if self.room_entity == 'corridor' else "00:00:01"),
-              },
-              self.set(self.media_players, 'off')
-            ]
-      }
+    self.automation_list += [
+      media_automation_helpers.sonos_pause_after_people_left_automation(
+        self.automation_room_name,
+        self.room_name,
+        self.room_entity,
+        self.room_occupancy,
+        self.media_players,
+        self.get_time_pattern_trigger(),
+        self.set,
+      )
     ]
 
 
