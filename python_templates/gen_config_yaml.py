@@ -24,6 +24,7 @@ import generator_io
 import gui_control_group
 import ha_entity_registry
 import message_helpers
+import motion_light_automation_helpers
 import occupancy_state_machine
 import occupancy_ratio_sensor
 import package_writer
@@ -2237,14 +2238,11 @@ class RoomBase:
         ] + self.get_time_pattern_trigger(minutes=10),
         'conditions': [self.continueIf(self.room_occupancy, 'Outside', lastFor="00:03:00")],
         "action": [
-          {
-            "alias": 'If it is intense light summer',   "if": self.condition_list_is('intense light summer' ),  "then": self.callSceneService('curtain states when intense light summer' ), "else": {
-            "alias": 'If it is moderate light outdoor', "if": self.condition_list_is('moderate light outdoor'), "then": self.callSceneService('curtain states when moderate light outdoor'), "else": {
-            "alias": 'If it is low light outdoor'    ,  "if": self.condition_list_is('low light outdoor'     ), "then": self.callSceneService('curtain states when low light outdoor'     ), "else": {
-            "alias": 'If it is sleep mode'           ,  "if": self.condition_list_is('sleep mode'            ), "then": self.callSceneService('curtain states when sleep mode'            ), "else": {
-            "alias": 'Default',                   **automation_helpers.do_nothing_service()
-            }}}}
-          }
+          motion_light_automation_helpers.curtain_scene_choose(
+            self.condition_list_is,
+            self.callSceneService,
+            automation_helpers.do_nothing_service,
+          )
         ]
     }]
 
@@ -2263,14 +2261,11 @@ class RoomBase:
         "action": [
           automation_helpers.automation_turn_off(self.automation_lights_on['id'], stop_actions=False),
           self.setNewSceneState("Idle"),
-          {
-            "alias": 'If it is bright morning',   "if": self.condition_list_is('intense light summer' ),  "then": self.callSceneService('light states when intense light summer' ), "else": {
-            "alias": 'If it is bright afternoon', "if": self.condition_list_is('moderate light outdoor'), "then": self.callSceneService('light states when moderate light outdoor'), "else": {
-            "alias": 'If it is bright afternoon', "if": self.condition_list_is('low light outdoor'     ), "then": self.callSceneService('light states when low light outdoor'     ), "else": {
-            "alias": 'If it is bright afternoon', "if": self.condition_list_is('sleep mode'            ), "then": self.callSceneService('light states when sleep mode'            ), "else": {
-            "alias": 'Default',                   **automation_helpers.do_nothing_service()
-            }}}}
-          },
+          motion_light_automation_helpers.light_scene_choose(
+            self.condition_list_is,
+            self.callSceneService,
+            automation_helpers.do_nothing_service,
+          ),
           # Trigger curtain states as well
           automation_helpers.automation_trigger(self.automation_curtain_states['id']),
         ]

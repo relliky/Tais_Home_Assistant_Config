@@ -28,6 +28,8 @@ package YAML and Lovelace dashboard YAML from room-specific Python classes.
   entity IDs used by unavailable-device sensors.
 - `automation_helpers.py` contains small Home Assistant trigger, action, and
   condition dict builders.
+- `motion_light_automation_helpers.py` contains motion-light automation choose
+  builders.
 - `battery_entity_builder.py` contains room-level battery group/min/low-battery
   entity builders.
 - `occupancy_state_machine.py` contains the room occupancy choose/action
@@ -211,6 +213,7 @@ Completed foundations:
 49. Move entity declaration aggregation into entity-interface helpers.
 50. Move small automation service dict builders into automation helpers.
 51. Move no-op automation service builder into automation helpers.
+52. Move motion-light scene choose builders into their own module.
 
 Recommended next steps:
 
