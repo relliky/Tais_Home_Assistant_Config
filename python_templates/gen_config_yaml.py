@@ -27,6 +27,7 @@ import gui_control_group
 import ha_entity_registry
 import media_automation_helpers
 import message_helpers
+import mirror_automation_helpers
 import motion_light_automation_helpers
 import offline_device_automation_helpers
 import occupancy_automation_helpers
@@ -3023,57 +3024,22 @@ class RoomBase:
 
   def gen_mirror_light_automations(self):
     self.automation_list += [
-      {
-        "alias":"ZLM-" + self.automation_room_name + "Mirror Sensor On Turns On Ceiling Light With Cool Temperature" + "-" + self.room_name,
-        "configured": len(self.mirror_sensors) > 0,
-        "trigger": [
-          {
-            "platform": "state",
-            "entity_id": self.mirror_sensors,
-            "from": "off",
-            "to":  "on"
-          }
-        ],
-        "action": [
-          {
-            "condition": "state",
-            "entity_id": self.mirror_sensors,
-            "state":  "on"
-          },
-          { "delay": "00:00:01" },
-          { "service": "light.turn_on",
-            "target":  {"entity_id": self.ceiling_lights},
-            "data":    {"brightness_pct": 100,
-                        "kelvin": 6500}
-          }
-        ]
-      }
+      mirror_automation_helpers.mirror_sensor_on_automation(
+        self.automation_room_name,
+        self.room_name,
+        self.mirror_sensors,
+        self.ceiling_lights,
+      )
     ]
 
     self.automation_list += [
-      {
-        "alias":"ZLM-" + self.automation_room_name + "Mirror Sensor Off Turns Ceiling Light With Adaptive Lighting Unless it's off" + "-" + self.room_name,
-        "configured": len(self.mirror_sensors) > 0,
-        "trigger": [
-          {
-            "platform": "state",
-            "entity_id": self.mirror_sensors,
-            "from": "on",
-            "to":  "off"
-          }
-        ],
-        "action": [
-          { "delay": "00:00:01" }, # this delay should stop the ceiling light being turned on
-          {
-            "condition": "state",
-            "entity_id": self.room_occupancy,
-            "state":  ['Just Entered', 'Stayed Inside'],
-          },
-          { "service": "adaptive_lighting.apply",
-            "data":    {"entity_id": self.al_adapt_brightness}
-          }
-        ]
-      }
+      mirror_automation_helpers.mirror_sensor_off_automation(
+        self.automation_room_name,
+        self.room_name,
+        self.mirror_sensors,
+        self.room_occupancy,
+        self.al_adapt_brightness,
+      )
     ]
 
 

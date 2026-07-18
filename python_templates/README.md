@@ -29,6 +29,8 @@ package YAML and Lovelace dashboard YAML from room-specific Python classes.
 - `button_automation_helpers.py` contains button automation builders.
 - `camera_automation_helpers.py` contains camera automation builders.
 - `media_automation_helpers.py` contains media-player automation builders.
+- `mirror_automation_helpers.py` contains mirror-sensor light automation
+  builders.
 - `automation_helpers.py` contains small Home Assistant trigger, action, and
   condition dict builders.
 - `offline_device_automation_helpers.py` contains offline-device notification
@@ -249,6 +251,7 @@ Completed foundations:
     automation module.
 66. Move wall-button double-click leave-room automation construction into the
     button automation module.
+67. Move mirror-sensor light automation construction into its own module.
 
 Recommended next steps:
 
