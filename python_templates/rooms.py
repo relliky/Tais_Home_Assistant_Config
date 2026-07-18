@@ -1736,11 +1736,8 @@ def define_room_classes(RoomBase):
               "type": "custom:stack-in-card",
               "mode": "horizontal",
               "cards": [
-                self.getTemplateCard(
-                  icon       = "mdi:desktop-classic",
-                  icon_color = "{% if   is_state(entity, 'on') %} amber {% endif %}",
-                  tap_entity = 'switch.gaming_pc',
-                  tap_action = 'more-info'
+                dashboard_view_helpers.system_gaming_pc_status_card(
+                  self.getTemplateCard,
                 ),
                 #self.getTemplateCard(
                 #  icon       = "mdi:television-box",
@@ -1754,11 +1751,8 @@ def define_room_classes(RoomBase):
                 #  tap_entity = 'binary_sensor.car_s_unlocked',
                 #  tap_action = 'more-info'
                 #),
-                self.getTemplateCard(
-                  icon       = "mdi:water-boiler",
-                  icon_color = "deep-orange",
-                  tap_entity = 'switch.water_heater',
-                  tap_action = 'more-info',
+                dashboard_view_helpers.system_water_heater_status_card(
+                  self.getTemplateCard,
                 )
                 #{
                 #  "type": "custom:mushroom-entity-card",

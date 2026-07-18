@@ -549,6 +549,34 @@ class DashboardViewHelpersTest(unittest.TestCase):
             },
         )
 
+    def test_system_gaming_pc_status_card(self):
+        def template_card(**kwargs):
+            return kwargs
+
+        self.assertEqual(
+            dashboard_view_helpers.system_gaming_pc_status_card(template_card),
+            {
+                "icon": "mdi:desktop-classic",
+                "icon_color": "{% if   is_state(entity, 'on') %} amber {% endif %}",
+                "tap_entity": "switch.gaming_pc",
+                "tap_action": "more-info",
+            },
+        )
+
+    def test_system_water_heater_status_card(self):
+        def template_card(**kwargs):
+            return kwargs
+
+        self.assertEqual(
+            dashboard_view_helpers.system_water_heater_status_card(template_card),
+            {
+                "icon": "mdi:water-boiler",
+                "icon_color": "deep-orange",
+                "tap_entity": "switch.water_heater",
+                "tap_action": "more-info",
+            },
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

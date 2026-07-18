@@ -341,6 +341,8 @@ Completed foundations:
      construction.
 114. Move System navigation title-card construction into the dashboard view
      helper module.
+115. Move System navigation status-card construction into the dashboard view
+     helper module.
 
 Recommended next steps:
 

@@ -356,3 +356,21 @@ def system_navigation_title_card():
       "navigation_path": "/lovelace-system/system",
     },
   }
+
+
+def system_gaming_pc_status_card(template_card):
+  return template_card(
+    icon="mdi:desktop-classic",
+    icon_color="{% if   is_state(entity, 'on') %} amber {% endif %}",
+    tap_entity='switch.gaming_pc',
+    tap_action='more-info',
+  )
+
+
+def system_water_heater_status_card(template_card):
+  return template_card(
+    icon="mdi:water-boiler",
+    icon_color="deep-orange",
+    tap_entity='switch.water_heater',
+    tap_action='more-info',
+  )
