@@ -3649,10 +3649,9 @@ class RoomBase:
                 self.getTemplateCard,
               )
             ]) + ([] if self.windows == [] else [
-              self.getTemplateCard(
-                icon       = "{% if is_state(entity, 'on') %}\n  mdi:window-open-variant\n{% else %}\n  mdi:window-closed-variant\n{% endif %}",
-                icon_color = "{% if is_state(entity, 'on') %}\n  lime\n{% endif %}",
-                condition_entity = self.window_group
+              dashboard_view_helpers.window_status_card(
+                self.window_group,
+                self.getTemplateCard,
               )
             ]) + ([] if self.tvs == [] else [
               self.getTemplateCard(

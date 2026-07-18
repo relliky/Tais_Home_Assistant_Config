@@ -131,3 +131,17 @@ def battery_status_card(room_low_battery_entity, room_battery_entity, template_c
                "{% endif %}",
     tap_entity=room_battery_entity,
   )
+
+
+def window_status_card(window_group, template_card):
+  return template_card(
+    icon="{% if is_state(entity, 'on') %}\n"
+         "  mdi:window-open-variant\n"
+         "{% else %}\n"
+         "  mdi:window-closed-variant\n"
+         "{% endif %}",
+    icon_color="{% if is_state(entity, 'on') %}\n"
+               "  lime\n"
+               "{% endif %}",
+    condition_entity=window_group,
+  )

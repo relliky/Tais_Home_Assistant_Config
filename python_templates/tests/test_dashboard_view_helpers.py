@@ -225,6 +225,28 @@ class DashboardViewHelpersTest(unittest.TestCase):
             },
         )
 
+    def test_window_status_card(self):
+        def template_card(**kwargs):
+            return kwargs
+
+        self.assertEqual(
+            dashboard_view_helpers.window_status_card(
+                "group.kitchen_window_group",
+                template_card,
+            ),
+            {
+                "icon": "{% if is_state(entity, 'on') %}\n"
+                "  mdi:window-open-variant\n"
+                "{% else %}\n"
+                "  mdi:window-closed-variant\n"
+                "{% endif %}",
+                "icon_color": "{% if is_state(entity, 'on') %}\n"
+                "  lime\n"
+                "{% endif %}",
+                "condition_entity": "group.kitchen_window_group",
+            },
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
