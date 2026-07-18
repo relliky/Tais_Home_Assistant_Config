@@ -203,6 +203,7 @@ Completed foundations:
     module.
 44. Move Lovelace template-card entity resolution and iOS styling helpers into
     the entity-card module.
+45. Move generated automation ID assignment into automation helpers.
 
 Recommended next steps:
 

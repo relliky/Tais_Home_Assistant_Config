@@ -54,3 +54,8 @@ def continue_if(entity_id, state, attribute=None, lastFor=None):
 
 def wrap_service_sequence(service_list, alias=''):
   return {"alias": alias, "if": always_on_condition(), "then": service_list}
+
+
+def assign_automation_ids(automation_list, get_id_from_alias):
+  for automation in automation_list:
+    automation['id'] = get_id_from_alias(automation['alias'])

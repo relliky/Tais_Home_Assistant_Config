@@ -2151,9 +2151,7 @@ class RoomBase:
     self.gen_room_specific_automations()
     self.gen_window_automations()
 
-
-    for automation in self.automation_list:
-      automation['id'] = self.getIDFromAlias(automation['alias'])
+    automation_helpers.assign_automation_ids(self.automation_list, self.getIDFromAlias)
 
 
   def gen_room_specific_automations(self):

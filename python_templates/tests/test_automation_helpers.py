@@ -62,6 +62,25 @@ class AutomationHelpersTest(unittest.TestCase):
             {"alias": "Turn on test", "if": ['{{ 1 == 1 }}'], "then": service_list},
         )
 
+    def test_assign_automation_ids(self):
+        automations = [
+            {"alias": "Kitchen Lights On"},
+            {"alias": "Kitchen Lights Off"},
+        ]
+
+        automation_helpers.assign_automation_ids(
+            automations,
+            lambda alias: "automation." + alias.lower().replace(" ", "_"),
+        )
+
+        self.assertEqual(
+            automations,
+            [
+                {"alias": "Kitchen Lights On", "id": "automation.kitchen_lights_on"},
+                {"alias": "Kitchen Lights Off", "id": "automation.kitchen_lights_off"},
+            ],
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
