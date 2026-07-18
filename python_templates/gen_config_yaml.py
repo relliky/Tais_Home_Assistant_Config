@@ -3066,42 +3066,14 @@ class RoomBase:
     self.automation_occupancy_update['id'] = self.getIDFromAlias(self.automation_occupancy_update['alias'])
     self.automation_list += [self.automation_occupancy_update | {
         "configured": self.cfg_occupancy,
-        "trigger": [
-          {
-            "entity_id": self.motion_group,
-            "platform": "state",
-            "to": "on"
-          },
-          {
-            "entity_id": self.motion_group,
-            "platform": "state",
-            "to": "on",
-            "for": {"seconds":self.entered_to_inside_timeout},
-          },
-          {
-            "entity_id": self.motion_group,
-            "platform": "state",
-            "to": "on",
-            "for":  {"seconds":self.inside_to_sleep_timeout},
-          },
-          {
-            "entity_id": self.motion_group,
-            "platform": "state",
-            "to": "off",
-          },
-          {
-            "entity_id": self.motion_group,
-            "platform": "state",
-            "to": "off",
-            "for": {"seconds":self.inside_to_outside_timeout},
-          },
-          {
-            "entity_id": self.motion_group,
-            "platform": "state",
-            "to": "off",
-            "for": {"seconds":self.sleep_to_outside_timeout },
-          }
-        ] + self.get_time_pattern_trigger(minutes=3),
+        "trigger": occupancy_automation_helpers.occupancy_update_triggers(
+          self.motion_group,
+          self.entered_to_inside_timeout,
+          self.inside_to_sleep_timeout,
+          self.inside_to_outside_timeout,
+          self.sleep_to_outside_timeout,
+          self.get_time_pattern_trigger(minutes=3),
+        ),
         "action": self.get_occupancy_state_machine_actions()
       }
     ]

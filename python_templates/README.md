@@ -252,6 +252,8 @@ Completed foundations:
 66. Move wall-button double-click leave-room automation construction into the
     button automation module.
 67. Move mirror-sensor light automation construction into its own module.
+68. Move occupancy-update trigger list construction into the occupancy
+    automation module.
 
 Recommended next steps:
 

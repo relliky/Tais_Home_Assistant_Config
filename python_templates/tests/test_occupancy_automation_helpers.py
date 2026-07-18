@@ -15,6 +15,55 @@ def set_service(entity_id, state):
 
 
 class OccupancyAutomationHelpersTest(unittest.TestCase):
+    def test_occupancy_update_triggers(self):
+        self.assertEqual(
+            occupancy_automation_helpers.occupancy_update_triggers(
+                "group.kitchen_motion",
+                10,
+                20,
+                30,
+                40,
+                [{"platform": "time_pattern", "minutes": "/3"}],
+            ),
+            [
+                {
+                    "entity_id": "group.kitchen_motion",
+                    "platform": "state",
+                    "to": "on",
+                },
+                {
+                    "entity_id": "group.kitchen_motion",
+                    "platform": "state",
+                    "to": "on",
+                    "for": {"seconds": 10},
+                },
+                {
+                    "entity_id": "group.kitchen_motion",
+                    "platform": "state",
+                    "to": "on",
+                    "for": {"seconds": 20},
+                },
+                {
+                    "entity_id": "group.kitchen_motion",
+                    "platform": "state",
+                    "to": "off",
+                },
+                {
+                    "entity_id": "group.kitchen_motion",
+                    "platform": "state",
+                    "to": "off",
+                    "for": {"seconds": 30},
+                },
+                {
+                    "entity_id": "group.kitchen_motion",
+                    "platform": "state",
+                    "to": "off",
+                    "for": {"seconds": 40},
+                },
+                {"platform": "time_pattern", "minutes": "/3"},
+            ],
+        )
+
     def test_occupancy_override_to_timer_automation(self):
         automation = occupancy_automation_helpers.occupancy_override_to_timer_automation(
             "Kitchen ",

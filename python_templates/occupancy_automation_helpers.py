@@ -61,6 +61,52 @@ def occupancy_override_to_timer_automation(
   }
 
 
+def occupancy_update_triggers(
+  motion_group,
+  entered_to_inside_timeout,
+  inside_to_sleep_timeout,
+  inside_to_outside_timeout,
+  sleep_to_outside_timeout,
+  time_pattern_triggers,
+):
+  return [
+    {
+      "entity_id": motion_group,
+      "platform": "state",
+      "to": "on"
+    },
+    {
+      "entity_id": motion_group,
+      "platform": "state",
+      "to": "on",
+      "for": {"seconds":entered_to_inside_timeout},
+    },
+    {
+      "entity_id": motion_group,
+      "platform": "state",
+      "to": "on",
+      "for":  {"seconds":inside_to_sleep_timeout},
+    },
+    {
+      "entity_id": motion_group,
+      "platform": "state",
+      "to": "off",
+    },
+    {
+      "entity_id": motion_group,
+      "platform": "state",
+      "to": "off",
+      "for": {"seconds":inside_to_outside_timeout},
+    },
+    {
+      "entity_id": motion_group,
+      "platform": "state",
+      "to": "off",
+      "for": {"seconds":sleep_to_outside_timeout },
+    }
+  ] + time_pattern_triggers
+
+
 def occupancy_override_from_timer_automation(
   automation_room_name,
   room_name,
