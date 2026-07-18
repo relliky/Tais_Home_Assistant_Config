@@ -61,6 +61,65 @@ class ConditionHelpersTest(unittest.TestCase):
             },
         )
 
+    def test_bright_day_condition_list(self):
+        self.assertEqual(
+            condition_helpers.bright_day_condition_list(
+                "Bright morning",
+                "sensor.kitchen_light",
+                100,
+                "before",
+                "12:00:00",
+            ),
+            [
+                {
+                    "alias": "Bright morning",
+                    "condition": "and",
+                    "conditions": [
+                        {
+                            "condition": "or",
+                            "conditions": [
+                                {
+                                    "condition": "numeric_state",
+                                    "entity_id": "sensor.kitchen_light",
+                                    "above": 100,
+                                },
+                                {
+                                    "condition": "state",
+                                    "entity_id": "sensor.kitchen_light",
+                                    "state": [
+                                        "unavailable",
+                                        "unknown",
+                                    ],
+                                },
+                            ],
+                        },
+                        {
+                            "condition": "or",
+                            "conditions": [
+                                {
+                                    "condition": "state",
+                                    "entity_id": "sun.sun",
+                                    "state": "above_horizon",
+                                },
+                                {
+                                    "condition": "state",
+                                    "entity_id": "sun.sun",
+                                    "state": [
+                                        "unavailable",
+                                        "unknown",
+                                    ],
+                                },
+                            ],
+                        },
+                        {
+                            "condition": "time",
+                            "before": "12:00:00",
+                        },
+                    ],
+                }
+            ],
+        )
+
     def test_light_intensity_condition_list_for_intense_light_summer(self):
         self.assertEqual(
             condition_helpers.light_intensity_condition_list(

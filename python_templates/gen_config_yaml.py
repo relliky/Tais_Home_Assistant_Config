@@ -3529,41 +3529,21 @@ class RoomBase:
 
   def condition_list_is(self, condition_name):
     if condition_name == 'Bright morning':
-      return [{ 'alias': condition_name,
-                "condition": "and",
-                "conditions": [
-                  condition_helpers.numeric_state_or_unavailable(
-                    self.light_sensor,
-                    "above",
-                    self.min_value_as_bright,
-                  ),
-                  condition_helpers.sun_state_or_unavailable("above_horizon"),
-                  {
-                    "condition": "time",
-                    #"after": self.morning_start_time,
-                    #"before": self.morning_end_time,
-                    'before': self.noon_time,
-                  },
-                ]
-              }]
+      return condition_helpers.bright_day_condition_list(
+        condition_name,
+        self.light_sensor,
+        self.min_value_as_bright,
+        'before',
+        self.noon_time,
+      )
     elif condition_name == 'Bright afternoon':
-      return [{ 'alias': condition_name,
-                "condition": "and",
-                "conditions": [
-                  condition_helpers.numeric_state_or_unavailable(
-                    self.light_sensor,
-                    "above",
-                    self.min_value_as_bright,
-                  ),
-                  condition_helpers.sun_state_or_unavailable("above_horizon"),
-                  {
-                    "condition": "time",
-                    'after': self.noon_time,
-                    #"after": self.afternoon_start_time,
-                    #"before": self.afternoon_end_time,
-                  },
-                ]
-              }]
+      return condition_helpers.bright_day_condition_list(
+        condition_name,
+        self.light_sensor,
+        self.min_value_as_bright,
+        'after',
+        self.noon_time,
+      )
 
     elif condition_name == 'intense light summer' or \
          condition_name == 'moderate light outdoor' or \

@@ -300,6 +300,7 @@ Completed foundations:
     module.
 92. Move light-intensity condition construction into the condition helper
     module.
+93. Move bright-day condition construction into the condition helper module.
 
 Recommended next steps:
 

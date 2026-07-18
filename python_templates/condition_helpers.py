@@ -40,6 +40,33 @@ def sun_state_or_unavailable(state):
   }
 
 
+def bright_day_condition_list(
+    condition_name,
+    light_sensor,
+    min_value_as_bright,
+    time_key,
+    noon_time,
+):
+  return [
+    {
+      'alias': condition_name,
+      "condition": "and",
+      "conditions": [
+        numeric_state_or_unavailable(
+          light_sensor,
+          "above",
+          min_value_as_bright,
+        ),
+        sun_state_or_unavailable("above_horizon"),
+        {
+          "condition": "time",
+          time_key: noon_time,
+        },
+      ],
+    }
+  ]
+
+
 LIGHT_INTENSITY_CONDITIONS = [
   'intense light summer',
   'moderate light outdoor',
