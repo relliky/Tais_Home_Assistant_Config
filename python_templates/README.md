@@ -363,6 +363,7 @@ Completed foundations:
 127. Raise a clear error for unsupported navigation room-card types.
 128. Add a correctly spelled restricted-access wrapper while preserving the
      old method name.
+129. Define constants for supported navigation room-card types.
 
 Recommended next steps:
 

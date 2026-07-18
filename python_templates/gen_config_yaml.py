@@ -66,6 +66,9 @@ AUTO_GENERATED_PACKAGES_DIR = generator_io.AUTO_GENERATED_PACKAGES_DIR
 STORAGE_DIR = generator_io.STORAGE_DIR
 DASHBOARD_OUTPUT_DIR = generator_io.DASHBOARD_OUTPUT_DIR
 
+NAVIGATION_ROOM_CARD_TYPE_MUSHROOM = 'mushroom'
+NAVIGATION_ROOM_CARD_TYPE_BUTTON = 'button'
+
 
 def configure_output_root(output_root=None):
   global OUTPUT_ROOT
@@ -3656,14 +3659,14 @@ class RoomBase:
     )
 
   def getNavigationRoomCardType(self):
-    return 'mushroom'
+    return NAVIGATION_ROOM_CARD_TYPE_MUSHROOM
 
   def getNavigationRoomCard (self):
     card_type = self.getNavigationRoomCardType()
 
-    if card_type == 'mushroom':
+    if card_type == NAVIGATION_ROOM_CARD_TYPE_MUSHROOM:
       room_card = self.getMushroomNavigationRoomCard()
-    elif card_type == 'button':
+    elif card_type == NAVIGATION_ROOM_CARD_TYPE_BUTTON:
       room_card = self.getButtonNavigationRoomCard()
     else:
       raise TypeError("Navigation room card type '" + card_type + "' is not supported.")

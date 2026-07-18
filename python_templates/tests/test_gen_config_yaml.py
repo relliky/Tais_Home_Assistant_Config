@@ -123,8 +123,15 @@ class RoomBaseHelpersTest(unittest.TestCase):
     def test_get_navigation_room_card_type_defaults_to_mushroom(self):
         self.assertEqual(
             self.room.getNavigationRoomCardType(),
+            gen_config_yaml.NAVIGATION_ROOM_CARD_TYPE_MUSHROOM,
+        )
+
+    def test_navigation_room_card_type_constants(self):
+        self.assertEqual(
+            gen_config_yaml.NAVIGATION_ROOM_CARD_TYPE_MUSHROOM,
             "mushroom",
         )
+        self.assertEqual(gen_config_yaml.NAVIGATION_ROOM_CARD_TYPE_BUTTON, "button")
 
     def test_get_navigation_room_card_rejects_unknown_type(self):
         room = self.make_navigation_room()
