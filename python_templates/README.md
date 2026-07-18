@@ -308,6 +308,7 @@ Completed foundations:
 96. Move button-style navigation room-card construction into the dashboard view
     helper module.
 97. Move room-view card list composition into the dashboard view helper module.
+98. Remove the mutable default cards list from the room view append helper.
 
 Recommended next steps:
 

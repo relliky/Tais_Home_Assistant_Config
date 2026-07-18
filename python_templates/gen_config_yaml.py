@@ -3571,7 +3571,7 @@ class RoomBase:
     self.room_theme = settings["room_theme"]
 
   def addView(self, viewPath='',
-                    cards=[],
+                    cards=None,
                     theme="Mushroom Shadow",
                     title=''):
     self.views += [dashboard_view_helpers.build_view(
