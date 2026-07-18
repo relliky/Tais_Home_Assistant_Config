@@ -21,6 +21,7 @@ import entity_interface_defaults
 import entity_naming
 import generator_cli
 import generator_io
+import gui_control_group
 import ha_entity_registry
 import message_helpers
 import occupancy_state_machine
@@ -2162,23 +2163,16 @@ class RoomBase:
   def implement_group_intf_for_gui(self):
 
     # Add light control entities to the control group based on the existence of different types of lights in the room
-    self.gui_ctl_entity_list += \
-      ([self.ceiling_light_control_when['intense light summer']    ] if len(self.ceiling_lights) > 0 else []) + \
-      ([self.lamp_control_when[         'intense light summer']    ] if len(self.lamps) > 0          else []) + \
-      ([self.led_control_when[          'intense light summer']    ] if len(self.leds) > 0           else []) + \
-      ([self.curtain_control_when[      'intense light summer']    ] if len(self.curtains) > 0       else []) + \
-      ([self.ceiling_light_control_when['moderate light outdoor']  ] if len(self.ceiling_lights) > 0 else []) + \
-      ([self.lamp_control_when[         'moderate light outdoor']  ] if len(self.lamps) > 0          else []) + \
-      ([self.led_control_when[          'moderate light outdoor']  ] if len(self.leds) > 0           else []) + \
-      ([self.curtain_control_when[      'moderate light outdoor']  ] if len(self.curtains) > 0       else []) + \
-      ([self.ceiling_light_control_when['low light outdoor']       ] if len(self.ceiling_lights) > 0 else []) + \
-      ([self.lamp_control_when[         'low light outdoor']       ] if len(self.lamps) > 0          else []) + \
-      ([self.led_control_when[          'low light outdoor']       ] if len(self.leds) > 0           else []) + \
-      ([self.curtain_control_when[      'low light outdoor']       ] if len(self.curtains) > 0       else []) + \
-      ([self.ceiling_light_control_when['sleep mode']              ] if len(self.ceiling_lights) > 0 else []) + \
-      ([self.lamp_control_when[         'sleep mode']              ] if len(self.lamps) > 0          else []) + \
-      ([self.led_control_when[          'sleep mode']              ] if len(self.leds) > 0           else []) + \
-      ([self.curtain_control_when[      'sleep mode']              ] if len(self.curtains) > 0       else [])
+    self.gui_ctl_entity_list += gui_control_group.scene_control_entities(
+      self.ceiling_lights,
+      self.lamps,
+      self.leds,
+      self.curtains,
+      self.ceiling_light_control_when,
+      self.lamp_control_when,
+      self.led_control_when,
+      self.curtain_control_when,
+    )
 
     # Generate automations group with disabled automation removed
     for automation in self.entity_declarations['automation']:

@@ -13,6 +13,7 @@ package YAML and Lovelace dashboard YAML from room-specific Python classes.
   temperature-control entity builders.
 - `generator_cli.py` contains command-line argument parsing and dashboard flag
   interpretation.
+- `gui_control_group.py` contains GUI control-group entity list builders.
 - `entity_naming.py` contains entity ID, postfix, display-name, and automation
   alias naming helpers.
 - `entity_declaration_builders.py` contains small entity/group/automation
@@ -204,6 +205,7 @@ Completed foundations:
 44. Move Lovelace template-card entity resolution and iOS styling helpers into
     the entity-card module.
 45. Move generated automation ID assignment into automation helpers.
+46. Move GUI scene-control entity list generation into its own module.
 
 Recommended next steps:
 
