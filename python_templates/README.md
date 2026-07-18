@@ -264,6 +264,8 @@ Completed foundations:
     the TV automation module.
 72. Move single-device media volume action construction into the media
     automation module.
+73. Move media play/pause action construction into the media automation
+    module.
 
 Recommended next steps:
 

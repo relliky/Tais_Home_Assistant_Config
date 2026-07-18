@@ -3215,17 +3215,12 @@ class RoomBase:
         )
 
     elif entity_list == self.media_players or entity_list == self.tv_soundbars:
-        if state == 'on':
-          action_service = {"if":   self.continueIf(entity_list, "paused"),
-                            "then": self.set(entity_list, 'toggle'),}
-        elif state == 'off':
-          action_service = {"if":   self.continueIf(entity_list, "playing"),
-                            "then": self.set(entity_list, 'toggle'),}
-        elif state == 'toggle':
-          action_service = {"service": "media_player.media_play_pause",
-                            "entity_id": entity_list}
-        else:
-          action_service = {"service": "script.do_nothing"}
+        action_service = media_automation_helpers.media_play_pause_action(
+          entity_list,
+          state,
+          self.continueIf,
+          self.set,
+        )
 
     ##############################################
     # Curtains

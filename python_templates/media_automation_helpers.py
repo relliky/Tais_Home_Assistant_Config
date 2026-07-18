@@ -10,6 +10,20 @@ def single_device_volume_action(entity_list, step_value):
           }
 
 
+def media_play_pause_action(entity_list, state, continue_if, set_service):
+  if state == 'on':
+    return {"if":   continue_if(entity_list, "paused"),
+            "then": set_service(entity_list, 'toggle'),}
+  elif state == 'off':
+    return {"if":   continue_if(entity_list, "playing"),
+            "then": set_service(entity_list, 'toggle'),}
+  elif state == 'toggle':
+    return {"service": "media_player.media_play_pause",
+            "entity_id": entity_list}
+  else:
+    return {"service": "script.do_nothing"}
+
+
 def sonos_pause_after_people_left_automation(
   automation_room_name,
   room_name,

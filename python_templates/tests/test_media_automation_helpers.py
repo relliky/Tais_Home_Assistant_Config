@@ -14,6 +14,10 @@ def set_service(entity_id, state):
     return ["set", entity_id, state]
 
 
+def continue_if(entity_id, state):
+    return ["continueIf", entity_id, state]
+
+
 class MediaAutomationHelpersTest(unittest.TestCase):
     def test_single_device_volume_action(self):
         self.assertEqual(
@@ -28,6 +32,59 @@ class MediaAutomationHelpersTest(unittest.TestCase):
                     "volume_level": "{{ (state_attr('media_player.kitchen_sonos', 'volume_level')) + 0.03 }}"
                 },
             },
+        )
+
+    def test_media_play_pause_action_on(self):
+        self.assertEqual(
+            media_automation_helpers.media_play_pause_action(
+                ["media_player.kitchen_sonos"],
+                "on",
+                continue_if,
+                set_service,
+            ),
+            {
+                "if": ["continueIf", ["media_player.kitchen_sonos"], "paused"],
+                "then": ["set", ["media_player.kitchen_sonos"], "toggle"],
+            },
+        )
+
+    def test_media_play_pause_action_off(self):
+        self.assertEqual(
+            media_automation_helpers.media_play_pause_action(
+                ["media_player.kitchen_sonos"],
+                "off",
+                continue_if,
+                set_service,
+            ),
+            {
+                "if": ["continueIf", ["media_player.kitchen_sonos"], "playing"],
+                "then": ["set", ["media_player.kitchen_sonos"], "toggle"],
+            },
+        )
+
+    def test_media_play_pause_action_toggle(self):
+        self.assertEqual(
+            media_automation_helpers.media_play_pause_action(
+                ["media_player.kitchen_sonos"],
+                "toggle",
+                continue_if,
+                set_service,
+            ),
+            {
+                "service": "media_player.media_play_pause",
+                "entity_id": ["media_player.kitchen_sonos"],
+            },
+        )
+
+    def test_media_play_pause_action_unsupported_state(self):
+        self.assertEqual(
+            media_automation_helpers.media_play_pause_action(
+                ["media_player.kitchen_sonos"],
+                "unsupported",
+                continue_if,
+                set_service,
+            ),
+            {"service": "script.do_nothing"},
         )
 
     def test_left_room_media_pause_delay(self):
