@@ -43,6 +43,36 @@ class ButtonAutomationHelpersTest(unittest.TestCase):
             },
         )
 
+    def test_flex_wall_switch_restore_automation(self):
+        self.assertEqual(
+            button_automation_helpers.flex_wall_switch_restore_automation(
+                "Kitchen ",
+                "Kitchen",
+                2,
+                "switch.kitchen_wall_switch_left",
+                set_service,
+            ),
+            {
+                "alias": "ZLB-Kitchen Flex Wall Switch On Postion 2- Automatically Turn on the Wall Switch Back When Turned Off -Kitchen",
+                "configured": True,
+                "trigger": [
+                    {
+                        "platform": "state",
+                        "entity_id": "switch.kitchen_wall_switch_left",
+                        "to": "off",
+                    }
+                ],
+                "action": [
+                    ["set", "switch.kitchen_wall_switch_left", "on"],
+                    {"delay": "00:00:01"},
+                    ["set", "switch.kitchen_wall_switch_left", "on"],
+                    {"delay": "00:00:01"},
+                    ["set", "switch.kitchen_wall_switch_left", "on"],
+                ],
+                "mode": "queued",
+            },
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

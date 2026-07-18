@@ -22,3 +22,31 @@ def button_toggle_automation(
     ],
     "action": [set_service(device_list, "toggle")]
   }
+
+
+def flex_wall_switch_restore_automation(
+  automation_room_name,
+  room_name,
+  flex_wall_switch_index,
+  flex_wall_switch_entity,
+  set_service,
+):
+  return {
+    "alias":"ZLB-" + automation_room_name + "Flex Wall Switch On Postion " + str(flex_wall_switch_index)  + "- Automatically Turn on the Wall Switch Back When Turned Off -" + room_name,
+    "configured": True,
+    "trigger": [
+      {
+        "platform": "state",
+        "entity_id": flex_wall_switch_entity,
+        "to": "off"
+      }
+    ],
+    "action": [
+      set_service(flex_wall_switch_entity, "on"),
+      {"delay": "00:00:01"},
+      set_service(flex_wall_switch_entity, "on"),
+      {"delay": "00:00:01"},
+      set_service(flex_wall_switch_entity, "on"),
+    ],
+    "mode": "queued",
+  }

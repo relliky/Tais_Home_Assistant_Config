@@ -2967,25 +2967,13 @@ class RoomBase:
 
   def gen_flex_wall_switch_automations(self, flex_wall_switch_index, flex_wall_switch_entity):
     self.automation_list += [
-      {
-        "alias":"ZLB-" + self.automation_room_name + "Flex Wall Switch On Postion " + str(flex_wall_switch_index)  + "- Automatically Turn on the Wall Switch Back When Turned Off -" + self.room_name,
-        "configured": True,
-        "trigger": [
-          {
-            "platform": "state",
-            "entity_id": flex_wall_switch_entity,
-            "to": "off"
-          }
-        ],
-        "action": [
-          self.set(flex_wall_switch_entity, "on"),
-          {"delay": "00:00:01"},
-          self.set(flex_wall_switch_entity, "on"), # repeat in case the request is dropped
-          {"delay": "00:00:01"},
-          self.set(flex_wall_switch_entity, "on"), # repeat in case the request is dropped
-        ],
-        "mode": "queued", # make sure requests are queued
-      }
+      button_automation_helpers.flex_wall_switch_restore_automation(
+        self.automation_room_name,
+        self.room_name,
+        flex_wall_switch_index,
+        flex_wall_switch_entity,
+        self.set,
+      )
     ]
 
   def gen_wall_button_double_automations(self):

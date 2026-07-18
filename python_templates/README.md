@@ -245,6 +245,8 @@ Completed foundations:
     module.
 63. Move kitchen camera automation construction into its own module.
 64. Move button toggle automation construction into its own module.
+65. Move flex wall-switch restore automation construction into the button
+    automation module.
 
 Recommended next steps:
 
