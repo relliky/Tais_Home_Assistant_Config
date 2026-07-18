@@ -21,7 +21,7 @@ package YAML and Lovelace dashboard YAML from room-specific Python classes.
 - `sensor_declaration_builders.py` contains battery, temperature, template, and
   filter sensor declaration builders.
 - `entity_interface_defaults.py` contains the default entity-interface
-  containers used during room generation.
+  containers and declaration aggregation used during room generation.
 - `configured_entity_filter.py` contains filtering for generated declarations
   guarded by a `configured` flag.
 - `unavailable_entity_builder.py` contains helpers for collecting generated
@@ -208,6 +208,7 @@ Completed foundations:
 46. Move GUI scene-control entity list generation into its own module.
 47. Move remaining GUI control-group entity list helpers into the GUI module.
 48. Move GUI auto-group declaration helpers into the GUI module.
+49. Move entity declaration aggregation into entity-interface helpers.
 
 Recommended next steps:
 

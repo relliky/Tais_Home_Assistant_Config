@@ -2201,26 +2201,26 @@ class RoomBase:
 
 
   def implement_entity_intf(self):
-      self.entity_declarations |= {
-        "adaptive_lighting": self.al_light_list,
-        'automation':        self.automation_list,
-        "input_select":      self.input_select_dict,
-        "input_boolean":     self.input_boolean_dict,
-        "input_datetime":    self.input_datetime_dict,
-        "input_number":      self.input_number_dict,
-        "sensor":            self.sensor_list,
-        "timer":             self.timer_dict,
-        "button":            self.button_list,
-        "switch":            self.switch_list,
-        "cover":             self.cover_list,
-        "climate":           self.climate_list,
-        "template":          self.template_list,
-        "binary_sensor":     self.binary_sensor_list,
-        "event":             self.event_list,
-        "lock":              self.lock_list,
-        "light":             self.light_list,
-        'group':             self.group_dict,
-      }
+      self.entity_declarations |= entity_interface_defaults.build_entity_declarations(
+        self.al_light_list,
+        self.automation_list,
+        self.input_select_dict,
+        self.input_boolean_dict,
+        self.input_datetime_dict,
+        self.input_number_dict,
+        self.sensor_list,
+        self.timer_dict,
+        self.button_list,
+        self.switch_list,
+        self.cover_list,
+        self.climate_list,
+        self.template_list,
+        self.binary_sensor_list,
+        self.event_list,
+        self.lock_list,
+        self.light_list,
+        self.group_dict,
+      )
 
   def gen_motion_light_automations(self):
     self.automation_curtain_states = {"alias":"ZL-" + self.automation_room_name + "Curtain States When No Person Present" + "-" + self.room_name }
