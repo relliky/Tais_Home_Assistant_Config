@@ -3208,67 +3208,14 @@ class RoomBase:
 
 
     self.automation_list += [
-      {
-        "alias": "ZOc-"  + self.automation_room_name + "Occupancy Override Sync from Timer" + "-" + self.room_name,
-        "mode": "single",
-        "configured": self.cfg_occupancy_override,
-        "trigger": [
-          {
-            "platform": "state",
-            "entity_id": self.occupancy_override_timer_entity
-          }
-        ] + self.get_time_pattern_trigger(minutes=10),
-        "action": [
-          {
-            "choose": [
-              {
-                "conditions": [
-                  {
-                    "condition": "state",
-                    "entity_id": self.occupancy_override_timer_entity,
-                    "state": "active"
-                  }
-                ],
-                "sequence": [
-                  {
-                    "service": "input_boolean.turn_on",
-                    "target": {
-                      "entity_id": self.occupancy_override_entity
-                    }
-                  }
-                ]
-              },
-              {
-                "conditions": [
-                  {
-                    "condition": "or",
-                    "conditions": [
-                      {
-                        "condition": "state",
-                        "entity_id": self.occupancy_override_timer_entity,
-                        "state": "paused"
-                      },
-                      {
-                        "condition": "state",
-                        "entity_id": self.occupancy_override_timer_entity,
-                        "state": "idle"
-                      }
-                    ]
-                  }
-                ],
-                "sequence": [
-                  {
-                    "service": "input_boolean.turn_off",
-                    "target": {
-                      "entity_id": self.occupancy_override_entity
-                    }
-                  }
-                ]
-              }
-            ]
-          }
-        ]
-      }
+      occupancy_automation_helpers.occupancy_override_from_timer_automation(
+        self.automation_room_name,
+        self.room_name,
+        self.cfg_occupancy_override,
+        self.occupancy_override_entity,
+        self.occupancy_override_timer_entity,
+        self.get_time_pattern_trigger(minutes=10),
+      )
     ]
 
 

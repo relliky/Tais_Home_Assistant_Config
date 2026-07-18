@@ -236,6 +236,8 @@ Completed foundations:
     module.
 60. Move occupancy override-to-timer automation construction into its own
     module.
+61. Move occupancy override-from-timer automation construction into the
+    occupancy automation module.
 
 Recommended next steps:
 

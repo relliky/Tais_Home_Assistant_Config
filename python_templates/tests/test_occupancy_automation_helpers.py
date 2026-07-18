@@ -71,6 +71,84 @@ class OccupancyAutomationHelpersTest(unittest.TestCase):
             ],
         )
 
+    def test_occupancy_override_from_timer_automation(self):
+        automation = occupancy_automation_helpers.occupancy_override_from_timer_automation(
+            "Kitchen ",
+            "Kitchen",
+            True,
+            "input_boolean.kitchen_occupancy_override",
+            "timer.kitchen_occupancy_override",
+            [{"platform": "time_pattern", "minutes": "/10"}],
+        )
+
+        self.assertEqual(
+            automation["alias"],
+            "ZOc-Kitchen Occupancy Override Sync from Timer-Kitchen",
+        )
+        self.assertEqual(automation["mode"], "single")
+        self.assertTrue(automation["configured"])
+        self.assertEqual(
+            automation["trigger"],
+            [
+                {
+                    "platform": "state",
+                    "entity_id": "timer.kitchen_occupancy_override",
+                },
+                {"platform": "time_pattern", "minutes": "/10"},
+            ],
+        )
+        choose = automation["action"][0]["choose"]
+        self.assertEqual(
+            choose[0],
+            {
+                "conditions": [
+                    {
+                        "condition": "state",
+                        "entity_id": "timer.kitchen_occupancy_override",
+                        "state": "active",
+                    }
+                ],
+                "sequence": [
+                    {
+                        "service": "input_boolean.turn_on",
+                        "target": {
+                            "entity_id": "input_boolean.kitchen_occupancy_override"
+                        },
+                    }
+                ],
+            },
+        )
+        self.assertEqual(
+            choose[1],
+            {
+                "conditions": [
+                    {
+                        "condition": "or",
+                        "conditions": [
+                            {
+                                "condition": "state",
+                                "entity_id": "timer.kitchen_occupancy_override",
+                                "state": "paused",
+                            },
+                            {
+                                "condition": "state",
+                                "entity_id": "timer.kitchen_occupancy_override",
+                                "state": "idle",
+                            },
+                        ],
+                    }
+                ],
+                "sequence": [
+                    {
+                        "service": "input_boolean.turn_off",
+                        "target": {
+                            "entity_id": "input_boolean.kitchen_occupancy_override"
+                        },
+                    }
+                ],
+            },
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

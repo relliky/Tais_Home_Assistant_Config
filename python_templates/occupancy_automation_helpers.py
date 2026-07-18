@@ -59,3 +59,74 @@ def occupancy_override_to_timer_automation(
       }
     ]
   }
+
+
+def occupancy_override_from_timer_automation(
+  automation_room_name,
+  room_name,
+  configured,
+  occupancy_override_entity,
+  occupancy_override_timer_entity,
+  time_pattern_triggers,
+):
+  return {
+    "alias": "ZOc-"  + automation_room_name + "Occupancy Override Sync from Timer" + "-" + room_name,
+    "mode": "single",
+    "configured": configured,
+    "trigger": [
+      {
+        "platform": "state",
+        "entity_id": occupancy_override_timer_entity
+      }
+    ] + time_pattern_triggers,
+    "action": [
+      {
+        "choose": [
+          {
+            "conditions": [
+              {
+                "condition": "state",
+                "entity_id": occupancy_override_timer_entity,
+                "state": "active"
+              }
+            ],
+            "sequence": [
+              {
+                "service": "input_boolean.turn_on",
+                "target": {
+                  "entity_id": occupancy_override_entity
+                }
+              }
+            ]
+          },
+          {
+            "conditions": [
+              {
+                "condition": "or",
+                "conditions": [
+                  {
+                    "condition": "state",
+                    "entity_id": occupancy_override_timer_entity,
+                    "state": "paused"
+                  },
+                  {
+                    "condition": "state",
+                    "entity_id": occupancy_override_timer_entity,
+                    "state": "idle"
+                  }
+                ]
+              }
+            ],
+            "sequence": [
+              {
+                "service": "input_boolean.turn_off",
+                "target": {
+                  "entity_id": occupancy_override_entity
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
