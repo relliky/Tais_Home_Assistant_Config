@@ -3610,9 +3610,9 @@ class RoomBase:
     )
 
   def getNavigationRoomCard (self):
-    type = 'mushroom'
+    card_type = 'mushroom'
 
-    if type == 'mushroom':
+    if card_type == 'mushroom':
       room_card = dashboard_view_helpers.mushroom_navigation_room_card(
           dashboard_view_helpers.navigation_room_title_card(
             self.room_icon,
@@ -3646,7 +3646,7 @@ class RoomBase:
             )
           )
       )
-    elif type == 'button':
+    elif card_type == 'button':
       room_card = dashboard_view_helpers.button_navigation_room_card(
         self.room_name,
         self.room_icon,
