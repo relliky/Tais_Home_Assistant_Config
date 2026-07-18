@@ -76,3 +76,70 @@ def simple_room_scene_actions(
       set_service(tvs, tv_brightness=3),
     ], True
   return None
+
+
+LIGHT_STATE_SCENES = [
+  'light states when intense light summer',
+  'light states when moderate light outdoor',
+  'light states when low light outdoor',
+  'light states when sleep mode',
+]
+
+CURTAIN_STATE_SCENES = [
+  'curtain states when low light outdoor',
+  'curtain states when moderate light outdoor',
+  'curtain states when intense light summer',
+  'curtain states when sleep mode',
+]
+
+
+def dynamic_room_scene_actions(
+    scene_name,
+    ceiling_light_control_when,
+    lamp_control_when,
+    led_control_when,
+    curtain_control_when,
+    ceiling_lights,
+    lamps,
+    leds,
+    curtains,
+    set_service,
+    continue_if,
+):
+  if scene_name in LIGHT_STATE_SCENES:
+    light_scene_state = scene_name.replace('light states when ', '')
+    return [
+      {
+        "parallel": [
+          {
+            "if": continue_if(ceiling_light_control_when[light_scene_state], "on"),
+            "then": set_service(ceiling_lights, "on"),
+            "else": set_service(ceiling_lights, "off"),
+          },
+          {
+            "if": continue_if(lamp_control_when[light_scene_state], "on"),
+            "then": set_service(lamps, "on"),
+            "else": set_service(lamps, "off"),
+          },
+          {
+            "if": continue_if(led_control_when[light_scene_state], "on"),
+            "then": set_service(leds, "on"),
+            "else": set_service(leds, "off"),
+          },
+        ]
+      }
+    ], True
+  if scene_name in CURTAIN_STATE_SCENES:
+    curtain_scene_state = scene_name.replace('curtain states when ', '')
+    return [
+      {
+        "parallel": [
+          {
+            "if": continue_if(curtain_control_when[curtain_scene_state], "on"),
+            "then": set_service(curtains, "on"),
+            "else": set_service(curtains, "off"),
+          }
+        ]
+      }
+    ], True
+  return None

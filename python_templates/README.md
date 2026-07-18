@@ -291,6 +291,8 @@ Completed foundations:
 85. Move reset-lights-to-white sequence construction into the light action
     module.
 86. Move simple room-scene action construction into the scene action module.
+87. Move dynamic light/curtain scene action construction into the scene action
+    module.
 
 Recommended next steps:
 

@@ -3453,32 +3453,28 @@ class RoomBase:
       #                      self.set(self.ceiling_lights, "on"),
       #                      self.set(self.tvs, tv_brightness=3),
       #                      self.set(self.curtains, 'on')]
-      elif scene_name in ['light states when intense light summer',
-                          'light states when moderate light outdoor',
-                          'light states when low light outdoor',
-                          'light states when sleep mode',
-                          ]:
-        light_scene_state = scene_name.replace('light states when ', '')
-        scene_service += [{"parallel":[
-          {"if": self.continueIf(self.ceiling_light_control_when[light_scene_state], "on"), "then": self.set(self.ceiling_lights, "on"), "else": self.set(self.ceiling_lights, "off")},
-          {"if": self.continueIf(self.lamp_control_when[light_scene_state]         , "on"), "then": self.set(self.lamps,          "on"), "else": self.set(self.lamps,          "off")},
-          {"if": self.continueIf(self.led_control_when[light_scene_state]          , "on"), "then": self.set(self.leds,           "on"), "else": self.set(self.leds,           "off")},
-          ]}]
-      elif scene_name in ['curtain states when low light outdoor',
-                          'curtain states when moderate light outdoor',
-                          'curtain states when intense light summer',
-                          'curtain states when sleep mode',
-                          ]:
-        curtain_scene_state = scene_name.replace('curtain states when ', '')
-        scene_service += [{"parallel":[
-          {"if": self.continueIf(self.curtain_control_when[curtain_scene_state]     , "on"), "then": self.set(self.curtains,       "on"), "else": self.set(self.curtains,       "off")}
-          ]}]
-
       else:
-        raise TypeError( "\n" +\
-                         "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n" + \
-                         "Scene " + scene_name + " is not supported." + "\n" + \
-                         "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n")
+        dynamic_scene = scene_action_helpers.dynamic_room_scene_actions(
+          scene_name,
+          self.ceiling_light_control_when,
+          self.lamp_control_when,
+          self.led_control_when,
+          self.curtain_control_when,
+          self.ceiling_lights,
+          self.lamps,
+          self.leds,
+          self.curtains,
+          self.set,
+          self.continueIf,
+        )
+        if dynamic_scene is not None:
+          scene_service, parallel_enable = dynamic_scene
+
+        else:
+          raise TypeError( "\n" +\
+                           "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n" + \
+                           "Scene " + scene_name + " is not supported." + "\n" + \
+                           "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n")
 
       if parallel_enable == True:
         scene_service = [{"parallel":scene_service}]
