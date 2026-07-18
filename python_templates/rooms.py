@@ -1723,9 +1723,9 @@ def define_room_classes(RoomBase):
   
     # Customize system card information
     def getNavigationRoomCard (self):
-      type = 'mushroom'
+      card_type = 'mushroom'
   
-      if type == 'mushroom':
+      if card_type == 'mushroom':
          room_card = {
           "type": "custom:stack-in-card",
           "mode": "vertical",
@@ -1792,7 +1792,7 @@ def define_room_classes(RoomBase):
           ]
         }
   
-      elif type == 'button':
+      elif card_type == 'button':
         room_card =  {
           "type": "custom:button-card",
           "aspect_ratio": "1/1",
