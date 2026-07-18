@@ -19,6 +19,40 @@ def set_service(entity_list, state=None, tv_brightness=None):
 
 
 class TvAutomationHelpersTest(unittest.TestCase):
+    def test_picture_mode_for_brightness(self):
+        self.assertEqual(tv_automation_helpers.picture_mode_for_brightness(1), "Movie")
+        self.assertEqual(tv_automation_helpers.picture_mode_for_brightness("1"), "Movie")
+        self.assertEqual(tv_automation_helpers.picture_mode_for_brightness(2), "Natural")
+        self.assertEqual(tv_automation_helpers.picture_mode_for_brightness(3), "Standard")
+        self.assertEqual(tv_automation_helpers.picture_mode_for_brightness(4), "Dynamic")
+        self.assertEqual(tv_automation_helpers.picture_mode_for_brightness(9), "Dynamic")
+
+    def test_set_picture_mode_action(self):
+        self.assertEqual(
+            tv_automation_helpers.set_picture_mode_action(
+                ["media_player.master_room_tv"],
+                "input_select.master_room_tv_picture_mode",
+                3,
+            ),
+            {
+                "if": [
+                    {
+                        "alias": "Set TV brightness when it is on",
+                        "condition": "state",
+                        "entity_id": ["media_player.master_room_tv"],
+                        "state": "on",
+                    }
+                ],
+                "then": {
+                    "service": "input_select.select_option",
+                    "data": {
+                        "entity_id": "input_select.master_room_tv_picture_mode",
+                        "option": "Standard",
+                    },
+                },
+            },
+        )
+
     def test_reset_picture_mode_automation_with_tvs(self):
         automation = tv_automation_helpers.reset_picture_mode_automation(
             "MR ",

@@ -258,6 +258,8 @@ Completed foundations:
     automation module.
 69. Move service-action light predicate and alias construction into their own
     module.
+70. Move fixed TV picture-mode action construction into the TV automation
+    module.
 
 Recommended next steps:
 

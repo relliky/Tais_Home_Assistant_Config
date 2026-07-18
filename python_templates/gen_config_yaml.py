@@ -3199,22 +3199,11 @@ class RoomBase:
           ([])
           }
       elif tv_brightness in [1,2,3,4,5,6,7,8,9]:
-        action_service =    {
-                            "if": [
-                              {
-                                'alias': 'Set TV brightness when it is on',
-                                "condition": "state",
-                                "entity_id": entity_list,
-                                "state": "on"
-                              }
-                            ],
-                            "then":  { "service" : "input_select.select_option",
-                                        "data": { "entity_id" : self.tv_picture_mode,
-                                                  "option": "Movie"    if tv_brightness in [1, '1'] else \
-                                                            "Natural"  if tv_brightness in [2, '2'] else \
-                                                            "Standard" if tv_brightness in [3, '3'] else \
-                                                            "Dynamic"}}
-                                     }
+        action_service = tv_automation_helpers.set_picture_mode_action(
+          entity_list,
+          self.tv_picture_mode,
+          tv_brightness,
+        )
                           #  "then":  {"service" : "samsungtv_smart.select_picture_mode",
                           #              "data": { "entity_id" : entity_list,
                           #                        "picture_mode": "Movie"    if tv_brightness in [1, '1'] else \
