@@ -3655,8 +3655,11 @@ class RoomBase:
       self.dashboard_view_path,
     )
 
+  def getNavigationRoomCardType(self):
+    return 'mushroom'
+
   def getNavigationRoomCard (self):
-    card_type = 'mushroom'
+    card_type = self.getNavigationRoomCardType()
 
     if card_type == 'mushroom':
       room_card = self.getMushroomNavigationRoomCard()

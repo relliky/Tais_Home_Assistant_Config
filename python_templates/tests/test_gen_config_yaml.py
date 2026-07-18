@@ -120,6 +120,12 @@ class RoomBaseHelpersTest(unittest.TestCase):
         self.assertEqual(card["icon"], "mdi:fridge")
         self.assertEqual(card["tap_action"]["navigation_path"], "lovelace/kitchen")
 
+    def test_get_navigation_room_card_type_defaults_to_mushroom(self):
+        self.assertEqual(
+            self.room.getNavigationRoomCardType(),
+            "mushroom",
+        )
+
     def test_system_navigation_room_card_uses_base_wrapper(self):
         system_class = rooms.define_room_classes(gen_config_yaml.RoomBase)["System"]
         room = system_class.__new__(system_class)
