@@ -295,3 +295,11 @@ def navigation_status_cards(
   if curtains != []:
     cards += [curtain_status_card(curtain_group, template_card)]
   return cards
+
+
+def navigation_status_stack_card(card_mod, cards):
+  return card_mod | {
+    "type": "custom:stack-in-card",
+    "mode": "horizontal",
+    "cards": cards,
+  }

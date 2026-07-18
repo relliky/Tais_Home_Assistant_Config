@@ -3629,10 +3629,9 @@ class RoomBase:
             tap_action = 'navigate'
           ),
           # Make the bottom stack-in-card transparent
-          self.getCardModColor("transparent") | {
-            "type": "custom:stack-in-card",
-            "mode": "horizontal",
-            "cards": dashboard_view_helpers.navigation_status_cards(
+          dashboard_view_helpers.navigation_status_stack_card(
+            self.getCardModColor("transparent"),
+            dashboard_view_helpers.navigation_status_cards(
               self.unavailable_entity,
               self.room_battery_entity_list,
               self.room_low_battery_entity,
@@ -3652,7 +3651,7 @@ class RoomBase:
               self.curtain_group,
               self.getTemplateCard,
             )
-          }
+          )
         ]
       }
     elif type == 'button':

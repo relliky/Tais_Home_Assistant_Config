@@ -465,6 +465,22 @@ class DashboardViewHelpersTest(unittest.TestCase):
         self.assertEqual(len(cards), 1)
         self.assertEqual(cards[0]["condition_entity"], "binary_sensor.unavailable")
 
+    def test_navigation_status_stack_card(self):
+        cards = [{"type": "entity"}]
+
+        self.assertEqual(
+            dashboard_view_helpers.navigation_status_stack_card(
+                {"card_mod": {"style": "transparent"}},
+                cards,
+            ),
+            {
+                "card_mod": {"style": "transparent"},
+                "type": "custom:stack-in-card",
+                "mode": "horizontal",
+                "cards": cards,
+            },
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

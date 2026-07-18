@@ -331,6 +331,8 @@ Completed foundations:
      helper module.
 109. Move navigation status card-list composition into the dashboard view helper
      module.
+110. Move navigation status stack-card construction into the dashboard view
+     helper module.
 
 Recommended next steps:
 
