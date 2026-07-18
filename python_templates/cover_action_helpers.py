@@ -13,3 +13,23 @@ def shutter_blind_position_action(curtains, above, position):
                    "data":    {"position": position},
                    "entity_id": curtains}
           }
+
+
+def cover_open_if_closed_action(curtains, entity_list):
+  return {'if': {"condition": "numeric_state",
+                 "entity_id": curtains,
+                 "attribute": "current_position",
+                 "below": 5},
+          'then': {"service":  "cover.open_cover",
+                  "entity_id": entity_list}
+          }
+
+
+def cover_close_if_open_action(curtains, entity_list):
+  return {'if': {"condition": "numeric_state",
+                 "entity_id": curtains,
+                 "attribute": "current_position",
+                 "above": 95},
+          'then': {"service":  "cover.close_cover",
+                   "entity_id": entity_list}
+          }

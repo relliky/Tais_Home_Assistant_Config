@@ -270,6 +270,8 @@ Completed foundations:
 74. Move cover position step action construction into its own module.
 75. Move shutter-blind set-position action construction into the cover action
     module.
+76. Move normal cover open/close action construction into the cover action
+    module.
 
 Recommended next steps:
 

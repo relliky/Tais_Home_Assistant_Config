@@ -3264,21 +3264,15 @@ class RoomBase:
                             "entity_id": entity_list}
       # Normal blind or curtains
       elif state in ['on']:
-        action_service = {'if': {"condition": "numeric_state",
-                                 "entity_id": self.curtains,
-                                 "attribute": "current_position",
-                                 "below": 5},
-                          'then': {"service":  "cover.open_cover",
-                                  "entity_id": entity_list}
-                          }
+        action_service = cover_action_helpers.cover_open_if_closed_action(
+          self.curtains,
+          entity_list,
+        )
       elif state in ['off']:
-        action_service = {'if': {"condition": "numeric_state",
-                                 "entity_id": self.curtains,
-                                 "attribute": "current_position",
-                                 "above": 95},
-                          'then': {"service":  "cover.close_cover",
-                                   "entity_id": entity_list}
-                          }
+        action_service = cover_action_helpers.cover_close_if_open_action(
+          self.curtains,
+          entity_list,
+        )
       elif state in ['toggle']:
         action_service =  {
                             "if": [

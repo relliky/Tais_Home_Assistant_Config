@@ -48,6 +48,46 @@ class CoverActionHelpersTest(unittest.TestCase):
             },
         )
 
+    def test_cover_open_if_closed_action(self):
+        self.assertEqual(
+            cover_action_helpers.cover_open_if_closed_action(
+                ["cover.kitchen_curtain"],
+                ["cover.kitchen_curtain"],
+            ),
+            {
+                "if": {
+                    "condition": "numeric_state",
+                    "entity_id": ["cover.kitchen_curtain"],
+                    "attribute": "current_position",
+                    "below": 5,
+                },
+                "then": {
+                    "service": "cover.open_cover",
+                    "entity_id": ["cover.kitchen_curtain"],
+                },
+            },
+        )
+
+    def test_cover_close_if_open_action(self):
+        self.assertEqual(
+            cover_action_helpers.cover_close_if_open_action(
+                ["cover.kitchen_curtain"],
+                ["cover.kitchen_curtain"],
+            ),
+            {
+                "if": {
+                    "condition": "numeric_state",
+                    "entity_id": ["cover.kitchen_curtain"],
+                    "attribute": "current_position",
+                    "above": 95,
+                },
+                "then": {
+                    "service": "cover.close_cover",
+                    "entity_id": ["cover.kitchen_curtain"],
+                },
+            },
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
