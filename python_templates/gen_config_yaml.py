@@ -3387,24 +3387,16 @@ class RoomBase:
       action_service =  {"service": "script.do_nothing"}
 
     elif state == 'on' or state == 'off':
-      action_service = {"service":"homeassistant.turn_on"  if state == 'on'     else \
-                                  "homeassistant.turn_off" if state == 'off'    else None,
-                        "entity_id": entity_list}
+      action_service = service_action_helpers.homeassistant_on_off_action(
+        entity_list,
+        state,
+      )
 
     elif state == 'toggle':
-      action_service =  {
-                          "if": [
-                            {
-                              'alias': 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities',
-                              "condition": "state",
-                              "entity_id": entity_list,
-                              "state": "on",
-                              "match": 'any'
-                            }
-                          ],
-                          "then": self.set(entity_list, 'off'),
-                          "else": self.set(entity_list, 'on')
-                        }
+      action_service = service_action_helpers.toggle_entities_action(
+        entity_list,
+        self.set,
+      )
     else:
       #(f"turn({entity_list}, state={state}) is not supported")
       action_service = {"service": "script.do_nothing"}

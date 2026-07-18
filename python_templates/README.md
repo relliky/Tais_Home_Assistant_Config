@@ -286,6 +286,8 @@ Completed foundations:
     module.
 83. Move light brightness cycle action construction into the light action
     module.
+84. Move generic Home Assistant on/off and toggle action construction into the
+    service action module.
 
 Recommended next steps:
 

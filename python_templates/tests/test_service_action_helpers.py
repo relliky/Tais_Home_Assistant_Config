@@ -10,6 +10,10 @@ if SCRIPT_DIR not in sys.path:
 import service_action_helpers
 
 
+def set_service(entity_id, state):
+    return ["set", entity_id, state]
+
+
 class ServiceActionHelpersTest(unittest.TestCase):
     def test_is_light_entity_list_for_list(self):
         self.assertTrue(
@@ -50,6 +54,49 @@ class ServiceActionHelpersTest(unittest.TestCase):
                 light_brightness=50,
             ),
             "Turn light.kitchen_ceiling light.kitchen_led state=on light_brightness=50",
+        )
+
+    def test_homeassistant_on_off_action(self):
+        self.assertEqual(
+            service_action_helpers.homeassistant_on_off_action(
+                ["switch.kitchen"],
+                "on",
+            ),
+            {
+                "service": "homeassistant.turn_on",
+                "entity_id": ["switch.kitchen"],
+            },
+        )
+        self.assertEqual(
+            service_action_helpers.homeassistant_on_off_action(
+                ["switch.kitchen"],
+                "off",
+            ),
+            {
+                "service": "homeassistant.turn_off",
+                "entity_id": ["switch.kitchen"],
+            },
+        )
+
+    def test_toggle_entities_action(self):
+        self.assertEqual(
+            service_action_helpers.toggle_entities_action(
+                ["switch.kitchen"],
+                set_service,
+            ),
+            {
+                "if": [
+                    {
+                        "alias": "toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities",
+                        "condition": "state",
+                        "entity_id": ["switch.kitchen"],
+                        "state": "on",
+                        "match": "any",
+                    }
+                ],
+                "then": ["set", ["switch.kitchen"], "off"],
+                "else": ["set", ["switch.kitchen"], "on"],
+            },
         )
 
 
