@@ -39,6 +39,7 @@ import room_scene_defaults
 import room_time_settings
 import rooms
 import sensor_declaration_builders
+import tv_automation_helpers
 import unavailable_entity_builder
 import re
 import os
@@ -2351,20 +2352,12 @@ class RoomBase:
 
   def gen_tv_automations(self):
     self.automation_list += [
-      {
-        "alias" : "ZTV-" + self.automation_room_name + "Reset Picture Mode When Turning on TV" + "-" + self.room_name,
-                "configured": len(self.tvs) > 0,
-        "trigger": [
-          { "platform": "state",
-            "entity_id": self.tvs,
-            "from": "off",
-            "to": "on"
-          }
-        ],
-        "action": [
-            self.set(self.tvs, tv_brightness=3)
-          ]
-      }
+      tv_automation_helpers.reset_picture_mode_automation(
+        self.automation_room_name,
+        self.room_name,
+        self.tvs,
+        self.set,
+      )
     ]
 
   def gen_window_automations(self):
