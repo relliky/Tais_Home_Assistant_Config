@@ -2978,28 +2978,15 @@ class RoomBase:
 
   def gen_wall_button_double_automations(self):
     self.automation_list += [
-      {
-        "alias":"ZLB-" + self.automation_room_name + "Wall Switch - Double Click - Leave Room and Turn Off Everything" + "-" + self.room_name,
-        "configured": self.cfg_remote_light,
-        "trigger": [
-          {
-            "platform": "state",
-            "entity_id": self.wall_buttons,
-            "to":  ["2", "double", "double_left", "double_right", "double_center", "button_1_double", "button_2_double", "button_3_double"]
-          }
-        ],
-        "action": [
-          { "service": "automation.trigger",
-            "entity_id": [self.automation_lights_off['id'],
-                          self.automation_heating_off['id']]
-          },
-          # set occupancy to Outside eariler to make sure if we enter the room shortly again, the auto-heating can be configured
-          { "service": "input_select.select_option",
-            "target":  {"entity_id": self.room_occupancy},
-            "data":    {"option": "Outside"}
-          }
-        ]
-      }
+      button_automation_helpers.wall_button_double_leave_room_automation(
+        self.automation_room_name,
+        self.room_name,
+        self.cfg_remote_light,
+        self.wall_buttons,
+        self.automation_lights_off['id'],
+        self.automation_heating_off['id'],
+        self.room_occupancy,
+      )
     ]
   def gen_adaptive_lighting_automations(self):
     pass

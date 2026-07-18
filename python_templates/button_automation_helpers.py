@@ -50,3 +50,35 @@ def flex_wall_switch_restore_automation(
     ],
     "mode": "queued",
   }
+
+
+def wall_button_double_leave_room_automation(
+  automation_room_name,
+  room_name,
+  configured,
+  wall_buttons,
+  lights_off_automation_id,
+  heating_off_automation_id,
+  room_occupancy,
+):
+  return {
+    "alias":"ZLB-" + automation_room_name + "Wall Switch - Double Click - Leave Room and Turn Off Everything" + "-" + room_name,
+    "configured": configured,
+    "trigger": [
+      {
+        "platform": "state",
+        "entity_id": wall_buttons,
+        "to":  ["2", "double", "double_left", "double_right", "double_center", "button_1_double", "button_2_double", "button_3_double"]
+      }
+    ],
+    "action": [
+      { "service": "automation.trigger",
+        "entity_id": [lights_off_automation_id,
+                      heating_off_automation_id]
+      },
+      { "service": "input_select.select_option",
+        "target":  {"entity_id": room_occupancy},
+        "data":    {"option": "Outside"}
+      }
+    ]
+  }

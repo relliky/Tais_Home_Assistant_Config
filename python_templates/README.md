@@ -247,6 +247,8 @@ Completed foundations:
 64. Move button toggle automation construction into its own module.
 65. Move flex wall-switch restore automation construction into the button
     automation module.
+66. Move wall-button double-click leave-room automation construction into the
+    button automation module.
 
 Recommended next steps:
 
