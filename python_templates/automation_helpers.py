@@ -74,3 +74,7 @@ def automation_trigger(entity_id):
     "service": "automation.trigger",
     "entity_id": entity_id,
   }
+
+
+def do_nothing_service():
+  return {"service": "script.do_nothing"}

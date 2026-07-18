@@ -210,6 +210,7 @@ Completed foundations:
 48. Move GUI auto-group declaration helpers into the GUI module.
 49. Move entity declaration aggregation into entity-interface helpers.
 50. Move small automation service dict builders into automation helpers.
+51. Move no-op automation service builder into automation helpers.
 
 Recommended next steps:
 

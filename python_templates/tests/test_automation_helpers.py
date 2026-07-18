@@ -108,6 +108,12 @@ class AutomationHelpersTest(unittest.TestCase):
             },
         )
 
+    def test_do_nothing_service(self):
+        self.assertEqual(
+            automation_helpers.do_nothing_service(),
+            {"service": "script.do_nothing"},
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -2242,7 +2242,7 @@ class RoomBase:
             "alias": 'If it is moderate light outdoor', "if": self.condition_list_is('moderate light outdoor'), "then": self.callSceneService('curtain states when moderate light outdoor'), "else": {
             "alias": 'If it is low light outdoor'    ,  "if": self.condition_list_is('low light outdoor'     ), "then": self.callSceneService('curtain states when low light outdoor'     ), "else": {
             "alias": 'If it is sleep mode'           ,  "if": self.condition_list_is('sleep mode'            ), "then": self.callSceneService('curtain states when sleep mode'            ), "else": {
-            "alias": 'Default',                   "service": "script.do_nothing"
+            "alias": 'Default',                   **automation_helpers.do_nothing_service()
             }}}}
           }
         ]
@@ -2268,7 +2268,7 @@ class RoomBase:
             "alias": 'If it is bright afternoon', "if": self.condition_list_is('moderate light outdoor'), "then": self.callSceneService('light states when moderate light outdoor'), "else": {
             "alias": 'If it is bright afternoon', "if": self.condition_list_is('low light outdoor'     ), "then": self.callSceneService('light states when low light outdoor'     ), "else": {
             "alias": 'If it is bright afternoon', "if": self.condition_list_is('sleep mode'            ), "then": self.callSceneService('light states when sleep mode'            ), "else": {
-            "alias": 'Default',                   "service": "script.do_nothing"
+            "alias": 'Default',                   **automation_helpers.do_nothing_service()
             }}}}
           },
           # Trigger curtain states as well
@@ -2788,7 +2788,7 @@ class RoomBase:
     return {
       "choose":
         ([{ "conditions": {"condition": "trigger","id": self.CYCLE_SCENES            }, "sequence": {"choose": self.get_scene_state_machine(), "default": self.setNewSceneState("All White")}}])  + \
-        ([{ "conditions": {"condition": "trigger","id": self.DO_NOTHING              }, "sequence": [{"service": "script.do_nothing"}]}])                                                         + \
+        ([{ "conditions": {"condition": "trigger","id": self.DO_NOTHING              }, "sequence": [automation_helpers.do_nothing_service()]}])                                                   + \
         ([{ "conditions": {"condition": "trigger","id": self.TOGGLE_AL_SLEEP_MODE    }, "sequence": [self.set(self.al_sleep_mode, 'toggle'                  )]}]                                              ) + \
         ([{ "conditions": {"condition": "trigger","id": self.TOGGLE_CURTAINS         }, "sequence": [self.set(self.curtains,      'toggle'                  )]}] if len(self.curtains)       >= 1 else []     ) + \
         ([{ "conditions": {"condition": "trigger","id": self.TOGGLE_CURTAIN_0        }, "sequence": [self.set(self.curtains[0],   'toggle'                  )]}] if len(self.curtains)       >= 1 else []     ) + \
