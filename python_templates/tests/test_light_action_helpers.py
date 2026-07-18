@@ -18,6 +18,10 @@ def continue_if(entity_id, state):
     return ["continueIf", entity_id, state]
 
 
+def continue_if_with_attribute(entity_id, state, attribute=None):
+    return ["continueIf", entity_id, state, attribute]
+
+
 class LightActionHelpersTest(unittest.TestCase):
     def test_wall_switch_turn_on_reset_sequence(self):
         self.assertEqual(
@@ -144,6 +148,64 @@ class LightActionHelpersTest(unittest.TestCase):
                     },
                 },
             },
+        )
+
+    def test_light_entities_only(self):
+        self.assertEqual(
+            light_action_helpers.light_entities_only([
+                "light.kitchen_ceiling",
+                "switch.kitchen_wall",
+                "light.kitchen_led",
+            ]),
+            ["light.kitchen_ceiling", "light.kitchen_led"],
+        )
+
+    def test_reset_lights_to_white_sequence(self):
+        self.assertEqual(
+            light_action_helpers.reset_lights_to_white_sequence(
+                ["switch.kitchen_lamp"],
+                ["light.kitchen_ceiling"],
+                continue_if_with_attribute,
+            ),
+            [
+                {
+                    "service": "homeassistant.turn_on",
+                    "entity_id": ["switch.kitchen_lamp"],
+                },
+                {"delay": "00:00:02"},
+                {
+                    "if": [
+                        "continueIf",
+                        ["light.kitchen_ceiling"],
+                        "color_temp",
+                        "color_mode",
+                    ],
+                    "then": {"service": "script.do_nothing"},
+                    "else": [
+                        {
+                            "service": "light.turn_on",
+                            "entity_id": ["light.kitchen_ceiling"],
+                            "data": {"kelvin": "3000"},
+                        },
+                        {"delay": "00:00:02"},
+                        {
+                            "service": "light.turn_off",
+                            "entity_id": ["light.kitchen_ceiling"],
+                        },
+                        {"delay": "00:00:02"},
+                        {
+                            "service": "light.turn_on",
+                            "entity_id": ["light.kitchen_ceiling"],
+                        },
+                    ],
+                },
+            ],
+        )
+
+    def test_reset_lights_to_white_alias(self):
+        self.assertEqual(
+            light_action_helpers.reset_lights_to_white_alias(),
+            "Turn on lamps first and check if light color is white. Reset color lamps to white and apply adaptive lighting.",
         )
         self.assertEqual(
             light_action_helpers.light_on_off_action(

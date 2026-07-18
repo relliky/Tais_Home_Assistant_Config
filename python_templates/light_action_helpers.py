@@ -63,3 +63,32 @@ def light_cycle_action(entity_list, continue_if):
                               "{% else %}0{% endif %}"
               }}
   }
+
+
+def light_entities_only(entity_list):
+  lights_only_entity_list = []
+  for entity in entity_list:
+    lights_only_entity_list += [entity] if entity.startswith('light') else []
+  return lights_only_entity_list
+
+
+def reset_lights_to_white_alias():
+  return 'Turn on lamps first and check if light color is white. ' + \
+         'Reset color lamps to white and apply adaptive lighting.'
+
+
+def reset_lights_to_white_sequence(lamps, lights_only_entity_list, continue_if):
+  return [
+     {"service": "homeassistant.turn_on", "entity_id": lamps},
+     {"delay" : "00:00:02"},
+     {"if": continue_if(lights_only_entity_list, 'color_temp', attribute='color_mode'),
+       "then": {"service": "script.do_nothing"},
+       "else":[
+           {"service": "light.turn_on",  "entity_id": lights_only_entity_list, "data": {"kelvin": "3000"}},
+           {"delay"  : "00:00:02"},
+           {"service": "light.turn_off", "entity_id": lights_only_entity_list},
+           {"delay"  : "00:00:02"},
+           {"service": "light.turn_on",  "entity_id": lights_only_entity_list}
+       ]
+     }
+  ]

@@ -3417,30 +3417,18 @@ class RoomBase:
 
   def setLightsToWhite(self, entity_list):
 
-    alias =   'Turn on lamps first and check if light color is white. ' + \
-              'Reset color lamps to white and apply adaptive lighting.'
+    lights_only_entity_list = light_action_helpers.light_entities_only(entity_list)
 
-    lights_only_entity_list = []
-    # Remove non-light entities, such as switch
-    for entity in entity_list:
-      lights_only_entity_list += [entity] if entity.startswith('light') else []
+    service_list = light_action_helpers.reset_lights_to_white_sequence(
+      self.lamps,
+      lights_only_entity_list,
+      self.continueIf,
+    )
 
-    service_list = [
-       {"service": "homeassistant.turn_on", "entity_id": self.lamps}, # turn on switches in the first instance
-       {"delay" : "00:00:02"},
-       {"if": self.continueIf(lights_only_entity_list, 'color_temp', attribute='color_mode'),
-         "then": {"service": "script.do_nothing"},
-         "else":[
-             {"service": "light.turn_on",  "entity_id": lights_only_entity_list, "data": {"kelvin": "3000"}},
-             {"delay"  : "00:00:02"},
-             {"service": "light.turn_off", "entity_id": lights_only_entity_list},
-             {"delay"  : "00:00:02"},
-             {"service": "light.turn_on",  "entity_id": lights_only_entity_list}
-         ]
-       }
-    ]
-
-    return self.convertToSingleService(service_list, alias)
+    return self.convertToSingleService(
+      service_list,
+      light_action_helpers.reset_lights_to_white_alias(),
+    )
 
   def convertToSingleService(self, service_list, alias=''):
     return automation_helpers.wrap_service_sequence(service_list, alias=alias)

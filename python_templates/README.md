@@ -288,6 +288,8 @@ Completed foundations:
     module.
 84. Move generic Home Assistant on/off and toggle action construction into the
     service action module.
+85. Move reset-lights-to-white sequence construction into the light action
+    module.
 
 Recommended next steps:
 
