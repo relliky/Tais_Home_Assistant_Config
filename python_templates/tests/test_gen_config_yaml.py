@@ -133,6 +133,22 @@ class RoomBaseHelpersTest(unittest.TestCase):
         with self.assertRaises(TypeError):
             room.getNavigationRoomCard()
 
+    def test_restricted_access_method_wraps_card(self):
+        inner_card = {"type": "button"}
+
+        card = self.room.getRestrictedAccess("us", inner_card)
+
+        self.assertEqual(card["type"], "custom:restriction-card")
+        self.assertIs(card["card"], inner_card)
+
+    def test_misspelled_restriced_access_method_is_compatible(self):
+        inner_card = {"type": "button"}
+
+        card = self.room.getRestricedAccess("us", inner_card)
+
+        self.assertEqual(card["type"], "custom:restriction-card")
+        self.assertIs(card["card"], inner_card)
+
     def test_system_navigation_room_card_uses_base_wrapper(self):
         system_class = rooms.define_room_classes(gen_config_yaml.RoomBase)["System"]
         room = system_class.__new__(system_class)

@@ -361,6 +361,8 @@ Completed foundations:
 125. Reuse the base navigation room-card wrapper for System navigation cards.
 126. Move the navigation room-card type choice behind a `RoomBase` method.
 127. Raise a clear error for unsupported navigation room-card types.
+128. Add a correctly spelled restricted-access wrapper while preserving the
+     old method name.
 
 Recommended next steps:
 

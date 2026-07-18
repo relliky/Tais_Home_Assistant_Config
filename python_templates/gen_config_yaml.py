@@ -3668,10 +3668,13 @@ class RoomBase:
     else:
       raise TypeError("Navigation room card type '" + card_type + "' is not supported.")
 
-    return self.getRestricedAccess('us', room_card)
+    return self.getRestrictedAccess('us', room_card)
+
+  def getRestrictedAccess(self, user, inner_card):
+    return dashboard_restrictions.restricted_access_card(user, inner_card)
 
   def getRestricedAccess(self, user, inner_card):
-    return dashboard_restrictions.restricted_access_card(user, inner_card)
+    return self.getRestrictedAccess(user, inner_card)
 
 
   # Create a new yaml and write to it
