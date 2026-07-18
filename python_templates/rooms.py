@@ -1727,10 +1727,7 @@ def define_room_classes(RoomBase):
       card_type = 'mushroom'
   
       if card_type == 'mushroom':
-         room_card = {
-          "type": "custom:stack-in-card",
-          "mode": "vertical",
-          "cards": [
+         room_card = dashboard_view_helpers.mushroom_navigation_room_card(
             dashboard_view_helpers.system_navigation_title_card(),
             dashboard_view_helpers.navigation_status_stack_card(
               self.getCardModColor("transparent"),
@@ -1738,8 +1735,7 @@ def define_room_classes(RoomBase):
                 self.getTemplateCard,
               )
             )
-          ]
-        }
+         )
   
       elif card_type == 'button':
         room_card =  {

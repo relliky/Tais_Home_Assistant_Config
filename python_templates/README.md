@@ -346,6 +346,7 @@ Completed foundations:
 116. Move System navigation status-card list construction into the dashboard
      view helper module.
 117. Reuse the dashboard status stack-card helper for System navigation cards.
+118. Reuse the dashboard mushroom room-card helper for System navigation cards.
 
 Recommended next steps:
 
