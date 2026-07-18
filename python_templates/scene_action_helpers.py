@@ -191,3 +191,12 @@ def scene_cycle_targets(has_color_scene, has_led_only_scene, has_custom_scene):
     targets += ["Dark Night Mode"]
   targets += ["All Off"]
   return targets
+
+
+def scene_state_machine_choices(scene_targets, transition_choice):
+  cond_seq = [
+    transition_choice(cur_scene="All Off", nxt_scene=scene_targets[0])
+  ]
+  for scene_name in scene_targets[1:]:
+    cond_seq += [transition_choice(nxt_scene=scene_name)]
+  return cond_seq

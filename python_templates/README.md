@@ -295,6 +295,7 @@ Completed foundations:
     module.
 88. Move scene-state choice/action construction into the scene action module.
 89. Move scene-cycle target ordering into the scene action module.
+90. Move scene-state-machine transition ordering into the scene action module.
 
 Recommended next steps:
 

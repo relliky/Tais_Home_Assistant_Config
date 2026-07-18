@@ -277,6 +277,33 @@ class SceneActionHelpersTest(unittest.TestCase):
             ],
         )
 
+    def test_scene_state_machine_choices_preserve_transition_order(self):
+        calls = []
+
+        def transition_choice(nxt_scene, cur_scene=None):
+            calls.append((cur_scene, nxt_scene))
+            return ["transition", cur_scene, nxt_scene]
+
+        self.assertEqual(
+            scene_action_helpers.scene_state_machine_choices(
+                ["All White", "Lamp LED White", "All Off"],
+                transition_choice,
+            ),
+            [
+                ["transition", "All Off", "All White"],
+                ["transition", None, "Lamp LED White"],
+                ["transition", None, "All Off"],
+            ],
+        )
+        self.assertEqual(
+            calls,
+            [
+                ("All Off", "All White"),
+                (None, "Lamp LED White"),
+                (None, "All Off"),
+            ],
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

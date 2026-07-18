@@ -2639,12 +2639,10 @@ class RoomBase:
       self.cfg_led_only_scene,
       self.cfg_custom_scene,
     )
-    cond_seq = [
-      self.setNewSceneFromOldScene(cur_scene="All Off", nxt_scene=scene_targets[0])
-    ]
-    for scene_name in scene_targets[1:]:
-      cond_seq += [self.setNewSceneFromOldScene(nxt_scene=scene_name)]
-    return cond_seq
+    return scene_action_helpers.scene_state_machine_choices(
+      scene_targets,
+      self.setNewSceneFromOldScene,
+    )
 
   def add_offline_device_automations(self, device_type, offline_device, tts_message, gateway_power_switch='N/A'):
     self.automation_list += [
