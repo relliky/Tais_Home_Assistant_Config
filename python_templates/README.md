@@ -313,6 +313,8 @@ Completed foundations:
     helper module.
 100. Move unavailable-status navigation card construction into the dashboard
      view helper module.
+101. Move battery-status navigation card construction into the dashboard view
+     helper module.
 
 Recommended next steps:
 

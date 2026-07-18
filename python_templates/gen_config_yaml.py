@@ -3643,12 +3643,10 @@ class RoomBase:
                 self.getTemplateCard,
               )
             ]) + ([] if self.room_battery_entity_list == [] else [
-              self.getTemplateCard(
-                icon       = "{% if is_state('" + self.room_low_battery_entity + "', 'on') %}\n  mdi:battery-20-bluetooth \n{% else %}\n  mdi:battery-70\n{% endif %}",
-                icon_color = "{% if is_state('" + self.room_low_battery_entity + "', 'on') %}\n  amber\n{% endif %}",
-                tap_entity = self.room_battery_entity,
-                #condition_state  = 'on',
-                #condition_entity = self.room_low_battery_entity,
+              dashboard_view_helpers.battery_status_card(
+                self.room_low_battery_entity,
+                self.room_battery_entity,
+                self.getTemplateCard,
               )
             ]) + ([] if self.windows == [] else [
               self.getTemplateCard(

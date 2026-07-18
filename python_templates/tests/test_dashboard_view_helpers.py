@@ -202,6 +202,29 @@ class DashboardViewHelpersTest(unittest.TestCase):
             },
         )
 
+    def test_battery_status_card(self):
+        def template_card(**kwargs):
+            return kwargs
+
+        self.assertEqual(
+            dashboard_view_helpers.battery_status_card(
+                "binary_sensor.kitchen_low_battery",
+                "group.kitchen_battery",
+                template_card,
+            ),
+            {
+                "icon": "{% if is_state('binary_sensor.kitchen_low_battery', 'on') %}\n"
+                "  mdi:battery-20-bluetooth \n"
+                "{% else %}\n"
+                "  mdi:battery-70\n"
+                "{% endif %}",
+                "icon_color": "{% if is_state('binary_sensor.kitchen_low_battery', 'on') %}\n"
+                "  amber\n"
+                "{% endif %}",
+                "tap_entity": "group.kitchen_battery",
+            },
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -117,3 +117,17 @@ def unavailable_status_card(unavailable_entity, template_card):
     condition_state='on',
     condition_entity=unavailable_entity,
   )
+
+
+def battery_status_card(room_low_battery_entity, room_battery_entity, template_card):
+  return template_card(
+    icon="{% if is_state('" + room_low_battery_entity + "', 'on') %}\n"
+         "  mdi:battery-20-bluetooth \n"
+         "{% else %}\n"
+         "  mdi:battery-70\n"
+         "{% endif %}",
+    icon_color="{% if is_state('" + room_low_battery_entity + "', 'on') %}\n"
+               "  amber\n"
+               "{% endif %}",
+    tap_entity=room_battery_entity,
+  )
