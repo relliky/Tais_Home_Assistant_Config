@@ -311,6 +311,33 @@ class DashboardViewHelpersTest(unittest.TestCase):
             },
         )
 
+    def test_temperature_control_status_card(self):
+        def template_card(**kwargs):
+            return kwargs
+
+        self.assertEqual(
+            dashboard_view_helpers.temperature_control_status_card(
+                "climate.kitchen",
+                template_card,
+            ),
+            {
+                "icon": "{% if is_state(entity, 'heat') %}\n"
+                "  mdi:heating-coil\n"
+                "    {% else %}   \n"
+                "  mdi:snowflake\n"
+                "      {% endif %}",
+                "icon_color": "{% if is_state(entity, 'heat') %}\n"
+                "  {% if state_attr(entity, 'temperature') > state_attr(entity, 'current_temperature') %}\n"
+                "  red\n"
+                " {% else %}\n"
+                " blue\n"
+                "  {% endif %}\n"
+                " {% endif %}\n",
+                "condition_state": "heat",
+                "condition_entity": "climate.kitchen",
+            },
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

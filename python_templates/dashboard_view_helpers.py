@@ -185,3 +185,22 @@ def occupancy_override_status_card(occupancy_override_entity, template_card):
                "{% endif %}",
     tap_entity=occupancy_override_entity,
   )
+
+
+def temperature_control_status_card(thermostat, template_card):
+  return template_card(
+    icon="{% if is_state(entity, 'heat') %}\n"
+         "  mdi:heating-coil\n"
+         "    {% else %}   \n"
+         "  mdi:snowflake\n"
+         "      {% endif %}",
+    icon_color="{% if is_state(entity, 'heat') %}\n"
+               "  {% if state_attr(entity, 'temperature') > state_attr(entity, 'current_temperature') %}\n"
+               "  red\n"
+               " {% else %}\n"
+               " blue\n"
+               "  {% endif %}\n"
+               " {% endif %}\n",
+    condition_state='heat',
+    condition_entity=thermostat,
+  )

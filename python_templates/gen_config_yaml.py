@@ -3669,11 +3669,9 @@ class RoomBase:
                 self.getTemplateCard,
               )
             ]) + ([] if self.cfg_temp_control == False else [
-              self.getTemplateCard(
-                icon       = "{% if is_state(entity, 'heat') %}\n  mdi:heating-coil\n    {% else %}   \n  mdi:snowflake\n      {% endif %}",
-                icon_color = "{% if is_state(entity, 'heat') %}\n  {% if state_attr(entity, 'temperature') > state_attr(entity, 'current_temperature') %}\n  red\n {% else %}\n blue\n  {% endif %}\n {% endif %}\n",
-                condition_state  = 'heat',
-                condition_entity = self.thermostat,
+              dashboard_view_helpers.temperature_control_status_card(
+                self.thermostat,
+                self.getTemplateCard,
               )
             ]) + ([] if self.cfg_occupancy == False else [
              self.getTemplateCard(
