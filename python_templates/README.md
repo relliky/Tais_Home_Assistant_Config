@@ -218,6 +218,8 @@ Completed foundations:
     automation module.
 54. Move motion-light lights-off parallel action builder into the motion-light
     automation module.
+55. Move motion-light entering-automation disable action builder into the
+    motion-light automation module.
 
 Recommended next steps:
 

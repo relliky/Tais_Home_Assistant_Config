@@ -2310,12 +2310,10 @@ class RoomBase:
             "to": ["Just Entered", "In Sleep", "Stayed Inside"]
           }
         ],
-        "action": [
-            # Delay to lights still turning on for people that Double Click wall button and go back in the room again
-            {"delay" : "00:00:10"},
-            # Disable lights-on automation when people are inside the room but didn't move until now and accidentally detected as Outside
-            automation_helpers.automation_turn_off(self.automation_lights_on['id'], stop_actions="false")
-          ]
+        "action": motion_light_automation_helpers.disable_entering_lights_on_actions(
+          self.automation_lights_on['id'],
+          automation_helpers.automation_turn_off,
+        )
       }
     ]
 

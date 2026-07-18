@@ -30,6 +30,14 @@ def do_nothing_service():
     return {"service": "script.do_nothing"}
 
 
+def automation_turn_off(entity_id, stop_actions=False):
+    return {
+        "service": "automation.turn_off",
+        "entity_id": entity_id,
+        "data": {"stop_actions": stop_actions},
+    }
+
+
 class MotionLightAutomationHelpersTest(unittest.TestCase):
     def test_curtain_scene_choose(self):
         choose = motion_light_automation_helpers.curtain_scene_choose(
@@ -121,6 +129,22 @@ class MotionLightAutomationHelpersTest(unittest.TestCase):
                 ["scene_state", "Idle"],
                 ["scene", "All Off"],
                 ["set", ["switch.extractor"], "off"],
+            ],
+        )
+
+    def test_disable_entering_lights_on_actions(self):
+        self.assertEqual(
+            motion_light_automation_helpers.disable_entering_lights_on_actions(
+                "automation.lights_on",
+                automation_turn_off,
+            ),
+            [
+                {"delay": "00:00:10"},
+                {
+                    "service": "automation.turn_off",
+                    "entity_id": "automation.lights_on",
+                    "data": {"stop_actions": "false"},
+                },
             ],
         )
 

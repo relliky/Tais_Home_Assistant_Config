@@ -86,3 +86,10 @@ def lights_off_parallel_actions(
     call_scene_service("All Off"),
     set_service(extractor, 'off')
   ]
+
+
+def disable_entering_lights_on_actions(automation_lights_on_id, automation_turn_off):
+  return [
+    {"delay": "00:00:10"},
+    automation_turn_off(automation_lights_on_id, stop_actions="false")
+  ]
