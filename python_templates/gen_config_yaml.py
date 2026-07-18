@@ -8,6 +8,7 @@
 from HA_Composite_Card_Lib.src.main import HA_Composite_Card_Lib
 import automation_helpers
 import battery_entity_builder
+import button_automation_helpers
 import camera_automation_helpers
 import configured_entity_filter
 import dashboard_card_mod
@@ -2949,18 +2950,18 @@ class RoomBase:
       button_list = self.wall_buttons
 
     self.automation_list += [
-      {
-        "alias":"ZLB-" + self.automation_room_name + switch_type + " - " + button_state_name + " Press - Toggle " + device_name + "-" + self.room_name,
-        "configured": self.cfg_remote_light,
-        "trigger": [
-          {
-            "platform": "state",
-            "entity_id": button_list,
-            "to": button_state_list
-          }
-        ],
-        "action": [self.set(device_list, "toggle")]
-      }
+      button_automation_helpers.button_toggle_automation(
+        self.automation_room_name,
+        self.room_name,
+        self.cfg_remote_light,
+        switch_type,
+        button_state_name,
+        device_name,
+        button_list,
+        button_state_list,
+        device_list,
+        self.set,
+      )
     ]
 
 
