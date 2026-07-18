@@ -64,3 +64,30 @@ def extra_control_entities(
     manual_added_automations +
     ([window_group] if len(windows) > 0 else [])
   )
+
+
+def auto_group_declaration(gui_ctl_group, gui_ctl_entity_list, get_postfix, get_name_from_entity):
+  return {
+    get_postfix(gui_ctl_group): {
+      "name": get_name_from_entity(gui_ctl_group),
+      "entities": gui_ctl_entity_list,
+    }
+  }
+
+
+def merge_auto_group_declaration(
+  entity_declarations,
+  cfg_group_auto,
+  get_gui_ctl_group,
+  get_gui_ctl_entity_list,
+  get_postfix,
+  get_name_from_entity,
+):
+  if cfg_group_auto:
+    gui_ctl_group = get_gui_ctl_group()
+    entity_declarations['group'] |= auto_group_declaration(
+      gui_ctl_group,
+      get_gui_ctl_entity_list(),
+      get_postfix,
+      get_name_from_entity,
+    )

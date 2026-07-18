@@ -141,6 +141,74 @@ class GuiControlGroupTest(unittest.TestCase):
             ],
         )
 
+    def test_auto_group_declaration(self):
+        self.assertEqual(
+            gui_control_group.auto_group_declaration(
+                "group.master_room_auto_gen_automations",
+                ["automation.one"],
+                lambda entity: entity.split(".", 1)[1],
+                lambda entity: "Master Room Auto Gen Automations",
+            ),
+            {
+                "master_room_auto_gen_automations": {
+                    "name": "Master Room Auto Gen Automations",
+                    "entities": ["automation.one"],
+                }
+            },
+        )
+
+    def test_merge_auto_group_declaration_when_enabled(self):
+        entity_declarations = {"group": {"existing": {"name": "Existing", "entities": []}}}
+
+        gui_control_group.merge_auto_group_declaration(
+            entity_declarations,
+            True,
+            lambda: "group.master_room_auto_gen_automations",
+            lambda: ["automation.one"],
+            lambda entity: entity.split(".", 1)[1],
+            lambda entity: "Master Room Auto Gen Automations",
+        )
+
+        self.assertEqual(
+            entity_declarations["group"]["master_room_auto_gen_automations"],
+            {
+                "name": "Master Room Auto Gen Automations",
+                "entities": ["automation.one"],
+            },
+        )
+        self.assertIn("existing", entity_declarations["group"])
+
+    def test_merge_auto_group_declaration_when_disabled(self):
+        entity_declarations = {"group": {}}
+
+        gui_control_group.merge_auto_group_declaration(
+            entity_declarations,
+            False,
+            lambda: "group.master_room_auto_gen_automations",
+            lambda: ["automation.one"],
+            lambda entity: entity.split(".", 1)[1],
+            lambda entity: "Master Room Auto Gen Automations",
+        )
+
+        self.assertEqual(entity_declarations, {"group": {}})
+
+    def test_merge_auto_group_declaration_when_disabled_is_lazy(self):
+        entity_declarations = {"group": {}}
+
+        def fail_if_called():
+            raise AssertionError("disabled merge should not read group fields")
+
+        gui_control_group.merge_auto_group_declaration(
+            entity_declarations,
+            False,
+            fail_if_called,
+            fail_if_called,
+            fail_if_called,
+            fail_if_called,
+        )
+
+        self.assertEqual(entity_declarations, {"group": {}})
+
 
 if __name__ == "__main__":
     unittest.main()

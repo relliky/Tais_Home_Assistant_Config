@@ -2190,14 +2190,14 @@ class RoomBase:
       self.window_group,
     )
 
-
-    if self.cfg_group_auto:
-      self.entity_declarations['group'] |= {
-        self.getPostfix(self.gui_ctl_group) : {
-          "name": self.getNameFromEntity(self.gui_ctl_group),
-          "entities": self.gui_ctl_entity_list
-        }
-      }
+    gui_control_group.merge_auto_group_declaration(
+      self.entity_declarations,
+      self.cfg_group_auto,
+      lambda: self.gui_ctl_group,
+      lambda: self.gui_ctl_entity_list,
+      self.getPostfix,
+      self.getNameFromEntity,
+    )
 
 
   def implement_entity_intf(self):
