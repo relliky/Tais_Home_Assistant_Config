@@ -303,6 +303,8 @@ Completed foundations:
 93. Move bright-day condition construction into the condition helper module.
 94. Move dashboard home-navigation card construction into the dashboard view
     helper module.
+95. Move dashboard header card-list construction into the dashboard view helper
+    module.
 
 Recommended next steps:
 

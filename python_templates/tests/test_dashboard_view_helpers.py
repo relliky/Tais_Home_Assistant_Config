@@ -87,6 +87,19 @@ class DashboardViewHelpersTest(unittest.TestCase):
         self.assertEqual(card["tap_action"]["navigation_path"], "custom/path")
         self.assertEqual(card["icon_tap_action"]["navigation_path"], "custom/path")
 
+    def test_header_cards(self):
+        scene_card = {"type": "entity", "entity": "input_select.kitchen_scene"}
+
+        cards = dashboard_view_helpers.header_cards(
+            "lovelace",
+            scene_card,
+            navigate_path="custom/path",
+        )
+
+        self.assertEqual(len(cards), 2)
+        self.assertEqual(cards[0]["tap_action"]["navigation_path"], "custom/path")
+        self.assertIs(cards[1], scene_card)
+
 
 if __name__ == "__main__":
     unittest.main()

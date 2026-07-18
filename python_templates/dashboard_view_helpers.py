@@ -54,3 +54,10 @@ def home_navigation_card(dashboard_root, navigate_path=None):
       }
     }
   }
+
+
+def header_cards(dashboard_root, scene_card, navigate_path=None):
+  return [
+    home_navigation_card(dashboard_root, navigate_path=navigate_path),
+    scene_card,
+  ]

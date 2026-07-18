@@ -3600,24 +3600,11 @@ class RoomBase:
 
   def getHeaderCardList(self,navigate_path=None):
     # Navigation header
-    return ([
-        dashboard_view_helpers.home_navigation_card(
-          self.dashboard_root,
-          navigate_path=navigate_path,
-        ),
-        self.hccl.getEntityCard(entity=self.room_scene_ctl, secondary_info='none')
-#        {
-#          "type": "entities",
-#          "entities": [
-#            {
-#              "entity": self.room_scene_ctl,
-#              "name": "Scene"
-#            }
-#          ],
-#          "state_color": True,
-#          "title": "Run a Scene",
-#        }
-    ])
+    return dashboard_view_helpers.header_cards(
+      self.dashboard_root,
+      self.hccl.getEntityCard(entity=self.room_scene_ctl, secondary_info='none'),
+      navigate_path=navigate_path,
+    )
 
   def getNavigationRoomCard (self):
     type = 'mushroom'
