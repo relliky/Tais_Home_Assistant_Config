@@ -197,6 +197,25 @@ class DashboardEntityCardsTest(unittest.TestCase):
             {},
         )
 
+    def test_resolve_template_card_entity(self):
+        self.assertEqual(
+            dashboard_entity_cards.resolve_template_card_entity(
+                tap_entity="light.master_room_ceiling_light",
+                condition_entity="input_boolean.master_room_sleep_time",
+            ),
+            "light.master_room_ceiling_light",
+        )
+        self.assertEqual(
+            dashboard_entity_cards.resolve_template_card_entity(
+                condition_entity="input_boolean.master_room_sleep_time",
+            ),
+            "input_boolean.master_room_sleep_time",
+        )
+        self.assertEqual(
+            dashboard_entity_cards.resolve_template_card_entity(),
+            "input_boolean.placeholder",
+        )
+
     def test_template_card(self):
         card = dashboard_entity_cards.template_card(
             icon="mdi:lightbulb",
@@ -224,6 +243,16 @@ class DashboardEntityCardsTest(unittest.TestCase):
         )
 
         self.assertNotIn("icon_color", card)
+
+    def test_template_card_ios_mod(self):
+        card_mod = dashboard_entity_cards.template_card_ios_mod(
+            "light.master_room_ceiling_light",
+            "yellow",
+        )
+
+        self.assertIn("card_mod", card_mod)
+        self.assertIn("light.master_room_ceiling_light", card_mod["card_mod"]["style"])
+        self.assertIn("yellow", card_mod["card_mod"]["style"])
 
     def test_conditional_template_card_state(self):
         template = {"type": "custom:mushroom-template-card"}

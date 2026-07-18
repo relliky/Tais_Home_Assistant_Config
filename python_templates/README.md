@@ -201,6 +201,8 @@ Completed foundations:
 42. Move Lovelace template-card base builders into the entity-card module.
 43. Move Lovelace single-condition template-card wrapper into the entity-card
     module.
+44. Move Lovelace template-card entity resolution and iOS styling helpers into
+    the entity-card module.
 
 Recommended next steps:
 

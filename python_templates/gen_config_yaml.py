@@ -2082,9 +2082,10 @@ class RoomBase:
 
     self.dashboard_view_path = "/" + self.dashboard_root + "/" + self.room_navi_path
 
-    entity =  tap_entity                  if tap_entity       != None else \
-              condition_entity            if condition_entity != None else \
-              'input_boolean.placeholder'
+    entity = dashboard_entity_cards.resolve_template_card_entity(
+      tap_entity=tap_entity,
+      condition_entity=condition_entity,
+    )
 
     tap_action_dict = dashboard_entity_cards.template_card_tap_action(
       tap_action,
@@ -2124,7 +2125,7 @@ class RoomBase:
 
     if theme == 'ios':
       #condition_card |= self.getCardMod(style='ios16_toggle',color=("{% set entity = '"+entity+"' %}\n" + icon_color))
-      condition_card |= self.getCardMod(color=("{% set entity = '"+entity+"' %}\n" + icon_color))
+      condition_card |= dashboard_entity_cards.template_card_ios_mod(entity, icon_color)
 
     return condition_card
 

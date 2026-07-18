@@ -350,6 +350,12 @@ def template_card_tap_action(tap_action, dashboard_view_path):
   return {}
 
 
+def resolve_template_card_entity(tap_entity=None, condition_entity=None):
+  return tap_entity if tap_entity != None else \
+         condition_entity if condition_entity != None else \
+         'input_boolean.placeholder'
+
+
 def template_card(
   icon='mdi:head-alert-outline',
   icon_color='blue',
@@ -372,6 +378,14 @@ def template_card(
   } | ({"primary": primary} if primary != None else {}) \
     | ({"secondary": secondary} if secondary != None else {}) \
     | ({"icon_color": "{% set entity = '" + entity + "' %}\n" + icon_color} if theme == 'default' else {})
+
+
+def template_card_ios_mod(entity, icon_color):
+  import dashboard_card_mod
+
+  return dashboard_card_mod.build_card_mod(
+    color=("{% set entity = '" + entity + "' %}\n" + icon_color),
+  )
 
 
 def conditional_template_card(template_card, condition_entity, condition_state='on', condition_state_not=None):
