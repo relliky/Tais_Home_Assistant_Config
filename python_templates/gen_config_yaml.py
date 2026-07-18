@@ -2175,27 +2175,20 @@ class RoomBase:
     )
 
     # Generate automations group with disabled automation removed
-    for automation in self.entity_declarations['automation']:
-      self.gui_ctl_entity_list += [automation['id']]
-
-    # added wall switch control
-    self.gui_ctl_entity_list += self.wall_switches
-    self.gui_ctl_entity_list += self.decouple_wall_switches
-
-    # added adaptive light control
-    if self.cfg_adaptive_lighting == True:
-      for al_dict in self.al_light_list:
-        self.gui_ctl_entity_list += ["switch.adaptive_lighting_sleep_mode_" + self.getEntityFromName(al_dict['name'])]
-
-    self.gui_ctl_entity_list += self.time_controls
-    self.gui_ctl_entity_list += self.light_sensor_controls
-    self.gui_ctl_entity_list += [self.room_battery_entity]
-
-    # Additional manual added automation
-    self.gui_ctl_entity_list += self.manual_added_automations
-
-    # Added windows
-    self.gui_ctl_entity_list += [self.window_group] if len(self.windows) > 0 else []
+    self.gui_ctl_entity_list += gui_control_group.automation_entities(self.entity_declarations['automation'])
+    self.gui_ctl_entity_list += gui_control_group.extra_control_entities(
+      self.wall_switches,
+      self.decouple_wall_switches,
+      self.cfg_adaptive_lighting,
+      self.al_light_list,
+      self.getEntityFromName,
+      self.time_controls,
+      self.light_sensor_controls,
+      self.room_battery_entity,
+      self.manual_added_automations,
+      self.windows,
+      self.window_group,
+    )
 
 
     if self.cfg_group_auto:

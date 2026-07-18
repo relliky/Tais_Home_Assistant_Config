@@ -206,6 +206,7 @@ Completed foundations:
     the entity-card module.
 45. Move generated automation ID assignment into automation helpers.
 46. Move GUI scene-control entity list generation into its own module.
+47. Move remaining GUI control-group entity list helpers into the GUI module.
 
 Recommended next steps:
 

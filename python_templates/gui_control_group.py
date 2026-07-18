@@ -25,3 +25,42 @@ def scene_control_entities(
     entities += [curtain_control_when[control_name]] if len(curtains) > 0 else []
 
   return entities
+
+
+def automation_entities(automations):
+  return [automation['id'] for automation in automations]
+
+
+def adaptive_lighting_sleep_mode_entities(cfg_adaptive_lighting, al_light_list, get_entity_from_name):
+  if cfg_adaptive_lighting != True:
+    return []
+
+  return [
+    "switch.adaptive_lighting_sleep_mode_" + get_entity_from_name(al_dict['name'])
+    for al_dict in al_light_list
+  ]
+
+
+def extra_control_entities(
+  wall_switches,
+  decouple_wall_switches,
+  cfg_adaptive_lighting,
+  al_light_list,
+  get_entity_from_name,
+  time_controls,
+  light_sensor_controls,
+  room_battery_entity,
+  manual_added_automations,
+  windows,
+  window_group,
+):
+  return (
+    wall_switches +
+    decouple_wall_switches +
+    adaptive_lighting_sleep_mode_entities(cfg_adaptive_lighting, al_light_list, get_entity_from_name) +
+    time_controls +
+    light_sensor_controls +
+    [room_battery_entity] +
+    manual_added_automations +
+    ([window_group] if len(windows) > 0 else [])
+  )

@@ -82,6 +82,65 @@ class GuiControlGroupTest(unittest.TestCase):
             [],
         )
 
+    def test_automation_entities(self):
+        self.assertEqual(
+            gui_control_group.automation_entities(
+                [
+                    {"id": "automation.one"},
+                    {"id": "automation.two"},
+                ]
+            ),
+            ["automation.one", "automation.two"],
+        )
+
+    def test_adaptive_lighting_sleep_mode_entities(self):
+        self.assertEqual(
+            gui_control_group.adaptive_lighting_sleep_mode_entities(
+                True,
+                [{"name": "Master Room"}, {"name": "Living Room"}],
+                lambda name: name.lower().replace(" ", "_"),
+            ),
+            [
+                "switch.adaptive_lighting_sleep_mode_master_room",
+                "switch.adaptive_lighting_sleep_mode_living_room",
+            ],
+        )
+        self.assertEqual(
+            gui_control_group.adaptive_lighting_sleep_mode_entities(
+                False,
+                [{"name": "Master Room"}],
+                lambda name: name.lower().replace(" ", "_"),
+            ),
+            [],
+        )
+
+    def test_extra_control_entities_preserves_order(self):
+        self.assertEqual(
+            gui_control_group.extra_control_entities(
+                wall_switches=["switch.wall"],
+                decouple_wall_switches=["switch.decouple"],
+                cfg_adaptive_lighting=True,
+                al_light_list=[{"name": "Master Room"}],
+                get_entity_from_name=lambda name: name.lower().replace(" ", "_"),
+                time_controls=["input_datetime.noon"],
+                light_sensor_controls=["sensor.light"],
+                room_battery_entity="sensor.room_battery",
+                manual_added_automations=["automation.manual"],
+                windows=["binary_sensor.window"],
+                window_group="group.window",
+            ),
+            [
+                "switch.wall",
+                "switch.decouple",
+                "switch.adaptive_lighting_sleep_mode_master_room",
+                "input_datetime.noon",
+                "sensor.light",
+                "sensor.room_battery",
+                "automation.manual",
+                "group.window",
+            ],
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
