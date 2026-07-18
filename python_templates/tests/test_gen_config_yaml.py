@@ -8,6 +8,7 @@ if SCRIPT_DIR not in sys.path:
     sys.path.insert(0, SCRIPT_DIR)
 
 import gen_config_yaml
+import rooms
 
 
 class RoomBaseHelpersTest(unittest.TestCase):
@@ -118,6 +119,25 @@ class RoomBaseHelpersTest(unittest.TestCase):
         self.assertEqual(card["name"], "Kitchen")
         self.assertEqual(card["icon"], "mdi:fridge")
         self.assertEqual(card["tap_action"]["navigation_path"], "lovelace/kitchen")
+
+    def test_system_navigation_room_card_uses_base_wrapper(self):
+        system_class = rooms.define_room_classes(gen_config_yaml.RoomBase)["System"]
+        room = system_class.__new__(system_class)
+        room.getTemplateCard = lambda **kwargs: kwargs
+        room.getCardModColor = lambda color: {"card_mod": {"style": color}}
+
+        card = room.getNavigationRoomCard()
+
+        self.assertEqual(card["type"], "custom:restriction-card")
+        inner_card = card["card"]
+        self.assertEqual(inner_card["type"], "custom:stack-in-card")
+        self.assertEqual(inner_card["mode"], "vertical")
+        self.assertEqual(inner_card["cards"][0]["primary"], "System")
+        self.assertEqual(inner_card["cards"][1]["mode"], "horizontal")
+        self.assertEqual(
+            inner_card["cards"][1]["cards"][0]["tap_entity"],
+            "switch.gaming_pc",
+        )
 
 
 

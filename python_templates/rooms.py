@@ -1725,27 +1725,13 @@ def define_room_classes(RoomBase):
       # Don't allow system to render a package config
       pass
   
-    # Customize system card information
-    def getNavigationRoomCard (self):
-      card_type = 'mushroom'
+    def getNavigationRoomTitleCard(self):
+      return dashboard_view_helpers.system_navigation_title_card()
   
-      if card_type == 'mushroom':
-         room_card = dashboard_view_helpers.navigation_status_room_card(
-            dashboard_view_helpers.system_navigation_title_card(),
-            self.getCardModColor("transparent"),
-            dashboard_view_helpers.system_navigation_status_cards(
-              self.getTemplateCard,
-            )
-         )
-  
-      elif card_type == 'button':
-        room_card = dashboard_view_helpers.button_navigation_room_card(
-          self.room_name,
-          self.room_icon,
-          self.dashboard_view_path,
-        )
-  
-      return self.getRestricedAccess('us', room_card)
+    def getNavigationStatusCards(self):
+      return dashboard_view_helpers.system_navigation_status_cards(
+        self.getTemplateCard,
+      )
   
   
   #@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@

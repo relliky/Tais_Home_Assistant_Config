@@ -358,6 +358,7 @@ Completed foundations:
      module.
 124. Split normal navigation room-card branch construction into small
      `RoomBase` methods.
+125. Reuse the base navigation room-card wrapper for System navigation cards.
 
 Recommended next steps:
 
