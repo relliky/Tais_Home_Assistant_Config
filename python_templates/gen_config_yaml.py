@@ -27,6 +27,7 @@ import generator_cli
 import generator_io
 import gui_control_group
 import ha_entity_registry
+import light_action_helpers
 import media_automation_helpers
 import message_helpers
 import mirror_automation_helpers
@@ -3349,10 +3350,8 @@ class RoomBase:
     ##############################################
     elif entity_list == self.wall_switches and state == 'on':
       action_service = self.convertToSingleService(
-                        [{"service":"homeassistant.turn_off", "entity_id": entity_list},
-                         {"delay": {"milliseconds": 200}},
-                         {"service":"homeassistant.turn_on",  "entity_id": entity_list}],
-                          alias='Everytime to turn on a wall switch, make sure to turn off it first to make sure the smart lights will be back on')
+                        light_action_helpers.wall_switch_turn_on_reset_sequence(entity_list),
+                        alias=light_action_helpers.wall_switch_turn_on_reset_alias())
 
     elif light_brightness != None:
         action_service = {"service" : "light.turn_on",

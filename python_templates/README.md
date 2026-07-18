@@ -32,6 +32,7 @@ package YAML and Lovelace dashboard YAML from room-specific Python classes.
 - `button_automation_helpers.py` contains button automation builders.
 - `camera_automation_helpers.py` contains camera automation builders.
 - `climate_action_helpers.py` contains climate action builders.
+- `light_action_helpers.py` contains light and wall-switch action builders.
 - `media_automation_helpers.py` contains media-player automation builders.
 - `mirror_automation_helpers.py` contains mirror-sensor light automation
   builders.
@@ -278,6 +279,7 @@ Completed foundations:
     module.
 79. Move climate HVAC-mode and temperature-step action construction into its
     own module.
+80. Move wall-switch turn-on reset sequence construction into its own module.
 
 Recommended next steps:
 
