@@ -333,6 +333,8 @@ Completed foundations:
      module.
 110. Move navigation status stack-card construction into the dashboard view
      helper module.
+111. Move mushroom navigation room-card construction into the dashboard view
+     helper module.
 
 Recommended next steps:
 

@@ -481,6 +481,25 @@ class DashboardViewHelpersTest(unittest.TestCase):
             },
         )
 
+    def test_mushroom_navigation_room_card(self):
+        title_card = {"type": "title"}
+        status_stack_card = {"type": "status"}
+
+        self.assertEqual(
+            dashboard_view_helpers.mushroom_navigation_room_card(
+                title_card,
+                status_stack_card,
+            ),
+            {
+                "type": "custom:stack-in-card",
+                "mode": "vertical",
+                "cards": [
+                    title_card,
+                    status_stack_card,
+                ],
+            },
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

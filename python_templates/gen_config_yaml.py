@@ -3613,10 +3613,7 @@ class RoomBase:
     type = 'mushroom'
 
     if type == 'mushroom':
-      room_card = {
-        "type": "custom:stack-in-card",
-        "mode": "vertical",
-        "cards": [
+      room_card = dashboard_view_helpers.mushroom_navigation_room_card(
           self.getTemplateCard(
             icon       = self.room_icon,
             icon_color = "blue",
@@ -3628,7 +3625,6 @@ class RoomBase:
             ),
             tap_action = 'navigate'
           ),
-          # Make the bottom stack-in-card transparent
           dashboard_view_helpers.navigation_status_stack_card(
             self.getCardModColor("transparent"),
             dashboard_view_helpers.navigation_status_cards(
@@ -3652,8 +3648,7 @@ class RoomBase:
               self.getTemplateCard,
             )
           )
-        ]
-      }
+      )
     elif type == 'button':
       room_card = dashboard_view_helpers.button_navigation_room_card(
         self.room_name,

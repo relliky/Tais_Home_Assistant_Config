@@ -303,3 +303,14 @@ def navigation_status_stack_card(card_mod, cards):
     "mode": "horizontal",
     "cards": cards,
   }
+
+
+def mushroom_navigation_room_card(title_card, status_stack_card):
+  return {
+    "type": "custom:stack-in-card",
+    "mode": "vertical",
+    "cards": [
+      title_card,
+      status_stack_card,
+    ],
+  }
