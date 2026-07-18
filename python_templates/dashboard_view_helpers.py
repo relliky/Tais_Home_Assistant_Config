@@ -204,3 +204,28 @@ def temperature_control_status_card(thermostat, template_card):
     condition_state='heat',
     condition_entity=thermostat,
   )
+
+
+def occupancy_status_card(room_occupancy, template_card):
+  return template_card(
+    icon="{% if   is_state(entity, 'Outside') %}\n"
+         "  mdi:door-closed\n"
+         "{% elif is_state(entity, 'Just Entered') %}\n"
+         "  mdi:arrow-right-circle\n"
+         "{% elif is_state(entity, 'In Sleep') %}\n"
+         "  mdi:sleep\n"
+         "{% else %}\n"
+         "  mdi:account-multiple\n"
+         "{% endif %}",
+    icon_color="{% if   is_state(entity, 'Outside') %}                     "
+               "{% elif is_state(entity, 'Just Entered') %}\n"
+               "  green\n"
+               "                 {% elif is_state(entity, 'In Sleep') %}\n"
+               "  blue\n"
+               "     {% else %}\n"
+               "  purple\n"
+               "              {% endif %}",
+    tap_entity=room_occupancy,
+    condition_state_not='Outside',
+    condition_entity=room_occupancy,
+  )

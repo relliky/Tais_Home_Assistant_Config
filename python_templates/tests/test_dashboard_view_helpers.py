@@ -338,6 +338,39 @@ class DashboardViewHelpersTest(unittest.TestCase):
             },
         )
 
+    def test_occupancy_status_card(self):
+        def template_card(**kwargs):
+            return kwargs
+
+        self.assertEqual(
+            dashboard_view_helpers.occupancy_status_card(
+                "input_select.kitchen_occupancy",
+                template_card,
+            ),
+            {
+                "icon": "{% if   is_state(entity, 'Outside') %}\n"
+                "  mdi:door-closed\n"
+                "{% elif is_state(entity, 'Just Entered') %}\n"
+                "  mdi:arrow-right-circle\n"
+                "{% elif is_state(entity, 'In Sleep') %}\n"
+                "  mdi:sleep\n"
+                "{% else %}\n"
+                "  mdi:account-multiple\n"
+                "{% endif %}",
+                "icon_color": "{% if   is_state(entity, 'Outside') %}                     "
+                "{% elif is_state(entity, 'Just Entered') %}\n"
+                "  green\n"
+                "                 {% elif is_state(entity, 'In Sleep') %}\n"
+                "  blue\n"
+                "     {% else %}\n"
+                "  purple\n"
+                "              {% endif %}",
+                "tap_entity": "input_select.kitchen_occupancy",
+                "condition_state_not": "Outside",
+                "condition_entity": "input_select.kitchen_occupancy",
+            },
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

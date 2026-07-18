@@ -3674,12 +3674,9 @@ class RoomBase:
                 self.getTemplateCard,
               )
             ]) + ([] if self.cfg_occupancy == False else [
-             self.getTemplateCard(
-               icon       = "{% if   is_state(entity, 'Outside') %}\n  mdi:door-closed\n{% elif is_state(entity, 'Just Entered') %}\n  mdi:arrow-right-circle\n{% elif is_state(entity, 'In Sleep') %}\n  mdi:sleep\n{% else %}\n  mdi:account-multiple\n{% endif %}",
-               icon_color = "{% if   is_state(entity, 'Outside') %}                     {% elif is_state(entity, 'Just Entered') %}\n  green\n                 {% elif is_state(entity, 'In Sleep') %}\n  blue\n     {% else %}\n  purple\n              {% endif %}",
-               tap_entity = self.room_occupancy,
-               condition_state_not  = 'Outside',
-               condition_entity     = self.room_occupancy,
+             dashboard_view_helpers.occupancy_status_card(
+               self.room_occupancy,
+               self.getTemplateCard,
              )
             ]) + ([] if self.curtains == [] else [
               self.getTemplateCard(

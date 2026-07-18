@@ -325,6 +325,8 @@ Completed foundations:
      view helper module.
 106. Move temperature-control navigation card construction into the dashboard
      view helper module.
+107. Move occupancy-status navigation card construction into the dashboard view
+     helper module.
 
 Recommended next steps:
 
