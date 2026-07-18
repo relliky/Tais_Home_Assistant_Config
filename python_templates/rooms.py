@@ -1732,13 +1732,12 @@ def define_room_classes(RoomBase):
           "mode": "vertical",
           "cards": [
             dashboard_view_helpers.system_navigation_title_card(),
-            self.getCardModColor("transparent") | {
-              "type": "custom:stack-in-card",
-              "mode": "horizontal",
-              "cards": dashboard_view_helpers.system_navigation_status_cards(
+            dashboard_view_helpers.navigation_status_stack_card(
+              self.getCardModColor("transparent"),
+              dashboard_view_helpers.system_navigation_status_cards(
                 self.getTemplateCard,
               )
-            }
+            )
           ]
         }
   
