@@ -126,6 +126,13 @@ class RoomBaseHelpersTest(unittest.TestCase):
             "mushroom",
         )
 
+    def test_get_navigation_room_card_rejects_unknown_type(self):
+        room = self.make_navigation_room()
+        room.getNavigationRoomCardType = lambda: "unknown"
+
+        with self.assertRaises(TypeError):
+            room.getNavigationRoomCard()
+
     def test_system_navigation_room_card_uses_base_wrapper(self):
         system_class = rooms.define_room_classes(gen_config_yaml.RoomBase)["System"]
         room = system_class.__new__(system_class)

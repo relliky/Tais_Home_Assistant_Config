@@ -3665,6 +3665,8 @@ class RoomBase:
       room_card = self.getMushroomNavigationRoomCard()
     elif card_type == 'button':
       room_card = self.getButtonNavigationRoomCard()
+    else:
+      raise TypeError("Navigation room card type '" + card_type + "' is not supported.")
 
     return self.getRestricedAccess('us', room_card)
 
