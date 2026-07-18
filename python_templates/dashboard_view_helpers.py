@@ -229,3 +229,18 @@ def occupancy_status_card(room_occupancy, template_card):
     condition_state_not='Outside',
     condition_entity=room_occupancy,
   )
+
+
+def curtain_status_card(curtain_group, template_card):
+  return template_card(
+    icon="{% if is_state(entity, 'open') %}\n"
+         "  mdi:curtains\n"
+         "{% else %}\n"
+         "  mdi:curtains-closed\n"
+         "{% endif %}",
+    icon_color="{% if is_state(entity, 'open') %}\n"
+               "  green       \n"
+               "{% endif %}",
+    condition_state='open',
+    condition_entity=curtain_group,
+  )

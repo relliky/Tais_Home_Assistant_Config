@@ -3679,11 +3679,9 @@ class RoomBase:
                self.getTemplateCard,
              )
             ]) + ([] if self.curtains == [] else [
-              self.getTemplateCard(
-                icon       = "{% if is_state(entity, 'open') %}\n  mdi:curtains\n{% else %}\n  mdi:curtains-closed\n{% endif %}",
-                icon_color = "{% if is_state(entity, 'open') %}\n  green       \n{% endif %}",
-                condition_state  = 'open',
-                condition_entity = self.curtain_group
+              dashboard_view_helpers.curtain_status_card(
+                self.curtain_group,
+                self.getTemplateCard,
               )
             ])
           }

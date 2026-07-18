@@ -371,6 +371,29 @@ class DashboardViewHelpersTest(unittest.TestCase):
             },
         )
 
+    def test_curtain_status_card(self):
+        def template_card(**kwargs):
+            return kwargs
+
+        self.assertEqual(
+            dashboard_view_helpers.curtain_status_card(
+                "cover.kitchen_curtain_group",
+                template_card,
+            ),
+            {
+                "icon": "{% if is_state(entity, 'open') %}\n"
+                "  mdi:curtains\n"
+                "{% else %}\n"
+                "  mdi:curtains-closed\n"
+                "{% endif %}",
+                "icon_color": "{% if is_state(entity, 'open') %}\n"
+                "  green       \n"
+                "{% endif %}",
+                "condition_state": "open",
+                "condition_entity": "cover.kitchen_curtain_group",
+            },
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
