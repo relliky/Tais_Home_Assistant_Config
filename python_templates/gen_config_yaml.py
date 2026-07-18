@@ -3609,40 +3609,46 @@ class RoomBase:
       navigate_path=navigate_path,
     )
 
+  def getNavigationRoomTitleCard(self):
+    return dashboard_view_helpers.navigation_room_title_card(
+      self.room_icon,
+      self.room_name,
+      self.temperature_sensor,
+      self.motion_group,
+      self.getPostfix(self.motion_group),
+      self.getTemplateCard,
+    )
+
+  def getNavigationStatusCards(self):
+    return dashboard_view_helpers.navigation_status_cards(
+      self.unavailable_entity,
+      self.room_battery_entity_list,
+      self.room_low_battery_entity,
+      self.room_battery_entity,
+      self.windows,
+      self.window_group,
+      self.tvs,
+      self.lights,
+      self.light_group,
+      self.cfg_occupancy_override,
+      self.occupancy_override_entity,
+      self.cfg_temp_control,
+      self.thermostat,
+      self.cfg_occupancy,
+      self.room_occupancy,
+      self.curtains,
+      self.curtain_group,
+      self.getTemplateCard,
+    )
+
   def getNavigationRoomCard (self):
     card_type = 'mushroom'
 
     if card_type == 'mushroom':
       room_card = dashboard_view_helpers.navigation_status_room_card(
-          dashboard_view_helpers.navigation_room_title_card(
-            self.room_icon,
-            self.room_name,
-            self.temperature_sensor,
-            self.motion_group,
-            self.getPostfix(self.motion_group),
-            self.getTemplateCard,
-          ),
+          self.getNavigationRoomTitleCard(),
           self.getCardModColor("transparent"),
-          dashboard_view_helpers.navigation_status_cards(
-            self.unavailable_entity,
-            self.room_battery_entity_list,
-            self.room_low_battery_entity,
-            self.room_battery_entity,
-            self.windows,
-            self.window_group,
-            self.tvs,
-            self.lights,
-            self.light_group,
-            self.cfg_occupancy_override,
-            self.occupancy_override_entity,
-            self.cfg_temp_control,
-            self.thermostat,
-            self.cfg_occupancy,
-            self.room_occupancy,
-            self.curtains,
-            self.curtain_group,
-            self.getTemplateCard,
-          )
+          self.getNavigationStatusCards(),
       )
     elif card_type == 'button':
       room_card = dashboard_view_helpers.button_navigation_room_card(

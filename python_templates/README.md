@@ -350,6 +350,8 @@ Completed foundations:
 119. Reuse the dashboard button room-card helper for System navigation cards.
 120. Move navigation status room-card composition into the dashboard view
      helper module.
+121. Split normal navigation room title/status-card construction into small
+     `RoomBase` methods.
 
 Recommended next steps:
 
