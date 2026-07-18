@@ -10,6 +10,7 @@ import automation_helpers
 import battery_entity_builder
 import button_automation_helpers
 import camera_automation_helpers
+import climate_action_helpers
 import configured_entity_filter
 import cover_action_helpers
 import dashboard_card_mod
@@ -3294,13 +3295,11 @@ class RoomBase:
     # TODO make sure that it only turns a directory or a list.
     # use a different way to handle this case
     elif entity_list == self.thermostat :
-      hvac_mode = "off" if state == 'off' else "heat"
-
       if state in ['on', 'off']:
-        action_service = { "service": "climate.set_hvac_mode",
-                           "data": {"hvac_mode": hvac_mode},
-                           "entity_id": entity_list
-                        }
+        action_service = climate_action_helpers.set_hvac_mode_action(
+          entity_list,
+          state,
+        )
       else:
         self.error(f"turn({entity_list}, state={state}) is not supported")
 
@@ -3319,9 +3318,10 @@ class RoomBase:
                           #[self.set('switch.kitchen_hot_water', state)])
 
       elif state in ['increment', 'decrement']:
-        action_service = {"service": "climate.set_temperature",
-                          "target":{"entity_id": self.thermostat},
-                          "data":  {"temperature": "{{ (state_attr('" + self.thermostat + "', 'temperature')) + " + str(step_value) + "}}"}}
+        action_service = climate_action_helpers.set_temperature_step_action(
+          self.thermostat,
+          step_value,
+        )
       else:
         self.error(f"turn({entity_list}, state={state}) is not supported")
 

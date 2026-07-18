@@ -31,6 +31,7 @@ package YAML and Lovelace dashboard YAML from room-specific Python classes.
   entity IDs used by unavailable-device sensors.
 - `button_automation_helpers.py` contains button automation builders.
 - `camera_automation_helpers.py` contains camera automation builders.
+- `climate_action_helpers.py` contains climate action builders.
 - `media_automation_helpers.py` contains media-player automation builders.
 - `mirror_automation_helpers.py` contains mirror-sensor light automation
   builders.
@@ -275,6 +276,8 @@ Completed foundations:
 77. Move cover toggle action construction into the cover action module.
 78. Move cover stop-before-action sequence construction into the cover action
     module.
+79. Move climate HVAC-mode and temperature-step action construction into its
+    own module.
 
 Recommended next steps:
 
