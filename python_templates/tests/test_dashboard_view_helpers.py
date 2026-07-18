@@ -247,6 +247,26 @@ class DashboardViewHelpersTest(unittest.TestCase):
             },
         )
 
+    def test_tv_status_card(self):
+        def template_card(**kwargs):
+            return kwargs
+
+        self.assertEqual(
+            dashboard_view_helpers.tv_status_card(
+                "media_player.kitchen_tv",
+                template_card,
+            ),
+            {
+                "icon": "mdi:television-classic",
+                "icon_color": "{% if is_state(entity, 'on') %}\n"
+                "  deep-orange\n"
+                "{% endif %}",
+                "tap_entity": "media_player.kitchen_tv",
+                "condition_entity": "media_player.kitchen_tv",
+                "condition_state": "on",
+            },
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

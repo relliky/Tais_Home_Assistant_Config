@@ -3654,12 +3654,9 @@ class RoomBase:
                 self.getTemplateCard,
               )
             ]) + ([] if self.tvs == [] else [
-              self.getTemplateCard(
-                icon       = "mdi:television-classic",
-                icon_color = "{% if is_state(entity, 'on') %}\n  deep-orange\n{% endif %}",
-                tap_entity = self.tvs[0],
-                condition_entity = self.tvs[0],
-                condition_state  = 'on'
+              dashboard_view_helpers.tv_status_card(
+                self.tvs[0],
+                self.getTemplateCard,
               )
             ]) + ([] if self.lights == [] else [
               self.getTemplateCard(

@@ -145,3 +145,15 @@ def window_status_card(window_group, template_card):
                "{% endif %}",
     condition_entity=window_group,
   )
+
+
+def tv_status_card(tv_entity, template_card):
+  return template_card(
+    icon="mdi:television-classic",
+    icon_color="{% if is_state(entity, 'on') %}\n"
+               "  deep-orange\n"
+               "{% endif %}",
+    tap_entity=tv_entity,
+    condition_entity=tv_entity,
+    condition_state='on',
+  )

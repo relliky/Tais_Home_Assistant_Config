@@ -317,6 +317,8 @@ Completed foundations:
      helper module.
 102. Move window-status navigation card construction into the dashboard view
      helper module.
+103. Move TV-status navigation card construction into the dashboard view helper
+     module.
 
 Recommended next steps:
 
