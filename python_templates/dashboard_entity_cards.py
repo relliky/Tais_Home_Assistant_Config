@@ -336,3 +336,39 @@ def header_chips_card():
             """
     }
   }
+
+
+def template_card_tap_action(tap_action, dashboard_view_path):
+  if tap_action == 'navigate':
+    return {
+      "action": "navigate",
+      "navigation_path": dashboard_view_path
+    }
+  elif tap_action == 'more-info':
+    return {"action": "more-info"}
+
+  return {}
+
+
+def template_card(
+  icon='mdi:head-alert-outline',
+  icon_color='blue',
+  primary=None,
+  secondary=None,
+  entity='input_boolean.placeholder',
+  tap_action_dict=None,
+  theme='default',
+):
+  tap_action_dict = {} if tap_action_dict is None else tap_action_dict
+
+  return {
+    "type": "custom:mushroom-template-card",
+    "icon": "{% set entity = '" + entity + "' %}\n" + icon,
+    "tap_action": tap_action_dict,
+    "icon_tap_action": tap_action_dict,
+    "entity": entity,
+    "layout": "horizontal",
+    "fill_container": True,
+  } | ({"primary": primary} if primary != None else {}) \
+    | ({"secondary": secondary} if secondary != None else {}) \
+    | ({"icon_color": "{% set entity = '" + entity + "' %}\n" + icon_color} if theme == 'default' else {})

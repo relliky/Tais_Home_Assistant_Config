@@ -180,6 +180,51 @@ class DashboardEntityCardsTest(unittest.TestCase):
         )
         self.assertIn("position: sticky", card["card_mod"]["style"])
 
+    def test_template_card_tap_action(self):
+        self.assertEqual(
+            dashboard_entity_cards.template_card_tap_action("navigate", "/dashboard/master-room"),
+            {
+                "action": "navigate",
+                "navigation_path": "/dashboard/master-room",
+            },
+        )
+        self.assertEqual(
+            dashboard_entity_cards.template_card_tap_action("more-info", "/dashboard/master-room"),
+            {"action": "more-info"},
+        )
+        self.assertEqual(
+            dashboard_entity_cards.template_card_tap_action("toggle", "/dashboard/master-room"),
+            {},
+        )
+
+    def test_template_card(self):
+        card = dashboard_entity_cards.template_card(
+            icon="mdi:lightbulb",
+            icon_color="yellow",
+            primary="Light",
+            secondary="On",
+            entity="light.master_room_ceiling_light",
+            tap_action_dict={"action": "more-info"},
+        )
+
+        self.assertEqual(card["type"], "custom:mushroom-template-card")
+        self.assertEqual(card["entity"], "light.master_room_ceiling_light")
+        self.assertEqual(card["tap_action"], {"action": "more-info"})
+        self.assertEqual(card["icon_tap_action"], {"action": "more-info"})
+        self.assertEqual(card["primary"], "Light")
+        self.assertEqual(card["secondary"], "On")
+        self.assertIn("mdi:lightbulb", card["icon"])
+        self.assertIn("yellow", card["icon_color"])
+
+    def test_template_card_ios_theme_omits_icon_color(self):
+        card = dashboard_entity_cards.template_card(
+            entity="input_boolean.placeholder",
+            tap_action_dict={"action": "more-info"},
+            theme="ios",
+        )
+
+        self.assertNotIn("icon_color", card)
+
 
 if __name__ == "__main__":
     unittest.main()

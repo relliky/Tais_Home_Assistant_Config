@@ -2082,29 +2082,23 @@ class RoomBase:
 
     self.dashboard_view_path = "/" + self.dashboard_root + "/" + self.room_navi_path
 
-    tap_action_dict = {}
     entity =  tap_entity                  if tap_entity       != None else \
               condition_entity            if condition_entity != None else \
               'input_boolean.placeholder'
 
-    if   tap_action == 'navigate':
-      tap_action_dict = {
-        "action": "navigate",
-        "navigation_path": self.dashboard_view_path}
-    elif tap_action == 'more-info':
-      tap_action_dict = {"action": "more-info"}
-
-    template_card = {
-      "type":       "custom:mushroom-template-card",
-      "icon":       "{% set entity = '"+entity+"' %}\n" + icon,
-      "tap_action":      tap_action_dict,
-      "icon_tap_action": tap_action_dict,
-      "entity":     entity,
-      "layout":     "horizontal",
-      "fill_container": True,
-    } | ({"primary"   : primary                                         } if primary   != None      else {}) \
-      | ({"secondary" : secondary                                       } if secondary != None      else {}) \
-      | ({"icon_color": "{% set entity = '"+entity+"' %}\n" + icon_color} if theme     == 'default' else {})
+    tap_action_dict = dashboard_entity_cards.template_card_tap_action(
+      tap_action,
+      self.dashboard_view_path,
+    )
+    template_card = dashboard_entity_cards.template_card(
+      icon=icon,
+      icon_color=icon_color,
+      primary=primary,
+      secondary=secondary,
+      entity=entity,
+      tap_action_dict=tap_action_dict,
+      theme=theme,
+    )
 
     if condition_entity == None:
       condition_card = template_card
