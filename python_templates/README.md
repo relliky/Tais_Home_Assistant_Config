@@ -284,6 +284,8 @@ Completed foundations:
     action module.
 82. Move light brightness step action construction into the light action
     module.
+83. Move light brightness cycle action construction into the light action
+    module.
 
 Recommended next steps:
 

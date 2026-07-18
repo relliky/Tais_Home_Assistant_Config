@@ -36,3 +36,30 @@ def brightness_step_action(entity_list, step_value, set_service):
             "target":{"entity_id":entity_list},
             "data":{"brightness_step_pct":step_value}},
   }
+
+
+def light_cycle_entity_id(entity_list):
+  return entity_list[0] if type(entity_list) is list else entity_list
+
+
+def light_cycle_action(entity_list, continue_if):
+  entity_id = light_cycle_entity_id(entity_list)
+  return {
+    "if":     continue_if(entity_list, "off"),
+    "then": [ {"service" : "light.turn_on",
+                "entity_id" : entity_list,
+                "data": {
+                  "brightness": 3
+                }},
+            ],
+    "else": {"service" : "light.turn_on",
+              "entity_id" : entity_list,
+              "data_template": {
+                "brightness": "{% set brightness = state_attr('" + entity_id + "', 'brightness') | int(0) %}"
+                              "{% if brightness == 0 or is_state('" + entity_id + "', 'off') %}3"
+                              "{% elif brightness <= 83 %}84"
+                              "{% elif brightness <= 167 %}168"
+                              "{% elif brightness <= 254 %}255"
+                              "{% else %}0{% endif %}"
+              }}
+  }

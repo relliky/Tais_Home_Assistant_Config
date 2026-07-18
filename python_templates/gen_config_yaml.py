@@ -3374,28 +3374,12 @@ class RoomBase:
         self.set,
       )
     elif is_light_list and state == 'cycle':
-        entity_id = entity_list[0] if type(entity_list) is list else entity_list
+        entity_id = light_action_helpers.light_cycle_entity_id(entity_list)
         if entity_id.startswith('light.'):
-          action_service = {
-                  "if":     self.continueIf(entity_list, "off"),
-                  "then": [ {"service" : "light.turn_on",
-                              "entity_id" : entity_list,
-                              "data": {
-                                "brightness": 3
-                              }},
-                          ],
-                  "else": {"service" : "light.turn_on",
-                            "entity_id" : entity_list,
-                            "data_template": {
-                              # unfortunately, I can only read brightness correctly and set brightness_pct correctly.
-                              "brightness": "{% set brightness = state_attr('" + entity_id + "', 'brightness') | int(0) %}"
-                                            "{% if brightness == 0 or is_state('" + entity_id + "', 'off') %}3"
-                                            "{% elif brightness <= 83 %}84"
-                                            "{% elif brightness <= 167 %}168"
-                                            "{% elif brightness <= 254 %}255"
-                                            "{% else %}0{% endif %}"
-                            }}
-                  }
+          action_service = light_action_helpers.light_cycle_action(
+            entity_list,
+            self.continueIf,
+          )
         else:
           self.error('light brightness cycle does not support on entity ' + entity_id)
     # does not work if light list has swtich entity
