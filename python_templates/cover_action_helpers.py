@@ -49,3 +49,9 @@ def cover_toggle_action(entity_list, set_service):
     "then": set_service(entity_list, 'off'),
     "else": set_service(entity_list, 'on')
   }
+
+
+def stop_cover_before_action(entity_list, action_service):
+  return [{"service":  "cover.stop_cover",
+           "entity_id": entity_list},
+          action_service]

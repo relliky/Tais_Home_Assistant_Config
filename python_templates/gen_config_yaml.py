@@ -3283,9 +3283,10 @@ class RoomBase:
 
       # stop the curtain before any curtain actions - make sure the previous action is stopped
       action_service = self.convertToSingleService(
-                      [{"service":  "cover.stop_cover",
-                        "entity_id": entity_list},
-                        action_service])
+                      cover_action_helpers.stop_cover_before_action(
+                        entity_list,
+                        action_service,
+                      ))
 
     ##############################################
     # Thermostats and heatings

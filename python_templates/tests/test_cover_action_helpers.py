@@ -113,6 +113,21 @@ class CoverActionHelpersTest(unittest.TestCase):
             },
         )
 
+    def test_stop_cover_before_action(self):
+        self.assertEqual(
+            cover_action_helpers.stop_cover_before_action(
+                ["cover.kitchen_curtain"],
+                {"service": "cover.open_cover"},
+            ),
+            [
+                {
+                    "service": "cover.stop_cover",
+                    "entity_id": ["cover.kitchen_curtain"],
+                },
+                {"service": "cover.open_cover"},
+            ],
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
