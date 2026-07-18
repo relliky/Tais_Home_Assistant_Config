@@ -59,3 +59,18 @@ def wrap_service_sequence(service_list, alias=''):
 def assign_automation_ids(automation_list, get_id_from_alias):
   for automation in automation_list:
     automation['id'] = get_id_from_alias(automation['alias'])
+
+
+def automation_turn_off(entity_id, stop_actions=False):
+  return {
+    "service": "automation.turn_off",
+    "entity_id": entity_id,
+    "data": {"stop_actions": stop_actions}
+  }
+
+
+def automation_trigger(entity_id):
+  return {
+    "service": "automation.trigger",
+    "entity_id": entity_id,
+  }

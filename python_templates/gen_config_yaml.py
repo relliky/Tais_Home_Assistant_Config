@@ -2261,11 +2261,7 @@ class RoomBase:
             'from': 'off',
         },
         "action": [
-          {
-            "service": "automation.turn_off",
-            "entity_id": self.automation_lights_on['id'],
-            "data": { "stop_actions": False }
-          },
+          automation_helpers.automation_turn_off(self.automation_lights_on['id'], stop_actions=False),
           self.setNewSceneState("Idle"),
           {
             "alias": 'If it is bright morning',   "if": self.condition_list_is('intense light summer' ),  "then": self.callSceneService('light states when intense light summer' ), "else": {
@@ -2276,10 +2272,7 @@ class RoomBase:
             }}}}
           },
           # Trigger curtain states as well
-          {
-            "service": "automation.trigger",
-            "entity_id": self.automation_curtain_states['id'],
-          },
+          automation_helpers.automation_trigger(self.automation_curtain_states['id']),
         ]
     }]
 
@@ -2336,9 +2329,7 @@ class RoomBase:
             # Delay to lights still turning on for people that Double Click wall button and go back in the room again
             {"delay" : "00:00:10"},
             # Disable lights-on automation when people are inside the room but didn't move until now and accidentally detected as Outside
-            {"service":      "automation.turn_off",
-             "entity_id":    self.automation_lights_on['id'],
-             "data": {"stop_actions": "false"}}
+            automation_helpers.automation_turn_off(self.automation_lights_on['id'], stop_actions="false")
           ]
       }
     ]

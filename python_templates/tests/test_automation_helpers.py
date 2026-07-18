@@ -81,6 +81,33 @@ class AutomationHelpersTest(unittest.TestCase):
             ],
         )
 
+    def test_automation_turn_off(self):
+        self.assertEqual(
+            automation_helpers.automation_turn_off("automation.kitchen_lights", stop_actions=False),
+            {
+                "service": "automation.turn_off",
+                "entity_id": "automation.kitchen_lights",
+                "data": {"stop_actions": False},
+            },
+        )
+        self.assertEqual(
+            automation_helpers.automation_turn_off("automation.kitchen_lights", stop_actions="false"),
+            {
+                "service": "automation.turn_off",
+                "entity_id": "automation.kitchen_lights",
+                "data": {"stop_actions": "false"},
+            },
+        )
+
+    def test_automation_trigger(self):
+        self.assertEqual(
+            automation_helpers.automation_trigger("automation.kitchen_lights"),
+            {
+                "service": "automation.trigger",
+                "entity_id": "automation.kitchen_lights",
+            },
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
