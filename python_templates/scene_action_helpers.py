@@ -143,3 +143,37 @@ def dynamic_room_scene_actions(
       }
     ], True
   return None
+
+
+def set_new_scene_state_action(room_scene_ctl, new_scene):
+  return {
+    "service": "script.call_room_scene",
+    "data": {
+      "room_scene_select": room_scene_ctl,
+      "scene": new_scene,
+    },
+  }
+
+
+def old_scene_set_new_scene_state_choice(room_scene_ctl, old_scene, new_scene):
+  return {
+    "conditions": {
+      "condition": "state",
+      "entity_id": room_scene_ctl,
+      "state": old_scene,
+    },
+    "sequence": set_new_scene_state_action(room_scene_ctl, new_scene),
+  }
+
+
+def call_scene_service_if_selected_choice(room_scene_ctl, scene_name, scene_service):
+  return {
+    "conditions": [
+      {
+        "condition": "state",
+        "entity_id": room_scene_ctl,
+        "state": scene_name,
+      }
+    ],
+    "sequence": scene_service,
+  }

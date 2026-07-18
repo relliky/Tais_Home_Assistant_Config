@@ -3488,25 +3488,17 @@ class RoomBase:
 
 
   def setNewSceneState(self, new_scene):
-    seq = {
-      "service": "script.call_room_scene",
-      "data":{
-        "room_scene_select": self.room_scene_ctl,
-        "scene": new_scene
-      }
-    }
-    return seq
+    return scene_action_helpers.set_new_scene_state_action(
+      self.room_scene_ctl,
+      new_scene,
+    )
 
   def ifOldSceneSetNewSceneState(self, old_scene, new_scene):
-    cond_seq = {
-        "conditions":
-          { "condition": "state",
-            "entity_id": self.room_scene_ctl,
-            "state": old_scene
-          },
-        "sequence": self.setNewSceneState(new_scene)
-      }
-    return cond_seq
+    return scene_action_helpers.old_scene_set_new_scene_state_choice(
+      self.room_scene_ctl,
+      old_scene,
+      new_scene,
+    )
 
 
   def setNewSceneFromOldScene(self, nxt_scene, cur_scene=None):
@@ -3533,17 +3525,11 @@ class RoomBase:
     return automation_helpers.entity_is_on(entity)
 
   def callSceneServiceIfSelected(self, scene_name):
-    cond_seq = {
-        "conditions": [
-          {
-            "condition": "state",
-            "entity_id": self.room_scene_ctl,
-            "state": scene_name
-          }
-        ],
-        "sequence": self.callSceneService(scene_name)
-      }
-    return cond_seq
+    return scene_action_helpers.call_scene_service_if_selected_choice(
+      self.room_scene_ctl,
+      scene_name,
+      self.callSceneService(scene_name),
+    )
 
   def continueIf(self, entity_id, state, attribute=None, lastFor=None):
     return automation_helpers.continue_if(entity_id, state, attribute=attribute, lastFor=lastFor)

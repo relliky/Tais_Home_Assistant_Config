@@ -192,6 +192,63 @@ class SceneActionHelpersTest(unittest.TestCase):
             )
         )
 
+    def test_set_new_scene_state_action(self):
+        self.assertEqual(
+            scene_action_helpers.set_new_scene_state_action(
+                "input_select.kitchen_scene",
+                "All White",
+            ),
+            {
+                "service": "script.call_room_scene",
+                "data": {
+                    "room_scene_select": "input_select.kitchen_scene",
+                    "scene": "All White",
+                },
+            },
+        )
+
+    def test_old_scene_set_new_scene_state_choice(self):
+        self.assertEqual(
+            scene_action_helpers.old_scene_set_new_scene_state_choice(
+                "input_select.kitchen_scene",
+                "All Off",
+                "All White",
+            ),
+            {
+                "conditions": {
+                    "condition": "state",
+                    "entity_id": "input_select.kitchen_scene",
+                    "state": "All Off",
+                },
+                "sequence": {
+                    "service": "script.call_room_scene",
+                    "data": {
+                        "room_scene_select": "input_select.kitchen_scene",
+                        "scene": "All White",
+                    },
+                },
+            },
+        )
+
+    def test_call_scene_service_if_selected_choice(self):
+        self.assertEqual(
+            scene_action_helpers.call_scene_service_if_selected_choice(
+                "input_select.kitchen_scene",
+                "All White",
+                ["scene service"],
+            ),
+            {
+                "conditions": [
+                    {
+                        "condition": "state",
+                        "entity_id": "input_select.kitchen_scene",
+                        "state": "All White",
+                    }
+                ],
+                "sequence": ["scene service"],
+            },
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
