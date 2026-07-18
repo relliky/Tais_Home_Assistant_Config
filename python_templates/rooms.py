@@ -1735,37 +1735,9 @@ def define_room_classes(RoomBase):
             self.getCardModColor("transparent") | {
               "type": "custom:stack-in-card",
               "mode": "horizontal",
-              "cards": [
-                dashboard_view_helpers.system_gaming_pc_status_card(
-                  self.getTemplateCard,
-                ),
-                #self.getTemplateCard(
-                #  icon       = "mdi:television-box",
-                #  icon_color = "{% if   is_state(entity, 'on') %} deep-orange {% endif %}",
-                #  tap_entity = 'binary_sensor.fire_tv_streaming_pc_contents',
-                #  tap_action = 'more-info'
-                #),
-                #self.getTemplateCard(
-                #  icon       = "mdi:car",
-                #  icon_color = "{% if   is_state(entity, 'on') %} green {% endif %}",
-                #  tap_entity = 'binary_sensor.car_s_unlocked',
-                #  tap_action = 'more-info'
-                #),
-                dashboard_view_helpers.system_water_heater_status_card(
-                  self.getTemplateCard,
-                )
-                #{
-                #  "type": "custom:mushroom-entity-card",
-                #  "entity": "binary_sensor.fire_tv_streaming_pc_contents",
-                #  "icon": "mdi:television-box",
-                #  "icon_color": "deep-orange",
-                #  "primary_info": "state",
-                #  "secondary_info": "none",
-                #  "tap_action": {
-                #    "action": "more-info"
-                #  }
-                #}
-              ]
+              "cards": dashboard_view_helpers.system_navigation_status_cards(
+                self.getTemplateCard,
+              )
             }
           ]
         }

@@ -577,6 +577,17 @@ class DashboardViewHelpersTest(unittest.TestCase):
             },
         )
 
+    def test_system_navigation_status_cards(self):
+        def template_card(**kwargs):
+            return kwargs
+
+        cards = dashboard_view_helpers.system_navigation_status_cards(template_card)
+
+        self.assertEqual(
+            [card["tap_entity"] for card in cards],
+            ["switch.gaming_pc", "switch.water_heater"],
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

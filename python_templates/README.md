@@ -343,6 +343,8 @@ Completed foundations:
      helper module.
 115. Move System navigation status-card construction into the dashboard view
      helper module.
+116. Move System navigation status-card list construction into the dashboard
+     view helper module.
 
 Recommended next steps:
 

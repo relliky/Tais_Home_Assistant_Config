@@ -374,3 +374,10 @@ def system_water_heater_status_card(template_card):
     tap_entity='switch.water_heater',
     tap_action='more-info',
   )
+
+
+def system_navigation_status_cards(template_card):
+  return [
+    system_gaming_pc_status_card(template_card),
+    system_water_heater_status_card(template_card),
+  ]
