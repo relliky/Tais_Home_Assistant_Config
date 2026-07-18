@@ -20,6 +20,8 @@ package YAML and Lovelace dashboard YAML from room-specific Python classes.
   declaration builders.
 - `sensor_declaration_builders.py` contains battery, temperature, template, and
   filter sensor declaration builders.
+- `service_action_helpers.py` contains service-action helper predicates and
+  alias builders.
 - `entity_interface_defaults.py` contains the default entity-interface
   containers and declaration aggregation used during room generation.
 - `configured_entity_filter.py` contains filtering for generated declarations
@@ -254,6 +256,8 @@ Completed foundations:
 67. Move mirror-sensor light automation construction into its own module.
 68. Move occupancy-update trigger list construction into the occupancy
     automation module.
+69. Move service-action light predicate and alias construction into their own
+    module.
 
 Recommended next steps:
 

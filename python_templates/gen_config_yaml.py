@@ -45,6 +45,7 @@ import room_scene_defaults
 import room_time_settings
 import rooms
 import sensor_declaration_builders
+import service_action_helpers
 import tv_automation_helpers
 import unavailable_entity_builder
 import window_automation_helpers
@@ -3162,12 +3163,7 @@ class RoomBase:
     if state in ['increment', 'decrement']:
       step_value = -1 * step_value if state == 'decrement' else step_value
 
-    is_light_list = True
-    if type(entity_list) is list:
-      for entity in entity_list :
-        is_light_list = is_light_list if entity.startswith('light.') else False
-    else:
-        is_light_list = is_light_list if entity_list.startswith('light.') else False
+    is_light_list = service_action_helpers.is_light_entity_list(entity_list)
 
     if state == 'power_toggle':
       action_service = {#'alias': f'toggle {str(entity_list)}',
@@ -3499,11 +3495,11 @@ class RoomBase:
     ##############################################
     if entity_list != None and entity_list != []:
       return self.convertToSingleService( action_service,
-                                          alias =  ('Turn'  + \
-                                                    (' nothing'        if entity_list==[]              else \
-                                                    ' ' + entity_list  if isinstance(entity_list, str) else " " + " ".join(entity_list)) + \
-                                                    (''                if state==None                  else ' state=' + state) + \
-                                                    (''                if light_brightness==None       else ' light_brightness=' + str(light_brightness))))
+                                          alias = service_action_helpers.service_action_alias(
+                                            entity_list,
+                                            state=state,
+                                            light_brightness=light_brightness,
+                                          ))
     else:
       return {"service": "script.do_nothing"}
 
