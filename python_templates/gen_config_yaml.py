@@ -25,6 +25,7 @@ import gui_control_group
 import ha_entity_registry
 import message_helpers
 import motion_light_automation_helpers
+import offline_device_automation_helpers
 import occupancy_state_machine
 import occupancy_ratio_sensor
 import package_writer
@@ -2643,31 +2644,17 @@ class RoomBase:
     return cond_seq
 
   def add_offline_device_automations(self, device_type, offline_device, tts_message, gateway_power_switch='N/A'):
-    self.automation_list += [{
-      "alias": "ZN-" + self.automation_room_name + "Notify " + device_type + " Offline Devices " + "-" + self.room_name,
-      "configured": True,
-      "trigger": [
-        {
-          "platform": "state",
-          "entity_id": offline_device,
-          "to": "unavailable",
-          "for": "00:03:00"
-        }
-      ],
-      "action": [
-        {
-          "service": "script.notify_alexa_speakers_and_phones",
-          "data": {
-            "tts_message": tts_message + " Offline device: " + offline_device,
-            "notify_tai": "yes"
-          }
-        }
-        ] + ([
-          self.set(gateway_power_switch, "off"),
-          {"delay": "00:00:02"},
-          self.set(gateway_power_switch, "on")
-        ] if gateway_power_switch != 'N/A' else [])
-    }]
+    self.automation_list += [
+      offline_device_automation_helpers.offline_device_notification_automation(
+        self.automation_room_name,
+        self.room_name,
+        device_type,
+        offline_device,
+        tts_message,
+        gateway_power_switch,
+        self.set,
+      )
+    ]
 
   # constant definition to make sure there is no typo to pass an undefined string
   TOGGLE_AL_SLEEP_MODE      = 'TOGGLE_AL_SLEEP_MODE'

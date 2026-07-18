@@ -28,6 +28,8 @@ package YAML and Lovelace dashboard YAML from room-specific Python classes.
   entity IDs used by unavailable-device sensors.
 - `automation_helpers.py` contains small Home Assistant trigger, action, and
   condition dict builders.
+- `offline_device_automation_helpers.py` contains offline-device notification
+  automation builders.
 - `motion_light_automation_helpers.py` contains motion-light automation choose
   builders.
 - `tv_automation_helpers.py` contains TV automation builders.
@@ -227,6 +229,8 @@ Completed foundations:
     automation module.
 57. Move TV picture-mode reset automation builder into its own module.
 58. Move shared window notification condition/action helpers into their own
+    module.
+59. Move offline-device notification automation construction into its own
     module.
 
 Recommended next steps:
