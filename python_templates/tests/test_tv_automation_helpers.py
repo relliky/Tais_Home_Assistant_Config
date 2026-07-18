@@ -18,6 +18,10 @@ def set_service(entity_list, state=None, tv_brightness=None):
     }
 
 
+def continue_if(entity_id, state):
+    return ["continueIf", entity_id, state]
+
+
 class TvAutomationHelpersTest(unittest.TestCase):
     def test_picture_mode_for_brightness(self):
         self.assertEqual(tv_automation_helpers.picture_mode_for_brightness(1), "Movie")
@@ -52,6 +56,79 @@ class TvAutomationHelpersTest(unittest.TestCase):
                 },
             },
         )
+
+    def test_picture_mode_step_action_cycle(self):
+        self.assertEqual(
+            tv_automation_helpers.picture_mode_step_action(
+                "cycle",
+                "input_select.tv_picture_mode",
+                ["media_player.tv"],
+                continue_if,
+                set_service,
+            ),
+            {
+                "choose": [
+                    {
+                        "conditions": ["continueIf", "input_select.tv_picture_mode", "Movie"],
+                        "sequence": {
+                            "set": ["media_player.tv"],
+                            "state": None,
+                            "tv_brightness": 4,
+                        },
+                    },
+                    {
+                        "conditions": ["continueIf", "input_select.tv_picture_mode", "Natural"],
+                        "sequence": {
+                            "set": ["media_player.tv"],
+                            "state": None,
+                            "tv_brightness": 1,
+                        },
+                    },
+                    {
+                        "conditions": ["continueIf", "input_select.tv_picture_mode", "Standard"],
+                        "sequence": {
+                            "set": ["media_player.tv"],
+                            "state": None,
+                            "tv_brightness": 2,
+                        },
+                    },
+                    {
+                        "conditions": ["continueIf", "input_select.tv_picture_mode", "Dynamic"],
+                        "sequence": {
+                            "set": ["media_player.tv"],
+                            "state": None,
+                            "tv_brightness": 3,
+                        },
+                    },
+                ]
+            },
+        )
+
+    def test_picture_mode_step_action_increment_and_decrement(self):
+        increment = tv_automation_helpers.picture_mode_step_action(
+            "increment",
+            "input_select.tv_picture_mode",
+            ["media_player.tv"],
+            continue_if,
+            set_service,
+        )
+        decrement = tv_automation_helpers.picture_mode_step_action(
+            "decrement",
+            "input_select.tv_picture_mode",
+            ["media_player.tv"],
+            continue_if,
+            set_service,
+        )
+
+        self.assertEqual(
+            [item["sequence"]["tv_brightness"] for item in increment["choose"]],
+            [2, 3, 4, 4],
+        )
+        self.assertEqual(
+            [item["sequence"]["tv_brightness"] for item in decrement["choose"]],
+            [1, 1, 2, 3],
+        )
+
 
     def test_reset_picture_mode_automation_with_tvs(self):
         automation = tv_automation_helpers.reset_picture_mode_automation(

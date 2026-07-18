@@ -260,6 +260,8 @@ Completed foundations:
     module.
 70. Move fixed TV picture-mode action construction into the TV automation
     module.
+71. Move TV picture-mode cycle/increment/decrement action construction into
+    the TV automation module.
 
 Recommended next steps:
 

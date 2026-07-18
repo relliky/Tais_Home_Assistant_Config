@@ -37,3 +37,34 @@ def set_picture_mode_action(entity_list, tv_picture_mode, tv_brightness):
                 "data": { "entity_id" : tv_picture_mode,
                           "option": picture_mode_for_brightness(tv_brightness)}}
   }
+
+
+def picture_mode_step_action(tv_brightness, tv_picture_mode, tvs, continue_if, set_service):
+  transitions = {
+    'cycle': [
+      ("Movie", 4),
+      ("Natural", 1),
+      ("Standard", 2),
+      ("Dynamic", 3),
+    ],
+    'increment': [
+      ("Movie", 2),
+      ("Natural", 3),
+      ("Standard", 4),
+      ("Dynamic", 4),
+    ],
+    'decrement': [
+      ("Movie", 1),
+      ("Natural", 1),
+      ("Standard", 2),
+      ("Dynamic", 3),
+    ],
+  }
+
+  return {"choose": [
+    {
+      "conditions": continue_if(tv_picture_mode, picture_mode),
+      "sequence": set_service(tvs, tv_brightness=next_brightness),
+    }
+    for picture_mode, next_brightness in transitions[tv_brightness]
+  ]}

@@ -3174,30 +3174,14 @@ class RoomBase:
     # TV/Media players volumnes and brightness
     ##############################################
     elif tv_brightness != None:
-      if tv_brightness == 'cycle':
-        action_service =    {"choose":
-          ([{ "conditions":self.continueIf(self.tv_picture_mode, "Movie"   ), "sequence": self.set(self.tvs, tv_brightness=4)}])  + \
-          ([{ "conditions":self.continueIf(self.tv_picture_mode, "Natural" ), "sequence": self.set(self.tvs, tv_brightness=1)}])  + \
-          ([{ "conditions":self.continueIf(self.tv_picture_mode, "Standard"), "sequence": self.set(self.tvs, tv_brightness=2)}])  + \
-          ([{ "conditions":self.continueIf(self.tv_picture_mode, "Dynamic" ), "sequence": self.set(self.tvs, tv_brightness=3)}])  + \
-          ([])
-          }
-      elif tv_brightness == 'increment':
-        action_service =    {"choose":
-          ([{ "conditions":self.continueIf(self.tv_picture_mode, "Movie"   ), "sequence": self.set(self.tvs, tv_brightness=2)}])  + \
-          ([{ "conditions":self.continueIf(self.tv_picture_mode, "Natural" ), "sequence": self.set(self.tvs, tv_brightness=3)}])  + \
-          ([{ "conditions":self.continueIf(self.tv_picture_mode, "Standard"), "sequence": self.set(self.tvs, tv_brightness=4)}])  + \
-          ([{ "conditions":self.continueIf(self.tv_picture_mode, "Dynamic" ), "sequence": self.set(self.tvs, tv_brightness=4)}])  + \
-          ([])
-          }
-      elif tv_brightness == 'decrement':
-        action_service =    {"choose":
-          ([{ "conditions":self.continueIf(self.tv_picture_mode, "Movie"   ), "sequence": self.set(self.tvs, tv_brightness=1)}])  + \
-          ([{ "conditions":self.continueIf(self.tv_picture_mode, "Natural" ), "sequence": self.set(self.tvs, tv_brightness=1)}])  + \
-          ([{ "conditions":self.continueIf(self.tv_picture_mode, "Standard"), "sequence": self.set(self.tvs, tv_brightness=2)}])  + \
-          ([{ "conditions":self.continueIf(self.tv_picture_mode, "Dynamic" ), "sequence": self.set(self.tvs, tv_brightness=3)}])  + \
-          ([])
-          }
+      if tv_brightness in ['cycle', 'increment', 'decrement']:
+        action_service = tv_automation_helpers.picture_mode_step_action(
+          tv_brightness,
+          self.tv_picture_mode,
+          self.tvs,
+          self.continueIf,
+          self.set,
+        )
       elif tv_brightness in [1,2,3,4,5,6,7,8,9]:
         action_service = tv_automation_helpers.set_picture_mode_action(
           entity_list,
