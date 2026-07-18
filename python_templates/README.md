@@ -30,6 +30,8 @@ package YAML and Lovelace dashboard YAML from room-specific Python classes.
   condition dict builders.
 - `offline_device_automation_helpers.py` contains offline-device notification
   automation builders.
+- `occupancy_automation_helpers.py` contains occupancy-related automation
+  builders.
 - `motion_light_automation_helpers.py` contains motion-light automation choose
   builders.
 - `tv_automation_helpers.py` contains TV automation builders.
@@ -231,6 +233,8 @@ Completed foundations:
 58. Move shared window notification condition/action helpers into their own
     module.
 59. Move offline-device notification automation construction into its own
+    module.
+60. Move occupancy override-to-timer automation construction into its own
     module.
 
 Recommended next steps:

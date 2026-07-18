@@ -26,6 +26,7 @@ import ha_entity_registry
 import message_helpers
 import motion_light_automation_helpers
 import offline_device_automation_helpers
+import occupancy_automation_helpers
 import occupancy_state_machine
 import occupancy_ratio_sensor
 import package_writer
@@ -3193,59 +3194,16 @@ class RoomBase:
     ]
 
     self.automation_list += [
-      {
-        "alias": "ZOc-"  + self.automation_room_name + "Occupancy Override and sync to Timer" + "-" + self.room_name,
-        "mode": "single",
-        "configured": self.cfg_occupancy_override,
-        "trigger": [
-          {
-            "platform": "state",
-            "entity_id": self.occupancy_override_entity
-          }
-        ],
-        "action": [
-          {
-            "choose": [
-              {
-                "conditions": [
-                  {
-                    "condition": "state",
-                    "entity_id": self.occupancy_override_entity,
-                    "state": "on"
-                  }
-                ],
-                "sequence": [
-                  { "service": "timer.start",
-                    "target": {"entity_id": self.occupancy_override_timer_entity}
-                  },
-                  # Turn off occupancy state updates and set it to Stay Inside
-                  self.set(self.automation_occupancy_update['id'], 'off'),
-                  { "service": "input_select.select_option",
-                    "target":  {"entity_id": self.room_occupancy},
-                    "data":    {"option": "Stayed Inside"},
-                  },
-                ]
-              },
-              {
-                "conditions": [
-                  {
-                    "condition": "state",
-                    "entity_id": self.occupancy_override_entity,
-                    "state": "off"
-                  }
-                ],
-                "sequence": [
-                  {"service": "timer.cancel",
-                    "target": {"entity_id": self.occupancy_override_timer_entity}
-                  },
-                  # Turn back on occupancy state updates and set it to Stay Inside
-                  self.set(self.automation_occupancy_update['id'], 'on'),
-                ]
-              }
-            ]
-          }
-        ]
-      }
+      occupancy_automation_helpers.occupancy_override_to_timer_automation(
+        self.automation_room_name,
+        self.room_name,
+        self.cfg_occupancy_override,
+        self.occupancy_override_entity,
+        self.occupancy_override_timer_entity,
+        self.room_occupancy,
+        self.automation_occupancy_update['id'],
+        self.set,
+      )
     ]
 
 
