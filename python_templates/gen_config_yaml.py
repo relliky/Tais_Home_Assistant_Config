@@ -3703,24 +3703,11 @@ class RoomBase:
         ]
       }
     elif type == 'button':
-      room_card =  {
-        "type": "custom:button-card",
-        "aspect_ratio": "1/1",
-        "tap_action": {
-          "action": "navigate",
-          "navigation_path": self.dashboard_view_path
-        },
-        "icon_tap_action": {
-          "action": "navigate",
-          "navigation_path": self.dashboard_view_path
-        },
-        "entity": "input_boolean.placeholder",
-        "show_state": False,
-        "name": self.room_name,
-        "icon": self.room_icon,
-        "show_icon": True,
-        "show_name": True
-      }
+      room_card = dashboard_view_helpers.button_navigation_room_card(
+        self.room_name,
+        self.room_icon,
+        self.dashboard_view_path,
+      )
 
     return self.getRestricedAccess('us', room_card)
 

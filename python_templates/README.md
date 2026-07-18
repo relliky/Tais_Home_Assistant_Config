@@ -305,6 +305,8 @@ Completed foundations:
     helper module.
 95. Move dashboard header card-list construction into the dashboard view helper
     module.
+96. Move button-style navigation room-card construction into the dashboard view
+    helper module.
 
 Recommended next steps:
 

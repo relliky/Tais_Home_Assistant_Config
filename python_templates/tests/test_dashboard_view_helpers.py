@@ -100,6 +100,33 @@ class DashboardViewHelpersTest(unittest.TestCase):
         self.assertEqual(cards[0]["tap_action"]["navigation_path"], "custom/path")
         self.assertIs(cards[1], scene_card)
 
+    def test_button_navigation_room_card(self):
+        self.assertEqual(
+            dashboard_view_helpers.button_navigation_room_card(
+                "Kitchen",
+                "mdi:fridge",
+                "/lovelace/kitchen",
+            ),
+            {
+                "type": "custom:button-card",
+                "aspect_ratio": "1/1",
+                "tap_action": {
+                    "action": "navigate",
+                    "navigation_path": "/lovelace/kitchen",
+                },
+                "icon_tap_action": {
+                    "action": "navigate",
+                    "navigation_path": "/lovelace/kitchen",
+                },
+                "entity": "input_boolean.placeholder",
+                "show_state": False,
+                "name": "Kitchen",
+                "icon": "mdi:fridge",
+                "show_icon": True,
+                "show_name": True,
+            },
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

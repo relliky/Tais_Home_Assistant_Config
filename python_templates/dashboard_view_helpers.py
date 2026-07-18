@@ -61,3 +61,24 @@ def header_cards(dashboard_root, scene_card, navigate_path=None):
     home_navigation_card(dashboard_root, navigate_path=navigate_path),
     scene_card,
   ]
+
+
+def button_navigation_room_card(room_name, room_icon, dashboard_view_path):
+  return {
+    "type": "custom:button-card",
+    "aspect_ratio": "1/1",
+    "tap_action": {
+      "action": "navigate",
+      "navigation_path": dashboard_view_path,
+    },
+    "icon_tap_action": {
+      "action": "navigate",
+      "navigation_path": dashboard_view_path,
+    },
+    "entity": "input_boolean.placeholder",
+    "show_state": False,
+    "name": room_name,
+    "icon": room_icon,
+    "show_icon": True,
+    "show_name": True,
+  }
