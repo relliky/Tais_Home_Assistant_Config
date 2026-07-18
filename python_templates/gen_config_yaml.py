@@ -2634,23 +2634,16 @@ class RoomBase:
   # + ([self.setNewSceneFromOldScene(nxt_scene="All Off")])
   #
   def get_scene_state_machine(self):
-    cond_seq = []
-
-    cond_seq += [ self.setNewSceneFromOldScene(cur_scene="All Off", nxt_scene="All White"),
-                  self.setNewSceneFromOldScene(nxt_scene="Lamp LED White")]
-
-    if self.cfg_scene_color_led or self.cfg_scene_color_lamp:
-      cond_seq += [self.setNewSceneFromOldScene(nxt_scene="Hue")]
-    if self.cfg_led_only_scene:
-      cond_seq += [self.setNewSceneFromOldScene(nxt_scene="LED White")]
-    if self.cfg_custom_scene:
-      cond_seq += [self.setNewSceneFromOldScene(nxt_scene="Sleep Mode")]
-    if self.cfg_custom_scene:
-      #cond_seq += [self.setNewSceneFromOldScene(nxt_scene="Night Mode")]
-      cond_seq += [self.setNewSceneFromOldScene(nxt_scene="Dark Night Mode")]
-
-    cond_seq += [self.setNewSceneFromOldScene(nxt_scene="All Off")]
-
+    scene_targets = scene_action_helpers.scene_cycle_targets(
+      self.cfg_scene_color_led or self.cfg_scene_color_lamp,
+      self.cfg_led_only_scene,
+      self.cfg_custom_scene,
+    )
+    cond_seq = [
+      self.setNewSceneFromOldScene(cur_scene="All Off", nxt_scene=scene_targets[0])
+    ]
+    for scene_name in scene_targets[1:]:
+      cond_seq += [self.setNewSceneFromOldScene(nxt_scene=scene_name)]
     return cond_seq
 
   def add_offline_device_automations(self, device_type, offline_device, tts_message, gateway_power_switch='N/A'):

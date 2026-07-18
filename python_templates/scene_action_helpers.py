@@ -177,3 +177,17 @@ def call_scene_service_if_selected_choice(room_scene_ctl, scene_name, scene_serv
     ],
     "sequence": scene_service,
   }
+
+
+def scene_cycle_targets(has_color_scene, has_led_only_scene, has_custom_scene):
+  targets = ["All White", "Lamp LED White"]
+  if has_color_scene:
+    targets += ["Hue"]
+  if has_led_only_scene:
+    targets += ["LED White"]
+  if has_custom_scene:
+    targets += ["Sleep Mode"]
+  if has_custom_scene:
+    targets += ["Dark Night Mode"]
+  targets += ["All Off"]
+  return targets

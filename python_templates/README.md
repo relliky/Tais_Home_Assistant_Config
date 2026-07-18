@@ -294,6 +294,7 @@ Completed foundations:
 87. Move dynamic light/curtain scene action construction into the scene action
     module.
 88. Move scene-state choice/action construction into the scene action module.
+89. Move scene-cycle target ordering into the scene action module.
 
 Recommended next steps:
 

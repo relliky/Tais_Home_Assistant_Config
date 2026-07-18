@@ -249,6 +249,34 @@ class SceneActionHelpersTest(unittest.TestCase):
             },
         )
 
+    def test_scene_cycle_targets_for_basic_room(self):
+        self.assertEqual(
+            scene_action_helpers.scene_cycle_targets(
+                has_color_scene=False,
+                has_led_only_scene=False,
+                has_custom_scene=False,
+            ),
+            ["All White", "Lamp LED White", "All Off"],
+        )
+
+    def test_scene_cycle_targets_for_full_room(self):
+        self.assertEqual(
+            scene_action_helpers.scene_cycle_targets(
+                has_color_scene=True,
+                has_led_only_scene=True,
+                has_custom_scene=True,
+            ),
+            [
+                "All White",
+                "Lamp LED White",
+                "Hue",
+                "LED White",
+                "Sleep Mode",
+                "Dark Night Mode",
+                "All Off",
+            ],
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
