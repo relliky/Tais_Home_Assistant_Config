@@ -2,6 +2,14 @@ def left_room_media_pause_delay(room_entity):
   return "00:10:00" if room_entity == 'corridor' else "00:00:01"
 
 
+def single_device_volume_action(entity_list, step_value):
+  return {"service": "media_player.volume_set",
+          "entity_id": entity_list,
+          "data_template":
+            {"volume_level": "{{ (state_attr('" + entity_list[0] + "', 'volume_level')) + " + str(step_value/100) +" }}"}
+          }
+
+
 def sonos_pause_after_people_left_automation(
   automation_room_name,
   room_name,

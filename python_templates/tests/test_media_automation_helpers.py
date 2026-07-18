@@ -15,6 +15,21 @@ def set_service(entity_id, state):
 
 
 class MediaAutomationHelpersTest(unittest.TestCase):
+    def test_single_device_volume_action(self):
+        self.assertEqual(
+            media_automation_helpers.single_device_volume_action(
+                ["media_player.kitchen_sonos"],
+                3,
+            ),
+            {
+                "service": "media_player.volume_set",
+                "entity_id": ["media_player.kitchen_sonos"],
+                "data_template": {
+                    "volume_level": "{{ (state_attr('media_player.kitchen_sonos', 'volume_level')) + 0.03 }}"
+                },
+            },
+        )
+
     def test_left_room_media_pause_delay(self):
         self.assertEqual(
             media_automation_helpers.left_room_media_pause_delay("corridor"),

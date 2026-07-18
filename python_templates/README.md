@@ -262,6 +262,8 @@ Completed foundations:
     module.
 71. Move TV picture-mode cycle/increment/decrement action construction into
     the TV automation module.
+72. Move single-device media volume action construction into the media
+    automation module.
 
 Recommended next steps:
 

@@ -3209,11 +3209,10 @@ class RoomBase:
         self.error(f"turn({entity_list}, {state}) is not supported.")
 
     elif state in ['single_device_volume_inc', "single_device_volume_dec"] :
-        action_service = {"service": "media_player.volume_set",
-                          "entity_id": entity_list,
-                          "data_template":
-                            {"volume_level": "{{ (state_attr('" + entity_list[0] + "', 'volume_level')) + " + str(step_value/100) +" }}"}
-                          }
+        action_service = media_automation_helpers.single_device_volume_action(
+          entity_list,
+          step_value,
+        )
 
     elif entity_list == self.media_players or entity_list == self.tv_soundbars:
         if state == 'on':
