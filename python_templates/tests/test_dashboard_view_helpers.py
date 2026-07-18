@@ -46,6 +46,44 @@ class DashboardViewHelpersTest(unittest.TestCase):
         with self.assertRaises(TypeError):
             dashboard_view_helpers.layout_wrapper_cards("bad")
 
+    def test_room_view_cards_for_mobile(self):
+        header_cards = [{"type": "header"}]
+        main_cards = [{"type": "main"}]
+        tail_cards = [{"type": "tail"}]
+
+        self.assertEqual(
+            dashboard_view_helpers.room_view_cards(
+                "mobile",
+                header_cards,
+                main_cards,
+                tail_cards,
+            ),
+            [
+                {"square": False, "columns": 2, "type": "grid", "cards": header_cards},
+                {"square": False, "columns": 2, "type": "grid", "cards": main_cards},
+                {"type": "tail"},
+            ],
+        )
+
+    def test_room_view_cards_for_tablet(self):
+        header_cards = [{"type": "header"}]
+        main_cards = [{"type": "main"}]
+        tail_cards = [{"type": "tail"}]
+
+        self.assertEqual(
+            dashboard_view_helpers.room_view_cards(
+                "tablet",
+                header_cards,
+                main_cards,
+                tail_cards,
+            ),
+            [
+                {"type": "header"},
+                {"type": "main"},
+                {"type": "tail"},
+            ],
+        )
+
     def test_home_navigation_card_uses_default_home_path(self):
         self.assertEqual(
             dashboard_view_helpers.home_navigation_card("lovelace"),

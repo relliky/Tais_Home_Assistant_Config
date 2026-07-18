@@ -25,6 +25,14 @@ def layout_wrapper_cards(dashboard_type, cards=None):
     "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n")
 
 
+def room_view_cards(dashboard_type, header_cards, main_cards, tail_cards):
+  return (
+    layout_wrapper_cards(dashboard_type, header_cards) +
+    layout_wrapper_cards(dashboard_type, main_cards) +
+    tail_cards
+  )
+
+
 def home_navigation_card(dashboard_root, navigate_path=None):
   navigation_path = (dashboard_root + "/" + "home") if navigate_path is None else navigate_path
   return {

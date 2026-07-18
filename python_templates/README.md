@@ -307,6 +307,7 @@ Completed foundations:
     module.
 96. Move button-style navigation room-card construction into the dashboard view
     helper module.
+97. Move room-view card list composition into the dashboard view helper module.
 
 Recommended next steps:
 

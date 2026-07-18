@@ -3585,9 +3585,12 @@ class RoomBase:
     # Add room header navagation cards (back card + scene card)
     self.header_card_list += self.getHeaderCardList()
 
-    all_cards = self.getLayoutWrapperCardList(self.header_card_list) + \
-                self.getLayoutWrapperCardList(self.main_card_list)   + \
-                self.tail_card_list
+    all_cards = dashboard_view_helpers.room_view_cards(
+      self.dashboard_type,
+      self.header_card_list,
+      self.main_card_list,
+      self.tail_card_list,
+    )
 
     #if self.room_name == 'Guest Room':
     #  print (self.main_card_list)
