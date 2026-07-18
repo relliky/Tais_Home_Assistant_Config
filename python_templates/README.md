@@ -26,6 +26,7 @@ package YAML and Lovelace dashboard YAML from room-specific Python classes.
   guarded by a `configured` flag.
 - `unavailable_entity_builder.py` contains helpers for collecting generated
   entity IDs used by unavailable-device sensors.
+- `camera_automation_helpers.py` contains camera automation builders.
 - `media_automation_helpers.py` contains media-player automation builders.
 - `automation_helpers.py` contains small Home Assistant trigger, action, and
   condition dict builders.
@@ -241,6 +242,7 @@ Completed foundations:
     occupancy automation module.
 62. Move media-player left-room pause automation construction into its own
     module.
+63. Move kitchen camera automation construction into its own module.
 
 Recommended next steps:
 

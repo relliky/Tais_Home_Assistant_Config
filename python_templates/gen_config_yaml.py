@@ -8,6 +8,7 @@
 from HA_Composite_Card_Lib.src.main import HA_Composite_Card_Lib
 import automation_helpers
 import battery_entity_builder
+import camera_automation_helpers
 import configured_entity_filter
 import dashboard_card_mod
 import dashboard_colors
@@ -2907,33 +2908,12 @@ class RoomBase:
 
   def gen_camera_automations(self):
     if self.room_entity == 'kitchen':
-      self.automation_list += [{
-          "alias" : "ZM-" + self.automation_room_name + "Reset Camera Position After People Left" + "-" + self.room_name,
-          "configured": True,
-          "trigger": [
-            { "platform": "state",
-              "entity_id": self.room_occupancy,
-              "to": "Outside",
-              "for": "00:10:00",
-            },
-          ] + self.get_time_pattern_trigger(),
-          "actions": {"action": "script.kitchen_camera_pointing_to_door"}
-        }
-      ]
-
-      self.automation_list += [{
-          "alias" : "ZM-" + self.automation_room_name + "Point Camera To the Table When People Enter" + "-" + self.room_name,
-          "configured": True,
-          "trigger": [
-            { "platform": "state",
-              "entity_id": self.room_occupancy,
-              "from": "Outside",
-              "to": "Just Entered",
-            },
-          ],
-          "actions": {"action": "script.kitchen_camera_pointing_to_dining_table"}
-        }
-      ]
+      self.automation_list += camera_automation_helpers.kitchen_camera_automations(
+        self.automation_room_name,
+        self.room_name,
+        self.room_occupancy,
+        self.get_time_pattern_trigger(),
+      )
 
 
   # Exceptions that will be written per room - most of them because the wall button have multiple keys and multiple lights
