@@ -93,3 +93,46 @@ def disable_entering_lights_on_actions(automation_lights_on_id, automation_turn_
     {"delay": "00:00:10"},
     automation_turn_off(automation_lights_on_id, stop_actions="false")
   ]
+
+
+def walking_in_dark_led_actions(
+  room_entity,
+  leds,
+  ceiling_lights,
+  lamps,
+  non_bed_motion_sensors,
+  set_service,
+  call_scene_service,
+):
+  guarded_lights = leds + ceiling_lights + lamps if room_entity != 'guest_room' else leds + ceiling_lights
+  return [
+    {
+      "condition": "not",
+      "conditions": [{
+        "condition": "state",
+        "entity_id": guarded_lights,
+        "state": "on",
+        "match": "any"}]
+    },
+    call_scene_service("Dark Night Mode") if room_entity == 'master_room' else set_service(leds, 'on', light_brightness=40),
+    {
+      "alias": "Wait for floor sensors to go off for 1 min to turn off LED. Stop waiting if it has wait for 1 hour.",
+      "wait_for_trigger":
+        { "platform": "state",
+          "entity_id": non_bed_motion_sensors,
+          "to":  "off",
+          "for": "00:01:00"
+        },
+      "timeout": "01:00:00"
+    },
+    {
+      "alias": " Testing if other lights are manually turned on after the LED was on",
+      "condition": "not",
+      "conditions": [{
+        "condition": "state",
+        "entity_id": ceiling_lights + lamps,
+        "state": "on",
+        "match": "any"}]
+    },
+    set_service(leds, 'off')
+  ]

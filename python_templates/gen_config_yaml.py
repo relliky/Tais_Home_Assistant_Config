@@ -2336,38 +2336,15 @@ class RoomBase:
             "state": "dark"
           },
         ],
-        "action": [
-          {
-            "condition": "not",
-            "conditions": [{
-                "condition": "state",
-                "entity_id": self.leds + self.ceiling_lights + self.lamps if self.room_entity != 'guest_room' else \
-                             self.leds + self.ceiling_lights,
-                "state": "on",
-                "match": "any"}]
-          },
-          self.callSceneService("Dark Night Mode") if self.room_entity == 'master_room' else self.set(self.leds, 'on', light_brightness=40),
-          {
-            "alias": "Wait for floor sensors to go off for 1 min to turn off LED. Stop waiting if it has wait for 1 hour.",
-            "wait_for_trigger":
-              { "platform": "state",
-                "entity_id": self.non_bed_motion_sensors,
-                "to":  "off",
-                "for": "00:01:00"
-              },
-            "timeout": "01:00:00"
-          },
-          {
-            "alias": " Testing if other lights are manually turned on after the LED was on",
-            "condition": "not",
-            "conditions": [{
-                "condition": "state",
-                "entity_id": self.ceiling_lights + self.lamps,
-                "state": "on",
-                "match": "any"}]
-          },
-          self.set(self.leds, 'off')
-        ]
+        "action": motion_light_automation_helpers.walking_in_dark_led_actions(
+          self.room_entity,
+          self.leds,
+          self.ceiling_lights,
+          self.lamps,
+          self.non_bed_motion_sensors,
+          self.set,
+          self.callSceneService,
+        )
       }
     ]
 

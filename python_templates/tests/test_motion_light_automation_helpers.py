@@ -18,8 +18,8 @@ def call_scene_service(name):
     return ["scene", name]
 
 
-def set_service(entity, state):
-    return ["set", entity, state]
+def set_service(entity, state, **kwargs):
+    return ["set", entity, state, kwargs]
 
 
 def set_new_scene_state(state):
@@ -124,11 +124,11 @@ class MotionLightAutomationHelpersTest(unittest.TestCase):
                 call_scene_service,
             ),
             [
-                ["set", "automation.lights_on", "on"],
-                ["set", ["media_player.tv"], "off"],
+                ["set", "automation.lights_on", "on", {}],
+                ["set", ["media_player.tv"], "off", {}],
                 ["scene_state", "Idle"],
                 ["scene", "All Off"],
-                ["set", ["switch.extractor"], "off"],
+                ["set", ["switch.extractor"], "off", {}],
             ],
         )
 
@@ -147,6 +147,64 @@ class MotionLightAutomationHelpersTest(unittest.TestCase):
                 },
             ],
         )
+
+    def test_walking_in_dark_led_actions_for_master_room(self):
+        self.assertEqual(
+            motion_light_automation_helpers.walking_in_dark_led_actions(
+                "master_room",
+                ["light.led"],
+                ["light.ceiling"],
+                ["light.lamp"],
+                ["binary_sensor.floor"],
+                set_service,
+                call_scene_service,
+            ),
+            [
+                {
+                    "condition": "not",
+                    "conditions": [{
+                        "condition": "state",
+                        "entity_id": ["light.led", "light.ceiling", "light.lamp"],
+                        "state": "on",
+                        "match": "any"}]
+                },
+                ["scene", "Dark Night Mode"],
+                {
+                    "alias": "Wait for floor sensors to go off for 1 min to turn off LED. Stop waiting if it has wait for 1 hour.",
+                    "wait_for_trigger": {
+                        "platform": "state",
+                        "entity_id": ["binary_sensor.floor"],
+                        "to": "off",
+                        "for": "00:01:00",
+                    },
+                    "timeout": "01:00:00",
+                },
+                {
+                    "alias": " Testing if other lights are manually turned on after the LED was on",
+                    "condition": "not",
+                    "conditions": [{
+                        "condition": "state",
+                        "entity_id": ["light.ceiling", "light.lamp"],
+                        "state": "on",
+                        "match": "any"}]
+                },
+                ["set", ["light.led"], "off", {}],
+            ],
+        )
+
+    def test_walking_in_dark_led_actions_for_guest_room(self):
+        actions = motion_light_automation_helpers.walking_in_dark_led_actions(
+            "guest_room",
+            ["light.led"],
+            ["light.ceiling"],
+            ["light.lamp"],
+            ["binary_sensor.floor"],
+            set_service,
+            call_scene_service,
+        )
+
+        self.assertEqual(actions[0]["conditions"][0]["entity_id"], ["light.led", "light.ceiling"])
+        self.assertEqual(actions[1], ["set", ["light.led"], "on", {"light_brightness": 40}])
 
 
 if __name__ == "__main__":
