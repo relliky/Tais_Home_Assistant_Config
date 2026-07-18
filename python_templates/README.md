@@ -298,6 +298,8 @@ Completed foundations:
 90. Move scene-state-machine transition ordering into the scene action module.
 91. Move shared numeric/sun condition construction into a condition helper
     module.
+92. Move light-intensity condition construction into the condition helper
+    module.
 
 Recommended next steps:
 

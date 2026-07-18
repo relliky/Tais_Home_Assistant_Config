@@ -3569,54 +3569,14 @@ class RoomBase:
          condition_name == 'moderate light outdoor' or \
          condition_name == 'low light outdoor' or \
          condition_name == 'sleep mode':
-
-      # Common light intensity threshold
-      if condition_name == 'intense light summer':
-        cond = [{
-          "condition": "template",
-          "value_template": "{{ states('" + self.light_intensity_entity +  "') | float(0) > states('" + self.light_intensity_threshold_when['intense light summer'] + "') | float(0) }}"""
-        }]
-      elif condition_name == 'moderate light outdoor':
-        cond = [{
-          "condition": "template",
-          "value_template": "{{ states('" + self.light_intensity_entity +  "') | float(0) > states('" + self.light_intensity_threshold_when['moderate light outdoor'] + "') | float(0) }}"""
-        }]
-      else:
-        cond = [{
-          "condition": "template",
-          "value_template": "{{ states('" + self.light_intensity_entity +  "') | float(0) <= states('" + self.light_intensity_threshold_when['moderate light outdoor'] + "') | float(0) }}"""
-        }]
-
-      if condition_name == 'intense light summer':
-        cond += [
-                # Outdoor temp above certain temperature
-                {
-                  "condition": "numeric_state",
-                  "entity_id": self.outside_temperature,
-                  "above": "12" if self.west_face_windows else "15"
-                },
-                # Summer
-                {
-                  "condition": "template",
-                  "value_template": "{{ now().month > 4 and now().month < 9 }}"
-                },
-              ]
-
-      if condition_name != 'sleep mode':
-        cond += [
-          { "condition": "state",
-            "entity_id": self.al_sleep_mode,
-            "state": 'off'}
-        ]
-      else:
-        cond = [
-          { "condition": "state",
-            "entity_id": self.al_sleep_mode,
-            "state": 'on'}
-        ]
-
-
-      return cond
+      return condition_helpers.light_intensity_condition_list(
+        condition_name,
+        self.light_intensity_entity,
+        self.light_intensity_threshold_when,
+        self.outside_temperature,
+        self.west_face_windows,
+        self.al_sleep_mode,
+      )
 
     else:
       raise error( "Condition " + condition_name + " is not supported.")
