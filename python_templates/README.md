@@ -335,6 +335,8 @@ Completed foundations:
      helper module.
 111. Move mushroom navigation room-card construction into the dashboard view
      helper module.
+112. Move navigation room title-card construction into the dashboard view
+     helper module.
 
 Recommended next steps:
 

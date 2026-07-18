@@ -110,6 +110,27 @@ def navigation_room_secondary_text(temperature_sensor, motion_group, motion_post
   )
 
 
+def navigation_room_title_card(
+    room_icon,
+    room_name,
+    temperature_sensor,
+    motion_group,
+    motion_postfix,
+    template_card,
+):
+  return template_card(
+    icon=room_icon,
+    icon_color="blue",
+    primary=room_name,
+    secondary=navigation_room_secondary_text(
+      temperature_sensor,
+      motion_group,
+      motion_postfix,
+    ),
+    tap_action='navigate',
+  )
+
+
 def unavailable_status_card(unavailable_entity, template_card):
   return template_card(
     icon="mdi:battery-charging-outline",

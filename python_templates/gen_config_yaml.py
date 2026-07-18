@@ -3614,16 +3614,13 @@ class RoomBase:
 
     if type == 'mushroom':
       room_card = dashboard_view_helpers.mushroom_navigation_room_card(
-          self.getTemplateCard(
-            icon       = self.room_icon,
-            icon_color = "blue",
-            primary    = self.room_name,
-            secondary  = dashboard_view_helpers.navigation_room_secondary_text(
-              self.temperature_sensor,
-              self.motion_group,
-              self.getPostfix(self.motion_group),
-            ),
-            tap_action = 'navigate'
+          dashboard_view_helpers.navigation_room_title_card(
+            self.room_icon,
+            self.room_name,
+            self.temperature_sensor,
+            self.motion_group,
+            self.getPostfix(self.motion_group),
+            self.getTemplateCard,
           ),
           dashboard_view_helpers.navigation_status_stack_card(
             self.getCardModColor("transparent"),

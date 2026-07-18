@@ -185,6 +185,32 @@ class DashboardViewHelpersTest(unittest.TestCase):
             ' timestamp_custom("%H:%M", false) }} ',
         )
 
+    def test_navigation_room_title_card(self):
+        def template_card(**kwargs):
+            return kwargs
+
+        card = dashboard_view_helpers.navigation_room_title_card(
+            "mdi:fridge",
+            "Kitchen",
+            "sensor.kitchen_temperature",
+            "group.kitchen_motion",
+            "kitchen_motion",
+            template_card,
+        )
+
+        self.assertEqual(card["icon"], "mdi:fridge")
+        self.assertEqual(card["icon_color"], "blue")
+        self.assertEqual(card["primary"], "Kitchen")
+        self.assertEqual(card["tap_action"], "navigate")
+        self.assertEqual(
+            card["secondary"],
+            dashboard_view_helpers.navigation_room_secondary_text(
+                "sensor.kitchen_temperature",
+                "group.kitchen_motion",
+                "kitchen_motion",
+            ),
+        )
+
     def test_unavailable_status_card(self):
         def template_card(**kwargs):
             return kwargs
