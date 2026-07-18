@@ -26,6 +26,28 @@ class CoverActionHelpersTest(unittest.TestCase):
             },
         )
 
+    def test_shutter_blind_position_action(self):
+        self.assertEqual(
+            cover_action_helpers.shutter_blind_position_action(
+                ["cover.study_blind"],
+                95,
+                100,
+            ),
+            {
+                "if": {
+                    "condition": "numeric_state",
+                    "entity_id": ["cover.study_blind"],
+                    "attribute": "current_position",
+                    "above": 95,
+                },
+                "then": {
+                    "service": "cover.set_cover_position",
+                    "data": {"position": 100},
+                    "entity_id": ["cover.study_blind"],
+                },
+            },
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

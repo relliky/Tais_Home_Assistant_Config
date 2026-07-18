@@ -3238,36 +3238,27 @@ class RoomBase:
         if state == 'on':
           if self.room_entity == 'study':
             # open full blind for study
-            action_service = {'if': {"condition": "numeric_state",
-                                     "entity_id": self.curtains,
-                                     "attribute": "current_position",
-                                     "above": 95,},
-                             'then': {"service": "cover.set_cover_position",
-                                      "data":    {"position": 100},
-                                      "entity_id": self.curtains}
-                            }
+            action_service = cover_action_helpers.shutter_blind_position_action(
+              self.curtains,
+              95,
+              100,
+            )
 
           else:
             # open shutter for master toilet
             # Set to 0 position to open the shutter, blind full down
-            action_service = {'if': {"condition": "numeric_state",
-                                     "entity_id": self.curtains,
-                                     "attribute": "current_position",
-                                     "above": 0,},
-                             'then': {"service": "cover.set_cover_position",
-                                      "data":    {"position": 0},
-                                      "entity_id": self.curtains}
-                            }
+            action_service = cover_action_helpers.shutter_blind_position_action(
+              self.curtains,
+              0,
+              0,
+            )
         elif state == 'off':
           # Set to 2 position to close the shutter, blind full down
-          action_service = {'if': {"condition": "numeric_state",
-                                     "entity_id": self.curtains,
-                                     "attribute": "current_position",
-                                     "above": 2,},
-                            'then': {"service": "cover.set_cover_position",
-                                     "data":    {"position": 2},
-                                     "entity_id": self.curtains}
-                            }
+          action_service = cover_action_helpers.shutter_blind_position_action(
+            self.curtains,
+            2,
+            2,
+          )
         else:
           action_service = {"service":   "cover.toggle",
                             "entity_id": entity_list}
