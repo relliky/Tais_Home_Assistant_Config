@@ -321,6 +321,8 @@ Completed foundations:
      module.
 104. Move light-status navigation card construction into the dashboard view
      helper module.
+105. Move occupancy-override navigation card construction into the dashboard
+     view helper module.
 
 Recommended next steps:
 

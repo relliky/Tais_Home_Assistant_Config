@@ -3664,10 +3664,9 @@ class RoomBase:
                 self.getTemplateCard,
               )
             ]) + ([] if self.cfg_occupancy_override == False else [
-              self.getTemplateCard(
-                icon       = "{% if is_state(entity, 'on') %}\n  mdi:timer-sand\n{% else %}\n  mdi:timer-sand-paused\n{% endif %}",
-                icon_color = "{% if is_state(entity, 'on') %}\n  yellow\n{% endif %}",
-                tap_entity = self.occupancy_override_entity
+              dashboard_view_helpers.occupancy_override_status_card(
+                self.occupancy_override_entity,
+                self.getTemplateCard,
               )
             ]) + ([] if self.cfg_temp_control == False else [
               self.getTemplateCard(

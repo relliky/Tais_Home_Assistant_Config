@@ -289,6 +289,28 @@ class DashboardViewHelpersTest(unittest.TestCase):
             },
         )
 
+    def test_occupancy_override_status_card(self):
+        def template_card(**kwargs):
+            return kwargs
+
+        self.assertEqual(
+            dashboard_view_helpers.occupancy_override_status_card(
+                "input_boolean.kitchen_auto_off_suspended",
+                template_card,
+            ),
+            {
+                "icon": "{% if is_state(entity, 'on') %}\n"
+                "  mdi:timer-sand\n"
+                "{% else %}\n"
+                "  mdi:timer-sand-paused\n"
+                "{% endif %}",
+                "icon_color": "{% if is_state(entity, 'on') %}\n"
+                "  yellow\n"
+                "{% endif %}",
+                "tap_entity": "input_boolean.kitchen_auto_off_suspended",
+            },
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

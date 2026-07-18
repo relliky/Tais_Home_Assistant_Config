@@ -171,3 +171,17 @@ def light_status_card(light_group, template_card):
                "{% endif %}",
     tap_entity=light_group,
   )
+
+
+def occupancy_override_status_card(occupancy_override_entity, template_card):
+  return template_card(
+    icon="{% if is_state(entity, 'on') %}\n"
+         "  mdi:timer-sand\n"
+         "{% else %}\n"
+         "  mdi:timer-sand-paused\n"
+         "{% endif %}",
+    icon_color="{% if is_state(entity, 'on') %}\n"
+               "  yellow\n"
+               "{% endif %}",
+    tap_entity=occupancy_override_entity,
+  )
