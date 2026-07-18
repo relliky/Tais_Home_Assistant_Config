@@ -31,6 +31,8 @@ package YAML and Lovelace dashboard YAML from room-specific Python classes.
 - `motion_light_automation_helpers.py` contains motion-light automation choose
   builders.
 - `tv_automation_helpers.py` contains TV automation builders.
+- `window_automation_helpers.py` contains window notification automation
+  helpers.
 - `battery_entity_builder.py` contains room-level battery group/min/low-battery
   entity builders.
 - `occupancy_state_machine.py` contains the room occupancy choose/action
@@ -224,6 +226,8 @@ Completed foundations:
 56. Move motion-light walking-in-dark LED action builder into the motion-light
     automation module.
 57. Move TV picture-mode reset automation builder into its own module.
+58. Move shared window notification condition/action helpers into their own
+    module.
 
 Recommended next steps:
 

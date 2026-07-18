@@ -41,6 +41,7 @@ import rooms
 import sensor_declaration_builders
 import tv_automation_helpers
 import unavailable_entity_builder
+import window_automation_helpers
 import re
 import os
 from copy import deepcopy
@@ -2378,20 +2379,13 @@ class RoomBase:
         }
       ],
       "condition": [
-        {
-          "condition": "state",
-          "entity_id": self.window_group,
-          "state": "on"
-        }
+        window_automation_helpers.window_is_open_condition(self.window_group)
       ],
       "action": [
-        {
-          "service": "script.notify_alexa_speakers_and_phones",
-          "data": {
-            "tts_message": self.room_name + " windows or locks are left open. But you have left home. Is that ok?",
-            "notify_tai": "yes"
-          }
-        }
+        window_automation_helpers.notify_windows_open_action(
+          self.room_name + " windows or locks are left open. But you have left home. Is that ok?",
+          notify_tai="yes",
+        )
       ]
     }]
 
@@ -2407,20 +2401,13 @@ class RoomBase:
         }
       ],
       "condition": [
-        {
-          "condition": "state",
-          "entity_id": self.window_group,
-          "state": "on"
-        }
+        window_automation_helpers.window_is_open_condition(self.window_group)
       ],
       "action": [
-        {
-          "service": "script.notify_alexa_speakers_and_phones",
-          "data": {
-            "tts_message": self.room_name + " windows or locks are left open. But you have left home. Is that ok?",
-            "notify_ke": "yes"
-          }
-        }
+        window_automation_helpers.notify_windows_open_action(
+          self.room_name + " windows or locks are left open. But you have left home. Is that ok?",
+          notify_ke="yes",
+        )
       ]
     }]
 
@@ -2444,24 +2431,15 @@ class RoomBase:
         }
       ],
       "condition": [
-        {
-          "condition": "state",
-          "entity_id": self.window_group,
-          "state": "on"
-        }
+        window_automation_helpers.window_is_open_condition(self.window_group)
       ],
       "action": [
-        {
-          "service": "script.notify_alexa_speakers_and_phones",
-          "data": {
-            "tts_message": self.room_name + " windows or locks are left open. But it's almost bedtime time. Is that ok?",
-            "notify_tai": "yes",
-            "notify_ke": "yes",
-          } | ({
-            "notify_guest_room_tenant": "yes",
-            "notify_en_suite_room_tenant": "yes"
-          } if self.room_entity == 'kitchen' else {})
-        }
+        window_automation_helpers.notify_windows_open_action(
+          self.room_name + " windows or locks are left open. But it's almost bedtime time. Is that ok?",
+          notify_tai="yes",
+          notify_ke="yes",
+          **window_automation_helpers.tenant_notify_flags_for_room(self.room_entity),
+        )
       ]
     }]
 
