@@ -11,6 +11,7 @@ import battery_entity_builder
 import button_automation_helpers
 import camera_automation_helpers
 import climate_action_helpers
+import condition_helpers
 import configured_entity_filter
 import cover_action_helpers
 import dashboard_card_mod
@@ -3531,31 +3532,12 @@ class RoomBase:
       return [{ 'alias': condition_name,
                 "condition": "and",
                 "conditions": [
-                  { "condition": "or",
-                    "conditions": [
-                      {"condition": "numeric_state",
-                        "entity_id": self.light_sensor,
-                        "above": self.min_value_as_bright},
-                      { "condition": "state",
-                        "entity_id": self.light_sensor,
-                        "state": [
-                          "unavailable",
-                          "unknown"]}
-                    ]
-                  },
-                  {
-                    "condition": "or",
-                    "conditions": [
-                      { "condition": "state",
-                        "entity_id": "sun.sun",
-                        "state": "above_horizon"},
-                      { "condition": "state",
-                        "entity_id": "sun.sun",
-                        "state": [
-                          "unavailable",
-                          "unknown"]}
-                    ]
-                  },
+                  condition_helpers.numeric_state_or_unavailable(
+                    self.light_sensor,
+                    "above",
+                    self.min_value_as_bright,
+                  ),
+                  condition_helpers.sun_state_or_unavailable("above_horizon"),
                   {
                     "condition": "time",
                     #"after": self.morning_start_time,
@@ -3568,31 +3550,12 @@ class RoomBase:
       return [{ 'alias': condition_name,
                 "condition": "and",
                 "conditions": [
-                  { "condition": "or",
-                    "conditions": [
-                      {"condition": "numeric_state",
-                        "entity_id": self.light_sensor,
-                        "above": self.min_value_as_bright},
-                      { "condition": "state",
-                        "entity_id": self.light_sensor,
-                        "state": [
-                          "unavailable",
-                          "unknown"]}
-                    ]
-                  },
-                  {
-                    "condition": "or",
-                    "conditions": [
-                      { "condition": "state",
-                        "entity_id": "sun.sun",
-                        "state": "above_horizon"},
-                      { "condition": "state",
-                        "entity_id": "sun.sun",
-                        "state": [
-                          "unavailable",
-                          "unknown"]}
-                    ]
-                  },
+                  condition_helpers.numeric_state_or_unavailable(
+                    self.light_sensor,
+                    "above",
+                    self.min_value_as_bright,
+                  ),
+                  condition_helpers.sun_state_or_unavailable("above_horizon"),
                   {
                     "condition": "time",
                     'after': self.noon_time,
