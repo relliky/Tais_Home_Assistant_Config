@@ -1727,13 +1727,11 @@ def define_room_classes(RoomBase):
       card_type = 'mushroom'
   
       if card_type == 'mushroom':
-         room_card = dashboard_view_helpers.mushroom_navigation_room_card(
+         room_card = dashboard_view_helpers.navigation_status_room_card(
             dashboard_view_helpers.system_navigation_title_card(),
-            dashboard_view_helpers.navigation_status_stack_card(
-              self.getCardModColor("transparent"),
-              dashboard_view_helpers.system_navigation_status_cards(
-                self.getTemplateCard,
-              )
+            self.getCardModColor("transparent"),
+            dashboard_view_helpers.system_navigation_status_cards(
+              self.getTemplateCard,
             )
          )
   

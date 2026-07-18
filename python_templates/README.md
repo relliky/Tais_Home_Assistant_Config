@@ -348,6 +348,8 @@ Completed foundations:
 117. Reuse the dashboard status stack-card helper for System navigation cards.
 118. Reuse the dashboard mushroom room-card helper for System navigation cards.
 119. Reuse the dashboard button room-card helper for System navigation cards.
+120. Move navigation status room-card composition into the dashboard view
+     helper module.
 
 Recommended next steps:
 

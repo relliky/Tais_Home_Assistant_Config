@@ -526,6 +526,32 @@ class DashboardViewHelpersTest(unittest.TestCase):
             },
         )
 
+    def test_navigation_status_room_card(self):
+        title_card = {"type": "title"}
+        status_cards = [{"type": "status"}]
+        card_mod = {"card_mod": {"style": "transparent"}}
+
+        self.assertEqual(
+            dashboard_view_helpers.navigation_status_room_card(
+                title_card,
+                card_mod,
+                status_cards,
+            ),
+            {
+                "type": "custom:stack-in-card",
+                "mode": "vertical",
+                "cards": [
+                    title_card,
+                    {
+                        "card_mod": {"style": "transparent"},
+                        "type": "custom:stack-in-card",
+                        "mode": "horizontal",
+                        "cards": status_cards,
+                    },
+                ],
+            },
+        )
+
     def test_system_navigation_title_card(self):
         self.assertEqual(
             dashboard_view_helpers.system_navigation_title_card(),

@@ -337,6 +337,13 @@ def mushroom_navigation_room_card(title_card, status_stack_card):
   }
 
 
+def navigation_status_room_card(title_card, card_mod, status_cards):
+  return mushroom_navigation_room_card(
+    title_card,
+    navigation_status_stack_card(card_mod, status_cards),
+  )
+
+
 def system_navigation_title_card():
   return {
     "type": "custom:mushroom-template-card",
