@@ -526,6 +526,29 @@ class DashboardViewHelpersTest(unittest.TestCase):
             },
         )
 
+    def test_system_navigation_title_card(self):
+        self.assertEqual(
+            dashboard_view_helpers.system_navigation_title_card(),
+            {
+                "type": "custom:mushroom-template-card",
+                "icon": "mdi:server",
+                "icon_color": "blue",
+                "layout": "horizontal",
+                "entity": "input_boolean.placeholder",
+                "fill_container": True,
+                "primary": "System",
+                "secondary": "{{states('sensor.processor_use_percent')}}% | {{states('sensor.load_1m')}} | {{(states('sensor.memory_use') | float/1000) | round(1) }}GB ",
+                "tap_action": {
+                    "action": "navigate",
+                    "navigation_path": "/lovelace-system/system",
+                },
+                "icon_tap_action": {
+                    "action": "navigate",
+                    "navigation_path": "/lovelace-system/system",
+                },
+            },
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

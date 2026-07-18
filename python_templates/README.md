@@ -339,6 +339,8 @@ Completed foundations:
      helper module.
 113. Avoid shadowing the built-in `type` name in navigation room-card
      construction.
+114. Move System navigation title-card construction into the dashboard view
+     helper module.
 
 Recommended next steps:
 

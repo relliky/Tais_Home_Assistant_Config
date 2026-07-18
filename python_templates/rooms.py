@@ -1,4 +1,5 @@
 from copy import deepcopy
+import dashboard_view_helpers
 
 
 def define_room_classes(RoomBase):
@@ -1730,24 +1731,7 @@ def define_room_classes(RoomBase):
           "type": "custom:stack-in-card",
           "mode": "vertical",
           "cards": [
-            {
-              "type": "custom:mushroom-template-card",
-              "icon": "mdi:server",
-              "icon_color": "blue",
-              "layout": "horizontal",
-              "entity": "input_boolean.placeholder",
-              "fill_container": True,
-              "primary": "System",
-              "secondary": "{{states('sensor.processor_use_percent')}}% | {{states('sensor.load_1m')}} | {{(states('sensor.memory_use') | float/1000) | round(1) }}GB ",
-              "tap_action": {
-                "action": "navigate",
-                "navigation_path": "/lovelace-system/system"
-              },
-              "icon_tap_action": {
-                "action": "navigate",
-                "navigation_path": "/lovelace-system/system"
-              }
-            },
+            dashboard_view_helpers.system_navigation_title_card(),
             self.getCardModColor("transparent") | {
               "type": "custom:stack-in-card",
               "mode": "horizontal",

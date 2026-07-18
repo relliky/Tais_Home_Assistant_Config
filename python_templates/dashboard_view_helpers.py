@@ -335,3 +335,24 @@ def mushroom_navigation_room_card(title_card, status_stack_card):
       status_stack_card,
     ],
   }
+
+
+def system_navigation_title_card():
+  return {
+    "type": "custom:mushroom-template-card",
+    "icon": "mdi:server",
+    "icon_color": "blue",
+    "layout": "horizontal",
+    "entity": "input_boolean.placeholder",
+    "fill_container": True,
+    "primary": "System",
+    "secondary": "{{states('sensor.processor_use_percent')}}% | {{states('sensor.load_1m')}} | {{(states('sensor.memory_use') | float/1000) | round(1) }}GB ",
+    "tap_action": {
+      "action": "navigate",
+      "navigation_path": "/lovelace-system/system",
+    },
+    "icon_tap_action": {
+      "action": "navigate",
+      "navigation_path": "/lovelace-system/system",
+    },
+  }
