@@ -47,6 +47,7 @@ import room_remote_entities
 import room_scene_defaults
 import room_time_settings
 import rooms
+import scene_action_helpers
 import sensor_declaration_builders
 import service_action_helpers
 import tv_automation_helpers
@@ -3436,57 +3437,22 @@ class RoomBase:
   def callSceneService(self, scene_name):
       parallel_enable = True
       scene_service = []
-      if   scene_name == 'All White':
-          scene_service += [self.set(self.lamps, "on"),
-                            self.set(self.ceiling_lights, "on"),
-                            self.set(self.leds, "on"),
-                            self.set(self.tvs, tv_brightness=3)]
-      elif scene_name == 'Ceiling Light White':
-          scene_service += [self.set(self.lamps, "off"),
-                            self.set(self.leds, "off"),
-                            self.set(self.ceiling_lights, "on"),
-                            self.set(self.tvs, tv_brightness=3)]
+      simple_scene = scene_action_helpers.simple_room_scene_actions(
+        scene_name,
+        self.lamps,
+        self.ceiling_lights,
+        self.leds,
+        self.tvs,
+        self.room_entity,
+        self.set,
+      )
+      if simple_scene is not None:
+        scene_service, parallel_enable = simple_scene
       #elif scene_name == 'Ceiling Light White with Curtain Open':
       #    scene_service += [self.set(self.leds + self.lamps, "off"),
       #                      self.set(self.ceiling_lights, "on"),
       #                      self.set(self.tvs, tv_brightness=3),
       #                      self.set(self.curtains, 'on')]
-      elif scene_name == 'Lamp LED White':
-          scene_service += [self.set(self.ceiling_lights, "off"),
-                            self.set(self.lamps, "on"),
-                            self.set(self.leds, "on")]
-      elif scene_name == 'LED White':
-          scene_service += [self.set(self.leds, "on")]
-      elif scene_name == 'Hue':
-          parallel_enable = False
-          scene_service += [# turn off non rgb lights
-                            { "service" : "pyscript.turn_rgb_light",
-                              "data": {"light_list": self.lamps + self.ceiling_lights+ self.leds,
-                              "state": 'off',
-                              "rgb" : 'non_rgb_only'}},
-                            # set hue colors
-                            { "service" : "pyscript.turn_rgb_light",
-                              "data": {"light_list": self.lamps + self.ceiling_lights+ self.leds}
-                            },
-                            self.set(self.tvs, tv_brightness=2),
-                            ]
-      elif scene_name == 'Night Mode':
-          scene_service += [{ "service": "homeassistant.turn_on",
-                              "entity_id": "scene." + self.room_entity + "_night_mode" },
-                            self.set(self.tvs, tv_brightness=2)]
-      elif scene_name == 'Dark Night Mode':
-          scene_service += [{ "service": "homeassistant.turn_on",
-                              "entity_id": "scene." + self.room_entity + "_dark_night_mode" },
-                            self.set(self.tvs, tv_brightness=1)]
-      elif scene_name == "Sleep Mode":
-          scene_service += [{ "service": "homeassistant.turn_on",
-                              "entity_id": "scene." + self.room_entity + "_sleep_mode"}]
-      elif scene_name == 'All Off':
-          scene_service += [self.set(self.ceiling_lights, "off"),
-                            self.set(self.lamps, "off"),
-                            self.set(self.leds, "off"),
-                            self.set(self.tvs, tv_brightness=3)] # reset TV brightness for bright room in the day time
-                                                                 # considering turn it to 1 for night
       elif scene_name in ['light states when intense light summer',
                           'light states when moderate light outdoor',
                           'light states when low light outdoor',
