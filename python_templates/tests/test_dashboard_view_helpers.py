@@ -394,6 +394,77 @@ class DashboardViewHelpersTest(unittest.TestCase):
             },
         )
 
+    def test_navigation_status_cards_preserve_card_order(self):
+        def template_card(**kwargs):
+            return kwargs
+
+        cards = dashboard_view_helpers.navigation_status_cards(
+            "binary_sensor.unavailable",
+            ["sensor.battery"],
+            "binary_sensor.low_battery",
+            "group.battery",
+            ["binary_sensor.window"],
+            "group.window",
+            ["media_player.tv"],
+            ["light.kitchen"],
+            "group.light",
+            True,
+            "input_boolean.override",
+            True,
+            "climate.kitchen",
+            True,
+            "input_select.occupancy",
+            ["cover.curtain"],
+            "cover.curtain_group",
+            template_card,
+        )
+
+        self.assertEqual(
+            [
+                card.get("condition_entity") or card.get("tap_entity")
+                for card in cards
+            ],
+            [
+                "binary_sensor.unavailable",
+                "group.battery",
+                "group.window",
+                "media_player.tv",
+                "group.light",
+                "input_boolean.override",
+                "climate.kitchen",
+                "input_select.occupancy",
+                "cover.curtain_group",
+            ],
+        )
+
+    def test_navigation_status_cards_skip_disabled_optional_cards(self):
+        def template_card(**kwargs):
+            return kwargs
+
+        cards = dashboard_view_helpers.navigation_status_cards(
+            "binary_sensor.unavailable",
+            [],
+            "binary_sensor.low_battery",
+            "group.battery",
+            [],
+            "group.window",
+            [],
+            [],
+            "group.light",
+            False,
+            "input_boolean.override",
+            False,
+            "climate.kitchen",
+            False,
+            "input_select.occupancy",
+            [],
+            "cover.curtain_group",
+            template_card,
+        )
+
+        self.assertEqual(len(cards), 1)
+        self.assertEqual(cards[0]["condition_entity"], "binary_sensor.unavailable")
+
 
 if __name__ == "__main__":
     unittest.main()

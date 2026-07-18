@@ -3632,58 +3632,26 @@ class RoomBase:
           self.getCardModColor("transparent") | {
             "type": "custom:stack-in-card",
             "mode": "horizontal",
-            "cards": [
-              #self.getTemplateCard(
-              #  icon       = "{% set motion = '"+self.motion_group+"' %}  \n{% if is_state(motion, 'on') %}\n  mdi:run-fast\n{% else %}\n  mdi:shoe-print\n{% endif %}",
-              #  icon_color = "{% set motion = '"+self.motion_group+"' %}  \n{% if is_state(motion, 'on') %}\n  blue\n{% endif %}",
-              #),
-            ] + ([
-              dashboard_view_helpers.unavailable_status_card(
-                self.unavailable_entity,
-                self.getTemplateCard,
-              )
-            ]) + ([] if self.room_battery_entity_list == [] else [
-              dashboard_view_helpers.battery_status_card(
-                self.room_low_battery_entity,
-                self.room_battery_entity,
-                self.getTemplateCard,
-              )
-            ]) + ([] if self.windows == [] else [
-              dashboard_view_helpers.window_status_card(
-                self.window_group,
-                self.getTemplateCard,
-              )
-            ]) + ([] if self.tvs == [] else [
-              dashboard_view_helpers.tv_status_card(
-                self.tvs[0],
-                self.getTemplateCard,
-              )
-            ]) + ([] if self.lights == [] else [
-              dashboard_view_helpers.light_status_card(
-                self.light_group,
-                self.getTemplateCard,
-              )
-            ]) + ([] if self.cfg_occupancy_override == False else [
-              dashboard_view_helpers.occupancy_override_status_card(
-                self.occupancy_override_entity,
-                self.getTemplateCard,
-              )
-            ]) + ([] if self.cfg_temp_control == False else [
-              dashboard_view_helpers.temperature_control_status_card(
-                self.thermostat,
-                self.getTemplateCard,
-              )
-            ]) + ([] if self.cfg_occupancy == False else [
-             dashboard_view_helpers.occupancy_status_card(
-               self.room_occupancy,
-               self.getTemplateCard,
-             )
-            ]) + ([] if self.curtains == [] else [
-              dashboard_view_helpers.curtain_status_card(
-                self.curtain_group,
-                self.getTemplateCard,
-              )
-            ])
+            "cards": dashboard_view_helpers.navigation_status_cards(
+              self.unavailable_entity,
+              self.room_battery_entity_list,
+              self.room_low_battery_entity,
+              self.room_battery_entity,
+              self.windows,
+              self.window_group,
+              self.tvs,
+              self.lights,
+              self.light_group,
+              self.cfg_occupancy_override,
+              self.occupancy_override_entity,
+              self.cfg_temp_control,
+              self.thermostat,
+              self.cfg_occupancy,
+              self.room_occupancy,
+              self.curtains,
+              self.curtain_group,
+              self.getTemplateCard,
+            )
           }
         ]
       }

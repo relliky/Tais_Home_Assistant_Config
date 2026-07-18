@@ -244,3 +244,54 @@ def curtain_status_card(curtain_group, template_card):
     condition_state='open',
     condition_entity=curtain_group,
   )
+
+
+def navigation_status_cards(
+    unavailable_entity,
+    room_battery_entity_list,
+    room_low_battery_entity,
+    room_battery_entity,
+    windows,
+    window_group,
+    tvs,
+    lights,
+    light_group,
+    cfg_occupancy_override,
+    occupancy_override_entity,
+    cfg_temp_control,
+    thermostat,
+    cfg_occupancy,
+    room_occupancy,
+    curtains,
+    curtain_group,
+    template_card,
+):
+  cards = [unavailable_status_card(unavailable_entity, template_card)]
+  if room_battery_entity_list != []:
+    cards += [
+      battery_status_card(
+        room_low_battery_entity,
+        room_battery_entity,
+        template_card,
+      )
+    ]
+  if windows != []:
+    cards += [window_status_card(window_group, template_card)]
+  if tvs != []:
+    cards += [tv_status_card(tvs[0], template_card)]
+  if lights != []:
+    cards += [light_status_card(light_group, template_card)]
+  if cfg_occupancy_override != False:
+    cards += [
+      occupancy_override_status_card(
+        occupancy_override_entity,
+        template_card,
+      )
+    ]
+  if cfg_temp_control != False:
+    cards += [temperature_control_status_card(thermostat, template_card)]
+  if cfg_occupancy != False:
+    cards += [occupancy_status_card(room_occupancy, template_card)]
+  if curtains != []:
+    cards += [curtain_status_card(curtain_group, template_card)]
+  return cards
