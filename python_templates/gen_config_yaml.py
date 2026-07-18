@@ -11,6 +11,7 @@ import battery_entity_builder
 import button_automation_helpers
 import camera_automation_helpers
 import configured_entity_filter
+import cover_action_helpers
 import dashboard_card_mod
 import dashboard_colors
 import dashboard_entity_cards
@@ -3228,10 +3229,10 @@ class RoomBase:
     elif entity_list == self.curtains:
 
       if state in ['increment', 'decrement']:
-        action_service = {"service": "cover.set_cover_position",
-                          "target":{"entity_id": self.curtains},
-                          # making sure the final value saturated to range [0,100]
-                          "data":  {"position": "{{ [[ (state_attr('" + self.curtains[0] + "', 'current_position')) + " + str(step_value) + " ,0]|max,100]|min}}"}}
+        action_service = cover_action_helpers.cover_position_step_action(
+          self.curtains,
+          step_value,
+        )
       # Shutter blind
       elif self.aqara_shutter_blind == True and state in ['on', 'off', 'toggle']:
         if state == 'on':

@@ -26,6 +26,7 @@ package YAML and Lovelace dashboard YAML from room-specific Python classes.
   containers and declaration aggregation used during room generation.
 - `configured_entity_filter.py` contains filtering for generated declarations
   guarded by a `configured` flag.
+- `cover_action_helpers.py` contains cover action builders.
 - `unavailable_entity_builder.py` contains helpers for collecting generated
   entity IDs used by unavailable-device sensors.
 - `button_automation_helpers.py` contains button automation builders.
@@ -266,6 +267,7 @@ Completed foundations:
     automation module.
 73. Move media play/pause action construction into the media automation
     module.
+74. Move cover position step action construction into its own module.
 
 Recommended next steps:
 
