@@ -3368,22 +3368,11 @@ class RoomBase:
       )
 
     elif is_light_list and (state == 'increment' or state == 'decrement'):
-      action_service = {
-                          "if": [
-                            {
-                              'alias': 'increment brightness unless it is off, set the brightness to 1 percent',
-                              "condition": "state",
-                              "entity_id": entity_list,
-                              "state": "off",
-                            }
-                          ],
-                          # magic_home led cannot easily be turned on by set light_brightness=1 from off state.
-                          "then":[self.set(entity_list, 'on')] if 'led' in entity_list[0] else [] + \
-                                 [self.set(entity_list, 'on', light_brightness=1),],
-                          "else": {"service":"light.turn_on",
-                                  "target":{"entity_id":entity_list},
-                                  "data":{"brightness_step_pct":step_value}},
-                        }
+      action_service = light_action_helpers.brightness_step_action(
+        entity_list,
+        step_value,
+        self.set,
+      )
     elif is_light_list and state == 'cycle':
         entity_id = entity_list[0] if type(entity_list) is list else entity_list
         if entity_id.startswith('light.'):

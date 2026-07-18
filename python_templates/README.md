@@ -282,6 +282,8 @@ Completed foundations:
 80. Move wall-switch turn-on reset sequence construction into its own module.
 81. Move simple light brightness and on/off action construction into the light
     action module.
+82. Move light brightness step action construction into the light action
+    module.
 
 Recommended next steps:
 

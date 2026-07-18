@@ -10,6 +10,10 @@ if SCRIPT_DIR not in sys.path:
 import light_action_helpers
 
 
+def set_service(entity_id, state=None, light_brightness=None):
+    return ["set", entity_id, state, light_brightness]
+
+
 class LightActionHelpersTest(unittest.TestCase):
     def test_wall_switch_turn_on_reset_sequence(self):
         self.assertEqual(
@@ -59,6 +63,44 @@ class LightActionHelpersTest(unittest.TestCase):
                 "entity_id": ["light.kitchen_ceiling"],
             },
         )
+
+    def test_brightness_step_action_for_led(self):
+        self.assertEqual(
+            light_action_helpers.brightness_step_action(
+                ["light.kitchen_led"],
+                34,
+                set_service,
+            ),
+            {
+                "if": [
+                    {
+                        "alias": "increment brightness unless it is off, set the brightness to 1 percent",
+                        "condition": "state",
+                        "entity_id": ["light.kitchen_led"],
+                        "state": "off",
+                    }
+                ],
+                "then": [["set", ["light.kitchen_led"], "on", None]],
+                "else": {
+                    "service": "light.turn_on",
+                    "target": {"entity_id": ["light.kitchen_led"]},
+                    "data": {"brightness_step_pct": 34},
+                },
+            },
+        )
+
+    def test_brightness_step_action_for_non_led_light(self):
+        action = light_action_helpers.brightness_step_action(
+            ["light.kitchen_ceiling"],
+            -34,
+            set_service,
+        )
+
+        self.assertEqual(
+            action["then"],
+            [["set", ["light.kitchen_ceiling"], "on", 1]],
+        )
+        self.assertEqual(action["else"]["data"]["brightness_step_pct"], -34)
         self.assertEqual(
             light_action_helpers.light_on_off_action(
                 ["light.kitchen_ceiling"],
