@@ -214,6 +214,8 @@ Completed foundations:
 50. Move small automation service dict builders into automation helpers.
 51. Move no-op automation service builder into automation helpers.
 52. Move motion-light scene choose builders into their own module.
+53. Move motion-light lights-off condition builder into the motion-light
+    automation module.
 
 Recommended next steps:
 

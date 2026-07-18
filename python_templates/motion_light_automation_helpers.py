@@ -50,3 +50,22 @@ def light_scene_choose(condition_list_is, call_scene_service, do_nothing_service
       }
     }
   }
+
+
+def lights_off_conditions(room_occupancy, motion_group, room_type):
+  return [
+    {
+      "condition": "state",
+      "entity_id": room_occupancy,
+      "state": "Outside"
+    }
+  ] + (
+    [
+      {
+        "condition": "state",
+        "entity_id": motion_group,
+        "state": "off",
+        "for": "00:01:00"
+      }
+    ] if room_type == 'bedroom' else []
+  )

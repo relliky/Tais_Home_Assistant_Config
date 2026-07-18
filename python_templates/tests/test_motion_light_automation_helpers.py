@@ -59,6 +59,44 @@ class MotionLightAutomationHelpersTest(unittest.TestCase):
             {"alias": "Default", "service": "script.do_nothing"},
         )
 
+    def test_lights_off_conditions_for_bedroom(self):
+        self.assertEqual(
+            motion_light_automation_helpers.lights_off_conditions(
+                "input_select.master_room_occupancy",
+                "group.master_room_motion_group",
+                "bedroom",
+            ),
+            [
+                {
+                    "condition": "state",
+                    "entity_id": "input_select.master_room_occupancy",
+                    "state": "Outside",
+                },
+                {
+                    "condition": "state",
+                    "entity_id": "group.master_room_motion_group",
+                    "state": "off",
+                    "for": "00:01:00",
+                },
+            ],
+        )
+
+    def test_lights_off_conditions_for_common_area(self):
+        self.assertEqual(
+            motion_light_automation_helpers.lights_off_conditions(
+                "input_select.kitchen_occupancy",
+                "group.kitchen_motion_group",
+                "common_area",
+            ),
+            [
+                {
+                    "condition": "state",
+                    "entity_id": "input_select.kitchen_occupancy",
+                    "state": "Outside",
+                },
+            ],
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

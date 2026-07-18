@@ -2282,19 +2282,11 @@ class RoomBase:
             "to": "Outside"
           }
         ] + self.get_time_pattern_trigger(),
-        "condition": [
-          { "condition": "state",
-            "entity_id": self.room_occupancy,
-            "state": "Outside"
-          }] + (
-          # For non-pure occupancy sensor room (that has PIR sensors)
-          # Make sure when room_occupany is forced to Outside because of manual override (by Double Clicking the wall switch button for example)
-          # and people are going back to the room, the lights should not be turned off
-          [{ "condition": "state",
-             "entity_id": self.motion_group,
-             "state": "off",
-             "for": "00:01:00"
-             }] if self.room_type == 'bedroom' else []),
+        "condition": motion_light_automation_helpers.lights_off_conditions(
+          self.room_occupancy,
+          self.motion_group,
+          self.room_type,
+        ),
         "action": {
           'parallel': [
             # Re-enable lights on automation
