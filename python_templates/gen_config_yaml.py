@@ -2288,16 +2288,14 @@ class RoomBase:
           self.room_type,
         ),
         "action": {
-          'parallel': [
-            # Re-enable lights on automation
-            self.set(self.automation_lights_on['id'], 'on'),
-            # Turn off tvs/lights
-            self.set(self.tvs, 'off'),
-            self.setNewSceneState("Idle"),
-            self.callSceneService("All Off"),
-            # Turn off extractors
-            self.set(self.extractor, 'off')
-          ]
+          'parallel': motion_light_automation_helpers.lights_off_parallel_actions(
+            self.automation_lights_on['id'],
+            self.tvs,
+            self.extractor,
+            self.set,
+            self.setNewSceneState,
+            self.callSceneService,
+          )
         }
       }
     ]

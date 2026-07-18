@@ -18,6 +18,14 @@ def call_scene_service(name):
     return ["scene", name]
 
 
+def set_service(entity, state):
+    return ["set", entity, state]
+
+
+def set_new_scene_state(state):
+    return ["scene_state", state]
+
+
 def do_nothing_service():
     return {"service": "script.do_nothing"}
 
@@ -94,6 +102,25 @@ class MotionLightAutomationHelpersTest(unittest.TestCase):
                     "entity_id": "input_select.kitchen_occupancy",
                     "state": "Outside",
                 },
+            ],
+        )
+
+    def test_lights_off_parallel_actions(self):
+        self.assertEqual(
+            motion_light_automation_helpers.lights_off_parallel_actions(
+                "automation.lights_on",
+                ["media_player.tv"],
+                ["switch.extractor"],
+                set_service,
+                set_new_scene_state,
+                call_scene_service,
+            ),
+            [
+                ["set", "automation.lights_on", "on"],
+                ["set", ["media_player.tv"], "off"],
+                ["scene_state", "Idle"],
+                ["scene", "All Off"],
+                ["set", ["switch.extractor"], "off"],
             ],
         )
 

@@ -69,3 +69,20 @@ def lights_off_conditions(room_occupancy, motion_group, room_type):
       }
     ] if room_type == 'bedroom' else []
   )
+
+
+def lights_off_parallel_actions(
+  automation_lights_on_id,
+  tvs,
+  extractor,
+  set_service,
+  set_new_scene_state,
+  call_scene_service,
+):
+  return [
+    set_service(automation_lights_on_id, 'on'),
+    set_service(tvs, 'off'),
+    set_new_scene_state("Idle"),
+    call_scene_service("All Off"),
+    set_service(extractor, 'off')
+  ]

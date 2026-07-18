@@ -216,6 +216,8 @@ Completed foundations:
 52. Move motion-light scene choose builders into their own module.
 53. Move motion-light lights-off condition builder into the motion-light
     automation module.
+54. Move motion-light lights-off parallel action builder into the motion-light
+    automation module.
 
 Recommended next steps:
 
