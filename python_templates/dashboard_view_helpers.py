@@ -344,6 +344,13 @@ def navigation_status_room_card(title_card, card_mod, status_cards):
   )
 
 
+def prepend_navigation_status_cards(room_card, cards):
+  room_card["card"]["cards"][1]["cards"] = (
+    cards + room_card["card"]["cards"][1]["cards"]
+  )
+  return room_card
+
+
 def system_navigation_title_card():
   return {
     "type": "custom:mushroom-template-card",

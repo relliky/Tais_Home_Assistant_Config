@@ -552,6 +552,31 @@ class DashboardViewHelpersTest(unittest.TestCase):
             },
         )
 
+    def test_prepend_navigation_status_cards(self):
+        room_card = {
+            "card": {
+                "cards": [
+                    {"type": "title"},
+                    {"cards": [{"type": "base"}]},
+                ]
+            }
+        }
+        extra_cards = [{"type": "extra"}]
+
+        result = dashboard_view_helpers.prepend_navigation_status_cards(
+            room_card,
+            extra_cards,
+        )
+
+        self.assertIs(result, room_card)
+        self.assertEqual(
+            room_card["card"]["cards"][1]["cards"],
+            [
+                {"type": "extra"},
+                {"type": "base"},
+            ],
+        )
+
     def test_system_navigation_title_card(self):
         self.assertEqual(
             dashboard_view_helpers.system_navigation_title_card(),

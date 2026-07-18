@@ -559,50 +559,50 @@ def define_room_classes(RoomBase):
       # Add vaccum info
       room_card['card']['cards'][0]['secondary'] += "{% set vaccum = 'vacuum.x1' %} {% if   is_state(vaccum, 'docked') %}\n 🔋 \n{% elif is_state(vaccum, 'cleaning') %}\n 🧹 \n{% elif is_state(vaccum, 'unavailable') %}\n 🌐 \n{% else %}\n {{states('vacuum.x1')}} \n{% endif %}"
       # Add additional cards
-      room_card['card']['cards'][1]['cards']     = ([
+      dashboard_view_helpers.prepend_navigation_status_cards(room_card, [
         self.getTemplateCard(
           icon       = "mdi:pipe-leak",
           icon_color = "red",
           condition_entity = 'binary_sensor.kitchen_water_leak_sensor',
         )
-      ]) + ([
+      ] + [
         self.getTemplateCard(
           icon       = "mdi:rice",
           icon_color = "yellow",
           condition_entity = 'binary_sensor.rice_cooker_power'
         )
-      ]) + ([
+      ] + [
         self.getTemplateCard(
           icon       = "mdi:robot-vacuum",
           icon_color = "purple",
           condition_entity = 'vacuum.x1',
           condition_state  = 'cleaning'
         )
-      ]) + ([
+      ] + [
         self.getTemplateCard(
           icon       = "mdi:washing-machine",
           icon_color = "light-blue",
           condition_entity = 'binary_sensor.washing_machine_power'
         )
-      ]) + ([
+      ] + [
         self.getTemplateCard(
           icon       = "mdi:dishwasher",
           icon_color = "pink",
           condition_entity = 'binary_sensor.dish_washer_power'
         )
-      ]) + ([
+      ] + [
         self.getTemplateCard(
           icon       = "mdi:ice-cream",
           icon_color = "yellow",
           condition_entity = 'switch.kitchen_ice_maker'
         )
-      ]) + ([
+      ] + [
         self.getTemplateCard(
           icon       = "hass:fan",
           icon_color = "cyan",
           condition_entity = 'switch.kitchen_extractor'
         )
-      ]) + room_card['card']['cards'][1]['cards']
+      ])
   
       return room_card
   
@@ -828,21 +828,21 @@ def define_room_classes(RoomBase):
     def getNavigationRoomCard (self):
       room_card = super().getNavigationRoomCard()
       # Add additional cards
-      room_card['card']['cards'][1]['cards']     = ([
+      dashboard_view_helpers.prepend_navigation_status_cards(room_card, [
         self.getTemplateCard(
           icon       = "mdi:lock-open-variant-outline",
           icon_color = "red",
           condition_entity = 'lock.garden_door_lock',
           condition_state  = 'unlocked',
         )
-      ]) + ([
+      ] + [
       #  self.getTemplateCard(
       #    icon       = "mdi:door-open",
       #    icon_color = "red",
       #    condition_entity = 'binary_sensor.garden_door_handle',
       #    condition_state  = 'on',
       #  )
-      ]) + room_card['card']['cards'][1]['cards']
+      ])
   
       return room_card
   
@@ -911,13 +911,13 @@ def define_room_classes(RoomBase):
     def getNavigationRoomCard (self):
       room_card = super().getNavigationRoomCard()
       # Add additional cards
-      room_card['card']['cards'][1]['cards']     = ([
+      dashboard_view_helpers.prepend_navigation_status_cards(room_card, [
         self.getTemplateCard(
           icon       = "mdi:weather-pouring",
           icon_color = "blue",
           condition_entity = f'binary_sensor.{self.room_name}_rain_sensor',
         )
-      ]) + room_card['card']['cards'][1]['cards']
+      ])
   
       return room_card
   
@@ -1594,28 +1594,28 @@ def define_room_classes(RoomBase):
     def getNavigationRoomCard (self):
       room_card = super().getNavigationRoomCard()
       # Add additional cards
-      room_card['card']['cards'][1]['cards']     = ([
+      dashboard_view_helpers.prepend_navigation_status_cards(room_card, [
         self.getTemplateCard(
           icon       = "mdi:lock-open-variant-outline",
           icon_color = "red",
           condition_entity = 'lock.front_door',
           condition_state  = 'unlocked',
         )
-      ]) + ([
+      ] + [
         self.getTemplateCard(
           icon       = "mdi:home-floor-g",
           icon_color = "deep-orange",
           tap_action = 'more-info',
           condition_entity = 'switch.downstairs_heating'
         ),
-      ]) + ([
+      ] + [
         self.getTemplateCard(
           icon       = "mdi:home-floor-1",
           icon_color = "deep-orange",
           tap_action = 'more-info',
           condition_entity = 'switch.upstairs_heating'
         ),
-      ]) + room_card['card']['cards'][1]['cards']
+      ])
   
       return room_card
   

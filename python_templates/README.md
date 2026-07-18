@@ -352,6 +352,8 @@ Completed foundations:
      helper module.
 121. Split normal navigation room title/status-card construction into small
      `RoomBase` methods.
+122. Move navigation status-card prepending into the dashboard view helper
+     module.
 
 Recommended next steps:
 
