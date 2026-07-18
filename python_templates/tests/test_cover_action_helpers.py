@@ -10,6 +10,10 @@ if SCRIPT_DIR not in sys.path:
 import cover_action_helpers
 
 
+def set_service(entity_id, state):
+    return ["set", entity_id, state]
+
+
 class CoverActionHelpersTest(unittest.TestCase):
     def test_cover_position_step_action(self):
         self.assertEqual(
@@ -85,6 +89,27 @@ class CoverActionHelpersTest(unittest.TestCase):
                     "service": "cover.close_cover",
                     "entity_id": ["cover.kitchen_curtain"],
                 },
+            },
+        )
+
+    def test_cover_toggle_action(self):
+        self.assertEqual(
+            cover_action_helpers.cover_toggle_action(
+                ["cover.kitchen_curtain"],
+                set_service,
+            ),
+            {
+                "if": [
+                    {
+                        "alias": "toggle all curtains together: if any of curtains is on, turn off all curtains, otherwise turn on all curtains",
+                        "condition": "state",
+                        "entity_id": ["cover.kitchen_curtain"],
+                        "state": ["open", "opening"],
+                        "match": "any",
+                    }
+                ],
+                "then": ["set", ["cover.kitchen_curtain"], "off"],
+                "else": ["set", ["cover.kitchen_curtain"], "on"],
             },
         )
 

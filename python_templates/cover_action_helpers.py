@@ -33,3 +33,19 @@ def cover_close_if_open_action(curtains, entity_list):
           'then': {"service":  "cover.close_cover",
                    "entity_id": entity_list}
           }
+
+
+def cover_toggle_action(entity_list, set_service):
+  return {
+    "if": [
+      {
+        'alias': 'toggle all curtains together: if any of curtains is on, turn off all curtains, otherwise turn on all curtains',
+        "condition": "state",
+        "entity_id": entity_list,
+        "state": ['open', 'opening'],
+        "match": 'any'
+      }
+    ],
+    "then": set_service(entity_list, 'off'),
+    "else": set_service(entity_list, 'on')
+  }

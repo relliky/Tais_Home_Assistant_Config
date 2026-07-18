@@ -3274,19 +3274,10 @@ class RoomBase:
           entity_list,
         )
       elif state in ['toggle']:
-        action_service =  {
-                            "if": [
-                              {
-                                'alias': 'toggle all curtains together: if any of curtains is on, turn off all curtains, otherwise turn on all curtains',
-                                "condition": "state",
-                                "entity_id": entity_list,
-                                "state": ['open', 'opening'],
-                                "match": 'any'
-                              }
-                            ],
-                            "then": self.set(entity_list, 'off'),
-                            "else": self.set(entity_list, 'on')
-                          }
+        action_service = cover_action_helpers.cover_toggle_action(
+          entity_list,
+          self.set,
+        )
       else:
         self.error(f"turn({entity_list}, state={state}) is not supported")
 

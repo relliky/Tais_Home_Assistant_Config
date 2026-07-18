@@ -272,6 +272,7 @@ Completed foundations:
     module.
 76. Move normal cover open/close action construction into the cover action
     module.
+77. Move cover toggle action construction into the cover action module.
 
 Recommended next steps:
 
