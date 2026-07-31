@@ -29,6 +29,58 @@ adaptive_lighting:
   multi_light_intercept: true
   include_config_in_attributes: false
 automation:
+- alias: ZG-MT Toggle Master Toilet Mirror LED-Master Toilet
+  triggers:
+  - trigger: state
+    entity_id: input_boolean.master_toilet_mirror_led
+    from: 'off'
+    to: 'on'
+  - trigger: state
+    entity_id: input_boolean.master_toilet_mirror_led
+    from: 'on'
+    to: 'off'
+  actions:
+  - delay:
+      milliseconds: 500
+  - choose:
+    - conditions:
+      - condition: template
+        value_template: '{{ states(''input_boolean.master_toilet_mirror_led'') != states(''input_boolean.master_toilet_mirror_led_assumed_state'') }}'
+      sequence:
+      - service: switch.toggle
+        target:
+          entity_id: switch.adp_cn_1206089908_adfbt6_switch_b_p_3_2
+      - service: input_boolean.toggle
+        target:
+          entity_id: input_boolean.master_toilet_mirror_led_assumed_state
+  mode: queued
+  id: automation.zg_mt_toggle_master_toilet_mirror_led_master_toilet
+- alias: ZG-MT Toggle Master Toilet Mirror Demister-Master Toilet
+  triggers:
+  - trigger: state
+    entity_id: input_boolean.master_toilet_mirror_demister
+    from: 'off'
+    to: 'on'
+  - trigger: state
+    entity_id: input_boolean.master_toilet_mirror_demister
+    from: 'on'
+    to: 'off'
+  actions:
+  - delay:
+      milliseconds: 500
+  - choose:
+    - conditions:
+      - condition: template
+        value_template: '{{ states(''input_boolean.master_toilet_mirror_demister'') != states(''input_boolean.master_toilet_mirror_demister_assumed_state'') }}'
+      sequence:
+      - service: switch.toggle
+        target:
+          entity_id: switch.adp_cn_1206089908_adfbt6_switch_a_p_3_1
+      - service: input_boolean.toggle
+        target:
+          entity_id: input_boolean.master_toilet_mirror_demister_assumed_state
+  mode: queued
+  id: automation.zg_mt_toggle_master_toilet_mirror_demister_master_toilet
 - alias: ZH-MT Set Radiator Valve Target Temperature Based on External Sensor Temperature Difference-Master Toilet
   triggers:
   - trigger: state
@@ -42,7 +94,7 @@ automation:
   - trigger: homeassistant
     event: start
   - minutes: /30
-    seconds: '2'
+    seconds: '5'
     trigger: time_pattern
   mode: single
   actions:
@@ -73,7 +125,7 @@ automation:
   - trigger: homeassistant
     event: start
   - minutes: /10
-    seconds: '10'
+    seconds: '58'
     trigger: time_pattern
   conditions:
   - condition: state
@@ -695,7 +747,7 @@ automation:
   - trigger: homeassistant
     event: start
   - minutes: /30
-    seconds: '22'
+    seconds: '48'
     trigger: time_pattern
   condition:
   - condition: state
@@ -808,7 +860,7 @@ automation:
   - trigger: homeassistant
     event: start
   - minutes: /30
-    seconds: '55'
+    seconds: '22'
     trigger: time_pattern
   action:
   - condition: state
@@ -2401,6 +2453,7 @@ automation:
     - switch.master_toilet_mirror_led
     from: 'off'
     to: 'on'
+  mode: restart
   action:
   - condition: state
     entity_id:
@@ -2423,6 +2476,7 @@ automation:
     - switch.master_toilet_mirror_led
     from: 'on'
     to: 'off'
+  mode: restart
   action:
   - delay: 00:00:01
   - condition: state
@@ -2466,7 +2520,7 @@ automation:
   - trigger: homeassistant
     event: start
   - minutes: /3
-    seconds: '42'
+    seconds: '31'
     trigger: time_pattern
   action:
   - choose:
@@ -2662,7 +2716,7 @@ automation:
   - trigger: homeassistant
     event: start
   - minutes: /10
-    seconds: '8'
+    seconds: '21'
     trigger: time_pattern
   action:
   - choose:
@@ -2744,6 +2798,14 @@ input_boolean:
   master_toilet_auto_off_suspended:
     name: Master Toilet Auto Off Suspended
     icon: mdi:timer-sand
+  master_toilet_mirror_led:
+    name: Master Toilet Mirror LED
+  master_toilet_mirror_led_assumed_state:
+    name: Master Toilet Mirror LED Assumed State
+  master_toilet_mirror_demister:
+    name: Master Toilet Mirror Demister
+  master_toilet_mirror_demister_assumed_state:
+    name: Master Toilet Mirror Demister Assumed State
   master_toilet_tado_heater:
     name: Master Toilet Tado Heater
 input_datetime:
@@ -2852,12 +2914,6 @@ switch:
   name: Master Toilet Floor LED
   entities: switch.smart_switch_2005289130549690814648e1e91dcebd_outlet
 - platform: group
-  name: Master Toilet Mirror LED
-  entities: switch.adp_cn_1206089908_adfbt6_switch_b_p_3_2
-- platform: group
-  name: Master Toilet Mirror Demister
-  entities: switch.adp_cn_1206089908_adfbt6_switch_a_p_3_1
-- platform: group
   name: 'Master Toilet Dressing Room Wall Switch '
   entities: switch.0x00158d00042d4092_switch
 cover:
@@ -2940,6 +2996,28 @@ template:
     device_class: battery
     state_class: measurement
     state: '{% set s = states(''sensor.master_toilet_mirror_sensor_light_sensor_battery_median'') %}{{ s | int if s not in [''unknown'', ''unavailable'', ''''] else ''unknown'' }}'
+- switch:
+  - name: Master Toilet Mirror LED
+    state: '{{ is_state(''input_boolean.master_toilet_mirror_led'', ''on'') }}'
+    turn_on:
+    - service: input_boolean.turn_on
+      target:
+        entity_id: input_boolean.master_toilet_mirror_led
+    turn_off:
+    - service: input_boolean.turn_off
+      target:
+        entity_id: input_boolean.master_toilet_mirror_led
+- switch:
+  - name: Master Toilet Mirror Demister
+    state: '{{ is_state(''input_boolean.master_toilet_mirror_demister'', ''on'') }}'
+    turn_on:
+    - service: input_boolean.turn_on
+      target:
+        entity_id: input_boolean.master_toilet_mirror_demister
+    turn_off:
+    - service: input_boolean.turn_off
+      target:
+        entity_id: input_boolean.master_toilet_mirror_demister
 - sensor:
   - name: Master Toilet Mirror Robot Battery
     unit_of_measurement: '%'
@@ -2994,9 +3072,9 @@ template:
     state: '{% set climate = "climate.tado_smart_radiator_thermostat_va4111274240" %}{% if states(climate) == "unavailable" or states(climate) == "off" or (state_attr(climate, "temperature") <= state_attr(climate, "current_temperature"))  %}off{% else %} on{% endif %}'
 - binary_sensor:
   - name: Master Toilet Unavailable Entities
-    state: '{% set added_device_entities =  [''sensor.master_toilet_wall_button'', ''sensor.master_toilet_temperature_sensor'', ''sensor.master_toilet_temperature_sensor_battery'', ''sensor.master_toilet_humidity_sensor'', ''binary_sensor.master_toilet_shower'', ''binary_sensor.master_toilet_basin_xiaomi_home_occupancy_sensor_occupancy'', ''sensor.master_toilet_basin_xiaomi_home_occupancy_sensor_battery'', ''sensor.master_toilet_dressing_room_motion_sensor_battery'', ''binary_sensor.master_toilet_mirror_sensor'', ''sensor.master_toilet_mirror_sensor_light_sensor_battery'', ''sensor.master_toilet_mirror_robot_battery'', ''binary_sensor.master_toilet_mirror_button_single_click'', ''binary_sensor.master_toilet_mirror_button_double_click'', ''binary_sensor.master_toilet_mirror_button_long_press'', ''sensor.master_toilet_mirror_button_battery'', ''sensor.master_toilet_dressing_room_wall_button'', ''sensor.master_toilet_tado_availiabity'', ''binary_sensor.master_toilet_heating_required'', ''binary_sensor.master_toilet_dressing_room_motion_sensor_motion'', ''switch.master_toilet_wall_switch'', ''switch.master_toilet_floor_led'', ''switch.master_toilet_mirror_led'', ''switch.master_toilet_mirror_demister'', ''switch.master_toilet_dressing_room_wall_switch'', ''cover.master_toilet_dressing_room_blind'', ''light.master_toilet_ceiling_light'', ''light.master_toilet_dressing_room_light''] %}{% set ns = namespace() %}{% set ns.num_unavail_devices = 0 %}{% for device in added_device_entities %}   {% if states(device) in [''unavailable'', ''unknown'', ''none''] %}      {% set ns.num_unavail_devices = ns.num_unavail_devices + 1 %}   {% endif %}{% endfor %}{% if ns.num_unavail_devices > 0%}  on  {% else %}  off {% endif %}'
+    state: '{% set added_device_entities =  [''sensor.master_toilet_wall_button'', ''sensor.master_toilet_temperature_sensor'', ''sensor.master_toilet_temperature_sensor_battery'', ''sensor.master_toilet_humidity_sensor'', ''binary_sensor.master_toilet_shower'', ''binary_sensor.master_toilet_basin_xiaomi_home_occupancy_sensor_occupancy'', ''sensor.master_toilet_basin_xiaomi_home_occupancy_sensor_battery'', ''sensor.master_toilet_dressing_room_motion_sensor_battery'', ''binary_sensor.master_toilet_mirror_sensor'', ''sensor.master_toilet_mirror_sensor_light_sensor_battery'', ''switch.master_toilet_mirror_led'', ''switch.master_toilet_mirror_demister'', ''sensor.master_toilet_mirror_robot_battery'', ''binary_sensor.master_toilet_mirror_button_single_click'', ''binary_sensor.master_toilet_mirror_button_double_click'', ''binary_sensor.master_toilet_mirror_button_long_press'', ''sensor.master_toilet_mirror_button_battery'', ''sensor.master_toilet_dressing_room_wall_button'', ''sensor.master_toilet_tado_availiabity'', ''binary_sensor.master_toilet_heating_required'', ''binary_sensor.master_toilet_dressing_room_motion_sensor_motion'', ''switch.master_toilet_wall_switch'', ''switch.master_toilet_floor_led'', ''switch.master_toilet_dressing_room_wall_switch'', ''cover.master_toilet_dressing_room_blind'', ''light.master_toilet_ceiling_light'', ''light.master_toilet_dressing_room_light''] %}{% set ns = namespace() %}{% set ns.num_unavail_devices = 0 %}{% for device in added_device_entities %}   {% if states(device) in [''unavailable'', ''unknown'', ''none''] %}      {% set ns.num_unavail_devices = ns.num_unavail_devices + 1 %}   {% endif %}{% endfor %}{% if ns.num_unavail_devices > 0%}  on  {% else %}  off {% endif %}'
     attributes:
-      value: '{% set added_device_entities =  [''sensor.master_toilet_wall_button'', ''sensor.master_toilet_temperature_sensor'', ''sensor.master_toilet_temperature_sensor_battery'', ''sensor.master_toilet_humidity_sensor'', ''binary_sensor.master_toilet_shower'', ''binary_sensor.master_toilet_basin_xiaomi_home_occupancy_sensor_occupancy'', ''sensor.master_toilet_basin_xiaomi_home_occupancy_sensor_battery'', ''sensor.master_toilet_dressing_room_motion_sensor_battery'', ''binary_sensor.master_toilet_mirror_sensor'', ''sensor.master_toilet_mirror_sensor_light_sensor_battery'', ''sensor.master_toilet_mirror_robot_battery'', ''binary_sensor.master_toilet_mirror_button_single_click'', ''binary_sensor.master_toilet_mirror_button_double_click'', ''binary_sensor.master_toilet_mirror_button_long_press'', ''sensor.master_toilet_mirror_button_battery'', ''sensor.master_toilet_dressing_room_wall_button'', ''sensor.master_toilet_tado_availiabity'', ''binary_sensor.master_toilet_heating_required'', ''binary_sensor.master_toilet_dressing_room_motion_sensor_motion'', ''switch.master_toilet_wall_switch'', ''switch.master_toilet_floor_led'', ''switch.master_toilet_mirror_led'', ''switch.master_toilet_mirror_demister'', ''switch.master_toilet_dressing_room_wall_switch'', ''cover.master_toilet_dressing_room_blind'', ''light.master_toilet_ceiling_light'', ''light.master_toilet_dressing_room_light''] %}{% set ns = namespace() %}{% set ns.unavail_devices = '''' %}{% for device in added_device_entities %}   {% if states(device) in [''unavailable'', ''unknown'', ''none''] %}   {% set ns.unavail_devices = ns.unavail_devices + ''
+      value: '{% set added_device_entities =  [''sensor.master_toilet_wall_button'', ''sensor.master_toilet_temperature_sensor'', ''sensor.master_toilet_temperature_sensor_battery'', ''sensor.master_toilet_humidity_sensor'', ''binary_sensor.master_toilet_shower'', ''binary_sensor.master_toilet_basin_xiaomi_home_occupancy_sensor_occupancy'', ''sensor.master_toilet_basin_xiaomi_home_occupancy_sensor_battery'', ''sensor.master_toilet_dressing_room_motion_sensor_battery'', ''binary_sensor.master_toilet_mirror_sensor'', ''sensor.master_toilet_mirror_sensor_light_sensor_battery'', ''switch.master_toilet_mirror_led'', ''switch.master_toilet_mirror_demister'', ''sensor.master_toilet_mirror_robot_battery'', ''binary_sensor.master_toilet_mirror_button_single_click'', ''binary_sensor.master_toilet_mirror_button_double_click'', ''binary_sensor.master_toilet_mirror_button_long_press'', ''sensor.master_toilet_mirror_button_battery'', ''sensor.master_toilet_dressing_room_wall_button'', ''sensor.master_toilet_tado_availiabity'', ''binary_sensor.master_toilet_heating_required'', ''binary_sensor.master_toilet_dressing_room_motion_sensor_motion'', ''switch.master_toilet_wall_switch'', ''switch.master_toilet_floor_led'', ''switch.master_toilet_dressing_room_wall_switch'', ''cover.master_toilet_dressing_room_blind'', ''light.master_toilet_ceiling_light'', ''light.master_toilet_dressing_room_light''] %}{% set ns = namespace() %}{% set ns.unavail_devices = '''' %}{% for device in added_device_entities %}   {% if states(device) in [''unavailable'', ''unknown'', ''none''] %}   {% set ns.unavail_devices = ns.unavail_devices + ''
 
         '' +device %} {% endif %}{% endfor %}{{ns.unavail_devices}}'
 - binary_sensor:
@@ -3096,6 +3174,8 @@ group:
     - input_boolean.lamp_control_sleep_mode_master_toilet
     - input_boolean.led_control_sleep_mode_master_toilet
     - input_boolean.curtain_control_sleep_mode_master_toilet
+    - automation.zg_mt_toggle_master_toilet_mirror_led_master_toilet
+    - automation.zg_mt_toggle_master_toilet_mirror_demister_master_toilet
     - automation.zh_mt_set_radiator_valve_target_temperature_based_on_external_sensor_temperature_difference_master_toilet
     - automation.zl_mt_curtain_states_when_no_person_present_master_toilet
     - automation.zl_mt_lights_on_if_entering_to_room_master_toilet

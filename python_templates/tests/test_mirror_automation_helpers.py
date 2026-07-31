@@ -30,6 +30,7 @@ class MirrorAutomationHelpersTest(unittest.TestCase):
                         "to": "on",
                     }
                 ],
+                "mode": "restart",
                 "action": [
                     {
                         "condition": "state",
@@ -66,6 +67,7 @@ class MirrorAutomationHelpersTest(unittest.TestCase):
                         "to": "off",
                     }
                 ],
+                "mode": "restart",
                 "action": [
                     {"delay": "00:00:01"},
                     {

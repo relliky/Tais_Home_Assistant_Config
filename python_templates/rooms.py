@@ -296,8 +296,8 @@ def define_room_classes(RoomBase):
       self.add_device('smart_switch_2005289130549690814648e1e91dcebd_outlet',
                                                            self.room_name + ' Floor LED',      'Switch',             'Generic Switch') # mss210_cebd_outlet
       self.add_device('0x04cf8cdf3c7cc9c4',                                 self.room_name + ' Mirror Sensor',         'Light Sensor',       'Xiaomi Light Detection Sensor To Mirror Sensor')
-      self.add_device('adp_cn_1206089908_adfbt6_switch_b_p_3_2',            self.room_name + ' Mirror LED',            'Switch',             'Generic Switch')
-      self.add_device('adp_cn_1206089908_adfbt6_switch_a_p_3_1',            self.room_name + ' Mirror Demister',       'Switch',             'Generic Switch')
+      self.add_device('adp_cn_1206089908_adfbt6_switch_b_p_3_2',            self.room_name + ' Mirror LED',            'Switch',             'Generic Toggle As Switch')
+      self.add_device('adp_cn_1206089908_adfbt6_switch_a_p_3_1',            self.room_name + ' Mirror Demister',       'Switch',             'Generic Toggle As Switch')
       self.add_device('adp_cn_1206089908_adfbt6_battery_percentage_p_3_15', self.room_name + ' Mirror Robot Battery',  'Battery',            'Generic Battery')
       self.add_device('lumi_cn_blt_3_1ev0qguhcec00_mcn001',                 self.room_name + ' Mirror',                'Button',             'MiJia Wireless Switch 2', integration='Xiaomi Home')
   
@@ -1290,8 +1290,8 @@ def define_room_classes(RoomBase):
       self.add_device('va0781390848',                   self.room_name,                    'Raditor',            'Tado Homekit')
       self.add_device("switchbot_finger_robot",         self.room_name + " Air Refresher", 'Button',             "Generic Button")
   
-      self.add_device('adp_cn_1206102799_adfbt6_switch_a_p_3_1',            self.room_name + ' Mirror LED',            'Switch',             'Generic Switch')
-      self.add_device('adp_cn_1206102799_adfbt6_switch_b_p_3_2',            self.room_name + ' Mirror Demister',       'Switch',             'Generic Switch')
+      self.add_device('adp_cn_1206102799_adfbt6_switch_a_p_3_1',            self.room_name + ' Mirror LED',            'Switch',             'Generic Toggle As Switch')
+      self.add_device('adp_cn_1206102799_adfbt6_switch_b_p_3_2',            self.room_name + ' Mirror Demister',       'Switch',             'Generic Toggle As Switch')
       self.add_device('adp_cn_1206102799_adfbt6_battery_percentage_p_3_15', self.room_name + ' Mirror Robot Battery',  'Battery',            'Generic Battery')
       self.add_device('lumi_cn_blt_3_1ormnfq250400_mcn001',                 self.room_name + ' Mirror',                'Button',             'MiJia Wireless Switch 2', integration='Xiaomi Home')
   

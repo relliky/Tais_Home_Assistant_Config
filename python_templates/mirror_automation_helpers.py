@@ -15,6 +15,7 @@ def mirror_sensor_on_automation(
         "to":  "on"
       }
     ],
+    'mode': 'restart',
     "action": [
       {
         "condition": "state",
@@ -49,6 +50,7 @@ def mirror_sensor_off_automation(
         "to":  "off"
       }
     ],
+    'mode': 'restart',
     "action": [
       { "delay": "00:00:01" },
       {
