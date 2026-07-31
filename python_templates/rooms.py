@@ -249,6 +249,26 @@ def define_room_classes(RoomBase):
                                            device_list = [f'light.{self.room_entity}_entrance_light'],
                                            device_name ='Entrace Light',
                                            switch_type ="Entrance Wall Switch")
+
+      self.automation_list += [{
+        "alias": "ZL-" + self.automation_room_name + "Balcony Wall Light Off If On For 4 Hours" + "-" + self.room_name,
+        "configured": True,
+        "trigger": [
+          {
+            "platform": "state",
+            "entity_id": "switch.master_room_balcony_wall_light",
+            "from": "off",
+            "to": "on",
+            "for": "04:00:00"
+          }
+        ],
+        "action": [
+          {
+            "service": "homeassistant.turn_off",
+            "target": {"entity_id": "switch.master_room_balcony_wall_light"}
+          }
+        ]
+      }]
   
     def gen_window_automations(self):
       if len(self.windows) > 0:

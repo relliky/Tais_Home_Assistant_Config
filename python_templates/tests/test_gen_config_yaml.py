@@ -175,6 +175,39 @@ class RoomBaseHelpersTest(unittest.TestCase):
             "switch.gaming_pc",
         )
 
+    def test_master_room_balcony_wall_light_auto_off(self):
+        master_room_class = rooms.define_room_classes(gen_config_yaml.RoomBase)["MasterRoom"]
+        room = master_room_class()
+
+        automation = next(
+            automation
+            for automation in room.automation_list
+            if automation["alias"]
+            == "ZL-MR Balcony Wall Light Off If On For 4 Hours-Master Room"
+        )
+
+        self.assertEqual(
+            automation["trigger"],
+            [
+                {
+                    "platform": "state",
+                    "entity_id": "switch.master_room_balcony_wall_light",
+                    "from": "off",
+                    "to": "on",
+                    "for": "04:00:00",
+                }
+            ],
+        )
+        self.assertEqual(
+            automation["action"],
+            [
+                {
+                    "service": "homeassistant.turn_off",
+                    "target": {"entity_id": "switch.master_room_balcony_wall_light"},
+                }
+            ],
+        )
+
     def make_device_room(self):
         room = gen_config_yaml.RoomBase.__new__(gen_config_yaml.RoomBase)
         room.initialize_entity_intf()
