@@ -442,6 +442,52 @@ class RoomBaseHelpersTest(unittest.TestCase):
             ],
         )
 
+    def test_add_generic_binary_sensor(self):
+        room = self.make_device_room()
+
+        room.add_device(
+            "kitchen_contact",
+            "Kitchen Contact",
+            "",
+            "Generic Binary Sensor",
+        )
+
+        self.assertEqual(
+            room.binary_sensor_list,
+            [
+                {
+                    "platform": "group",
+                    "name": "Kitchen Contact",
+                    "entities": "binary_sensor.kitchen_contact",
+                    "configured": True,
+                }
+            ],
+        )
+
+    def test_add_generic_binary_sensor_with_device_class(self):
+        room = self.make_device_room()
+
+        room.add_device(
+            "kitchen_contact",
+            "Kitchen Contact",
+            "",
+            "Generic Binary Sensor",
+            device_class="door",
+        )
+
+        self.assertEqual(
+            room.binary_sensor_list,
+            [
+                {
+                    "platform": "group",
+                    "name": "Kitchen Contact",
+                    "entities": "binary_sensor.kitchen_contact",
+                    "configured": True,
+                    "device_class": "door",
+                }
+            ],
+        )
+
     def test_add_generic_toggle_as_switch(self):
         room = self.make_device_room()
 

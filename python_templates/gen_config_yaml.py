@@ -427,15 +427,28 @@ class RoomBase:
     return mac if mac.startswith("switch.") else "switch." + mac
 
 
-  def add_platform_group(self, entity_list, name, entity):
+  def add_platform_group(self, entity_list, name, entity, extra_config=None):
     entity_list += [
       {
         "platform": "group",
         "name": name,
         "entities": entity,
         "configured": True
-      }
+      } | (extra_config if extra_config != None else {})
     ]
+
+
+  def add_binary_sensor_group(self, name, binary_sensor_entity, device_class=None):
+    self.add_platform_group(
+      self.binary_sensor_list,
+      name,
+      binary_sensor_entity,
+      {"device_class": device_class} if device_class != None else None
+    )
+
+
+  def add_generic_binary_sensor(self, mac, name, device_class=None):
+    self.add_binary_sensor_group(name, "binary_sensor." + mac, device_class)
 
 
   def add_light_group(self, name, light_entity):
@@ -1127,14 +1140,7 @@ class RoomBase:
     ###################################################################################################
     elif(model == "Generic Binary Sensor"):
 
-      self.binary_sensor_list += [
-        {
-          "platform": "group",
-          "name": name + name_postfix,
-          "entities": "binary_sensor." + mac,
-          "configured": True
-        } | ({"device_class": device_class} if device_class != None else {})
-      ]
+      self.add_generic_binary_sensor(mac, name + name_postfix, device_class)
 
     ###################################################################################################
     # Temperature Sensor in Xiaomi Gateway 3
