@@ -506,6 +506,75 @@ class RoomBaseHelpersTest(unittest.TestCase):
         self.assertIn("Name = Kitchen Power", str(context.exception))
         self.assertIn("MAC Address:kitchen_power", str(context.exception))
 
+    def test_add_power_measurement_switch_with_smoothing(self):
+        room = self.make_device_room()
+
+        room.add_device(
+            "kitchen_power",
+            "Kitchen Power",
+            "",
+            "Generic Power Measurement Switch",
+            power_on_threshold=1.5,
+            delay_off_minute=2,
+        )
+
+        self.assertEqual(
+            room.sensor_list,
+            [
+                {
+                    "name": "Kitchen Power Smoothed",
+                    "platform": "filter",
+                    "entity_id": "sensor.kitchen_power",
+                    "filters": {
+                        "filter": "lowpass",
+                        "time_constant": 5,
+                        "precision": 1,
+                    },
+                    "configured": True,
+                }
+            ],
+        )
+        self.assertEqual(
+            room.template_list,
+            [
+                {
+                    "binary_sensor": [
+                        {
+                            "name": "Kitchen Power",
+                            "state": (
+                                '{% if states("sensor.kitchen_power_smoothed") '
+                                "| float(0) | round(1) > 1.5 %} on {% else %} "
+                                "off {% endif %}"
+                            ),
+                            "delay_off": {"minutes": 2},
+                        }
+                    ],
+                    "configured": True,
+                }
+            ],
+        )
+
+    def test_add_power_measurement_switch_without_smoothing(self):
+        room = self.make_device_room()
+
+        room.add_device(
+            "kitchen_power",
+            "Kitchen Power",
+            "",
+            "Generic Power Measurement Switch",
+            power_on_threshold=1.5,
+            smooth_power=False,
+        )
+
+        self.assertEqual(room.sensor_list, [])
+        self.assertEqual(
+            room.template_list[0]["binary_sensor"][0]["state"],
+            (
+                '{% if states("sensor.kitchen_power") | float(0) | round(1) '
+                "> 1.5 %} on {% else %} off {% endif %}"
+            ),
+        )
+
     def test_unsupported_device_model_error_includes_context(self):
         room = self.make_device_room()
 

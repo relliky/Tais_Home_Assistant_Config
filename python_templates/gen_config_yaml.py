@@ -543,6 +543,31 @@ class RoomBase:
     )
 
 
+  def add_generic_power_measurement_switch(self, mac, name, power_on_threshold, smooth_power=True, delay_off_minute=0):
+    raw_sensor = "sensor." + mac
+    smooth_sensor = "sensor." + mac + "_smoothed"
+    smooth_sensor_postfix = mac + "_smoothed"
+
+    if smooth_power:
+      self.add_smooth_power_sensor(raw_sensor, smooth_sensor)
+    else:
+      smooth_sensor_postfix = mac
+
+    self.template_list += [
+      {
+        "binary_sensor": [
+          {
+            "name": name,
+            # round(1) means to round to 0.1
+            "state": '{% if states("sensor.' + smooth_sensor_postfix + '") | float(0) | round(1) > ' + str(power_on_threshold) + ' %} on {% else %} off {% endif %}',
+            "delay_off": {"minutes": delay_off_minute},
+          }
+        ],
+        "configured": True
+      }
+    ]
+
+
   def add_generic_toggle_as_switch(self, controlled_switch, name):
     controlled_switch_entity = self.get_switch_entity(controlled_switch)
     toggle_input_boolean = "input_boolean." + self.getEntityFromName(name)
@@ -1368,27 +1393,13 @@ class RoomBase:
           integration
         )
 
-      raw_sensor            = 'sensor.' + mac
-      smooth_sensor         = 'sensor.' + mac + '_smoothed'
-      smooth_sensor_postfix =             mac + '_smoothed'
-      if smooth_power:
-        self.add_smooth_power_sensor(raw_sensor, smooth_sensor)
-      else:
-        smooth_sensor_postfix = mac
-
-      self.template_list += [
-        {
-          "binary_sensor": [
-            {
-              "name": name + name_postfix,
-              # round(1) means to round to 0.1
-              "state": '{% if states("sensor.' + smooth_sensor_postfix + '") | float(0) | round(1) > ' + str(power_on_threshold) + ' %} on {% else %} off {% endif %}',
-              "delay_off":  {"minutes": delay_off_minute},
-            }
-          ],
-          "configured": True
-        }
-      ]
+      self.add_generic_power_measurement_switch(
+        mac,
+        name + name_postfix,
+        power_on_threshold,
+        smooth_power=smooth_power,
+        delay_off_minute=delay_off_minute
+      )
 
     ###################################################################################################
     # Tado Homekit

@@ -388,6 +388,7 @@ Completed foundations:
 136. Reuse shared platform group generation for generic binary sensors.
 137. Move device model `TypeError` formatting behind named helpers.
 138. Centralize domain entity-id construction for grouped device helpers.
+139. Extract generic power measurement switch generation behind a helper.
 
 Recommended next steps:
 
