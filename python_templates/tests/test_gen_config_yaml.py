@@ -259,6 +259,73 @@ class RoomBaseHelpersTest(unittest.TestCase):
             ],
         )
 
+    def test_add_generic_light(self):
+        room = self.make_device_room()
+
+        room.add_device(
+            "kitchen_ceiling",
+            "Kitchen Ceiling",
+            "",
+            "Generic Light",
+        )
+
+        self.assertEqual(
+            room.light_list,
+            [
+                {
+                    "platform": "group",
+                    "name": "Kitchen Ceiling",
+                    "entities": "light.kitchen_ceiling",
+                    "configured": True,
+                }
+            ],
+        )
+
+    def test_add_tradfri_z2m_light(self):
+        room = self.make_device_room()
+
+        room.add_device(
+            "kitchen_spot",
+            "Kitchen Spot",
+            "",
+            "TRADFRI LED Bulb GU10 400 Lumen, Dimmable, White spectrum",
+            integration="Z2M",
+        )
+
+        self.assertEqual(
+            room.light_list,
+            [
+                {
+                    "platform": "group",
+                    "name": "Kitchen Spot",
+                    "entities": "light.kitchen_spot",
+                    "configured": True,
+                }
+            ],
+        )
+
+    def test_add_mijia_ble_light(self):
+        room = self.make_device_room()
+
+        room.add_device(
+            "kitchen_strip",
+            "Kitchen Strip",
+            "",
+            "Mijia BLE Lights",
+        )
+
+        self.assertEqual(
+            room.light_list,
+            [
+                {
+                    "platform": "group",
+                    "name": "Kitchen Strip",
+                    "entities": "light.kitchen_strip_light",
+                    "configured": True,
+                }
+            ],
+        )
+
     def test_add_generic_toggle_as_switch(self):
         room = self.make_device_room()
 

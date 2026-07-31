@@ -427,6 +427,21 @@ class RoomBase:
     return mac if mac.startswith("switch.") else "switch." + mac
 
 
+  def add_light_group(self, name, light_entity):
+    self.light_list += [
+      {
+        "platform": "group",
+        "name": name,
+        "entities": light_entity,
+        "configured": True
+      }
+    ]
+
+
+  def add_generic_light(self, mac, name, light_entity_postfix=''):
+    self.add_light_group(name, "light." + mac + light_entity_postfix)
+
+
   def add_switch_group(self, name, switch_entity):
     self.switch_list += [
       {
@@ -1252,24 +1267,11 @@ class RoomBase:
     elif((model == "Generic Light"                                                                    ) or \
          (model == "TRADFRI LED Bulb GU10 400 Lumen, Dimmable, White spectrum" and integration == 'Z2M')):
 
-      self.light_list += [
-        {
-          "platform": "group",
-          "name": name + name_postfix,
-          "entities": "light." + mac,
-          "configured": True
-        }
-      ]
+      self.add_generic_light(mac, name + name_postfix)
 
     elif model == "Mijia BLE Lights":
-      self.light_list += [
-        {
-          "platform": "group",
-          "name": name + name_postfix,
-          "entities": "light." + mac + "_light",
-          "configured": True
-        }
-      ]
+      self.add_generic_light(mac, name + name_postfix, "_light")
+
     ###################################################################################################
     # Generic Switch
     # Mi Power Plug ZigBee, ZNCZ02LM ZigbeeID: ["lumi.plug"]
