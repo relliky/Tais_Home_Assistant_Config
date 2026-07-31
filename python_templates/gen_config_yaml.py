@@ -427,6 +427,21 @@ class RoomBase:
     return mac if mac.startswith("switch.") else "switch." + mac
 
 
+  def add_switch_group(self, name, switch_entity):
+    self.switch_list += [
+      {
+        "platform": "group",
+        "name": name,
+        "entities": switch_entity,
+        "configured": True
+      }
+    ]
+
+
+  def add_generic_switch(self, mac, name, switch_entity_postfix=''):
+    self.add_switch_group(name, "switch." + mac + switch_entity_postfix)
+
+
   def add_generic_toggle_as_switch(self, controlled_switch, name):
     controlled_switch_entity = self.get_switch_entity(controlled_switch)
     toggle_input_boolean = "input_boolean." + self.getEntityFromName(name)
@@ -1263,15 +1278,7 @@ class RoomBase:
          (model == "Mi Power Plug ZigBee"  )):
 
       switch_entity_postfix = '_plug' if model == "Mi Power Plug ZigBee" else ''
-
-      self.switch_list += [
-        {
-          "platform": "group",
-          "name": name + name_postfix,
-          "entities": "switch." + mac + switch_entity_postfix,
-          "configured": True
-        }
-      ]
+      self.add_generic_switch(mac, name + name_postfix, switch_entity_postfix)
 
     elif model == "Generic Toggle As Switch":
 

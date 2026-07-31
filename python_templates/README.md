@@ -381,6 +381,7 @@ Completed foundations:
 129. Define constants for supported navigation room-card types.
 130. Add a generic toggle-as-switch device model.
 131. Extract generic toggle-as-switch generation behind a `RoomBase` helper.
+132. Extract generic switch group generation behind `RoomBase` helpers.
 
 Recommended next steps:
 

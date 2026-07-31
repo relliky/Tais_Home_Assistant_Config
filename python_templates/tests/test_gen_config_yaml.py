@@ -215,6 +215,50 @@ class RoomBaseHelpersTest(unittest.TestCase):
         room.automation_room_name = "KI-"
         return room
 
+    def test_add_generic_switch(self):
+        room = self.make_device_room()
+
+        room.add_device(
+            "kitchen_fan",
+            "Kitchen Fan",
+            "",
+            "Generic Switch",
+        )
+
+        self.assertEqual(
+            room.switch_list,
+            [
+                {
+                    "platform": "group",
+                    "name": "Kitchen Fan",
+                    "entities": "switch.kitchen_fan",
+                    "configured": True,
+                }
+            ],
+        )
+
+    def test_add_mi_power_plug_zigbee_switch(self):
+        room = self.make_device_room()
+
+        room.add_device(
+            "kitchen_plug",
+            "Kitchen Plug",
+            "",
+            "Mi Power Plug ZigBee",
+        )
+
+        self.assertEqual(
+            room.switch_list,
+            [
+                {
+                    "platform": "group",
+                    "name": "Kitchen Plug",
+                    "entities": "switch.kitchen_plug_plug",
+                    "configured": True,
+                }
+            ],
+        )
+
     def test_add_generic_toggle_as_switch(self):
         room = self.make_device_room()
 
