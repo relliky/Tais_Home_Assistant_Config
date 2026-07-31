@@ -387,6 +387,7 @@ Completed foundations:
 135. Extract shared platform group generation for simple grouped entities.
 136. Reuse shared platform group generation for generic binary sensors.
 137. Move device model `TypeError` formatting behind named helpers.
+138. Centralize domain entity-id construction for grouped device helpers.
 
 Recommended next steps:
 

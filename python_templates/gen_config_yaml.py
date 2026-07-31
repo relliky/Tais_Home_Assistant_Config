@@ -427,6 +427,10 @@ class RoomBase:
     return mac if mac.startswith("switch.") else "switch." + mac
 
 
+  def get_domain_entity(self, domain, entity_id, entity_postfix=''):
+    return domain + "." + entity_id + entity_postfix
+
+
   def add_platform_group(self, entity_list, name, entity, extra_config=None):
     entity_list += [
       {
@@ -448,7 +452,11 @@ class RoomBase:
 
 
   def add_generic_binary_sensor(self, mac, name, device_class=None):
-    self.add_binary_sensor_group(name, "binary_sensor." + mac, device_class)
+    self.add_binary_sensor_group(
+      name,
+      self.get_domain_entity("binary_sensor", mac),
+      device_class
+    )
 
 
   def add_light_group(self, name, light_entity):
@@ -456,7 +464,10 @@ class RoomBase:
 
 
   def add_generic_light(self, mac, name, light_entity_postfix=''):
-    self.add_light_group(name, "light." + mac + light_entity_postfix)
+    self.add_light_group(
+      name,
+      self.get_domain_entity("light", mac, light_entity_postfix)
+    )
 
 
   def add_cover_group(self, name, cover_entity):
@@ -464,7 +475,10 @@ class RoomBase:
 
 
   def add_generic_cover(self, mac, name, cover_entity_postfix=''):
-    self.add_cover_group(name, "cover." + mac + cover_entity_postfix)
+    self.add_cover_group(
+      name,
+      self.get_domain_entity("cover", mac, cover_entity_postfix)
+    )
 
 
   def add_switch_group(self, name, switch_entity):
@@ -472,7 +486,10 @@ class RoomBase:
 
 
   def add_generic_switch(self, mac, name, switch_entity_postfix=''):
-    self.add_switch_group(name, "switch." + mac + switch_entity_postfix)
+    self.add_switch_group(
+      name,
+      self.get_domain_entity("switch", mac, switch_entity_postfix)
+    )
 
 
   def add_lock_group(self, name, lock_entity):
@@ -480,7 +497,7 @@ class RoomBase:
 
 
   def add_generic_lock(self, mac, name):
-    self.add_lock_group(name, "lock." + mac)
+    self.add_lock_group(name, self.get_domain_entity("lock", mac))
 
 
   def add_event_group(self, name, event_entity):
@@ -488,7 +505,7 @@ class RoomBase:
 
 
   def add_generic_event(self, mac, name):
-    self.add_event_group(name, "event." + mac)
+    self.add_event_group(name, self.get_domain_entity("event", mac))
 
 
   def add_button_group(self, name, button_entity):
@@ -496,7 +513,7 @@ class RoomBase:
 
 
   def add_generic_button(self, mac, name):
-    self.add_button_group(name, "button." + mac)
+    self.add_button_group(name, self.get_domain_entity("button", mac))
 
 
   def device_model_error_message(self, message):
