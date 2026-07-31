@@ -386,6 +386,7 @@ Completed foundations:
 134. Extract generic cover group generation behind `RoomBase` helpers.
 135. Extract shared platform group generation for simple grouped entities.
 136. Reuse shared platform group generation for generic binary sensors.
+137. Move device model `TypeError` formatting behind named helpers.
 
 Recommended next steps:
 

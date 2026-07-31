@@ -488,6 +488,42 @@ class RoomBaseHelpersTest(unittest.TestCase):
             ],
         )
 
+    def test_power_measurement_switch_requires_threshold(self):
+        room = self.make_device_room()
+
+        with self.assertRaises(TypeError) as context:
+            room.add_device(
+                "kitchen_power",
+                "Kitchen Power",
+                "",
+                "Generic Power Measurement Switch",
+            )
+
+        self.assertIn(
+            "Model Generic Power Measurement Switch needs power_on_threshold",
+            str(context.exception),
+        )
+        self.assertIn("Name = Kitchen Power", str(context.exception))
+        self.assertIn("MAC Address:kitchen_power", str(context.exception))
+
+    def test_unsupported_device_model_error_includes_context(self):
+        room = self.make_device_room()
+
+        with self.assertRaises(TypeError) as context:
+            room.add_device(
+                "kitchen_unknown",
+                "Kitchen Unknown",
+                "",
+                "Unknown Model",
+            )
+
+        self.assertIn(
+            "Model 'Unknown Model' is not supported",
+            str(context.exception),
+        )
+        self.assertIn("Name = 'Kitchen Unknown'", str(context.exception))
+        self.assertIn("MAC Address:'kitchen_unknown'", str(context.exception))
+
     def test_add_generic_toggle_as_switch(self):
         room = self.make_device_room()
 

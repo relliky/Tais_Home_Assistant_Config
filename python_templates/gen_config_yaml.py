@@ -499,6 +499,33 @@ class RoomBase:
     self.add_button_group(name, "button." + mac)
 
 
+  def device_model_error_message(self, message):
+    return (
+      "\n" +
+      "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n" +
+      message + "\n" +
+      "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n"
+    )
+
+
+  def raise_missing_power_threshold(self, model, name, mac, integration):
+    raise TypeError(
+      self.device_model_error_message(
+        "Model " + model + " needs power_on_threshold to be dinfed. Name = " +
+        name + ', MAC Address:' + mac + ", Integration " + integration
+      )
+    )
+
+
+  def raise_unsupported_device_model(self, model, name, mac, integration):
+    raise TypeError(
+      self.device_model_error_message(
+        "Model '" + model + "' is not supported. Name = '" + name +
+        "', MAC Address:'" + mac + "', Integration '" + integration + "'"
+      )
+    )
+
+
   def add_generic_toggle_as_switch(self, controlled_switch, name):
     controlled_switch_entity = self.get_switch_entity(controlled_switch)
     toggle_input_boolean = "input_boolean." + self.getEntityFromName(name)
@@ -1317,10 +1344,12 @@ class RoomBase:
     elif(model == "Generic Power Measurement Switch"):
 
       if power_on_threshold == None:
-        raise TypeError( "\n" +\
-                         "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n" + \
-                         "Model " + model + " needs power_on_threshold to be dinfed. Name = " + name + name_postfix + ', MAC Address:' + mac + ", Integration " + integration + "\n" + \
-                         "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n")
+        self.raise_missing_power_threshold(
+          model,
+          name + name_postfix,
+          mac,
+          integration
+        )
 
       raw_sensor            = 'sensor.' + mac
       smooth_sensor         = 'sensor.' + mac + '_smoothed'
@@ -1651,10 +1680,12 @@ class RoomBase:
     # Model not found, throw an error
     ###################################################################################################
     else:
-      raise TypeError( "\n" +\
-                       "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n" + \
-                       "Model '" + model + "' is not supported. Name = '" + name + name_postfix + "', MAC Address:'" + mac + "', Integration '" + integration + "'\n" + \
-                       "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n")
+      self.raise_unsupported_device_model(
+        model,
+        name + name_postfix,
+        mac,
+        integration
+      )
 
 
   def get_time_pattern_trigger(self, minutes=30, ha_start_trigger=True):
