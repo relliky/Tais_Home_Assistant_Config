@@ -423,6 +423,108 @@ class RoomBase:
       error("Automation_type '" + automation_type + "' is not supported. Name = '" + name + "', entity_id:'" + entity_id + "'\n")
 
 
+  def get_switch_entity(self, mac):
+    return mac if mac.startswith("switch.") else "switch." + mac
+
+
+  def add_generic_toggle_as_switch(self, controlled_switch, name):
+    controlled_switch_entity = self.get_switch_entity(controlled_switch)
+    toggle_input_boolean = "input_boolean." + self.getEntityFromName(name)
+    assumed_state_input_boolean = (
+      "input_boolean." + self.getEntityFromName(name + " Assumed State")
+    )
+
+    self.input_boolean_dict |= {
+      self.getPostfix(toggle_input_boolean): {
+        "name": name,
+        "configured": True
+      },
+      self.getPostfix(assumed_state_input_boolean): {
+        "name": name + " Assumed State",
+        "configured": True
+      }
+    }
+
+    self.template_list += [
+      {
+        "switch": [
+          {
+            "name": name,
+            "state": "{{ is_state('" + toggle_input_boolean + "', 'on') }}",
+            "turn_on": [
+              {
+                "service": "input_boolean.turn_on",
+                "target": {"entity_id": toggle_input_boolean}
+              }
+            ],
+            "turn_off": [
+              {
+                "service": "input_boolean.turn_off",
+                "target": {"entity_id": toggle_input_boolean}
+              }
+            ]
+          }
+        ],
+        "configured": True
+      }
+    ]
+
+    self.automation_list += [
+      {
+        "alias": (
+          "ZG-" + self.automation_room_name +
+          "Toggle " + name + "-" + self.room_name
+        ),
+        "configured": True,
+        "triggers": [
+          {
+            "trigger": "state",
+            "entity_id": toggle_input_boolean,
+            "from": "off",
+            "to": "on"
+          },
+          {
+            "trigger": "state",
+            "entity_id": toggle_input_boolean,
+            "from": "on",
+            "to": "off"
+          }
+        ],
+        "actions": [
+          {
+            "delay": {"milliseconds": 500}
+          },
+          {
+            "choose": [
+              {
+                "conditions": [
+                  {
+                    "condition": "template",
+                    "value_template": (
+                      "{{ states('" + toggle_input_boolean + "') != "
+                      "states('" + assumed_state_input_boolean + "') }}"
+                    )
+                  }
+                ],
+                "sequence": [
+                  {
+                    "service": "switch.toggle",
+                    "target": {"entity_id": controlled_switch_entity}
+                  },
+                  {
+                    "service": "input_boolean.toggle",
+                    "target": {"entity_id": assumed_state_input_boolean}
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "mode": "queued"
+      }
+    ]
+
+
 
   def add_device(self, mac, name, comment, model, postfix=None, integration='Xiaomi Gateway 3', flex_switch=None, power_on_threshold=None,
                  switch_rename_dir=None, light_wall_switch=True, belong_to_group=None, enable_battery=True, smooth_battery=False, smooth_power=True, delay_off_minute=0,
@@ -1173,104 +1275,7 @@ class RoomBase:
 
     elif model == "Generic Toggle As Switch":
 
-      controlled_switch_entity = mac if mac.startswith("switch.") else "switch." + mac
-      toggle_input_boolean = (
-        "input_boolean." + self.getEntityFromName(name + name_postfix)
-      )
-      assumed_state_input_boolean = (
-        "input_boolean." +
-        self.getEntityFromName(name + name_postfix + " Assumed State")
-      )
-
-      self.input_boolean_dict |= {
-        self.getPostfix(toggle_input_boolean): {
-          "name": name + name_postfix,
-          "configured": True
-        },
-        self.getPostfix(assumed_state_input_boolean): {
-          "name": name + name_postfix + " Assumed State",
-          "configured": True
-        }
-      }
-
-      self.template_list += [
-        {
-          "switch": [
-            {
-              "name": name + name_postfix,
-              "state": "{{ is_state('" + toggle_input_boolean + "', 'on') }}",
-              "turn_on": [
-                {
-                  "service": "input_boolean.turn_on",
-                  "target": {"entity_id": toggle_input_boolean}
-                }
-              ],
-              "turn_off": [
-                {
-                  "service": "input_boolean.turn_off",
-                  "target": {"entity_id": toggle_input_boolean}
-                }
-              ]
-            }
-          ],
-          "configured": True
-        }
-      ]
-
-      self.automation_list += [
-        {
-          "alias": (
-            "ZG-" + self.automation_room_name +
-            "Toggle " + name + name_postfix + "-" + self.room_name
-          ),
-          "configured": True,
-          "triggers": [
-            {
-              "trigger": "state",
-              "entity_id": toggle_input_boolean,
-              "from": "off",
-              "to": "on"
-            },
-            {
-              "trigger": "state",
-              "entity_id": toggle_input_boolean,
-              "from": "on",
-              "to": "off"
-            }
-          ],
-          "actions": [
-            {
-              "delay": {"milliseconds": 500}
-            },
-            {
-              "choose": [
-                {
-                  "conditions": [
-                    {
-                      "condition": "template",
-                      "value_template": (
-                        "{{ states('" + toggle_input_boolean + "') != "
-                        "states('" + assumed_state_input_boolean + "') }}"
-                      )
-                    }
-                  ],
-                  "sequence": [
-                    {
-                      "service": "switch.toggle",
-                      "target": {"entity_id": controlled_switch_entity}
-                    },
-                    {
-                      "service": "input_boolean.toggle",
-                      "target": {"entity_id": assumed_state_input_boolean}
-                    }
-                  ]
-                }
-              ]
-            }
-          ],
-          "mode": "queued"
-        }
-      ]
+      self.add_generic_toggle_as_switch(mac, name + name_postfix)
 
     elif(model == "Generic Power Measurement Switch"):
 
