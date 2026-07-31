@@ -326,6 +326,56 @@ class RoomBaseHelpersTest(unittest.TestCase):
             ],
         )
 
+    def test_add_generic_curtain(self):
+        room = self.make_device_room()
+
+        room.add_device(
+            "kitchen_blind",
+            "Kitchen Blind",
+            "",
+            "Generic Curtain",
+        )
+
+        self.assertEqual(
+            room.cover_list,
+            [
+                {
+                    "platform": "group",
+                    "name": "Kitchen Blind",
+                    "entities": "cover.kitchen_blind",
+                    "configured": True,
+                }
+            ],
+        )
+
+    def test_add_aqara_roller_shade_motor(self):
+        room = self.make_device_room()
+
+        room.add_device(
+            "kitchen_blind_motor",
+            "Kitchen Blind",
+            "",
+            "Aqara roller shade motor",
+            mdi_icon="blinds",
+        )
+
+        self.assertEqual(
+            room.cover_list,
+            [
+                {
+                    "platform": "group",
+                    "name": "Kitchen Blind",
+                    "entities": "cover.kitchen_blind_motor_motor",
+                    "configured": True,
+                }
+            ],
+        )
+        self.assertEqual(
+            room.customize_dict,
+            {"cover.kitchen_blind": {"icon": "mdi:blinds"}},
+        )
+        self.assertTrue(room.aqara_shutter_blind)
+
     def test_add_generic_toggle_as_switch(self):
         room = self.make_device_room()
 

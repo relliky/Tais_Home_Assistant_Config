@@ -383,6 +383,7 @@ Completed foundations:
 131. Extract generic toggle-as-switch generation behind a `RoomBase` helper.
 132. Extract generic switch group generation behind `RoomBase` helpers.
 133. Extract generic light group generation behind `RoomBase` helpers.
+134. Extract generic cover group generation behind `RoomBase` helpers.
 
 Recommended next steps:
 

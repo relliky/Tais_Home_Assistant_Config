@@ -442,6 +442,21 @@ class RoomBase:
     self.add_light_group(name, "light." + mac + light_entity_postfix)
 
 
+  def add_cover_group(self, name, cover_entity):
+    self.cover_list += [
+      {
+        "platform": "group",
+        "name": name,
+        "entities": cover_entity,
+        "configured": True
+      }
+    ]
+
+
+  def add_generic_cover(self, mac, name, cover_entity_postfix=''):
+    self.add_cover_group(name, "cover." + mac + cover_entity_postfix)
+
+
   def add_switch_group(self, name, switch_entity):
     self.switch_list += [
       {
@@ -1233,14 +1248,7 @@ class RoomBase:
     elif((model in ["Aqara B1 curtain motor", "Aqara roller shade motor"] and integration == 'Xiaomi Gateway 3')):
 
       cover_full_name = name + name_postfix
-      self.cover_list += [
-        {
-          "platform": "group",
-          "name": cover_full_name,
-          "entities": "cover." + mac + "_motor",
-          "configured": True
-        }
-      ]
+      self.add_generic_cover(mac, cover_full_name, "_motor")
 
       if mdi_icon != None:
         self.customize_dict |= {'cover.' + self.getEntityFromName(cover_full_name): {'icon': 'mdi:' + mdi_icon}}
@@ -1599,14 +1607,7 @@ class RoomBase:
     ###################################################################################################
     elif model == "Generic Curtain":
     ###################################################################################################
-      self.cover_list += [
-        {
-          "platform": "group",
-          "name": name + name_postfix,
-          "entities": "cover." + mac,
-          "configured": True
-        }
-      ]
+      self.add_generic_cover(mac, name + name_postfix)
     ###################################################################################################
     elif model == "Generic Locks":
     ###################################################################################################
