@@ -376,6 +376,72 @@ class RoomBaseHelpersTest(unittest.TestCase):
         )
         self.assertTrue(room.aqara_shutter_blind)
 
+    def test_add_generic_lock(self):
+        room = self.make_device_room()
+
+        room.add_device(
+            "kitchen_door",
+            "Kitchen Door",
+            "",
+            "Generic Locks",
+        )
+
+        self.assertEqual(
+            room.lock_list,
+            [
+                {
+                    "platform": "group",
+                    "name": "Kitchen Door",
+                    "entities": "lock.kitchen_door",
+                    "configured": True,
+                }
+            ],
+        )
+
+    def test_add_generic_event(self):
+        room = self.make_device_room()
+
+        room.add_device(
+            "kitchen_scene",
+            "Kitchen Scene",
+            "",
+            "Generic Event",
+        )
+
+        self.assertEqual(
+            room.event_list,
+            [
+                {
+                    "platform": "group",
+                    "name": "Kitchen Scene",
+                    "entities": "event.kitchen_scene",
+                    "configured": True,
+                }
+            ],
+        )
+
+    def test_add_generic_button(self):
+        room = self.make_device_room()
+
+        room.add_device(
+            "kitchen_restart",
+            "Kitchen Restart",
+            "",
+            "Generic Button",
+        )
+
+        self.assertEqual(
+            room.button_list,
+            [
+                {
+                    "platform": "group",
+                    "name": "Kitchen Restart",
+                    "entities": "button.kitchen_restart",
+                    "configured": True,
+                }
+            ],
+        )
+
     def test_add_generic_toggle_as_switch(self):
         room = self.make_device_room()
 

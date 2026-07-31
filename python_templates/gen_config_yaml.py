@@ -427,15 +427,19 @@ class RoomBase:
     return mac if mac.startswith("switch.") else "switch." + mac
 
 
-  def add_light_group(self, name, light_entity):
-    self.light_list += [
+  def add_platform_group(self, entity_list, name, entity):
+    entity_list += [
       {
         "platform": "group",
         "name": name,
-        "entities": light_entity,
+        "entities": entity,
         "configured": True
       }
     ]
+
+
+  def add_light_group(self, name, light_entity):
+    self.add_platform_group(self.light_list, name, light_entity)
 
 
   def add_generic_light(self, mac, name, light_entity_postfix=''):
@@ -443,14 +447,7 @@ class RoomBase:
 
 
   def add_cover_group(self, name, cover_entity):
-    self.cover_list += [
-      {
-        "platform": "group",
-        "name": name,
-        "entities": cover_entity,
-        "configured": True
-      }
-    ]
+    self.add_platform_group(self.cover_list, name, cover_entity)
 
 
   def add_generic_cover(self, mac, name, cover_entity_postfix=''):
@@ -458,18 +455,35 @@ class RoomBase:
 
 
   def add_switch_group(self, name, switch_entity):
-    self.switch_list += [
-      {
-        "platform": "group",
-        "name": name,
-        "entities": switch_entity,
-        "configured": True
-      }
-    ]
+    self.add_platform_group(self.switch_list, name, switch_entity)
 
 
   def add_generic_switch(self, mac, name, switch_entity_postfix=''):
     self.add_switch_group(name, "switch." + mac + switch_entity_postfix)
+
+
+  def add_lock_group(self, name, lock_entity):
+    self.add_platform_group(self.lock_list, name, lock_entity)
+
+
+  def add_generic_lock(self, mac, name):
+    self.add_lock_group(name, "lock." + mac)
+
+
+  def add_event_group(self, name, event_entity):
+    self.add_platform_group(self.event_list, name, event_entity)
+
+
+  def add_generic_event(self, mac, name):
+    self.add_event_group(name, "event." + mac)
+
+
+  def add_button_group(self, name, button_entity):
+    self.add_platform_group(self.button_list, name, button_entity)
+
+
+  def add_generic_button(self, mac, name):
+    self.add_button_group(name, "button." + mac)
 
 
   def add_generic_toggle_as_switch(self, controlled_switch, name):
@@ -1611,37 +1625,16 @@ class RoomBase:
     ###################################################################################################
     elif model == "Generic Locks":
     ###################################################################################################
-      self.lock_list += [
-        {
-          "platform": "group",
-          "name": name + name_postfix,
-          "entities": "lock." + mac,
-          "configured": True
-        }
-      ]
+      self.add_generic_lock(mac, name + name_postfix)
     ###################################################################################################
     elif model == "Generic Event":
     ###################################################################################################
-      self.event_list += [
-        {
-          "platform": "group",
-          "name": name + name_postfix,
-          "entities": "event." + mac,
-          "configured": True
-        }
-      ]
+      self.add_generic_event(mac, name + name_postfix)
 
     ###################################################################################################
     elif model == "Generic Button":
     ###################################################################################################
-      self.button_list += [
-        {
-          "platform": "group",
-          "name": name + name_postfix,
-          "entities": "button." + mac,
-          "configured": True
-        }
-      ]
+      self.add_generic_button(mac, name + name_postfix)
     ###################################################################################################
     elif model == "Generic Battery":
     ###################################################################################################

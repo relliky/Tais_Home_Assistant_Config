@@ -384,6 +384,7 @@ Completed foundations:
 132. Extract generic switch group generation behind `RoomBase` helpers.
 133. Extract generic light group generation behind `RoomBase` helpers.
 134. Extract generic cover group generation behind `RoomBase` helpers.
+135. Extract shared platform group generation for simple grouped entities.
 
 Recommended next steps:
 
