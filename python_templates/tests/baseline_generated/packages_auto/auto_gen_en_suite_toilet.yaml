@@ -41,7 +41,7 @@ automation:
   - trigger: homeassistant
     event: start
   - minutes: /30
-    seconds: '51'
+    seconds: '33'
     trigger: time_pattern
   mode: single
   actions:
@@ -62,6 +62,58 @@ automation:
       target:
         entity_id: climate.tado_smart_radiator_thermostat_va0429069312
   id: automation.zh_et_set_radiator_valve_target_temperature_based_on_external_sensor_temperature_difference_en_suite_toilet
+- alias: ZG-ET Toggle En-suite Toilet Mirror LED-En-suite Toilet
+  triggers:
+  - trigger: state
+    entity_id: input_boolean.en_suite_toilet_mirror_led
+    from: 'off'
+    to: 'on'
+  - trigger: state
+    entity_id: input_boolean.en_suite_toilet_mirror_led
+    from: 'on'
+    to: 'off'
+  actions:
+  - delay:
+      milliseconds: 500
+  - choose:
+    - conditions:
+      - condition: template
+        value_template: '{{ states(''input_boolean.en_suite_toilet_mirror_led'') != states(''input_boolean.en_suite_toilet_mirror_led_assumed_state'') }}'
+      sequence:
+      - service: switch.toggle
+        target:
+          entity_id: switch.adp_cn_1206094287_adfbt6_switch_a_p_3_1
+      - service: input_boolean.toggle
+        target:
+          entity_id: input_boolean.en_suite_toilet_mirror_led_assumed_state
+  mode: queued
+  id: automation.zg_et_toggle_en_suite_toilet_mirror_led_en_suite_toilet
+- alias: ZG-ET Toggle En-suite Toilet Mirror Demister-En-suite Toilet
+  triggers:
+  - trigger: state
+    entity_id: input_boolean.en_suite_toilet_mirror_demister
+    from: 'off'
+    to: 'on'
+  - trigger: state
+    entity_id: input_boolean.en_suite_toilet_mirror_demister
+    from: 'on'
+    to: 'off'
+  actions:
+  - delay:
+      milliseconds: 500
+  - choose:
+    - conditions:
+      - condition: template
+        value_template: '{{ states(''input_boolean.en_suite_toilet_mirror_demister'') != states(''input_boolean.en_suite_toilet_mirror_demister_assumed_state'') }}'
+      sequence:
+      - service: switch.toggle
+        target:
+          entity_id: switch.adp_cn_1206094287_adfbt6_switch_b_p_3_2
+      - service: input_boolean.toggle
+        target:
+          entity_id: input_boolean.en_suite_toilet_mirror_demister_assumed_state
+  mode: queued
+  id: automation.zg_et_toggle_en_suite_toilet_mirror_demister_en_suite_toilet
 - alias: ZL-ET Curtain States When No Person Present-En-suite Toilet
   id: automation.zl_et_curtain_states_when_no_person_present_en_suite_toilet
   trigger:
@@ -72,7 +124,7 @@ automation:
   - trigger: homeassistant
     event: start
   - minutes: /10
-    seconds: '40'
+    seconds: '16'
     trigger: time_pattern
   conditions:
   - condition: state
@@ -462,7 +514,7 @@ automation:
   - trigger: homeassistant
     event: start
   - minutes: /30
-    seconds: '57'
+    seconds: '50'
     trigger: time_pattern
   condition:
   - condition: state
@@ -568,7 +620,7 @@ automation:
   - trigger: homeassistant
     event: start
   - minutes: /30
-    seconds: '53'
+    seconds: '41'
     trigger: time_pattern
   action:
   - condition: state
@@ -1391,7 +1443,7 @@ automation:
   - trigger: homeassistant
     event: start
   - minutes: /3
-    seconds: '23'
+    seconds: '28'
     trigger: time_pattern
   action:
   - choose:
@@ -1587,7 +1639,7 @@ automation:
   - trigger: homeassistant
     event: start
   - minutes: /10
-    seconds: '43'
+    seconds: '44'
     trigger: time_pattern
   action:
   - choose:
@@ -1678,6 +1730,14 @@ input_boolean:
     icon: mdi:timer-sand
   en_suite_toilet_tado_heater:
     name: En Suite Toilet Tado Heater
+  en_suite_toilet_mirror_led:
+    name: En-suite Toilet Mirror LED
+  en_suite_toilet_mirror_led_assumed_state:
+    name: En-suite Toilet Mirror LED Assumed State
+  en_suite_toilet_mirror_demister:
+    name: En-suite Toilet Mirror Demister
+  en_suite_toilet_mirror_demister_assumed_state:
+    name: En-suite Toilet Mirror Demister Assumed State
 input_datetime:
   noon_time_en_suite_toilet:
     name: Noon Time En Suite Toilet
@@ -1772,12 +1832,6 @@ switch:
 - platform: group
   name: 'En-suite Toilet Wall Switch '
   entities: switch.0x00158d000522d90c_switch
-- platform: group
-  name: En-suite Toilet Mirror LED
-  entities: switch.adp_cn_1206094287_adfbt6_switch_a_p_3_1
-- platform: group
-  name: En-suite Toilet Mirror Demister
-  entities: switch.adp_cn_1206094287_adfbt6_switch_b_p_3_2
 cover: []
 climate:
 - platform: generic_thermostat
@@ -1853,6 +1907,28 @@ template:
 - binary_sensor:
   - name: En-suite Toilet Heating Required
     state: '{% set climate = "climate.tado_smart_radiator_thermostat_va0429069312" %}{% if states(climate) == "unavailable" or states(climate) == "off" or (state_attr(climate, "temperature") <= state_attr(climate, "current_temperature"))  %}off{% else %} on{% endif %}'
+- switch:
+  - name: En-suite Toilet Mirror LED
+    state: '{{ is_state(''input_boolean.en_suite_toilet_mirror_led'', ''on'') }}'
+    turn_on:
+    - service: input_boolean.turn_on
+      target:
+        entity_id: input_boolean.en_suite_toilet_mirror_led
+    turn_off:
+    - service: input_boolean.turn_off
+      target:
+        entity_id: input_boolean.en_suite_toilet_mirror_led
+- switch:
+  - name: En-suite Toilet Mirror Demister
+    state: '{{ is_state(''input_boolean.en_suite_toilet_mirror_demister'', ''on'') }}'
+    turn_on:
+    - service: input_boolean.turn_on
+      target:
+        entity_id: input_boolean.en_suite_toilet_mirror_demister
+    turn_off:
+    - service: input_boolean.turn_off
+      target:
+        entity_id: input_boolean.en_suite_toilet_mirror_demister
 - sensor:
   - name: En-suite Toilet Mirror Robot Battery
     unit_of_measurement: '%'
@@ -1897,9 +1973,9 @@ template:
     state: '{% set s = states(''sensor.en_suite_toilet_mirror_button_battery_median'') %}{{ s | int if s not in [''unknown'', ''unavailable'', ''''] else ''unknown'' }}'
 - binary_sensor:
   - name: En Suite Toilet Unavailable Entities
-    state: '{% set added_device_entities =  [''sensor.en_suite_toilet_motion_sensor_battery'', ''binary_sensor.en_suite_toilet_xiaomi_home_occupancy_sensor_occupancy'', ''sensor.en_suite_toilet_xiaomi_home_occupancy_sensor_battery'', ''sensor.en_suite_toilet_wall_button'', ''sensor.en_suite_toilet_temperature_sensor'', ''sensor.en_suite_toilet_temperature_sensor_battery'', ''sensor.en_suite_toilet_humidity_sensor'', ''binary_sensor.en_suite_toilet_shower'', ''sensor.en_suite_toilet_tado_availiabity'', ''binary_sensor.en_suite_toilet_heating_required'', ''sensor.en_suite_toilet_mirror_robot_battery'', ''binary_sensor.en_suite_toilet_mirror_button_single_click'', ''binary_sensor.en_suite_toilet_mirror_button_double_click'', ''binary_sensor.en_suite_toilet_mirror_button_long_press'', ''sensor.en_suite_toilet_mirror_button_battery'', ''binary_sensor.en_suite_toilet_motion_sensor_motion'', ''switch.en_suite_toilet_wall_switch'', ''switch.en_suite_toilet_mirror_led'', ''switch.en_suite_toilet_mirror_demister'', ''light.en_suite_toilet_ceiling_light''] %}{% set ns = namespace() %}{% set ns.num_unavail_devices = 0 %}{% for device in added_device_entities %}   {% if states(device) in [''unavailable'', ''unknown'', ''none''] %}      {% set ns.num_unavail_devices = ns.num_unavail_devices + 1 %}   {% endif %}{% endfor %}{% if ns.num_unavail_devices > 0%}  on  {% else %}  off {% endif %}'
+    state: '{% set added_device_entities =  [''sensor.en_suite_toilet_motion_sensor_battery'', ''binary_sensor.en_suite_toilet_xiaomi_home_occupancy_sensor_occupancy'', ''sensor.en_suite_toilet_xiaomi_home_occupancy_sensor_battery'', ''sensor.en_suite_toilet_wall_button'', ''sensor.en_suite_toilet_temperature_sensor'', ''sensor.en_suite_toilet_temperature_sensor_battery'', ''sensor.en_suite_toilet_humidity_sensor'', ''binary_sensor.en_suite_toilet_shower'', ''sensor.en_suite_toilet_tado_availiabity'', ''binary_sensor.en_suite_toilet_heating_required'', ''switch.en_suite_toilet_mirror_led'', ''switch.en_suite_toilet_mirror_demister'', ''sensor.en_suite_toilet_mirror_robot_battery'', ''binary_sensor.en_suite_toilet_mirror_button_single_click'', ''binary_sensor.en_suite_toilet_mirror_button_double_click'', ''binary_sensor.en_suite_toilet_mirror_button_long_press'', ''sensor.en_suite_toilet_mirror_button_battery'', ''binary_sensor.en_suite_toilet_motion_sensor_motion'', ''switch.en_suite_toilet_wall_switch'', ''light.en_suite_toilet_ceiling_light''] %}{% set ns = namespace() %}{% set ns.num_unavail_devices = 0 %}{% for device in added_device_entities %}   {% if states(device) in [''unavailable'', ''unknown'', ''none''] %}      {% set ns.num_unavail_devices = ns.num_unavail_devices + 1 %}   {% endif %}{% endfor %}{% if ns.num_unavail_devices > 0%}  on  {% else %}  off {% endif %}'
     attributes:
-      value: '{% set added_device_entities =  [''sensor.en_suite_toilet_motion_sensor_battery'', ''binary_sensor.en_suite_toilet_xiaomi_home_occupancy_sensor_occupancy'', ''sensor.en_suite_toilet_xiaomi_home_occupancy_sensor_battery'', ''sensor.en_suite_toilet_wall_button'', ''sensor.en_suite_toilet_temperature_sensor'', ''sensor.en_suite_toilet_temperature_sensor_battery'', ''sensor.en_suite_toilet_humidity_sensor'', ''binary_sensor.en_suite_toilet_shower'', ''sensor.en_suite_toilet_tado_availiabity'', ''binary_sensor.en_suite_toilet_heating_required'', ''sensor.en_suite_toilet_mirror_robot_battery'', ''binary_sensor.en_suite_toilet_mirror_button_single_click'', ''binary_sensor.en_suite_toilet_mirror_button_double_click'', ''binary_sensor.en_suite_toilet_mirror_button_long_press'', ''sensor.en_suite_toilet_mirror_button_battery'', ''binary_sensor.en_suite_toilet_motion_sensor_motion'', ''switch.en_suite_toilet_wall_switch'', ''switch.en_suite_toilet_mirror_led'', ''switch.en_suite_toilet_mirror_demister'', ''light.en_suite_toilet_ceiling_light''] %}{% set ns = namespace() %}{% set ns.unavail_devices = '''' %}{% for device in added_device_entities %}   {% if states(device) in [''unavailable'', ''unknown'', ''none''] %}   {% set ns.unavail_devices = ns.unavail_devices + ''
+      value: '{% set added_device_entities =  [''sensor.en_suite_toilet_motion_sensor_battery'', ''binary_sensor.en_suite_toilet_xiaomi_home_occupancy_sensor_occupancy'', ''sensor.en_suite_toilet_xiaomi_home_occupancy_sensor_battery'', ''sensor.en_suite_toilet_wall_button'', ''sensor.en_suite_toilet_temperature_sensor'', ''sensor.en_suite_toilet_temperature_sensor_battery'', ''sensor.en_suite_toilet_humidity_sensor'', ''binary_sensor.en_suite_toilet_shower'', ''sensor.en_suite_toilet_tado_availiabity'', ''binary_sensor.en_suite_toilet_heating_required'', ''switch.en_suite_toilet_mirror_led'', ''switch.en_suite_toilet_mirror_demister'', ''sensor.en_suite_toilet_mirror_robot_battery'', ''binary_sensor.en_suite_toilet_mirror_button_single_click'', ''binary_sensor.en_suite_toilet_mirror_button_double_click'', ''binary_sensor.en_suite_toilet_mirror_button_long_press'', ''sensor.en_suite_toilet_mirror_button_battery'', ''binary_sensor.en_suite_toilet_motion_sensor_motion'', ''switch.en_suite_toilet_wall_switch'', ''light.en_suite_toilet_ceiling_light''] %}{% set ns = namespace() %}{% set ns.unavail_devices = '''' %}{% for device in added_device_entities %}   {% if states(device) in [''unavailable'', ''unknown'', ''none''] %}   {% set ns.unavail_devices = ns.unavail_devices + ''
 
         '' +device %} {% endif %}{% endfor %}{{ns.unavail_devices}}'
 - binary_sensor:
@@ -1979,6 +2055,8 @@ group:
     - input_boolean.ceiling_light_control_sleep_mode_en_suite_toilet
     - input_boolean.lamp_control_sleep_mode_en_suite_toilet
     - automation.zh_et_set_radiator_valve_target_temperature_based_on_external_sensor_temperature_difference_en_suite_toilet
+    - automation.zg_et_toggle_en_suite_toilet_mirror_led_en_suite_toilet
+    - automation.zg_et_toggle_en_suite_toilet_mirror_demister_en_suite_toilet
     - automation.zl_et_curtain_states_when_no_person_present_en_suite_toilet
     - automation.zl_et_lights_on_if_entering_to_room_en_suite_toilet
     - automation.zl_et_lights_off_if_no_person_en_suite_toilet

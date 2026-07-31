@@ -1079,8 +1079,8 @@ def define_room_classes(RoomBase):
       self.add_device('va0429069312',               self.room_name,                       'Raditor',            'Tado Homekit')
       self.add_device("en_suite_toilet_light_hue",  self.room_name + " Ceiling Light",    'Light',              "Generic Light")
   
-      self.add_device('adp_cn_1206094287_adfbt6_switch_a_p_3_1',            self.room_name + ' Mirror LED',            'Switch',             'Generic Switch')
-      self.add_device('adp_cn_1206094287_adfbt6_switch_b_p_3_2',            self.room_name + ' Mirror Demister',       'Switch',             'Generic Switch')
+      self.add_device('adp_cn_1206094287_adfbt6_switch_a_p_3_1',            self.room_name + ' Mirror LED',            'Switch',             'Generic Toggle As Switch')
+      self.add_device('adp_cn_1206094287_adfbt6_switch_b_p_3_2',            self.room_name + ' Mirror Demister',       'Switch',             'Generic Toggle As Switch')
       self.add_device('adp_cn_1206094287_adfbt6_battery_percentage_p_3_15', self.room_name + ' Mirror Robot Battery',  'Battery',            'Generic Battery')
       self.add_device('lumi_cn_blt_3_1euso42kkc800_mcn001',                 self.room_name + ' Mirror',                'Button',             'MiJia Wireless Switch 2', integration='Xiaomi Home')
   

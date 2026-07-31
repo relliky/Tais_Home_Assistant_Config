@@ -175,6 +175,145 @@ class RoomBaseHelpersTest(unittest.TestCase):
             "switch.gaming_pc",
         )
 
+    def make_device_room(self):
+        room = gen_config_yaml.RoomBase.__new__(gen_config_yaml.RoomBase)
+        room.initialize_entity_intf()
+        room.room_name = "Kitchen"
+        room.automation_room_name = "KI-"
+        return room
+
+    def test_add_generic_toggle_as_switch(self):
+        room = self.make_device_room()
+
+        room.add_device(
+            "switch.kitchen_extractor",
+            "Kitchen Extractor Toggle",
+            "",
+            "Generic Toggle As Switch",
+        )
+
+        self.assertEqual(
+            room.input_boolean_dict,
+            {
+                "kitchen_extractor_toggle": {
+                    "name": "Kitchen Extractor Toggle",
+                    "configured": True,
+                },
+                "kitchen_extractor_toggle_assumed_state": {
+                    "name": "Kitchen Extractor Toggle Assumed State",
+                    "configured": True,
+                },
+            },
+        )
+        self.assertEqual(
+            room.template_list,
+            [
+                {
+                    "switch": [
+                        {
+                            "name": "Kitchen Extractor Toggle",
+                            "state": "{{ is_state('input_boolean.kitchen_extractor_toggle', 'on') }}",
+                            "turn_on": [
+                                {
+                                    "service": "input_boolean.turn_on",
+                                    "target": {
+                                        "entity_id": "input_boolean.kitchen_extractor_toggle",
+                                    },
+                                }
+                            ],
+                            "turn_off": [
+                                {
+                                    "service": "input_boolean.turn_off",
+                                    "target": {
+                                        "entity_id": "input_boolean.kitchen_extractor_toggle",
+                                    },
+                                }
+                            ],
+                        }
+                    ],
+                    "configured": True,
+                }
+            ],
+        )
+        self.assertEqual(
+            room.automation_list,
+            [
+                {
+                    "alias": "ZG-KI-Toggle Kitchen Extractor Toggle-Kitchen",
+                    "configured": True,
+                    "triggers": [
+                        {
+                            "trigger": "state",
+                            "entity_id": "input_boolean.kitchen_extractor_toggle",
+                            "from": "off",
+                            "to": "on",
+                        },
+                        {
+                            "trigger": "state",
+                            "entity_id": "input_boolean.kitchen_extractor_toggle",
+                            "from": "on",
+                            "to": "off",
+                        },
+                    ],
+                    "actions": [
+                        {
+                            "delay": {"milliseconds": 500},
+                        },
+                        {
+                            "choose": [
+                                {
+                                    "conditions": [
+                                        {
+                                            "condition": "template",
+                                            "value_template": (
+                                                "{{ states('input_boolean.kitchen_extractor_toggle') != "
+                                                "states('input_boolean.kitchen_extractor_toggle_assumed_state') }}"
+                                            ),
+                                        }
+                                    ],
+                                    "sequence": [
+                                        {
+                                            "service": "switch.toggle",
+                                            "target": {
+                                                "entity_id": "switch.kitchen_extractor",
+                                            },
+                                        },
+                                        {
+                                            "service": "input_boolean.toggle",
+                                            "target": {
+                                                "entity_id": (
+                                                    "input_boolean."
+                                                    "kitchen_extractor_toggle_assumed_state"
+                                                ),
+                                            },
+                                        },
+                                    ],
+                                }
+                            ],
+                        }
+                    ],
+                    "mode": "queued",
+                }
+            ],
+        )
+
+    def test_add_generic_toggle_as_switch_accepts_bare_switch_entity(self):
+        room = self.make_device_room()
+
+        room.add_device(
+            "kitchen_extractor",
+            "Kitchen Extractor Toggle",
+            "",
+            "Generic Toggle As Switch",
+        )
+
+        self.assertEqual(
+            room.automation_list[0]["actions"][1]["choose"][0]["sequence"][0][
+                "target"
+            ]["entity_id"],
+            "switch.kitchen_extractor",
+        )
+
 
 
 def pyscript_occupancy_next_state(cur_state, motion, motion_state_lasts_for,

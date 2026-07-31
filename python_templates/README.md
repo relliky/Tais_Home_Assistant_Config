@@ -118,6 +118,21 @@ features, automations, and dashboard settings.
 
 `Dashboard` combines room dashboard views into the overall Lovelace dashboard.
 
+## Device Models
+
+`add_device(..., model="Generic Toggle As Switch")` creates:
+
+- an `input_boolean` using the supplied device name, without an `initial` state
+- an internal `input_boolean` assumed-state helper, also without an `initial`
+  state
+- a template switch with the same supplied name
+- a queued automation that waits 500 ms, compares the desired helper with the
+  assumed-state helper, and only then calls `switch.toggle` on the controlled
+  switch when they differ
+
+Pass the controlled switch as the `mac` argument. Both `switch.example` and
+`example` are accepted; the latter is normalized to `switch.example`.
+
 ## Safe Change Workflow
 
 Treat generated YAML as the compatibility contract. Home Assistant should keep
@@ -364,6 +379,7 @@ Completed foundations:
 128. Add a correctly spelled restricted-access wrapper while preserving the
      old method name.
 129. Define constants for supported navigation room-card types.
+130. Add a generic toggle-as-switch device model.
 
 Recommended next steps:
 
