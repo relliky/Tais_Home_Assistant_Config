@@ -2915,7 +2915,7 @@ class RoomBase:
         ([{ "conditions": {"condition": "trigger","id": self.CYCLE_CEILING_LIGHTS    }, "sequence": [self.set(self.ceiling_lights,'cycle'                   )]}] if len(self.ceiling_lights) >= 1 else []     ) + \
         ([{ "conditions": {"condition": "trigger","id": self.TOGGLE_SCREEN_LED       }, "sequence": [self.set(self.screen_leds,   'toggle'                  )]}] if len(self.screen_leds)    >= 1 else []     ) + \
         ([{ "conditions": {"condition": "trigger","id": self.TOGGLE_LEDS             }, "sequence": [self.set(self.leds,          'toggle'                  )]}] if len(self.leds)           >= 1 else []     ) + \
-        ([{ "conditions": {"condition": "trigger","id": self.CYCLE_LEDS              }, "sequence": [self.set(self.leds,          'cycle'                   )]}] if len(self.leds)           >= 1 else []     ) + \
+        ([{ "conditions": {"condition": "trigger","id": self.CYCLE_LEDS              }, "sequence": [self.set(self.leds,          'cycle_led'               )]}] if len(self.leds)           >= 1 else []     ) + \
         ([{ "conditions": {"condition": "trigger","id": self.INCREMENT_LEDS          }, "sequence": [self.set(self.leds,          'increment', step_value=34)]}] if len(self.leds)           >= 1 else []     ) + \
         ([{ "conditions": {"condition": "trigger","id": self.DECREMENT_LEDS          }, "sequence": [self.set(self.leds,          'decrement', step_value=34)]}] if len(self.leds)           >= 1 else []     ) + \
         ([{ "conditions": {"condition": "trigger","id": self.TOGGLE_TV_POWER         }, "sequence": [self.set(self.tvs,           'power_toggle'            )]}] if len(self.tvs)            >= 1 else []     ) + \
@@ -3325,7 +3325,7 @@ class RoomBase:
 
   # Create service call for turn on/off entities
   def set(self, entity_list, state=None, light_brightness=None, tv_brightness=None, inc_unavail=True, step_value=51):
-    assert state in ['on', 'off', 'toggle', 'cycle', 'increment', 'decrement', 'power_toggle', 'single_device_volume_inc', 'single_device_volume_dec', 'press', None], "State has to be one of legal states, but it is " + state
+    assert state in ['on', 'off', 'toggle', 'cycle', 'cycle_led', 'increment', 'decrement', 'power_toggle', 'single_device_volume_inc', 'single_device_volume_dec', 'press', None], "State has to be one of legal states, but it is " + state
     #assert type(entity_list) is list , "entity_list has to be a list, but it is " + entity_list
 
     if state in ['press']:
@@ -3543,10 +3543,11 @@ class RoomBase:
         step_value,
         self.set,
       )
-    elif is_light_list and state == 'cycle':
+    elif is_light_list and state in ['cycle', 'cycle_led']:
         entity_id = light_action_helpers.light_cycle_entity_id(entity_list)
         if entity_id.startswith('light.'):
-          action_service = light_action_helpers.light_cycle_action(
+          cycle_action = light_action_helpers.led_cycle_action if state == 'cycle_led' else light_action_helpers.light_cycle_action
+          action_service = cycle_action(
             entity_list,
             self.continueIf,
           )

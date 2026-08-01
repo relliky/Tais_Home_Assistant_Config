@@ -150,6 +150,47 @@ class LightActionHelpersTest(unittest.TestCase):
             },
         )
 
+    def test_led_cycle_action_keeps_one_percent_first_step_with_retry(self):
+        self.assertEqual(
+            light_action_helpers.led_cycle_action(
+                ["light.kitchen_led"],
+                continue_if,
+            ),
+            {
+                "if": ["continueIf", ["light.kitchen_led"], "off"],
+                "then": [
+                    {
+                        "service": "light.turn_on",
+                        "entity_id": ["light.kitchen_led"],
+                        "data": {"brightness": 3},
+                    },
+                    {"delay": {"milliseconds": 1000}},
+                    {
+                        "if": ["continueIf", ["light.kitchen_led"], "off"],
+                        "then": [
+                            {
+                                "service": "light.turn_on",
+                                "entity_id": ["light.kitchen_led"],
+                                "data": {"brightness": 3},
+                            }
+                        ],
+                    },
+                ],
+                "else": {
+                    "service": "light.turn_on",
+                    "entity_id": ["light.kitchen_led"],
+                    "data_template": {
+                        "brightness": "{% set brightness = state_attr('light.kitchen_led', 'brightness') | int(0) %}"
+                        "{% if brightness == 0 or is_state('light.kitchen_led', 'off') %}3"
+                        "{% elif brightness <= 83 %}84"
+                        "{% elif brightness <= 167 %}168"
+                        "{% elif brightness <= 254 %}255"
+                        "{% else %}0{% endif %}"
+                    },
+                },
+            },
+        )
+
     def test_light_entities_only(self):
         self.assertEqual(
             light_action_helpers.light_entities_only([
