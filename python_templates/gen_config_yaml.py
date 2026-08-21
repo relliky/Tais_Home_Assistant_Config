@@ -431,6 +431,24 @@ class RoomBase:
             reload_config_entry_id=reload_config_entry_id
           )
         ]
+    elif(automation_type == "Tuya Light Reload When State Does Not Update" ):
+        expected_state_entity_id = "input_boolean." + self.getEntityFromName(name + " Expected State")
+        self.input_boolean_dict |= {
+          self.getPostfix(expected_state_entity_id): {
+            "name": name + " Expected State",
+            "configured": True,
+          },
+        }
+        self.automation_list += [
+          entity_declaration_builders.tuya_light_reload_when_state_does_not_update(
+            entity_id=entity_id,
+            name=name,
+            automation_room_name=self.automation_room_name,
+            room_name=self.room_name,
+            reload_config_entry_id=reload_config_entry_id,
+            expected_state_entity_id=expected_state_entity_id,
+          )
+        ]
     else:
       error("Automation_type '" + automation_type + "' is not supported. Name = '" + name + "', entity_id:'" + str(entity_id) + "'\n")
 

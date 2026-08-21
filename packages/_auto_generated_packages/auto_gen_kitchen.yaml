@@ -126,6 +126,47 @@ automation:
       entity_id: switch.0x04cf8cdf3c7ad647_channel_2
   mode: queued
   id: automation.zlb_kc_flex_wall_switch_on_postion_2_automatically_turn_on_the_wall_switch_back_when_turned_off_kitchen
+- alias: ZR-KC Reload Tuya Integration When Kitchen Worktop LED State Does Not Update-Kitchen
+  triggers:
+  - trigger: event
+    event_type: call_service
+  conditions:
+  - condition: template
+    value_template: '{% set service_data = trigger.event.data.service_data | default({}) %}{% set raw_entity_ids = service_data.entity_id | default([]) %}{% set entity_ids = [raw_entity_ids] if raw_entity_ids is string else raw_entity_ids %}{{ trigger.event.data.domain in [''light'', ''homeassistant''] and trigger.event.data.service in [''turn_on'', ''turn_off'', ''toggle''] and ''light.kitchen_worktop_led_tuya'' in entity_ids }}'
+  actions:
+  - variables:
+      tuya_light_entity: light.kitchen_worktop_led_tuya
+      tuya_expected_state_entity: input_boolean.kitchen_worktop_led_expected_state
+      tuya_command: '{{ trigger.event.data.service }}'
+  - if:
+    - condition: template
+      value_template: '{{ tuya_command == ''turn_on'' }}'
+    then:
+    - action: input_boolean.turn_on
+      target:
+        entity_id: input_boolean.kitchen_worktop_led_expected_state
+    else:
+    - if:
+      - condition: template
+        value_template: '{{ tuya_command == ''turn_off'' }}'
+      then:
+      - action: input_boolean.turn_off
+        target:
+          entity_id: input_boolean.kitchen_worktop_led_expected_state
+      else:
+      - action: input_boolean.toggle
+        target:
+          entity_id: input_boolean.kitchen_worktop_led_expected_state
+  - delay: 00:00:20
+  - if:
+    - condition: template
+      value_template: '{{ states(tuya_light_entity) != states(tuya_expected_state_entity) }}'
+    then:
+    - action: homeassistant.reload_config_entry
+      data:
+        entry_id: 01JS6QRKXS455JGC1YW30ZC9W5
+  mode: restart
+  id: automation.zr_kc_reload_tuya_integration_when_kitchen_worktop_led_state_does_not_update_kitchen
 - alias: ZH-KC Set Radiator Valve Target Temperature Based on External Sensor Temperature Difference-Kitchen
   triggers:
   - trigger: state
@@ -1632,6 +1673,8 @@ input_boolean:
   kitchen_auto_off_suspended:
     name: Kitchen Auto Off Suspended
     icon: mdi:timer-sand
+  kitchen_worktop_led_expected_state:
+    name: Kitchen Worktop LED Expected State
   kitchen_tado_heater:
     name: Kitchen Tado Heater
 input_datetime:
@@ -2059,6 +2102,7 @@ group:
     - automation.zr_kc_reconnect_ttlock_when_unavailable_kitchen
     - automation.zr_kc_power_cycle_ttlock_gateway_when_all_entities_unavailable_kitchen
     - automation.zlb_kc_flex_wall_switch_on_postion_2_automatically_turn_on_the_wall_switch_back_when_turned_off_kitchen
+    - automation.zr_kc_reload_tuya_integration_when_kitchen_worktop_led_state_does_not_update_kitchen
     - automation.zh_kc_set_radiator_valve_target_temperature_based_on_external_sensor_temperature_difference_kitchen
     - automation.zl_kc_curtain_states_when_no_person_present_kitchen
     - automation.zl_kc_lights_on_if_entering_to_room_kitchen

@@ -107,6 +107,47 @@ automation:
       device_id: b1eb8398e1689392f398854c65d5bb37
   - delay: 01:00:00
   id: automation.zr_st_reconnect_e14w_1_when_unavailable_study
+- alias: ZR-ST Reload Tuya Integration When E14W_1 State Does Not Update-Study
+  triggers:
+  - trigger: event
+    event_type: call_service
+  conditions:
+  - condition: template
+    value_template: '{% set service_data = trigger.event.data.service_data | default({}) %}{% set raw_entity_ids = service_data.entity_id | default([]) %}{% set entity_ids = [raw_entity_ids] if raw_entity_ids is string else raw_entity_ids %}{{ trigger.event.data.domain in [''light'', ''homeassistant''] and trigger.event.data.service in [''turn_on'', ''turn_off'', ''toggle''] and ''light.e14w_1_tuya'' in entity_ids }}'
+  actions:
+  - variables:
+      tuya_light_entity: light.e14w_1_tuya
+      tuya_expected_state_entity: input_boolean.e14w_1_expected_state
+      tuya_command: '{{ trigger.event.data.service }}'
+  - if:
+    - condition: template
+      value_template: '{{ tuya_command == ''turn_on'' }}'
+    then:
+    - action: input_boolean.turn_on
+      target:
+        entity_id: input_boolean.e14w_1_expected_state
+    else:
+    - if:
+      - condition: template
+        value_template: '{{ tuya_command == ''turn_off'' }}'
+      then:
+      - action: input_boolean.turn_off
+        target:
+          entity_id: input_boolean.e14w_1_expected_state
+      else:
+      - action: input_boolean.toggle
+        target:
+          entity_id: input_boolean.e14w_1_expected_state
+  - delay: 00:00:20
+  - if:
+    - condition: template
+      value_template: '{{ states(tuya_light_entity) != states(tuya_expected_state_entity) }}'
+    then:
+    - action: homeassistant.reload_config_entry
+      data:
+        entry_id: 01JS6QRKXS455JGC1YW30ZC9W5
+  mode: restart
+  id: automation.zr_st_reload_tuya_integration_when_e14w_1_state_does_not_update_study
 - alias: ZR-ST Reconnect E14W_2 When unavailable-Study
   triggers:
   - trigger: state
@@ -119,6 +160,47 @@ automation:
       device_id: 0aa94946c833610ac68d26fbf53c20fe
   - delay: 01:00:00
   id: automation.zr_st_reconnect_e14w_2_when_unavailable_study
+- alias: ZR-ST Reload Tuya Integration When E14W_2 State Does Not Update-Study
+  triggers:
+  - trigger: event
+    event_type: call_service
+  conditions:
+  - condition: template
+    value_template: '{% set service_data = trigger.event.data.service_data | default({}) %}{% set raw_entity_ids = service_data.entity_id | default([]) %}{% set entity_ids = [raw_entity_ids] if raw_entity_ids is string else raw_entity_ids %}{{ trigger.event.data.domain in [''light'', ''homeassistant''] and trigger.event.data.service in [''turn_on'', ''turn_off'', ''toggle''] and ''light.e14w_2_tuya'' in entity_ids }}'
+  actions:
+  - variables:
+      tuya_light_entity: light.e14w_2_tuya
+      tuya_expected_state_entity: input_boolean.e14w_2_expected_state
+      tuya_command: '{{ trigger.event.data.service }}'
+  - if:
+    - condition: template
+      value_template: '{{ tuya_command == ''turn_on'' }}'
+    then:
+    - action: input_boolean.turn_on
+      target:
+        entity_id: input_boolean.e14w_2_expected_state
+    else:
+    - if:
+      - condition: template
+        value_template: '{{ tuya_command == ''turn_off'' }}'
+      then:
+      - action: input_boolean.turn_off
+        target:
+          entity_id: input_boolean.e14w_2_expected_state
+      else:
+      - action: input_boolean.toggle
+        target:
+          entity_id: input_boolean.e14w_2_expected_state
+  - delay: 00:00:20
+  - if:
+    - condition: template
+      value_template: '{{ states(tuya_light_entity) != states(tuya_expected_state_entity) }}'
+    then:
+    - action: homeassistant.reload_config_entry
+      data:
+        entry_id: 01JS6QRKXS455JGC1YW30ZC9W5
+  mode: restart
+  id: automation.zr_st_reload_tuya_integration_when_e14w_2_state_does_not_update_study
 - alias: ZL-ST Curtain States When No Person Present-Study
   id: automation.zl_st_curtain_states_when_no_person_present_study
   trigger:
@@ -2407,6 +2489,10 @@ input_boolean:
     icon: mdi:timer-sand
   study_tado_heater:
     name: Study Tado Heater
+  e14w_1_expected_state:
+    name: E14W_1 Expected State
+  e14w_2_expected_state:
+    name: E14W_2 Expected State
 input_datetime:
   noon_time_study:
     name: Noon Time Study

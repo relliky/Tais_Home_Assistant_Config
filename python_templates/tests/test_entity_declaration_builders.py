@@ -147,6 +147,63 @@ class EntityDeclarationBuildersTest(unittest.TestCase):
             },
         )
 
+    def test_tuya_light_reload_when_state_does_not_update(self):
+        automation = entity_declaration_builders.tuya_light_reload_when_state_does_not_update(
+            entity_id="light.test_tuya",
+            name="Test Tuya",
+            automation_room_name="TR ",
+            room_name="Test Room",
+            reload_config_entry_id="config-entry-123",
+            expected_state_entity_id="input_boolean.test_tuya_expected_state",
+        )
+
+        self.assertEqual(
+            automation["alias"],
+            "ZR-TR Reload Tuya Integration When Test Tuya State Does Not Update-Test Room",
+        )
+        self.assertEqual(automation["mode"], "restart")
+        self.assertEqual(
+            automation["triggers"],
+            [{"trigger": "event", "event_type": "call_service"}],
+        )
+        condition_template = automation["conditions"][0]["value_template"]
+        self.assertIn("trigger.event.data.domain in ['light', 'homeassistant']", condition_template)
+        self.assertIn("trigger.event.data.service in ['turn_on', 'turn_off', 'toggle']", condition_template)
+        self.assertIn("'light.test_tuya' in entity_ids", condition_template)
+        self.assertEqual(
+            automation["actions"][0]["variables"],
+            {
+                "tuya_light_entity": "light.test_tuya",
+                "tuya_expected_state_entity": "input_boolean.test_tuya_expected_state",
+                "tuya_command": "{{ trigger.event.data.service }}",
+            },
+        )
+        expected_state_update = automation["actions"][1]
+        self.assertEqual(
+            expected_state_update["then"],
+            [{"action": "input_boolean.turn_on", "target": {"entity_id": "input_boolean.test_tuya_expected_state"}}],
+        )
+        self.assertEqual(
+            expected_state_update["else"][0]["then"],
+            [{"action": "input_boolean.turn_off", "target": {"entity_id": "input_boolean.test_tuya_expected_state"}}],
+        )
+        self.assertEqual(
+            expected_state_update["else"][0]["else"],
+            [{"action": "input_boolean.toggle", "target": {"entity_id": "input_boolean.test_tuya_expected_state"}}],
+        )
+        self.assertEqual(automation["actions"][2], {"delay": "00:00:20"})
+        stale_template = automation["actions"][3]["if"][0]["value_template"]
+        self.assertIn("states(tuya_light_entity) != states(tuya_expected_state_entity)", stale_template)
+        self.assertEqual(
+            automation["actions"][3]["then"],
+            [
+                {
+                    "action": "homeassistant.reload_config_entry",
+                    "data": {"entry_id": "config-entry-123"},
+                }
+            ],
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

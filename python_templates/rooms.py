@@ -499,6 +499,7 @@ def define_room_classes(RoomBase):
       #self.add_device("kitchen_dining_light_yeelight",              self.room_name + " Dining Light", 'Light',              "Generic Light") # Yeelight - go offline when device is roaming to another AP
       #self.add_device("kitchen_tv_led_magic_home",                  self.room_name + " TV LED",       'Light',              "Generic Light")
       self.add_device("kitchen_worktop_led_tuya",                   self.room_name + " Worktop LED",  'Light',              "Generic Light")
+      self.add_automation('light.kitchen_worktop_led_tuya', 'Kitchen Worktop LED', 'Tuya Light Reload When State Does Not Update', reload_config_entry_id='01JS6QRKXS455JGC1YW30ZC9W5')
       #self.add_device("18c23c2caa33_water_leak",                    self.room_name + " Water Sensor", 'Water Sensor',       "Generic Binary Sensor")
   
       self.add_device("lumi_cn_blt_3_1h1quuv4s4g00_bmcn01_submersion_state_p_2_1",   self.room_name + " Water Leak Sensor",         'Leak Sensor',       "Generic Binary Sensor")
@@ -1455,10 +1456,12 @@ def define_room_classes(RoomBase):
       self.add_device("e14w_2_tuya",                self.room_name + ' Lamp 2',         'Light',              "Generic Light")
       self.add_device("50ec50df0a79_light",         self.room_name + ' Lamp 3',         'Light',              "Generic Light")
       self.add_automation('light.e14w_1_tuya', 'E14W_1', "Wifi Device Reconnect When Unavailable", unavailable_period='00:02:00', unavailable_device_id='b1eb8398e1689392f398854c65d5bb37')
+      self.add_automation('light.e14w_1_tuya', 'E14W_1', 'Tuya Light Reload When State Does Not Update', reload_config_entry_id='01JS6QRKXS455JGC1YW30ZC9W5')
       self.add_automation('light.e14w_2_tuya', 'E14W_2', "Wifi Device Reconnect When Unavailable", unavailable_period='00:02:00', unavailable_device_id='0aa94946c833610ac68d26fbf53c20fe')
-  
-  
-  
+      self.add_automation('light.e14w_2_tuya', 'E14W_2', 'Tuya Light Reload When State Does Not Update', reload_config_entry_id='01JS6QRKXS455JGC1YW30ZC9W5')
+
+
+
     def get_light_entities(self):
       super().get_light_entities()
       self.lamps                   = ["light.study_lamp_1",
