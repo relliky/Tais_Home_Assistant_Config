@@ -1434,6 +1434,7 @@ def define_room_classes(RoomBase):
   
       #self.add_device("mss210_b083_outlet",         self.room_name + ' Studio Lamp 1',  'Switch',             "Generic Switch")
       self.add_device('lumi_cn_blt_3_1ev0s1bp0c400_mcn001',  self.room_name + ' Desk',     'Button',          'MiJia Wireless Switch 2', integration='Xiaomi Home')
+      self.add_device('event.de1_cn_blt_3_1q0ubuebd0802_wjwx8_customized_event_5_e_2_1097', self.room_name + ' 8-Key Remote', 'Button', 'DEBROGLIE 8-Key Remote')
   
   
       self.add_device('sonoff_10020aa912_1',        self.room_name + ' Screen Light',   'Switch',             'Generic Switch')

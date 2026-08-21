@@ -442,6 +442,41 @@ class RoomBaseHelpersTest(unittest.TestCase):
             ],
         )
 
+    def test_add_debroglie_8_key_remote(self):
+        room = self.make_device_room()
+        event_entity = "event.de1_cn_blt_3_1q0ubuebd0802_wjwx8_customized_event_5_e_2_1097"
+
+        room.add_device(
+            event_entity,
+            "Study 8-Key Remote",
+            "",
+            "DEBROGLIE 8-Key Remote",
+        )
+
+        expected_attribute_values = [
+            285409536,
+            285409792,
+            285410048,
+            285410304,
+            285410560,
+            285410816,
+            285411072,
+            285411328,
+        ]
+        self.assertEqual(len(room.template_list), 8)
+        for button_index, (declaration, attribute_value) in enumerate(
+            zip(room.template_list, expected_attribute_values), start=1
+        ):
+            self.assertEqual(declaration["trigger"][0]["entity_id"], event_entity)
+            self.assertEqual(
+                declaration["binary_sensor"][0]["name"],
+                f"Study 8-Key Remote Button {button_index} Single Click",
+            )
+            self.assertEqual(
+                declaration["binary_sensor"][0]["state"],
+                f"{{{{ trigger.to_state.attributes['Customized Event 5'] == {attribute_value} }}}}",
+            )
+
     def test_add_generic_binary_sensor(self):
         room = self.make_device_room()
 

@@ -857,7 +857,8 @@ class RoomBase:
          (model == "MiJia Wireless Switch 2") or \
          (model == "Aqara Opple switch 3 bands") or \
          (model == 'Linptech KS1 4-Key Button') or \
-         (model == 'Yeelight 6 Key Remote')):
+         (model == 'Yeelight 6 Key Remote') or \
+         (model == 'DEBROGLIE 8-Key Remote')):
 
       battery_postfix = ''
       if model == 'Linptech KS1 4-Key Button':
@@ -944,6 +945,24 @@ class RoomBase:
             "mode":"queued", # this has to be queued to make sure no button press is ignored
             "action": self.get_trigger_action_list()
         }]
+
+      elif model == 'DEBROGLIE 8-Key Remote':
+        for button_index, attribute_value in enumerate([
+            285409536,
+            285409792,
+            285410048,
+            285410304,
+            285410560,
+            285410816,
+            285411072,
+            285411328,
+        ], start=1):
+          self.add_event_binary_sensor(
+            mac,
+            name + f' Button {button_index} Single Click' + name_postfix,
+            attribute_name='Customized Event 5',
+            attribute_value=attribute_value,
+          )
 
       elif ((model == "MiJia Wireless Switch") or (model == "MiJia Wireless Switch 2")) and integration == 'Xiaomi Home':
 
