@@ -445,21 +445,31 @@ def define_room_classes(RoomBase):
         f"binary_sensor.{self.room_entity}_dining_table_motion_sensor_motion",
       ] + ([f"binary_sensor.{self.room_entity}_table_xiaomi_home_occupancy_sensor_occupancy"] if self.xiaomi_home_occupancy else []) \
         + ([f"binary_sensor.{self.room_entity}_table_occupancy_sensor_occupancy"]             if self.gateway_occupancy     else [])
-  
+
       self.inside_to_outside_timeout = 2*60
-  
+
     def get_entity_declarations(self):
       super().get_entity_declarations()
-  
+
       self.add_device('ttlock_front_door',              "Front Door",                'Lock',     'Generic Locks')
       self.add_device('ttlock_front_door_battery',      "Front Door Lock Battery",   'Battery',  'Generic Battery')
       self.add_device('e4aaec80bc25',                   "Front Door",                'Door',     'Mijia2 Contact')
-  
+      self.add_device('sonoff_1001e49ade_1',            "TTlock Gateway Power Switch", 'Switch',  'Generic Switch')
+
       #self.add_device('x1_battery_2',                               "Vaccum Online State",            'Vaccum Battery',      'Generic Battery')
       self.gui_ctl_entity_list += ['sensor.x1_battery_2'] # add to GUI
+      self.gui_ctl_entity_list += ['switch.ttlock_gateway_power_switch'] # add to GUI
       self.add_automation('vacuum.x1',       'Vacuum Robot',   "Wifi Device Reconnect When Unavailable", unavailable_period='00:03:00', unavailable_device_id='f666003acf32413fb68e8f56007ceaf9')
       self.add_automation('lock.front_door', 'TTLock',         "Wifi Device Reconnect When Unavailable", unavailable_period='00:03:00', unavailable_device_id='7a2c07d362d6bb09ff3edad7ffe37d7a')
-  
+      self.add_automation(
+        ['lock.ttlock_front_door', 'sensor.ttlock_front_door_battery', 'binary_sensor.front_door_passage_mode'],
+        'TTLock',
+        "Power Cycle Switch When Entities All Unavailable",
+        unavailable_period='00:03:00',
+        power_switch_entity_id='switch.sonoff_1001e49ade_1',
+        reload_config_entry_id='01K9YNCWX93AFG4DRYG4BAE7TF'
+      )
+
       self.add_device("582d34828f85",                               self.room_name,                   'Temperature Sensor', "Qingping Lite Temperature Sensor")
       #self.add_device("a4c1380e91a7",                               self.room_name,                   'Temperature Sensor', "Mijia2 Temperature Sensor")
       self.add_device("curtain_50",                                 self.room_name + " Curtain",      'Curtain',            "Generic Curtain") # Switchbot Matter

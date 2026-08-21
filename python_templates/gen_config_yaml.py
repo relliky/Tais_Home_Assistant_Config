@@ -407,7 +407,7 @@ class RoomBase:
         error("group_entity_type " + group_entity_type + " is not supported yet")
 
 
-  def add_automation(self, entity_id, name, automation_type, unavailable_period='00:00:30', unavailable_device_id=None, device_id=None):
+  def add_automation(self, entity_id, name, automation_type, unavailable_period='00:00:30', unavailable_device_id=None, device_id=None, power_switch_entity_id=None, reload_config_entry_id=None):
     if(automation_type == "Wifi Device Reconnect When Unavailable" ):
         self.automation_list += [
           entity_declaration_builders.wifi_reconnect_automation(
@@ -419,8 +419,20 @@ class RoomBase:
             unavailable_device_id=unavailable_device_id
           )
         ]
+    elif(automation_type == "Power Cycle Switch When Entities All Unavailable" ):
+        self.automation_list += [
+          entity_declaration_builders.power_cycle_switch_when_entities_all_unavailable(
+            entity_ids=entity_id,
+            name=name,
+            automation_room_name=self.automation_room_name,
+            room_name=self.room_name,
+            unavailable_period=unavailable_period,
+            power_switch_entity_id=power_switch_entity_id,
+            reload_config_entry_id=reload_config_entry_id
+          )
+        ]
     else:
-      error("Automation_type '" + automation_type + "' is not supported. Name = '" + name + "', entity_id:'" + entity_id + "'\n")
+      error("Automation_type '" + automation_type + "' is not supported. Name = '" + name + "', entity_id:'" + str(entity_id) + "'\n")
 
 
   def get_switch_entity(self, mac):

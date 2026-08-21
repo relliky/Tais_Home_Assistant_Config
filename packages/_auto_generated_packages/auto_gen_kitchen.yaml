@@ -54,6 +54,50 @@ automation:
       device_id: 7a2c07d362d6bb09ff3edad7ffe37d7a
   - delay: 01:00:00
   id: automation.zr_kc_reconnect_ttlock_when_unavailable_kitchen
+- alias: ZR-KC Power Cycle TTLock Gateway When All Entities unavailable-Kitchen
+  triggers:
+  - trigger: state
+    entity_id:
+    - lock.ttlock_front_door
+    - sensor.ttlock_front_door_battery
+    - binary_sensor.front_door_passage_mode
+    to: unavailable
+    for: 00:03:00
+    id: entities_unavailable
+  - trigger: homeassistant
+    event: start
+    id: homeassistant_start
+  actions:
+  - if:
+    - condition: trigger
+      id: homeassistant_start
+    then:
+    - delay: 00:05:00
+  - condition: state
+    entity_id: lock.ttlock_front_door
+    state: unavailable
+    for: 00:03:00
+  - condition: state
+    entity_id: sensor.ttlock_front_door_battery
+    state: unavailable
+    for: 00:03:00
+  - condition: state
+    entity_id: binary_sensor.front_door_passage_mode
+    state: unavailable
+    for: 00:03:00
+  - action: switch.turn_off
+    target:
+      entity_id: switch.sonoff_1001e49ade_1
+  - delay: 00:00:02
+  - action: switch.turn_on
+    target:
+      entity_id: switch.sonoff_1001e49ade_1
+  - delay: 00:00:30
+  - action: homeassistant.reload_config_entry
+    data:
+      entry_id: 01K9YNCWX93AFG4DRYG4BAE7TF
+  mode: single
+  id: automation.zr_kc_power_cycle_ttlock_gateway_when_all_entities_unavailable_kitchen
 - alias: ZLB-KC Flex Wall Switch On Postion 2- Automatically Turn on the Wall Switch Back When Turned Off -Kitchen
   trigger:
   - platform: state
@@ -1727,6 +1771,9 @@ timer:
 button: []
 switch:
 - platform: group
+  name: TTlock Gateway Power Switch
+  entities: switch.sonoff_1001e49ade_1
+- platform: group
   name: Kitchen Extractor Wall Switch 1
   entities: switch.0x00158d0005210fa9_channel_1
 - platform: group
@@ -1889,9 +1936,9 @@ template:
     state: '{% set climate = "climate.tado_smart_radiator_thermostat_va3767669760" %}{% if states(climate) == "unavailable" or states(climate) == "off" or (state_attr(climate, "temperature") <= state_attr(climate, "current_temperature"))  %}off{% else %} on{% endif %}'
 - binary_sensor:
   - name: Kitchen Unavailable Entities
-    state: '{% set added_device_entities =  [''sensor.front_door_lock_battery'', ''sensor.front_door_battery'', ''sensor.kitchen_temperature_sensor'', ''sensor.kitchen_temperature_sensor_battery'', ''sensor.kitchen_humidity_sensor'', ''sensor.kitchen_extractor_wall_button'', ''sensor.kitchen_wall_button'', ''binary_sensor.rice_cooker_power'', ''binary_sensor.plate_warmer_power'', ''binary_sensor.baby_food_cooker_power'', ''binary_sensor.washing_machine_power'', ''binary_sensor.dish_washer_power'', ''sensor.kitchen_dining_motion_sensor_battery'', ''sensor.kitchen_worktop_motion_sensor_battery'', ''binary_sensor.kitchen_table_occupancy_sensor_occupancy'', ''sensor.kitchen_table_occupancy_sensor_battery'', ''sensor.kitchen_window_battery'', ''sensor.kitchen_water_leak_sensor_battery'', ''sensor.kitchen_tado_availiabity'', ''binary_sensor.kitchen_heating_required'', ''binary_sensor.front_door'', ''binary_sensor.kitchen_dining_motion_sensor_motion'', ''binary_sensor.kitchen_worktop_motion_sensor_motion'', ''binary_sensor.kitchen_window'', ''binary_sensor.kitchen_water_leak_sensor'', ''switch.kitchen_extractor_wall_switch_1'', ''switch.kitchen_extractor_wall_switch_2'', ''switch.kitchen_extractor'', ''switch.kitchen_wall_switch_1'', ''switch.kitchen_wall_switch_2'', ''switch.kitchen_wall_switch_3'', ''switch.kitchen_floor_led'', ''switch.rice_cooker_switch'', ''switch.plate_warmer_switch'', ''switch.baby_food_cooker_switch'', ''cover.kitchen_curtain'', ''lock.front_door'', ''light.kitchen_ceiling_light'', ''light.kitchen_dining_light'', ''light.kitchen_worktop_led''] %}{% set ns = namespace() %}{% set ns.num_unavail_devices = 0 %}{% for device in added_device_entities %}   {% if states(device) in [''unavailable'', ''unknown'', ''none''] %}      {% set ns.num_unavail_devices = ns.num_unavail_devices + 1 %}   {% endif %}{% endfor %}{% if ns.num_unavail_devices > 0%}  on  {% else %}  off {% endif %}'
+    state: '{% set added_device_entities =  [''sensor.front_door_lock_battery'', ''sensor.front_door_battery'', ''sensor.kitchen_temperature_sensor'', ''sensor.kitchen_temperature_sensor_battery'', ''sensor.kitchen_humidity_sensor'', ''sensor.kitchen_extractor_wall_button'', ''sensor.kitchen_wall_button'', ''binary_sensor.rice_cooker_power'', ''binary_sensor.plate_warmer_power'', ''binary_sensor.baby_food_cooker_power'', ''binary_sensor.washing_machine_power'', ''binary_sensor.dish_washer_power'', ''sensor.kitchen_dining_motion_sensor_battery'', ''sensor.kitchen_worktop_motion_sensor_battery'', ''binary_sensor.kitchen_table_occupancy_sensor_occupancy'', ''sensor.kitchen_table_occupancy_sensor_battery'', ''sensor.kitchen_window_battery'', ''sensor.kitchen_water_leak_sensor_battery'', ''sensor.kitchen_tado_availiabity'', ''binary_sensor.kitchen_heating_required'', ''binary_sensor.front_door'', ''binary_sensor.kitchen_dining_motion_sensor_motion'', ''binary_sensor.kitchen_worktop_motion_sensor_motion'', ''binary_sensor.kitchen_window'', ''binary_sensor.kitchen_water_leak_sensor'', ''switch.ttlock_gateway_power_switch'', ''switch.kitchen_extractor_wall_switch_1'', ''switch.kitchen_extractor_wall_switch_2'', ''switch.kitchen_extractor'', ''switch.kitchen_wall_switch_1'', ''switch.kitchen_wall_switch_2'', ''switch.kitchen_wall_switch_3'', ''switch.kitchen_floor_led'', ''switch.rice_cooker_switch'', ''switch.plate_warmer_switch'', ''switch.baby_food_cooker_switch'', ''cover.kitchen_curtain'', ''lock.front_door'', ''light.kitchen_ceiling_light'', ''light.kitchen_dining_light'', ''light.kitchen_worktop_led''] %}{% set ns = namespace() %}{% set ns.num_unavail_devices = 0 %}{% for device in added_device_entities %}   {% if states(device) in [''unavailable'', ''unknown'', ''none''] %}      {% set ns.num_unavail_devices = ns.num_unavail_devices + 1 %}   {% endif %}{% endfor %}{% if ns.num_unavail_devices > 0%}  on  {% else %}  off {% endif %}'
     attributes:
-      value: '{% set added_device_entities =  [''sensor.front_door_lock_battery'', ''sensor.front_door_battery'', ''sensor.kitchen_temperature_sensor'', ''sensor.kitchen_temperature_sensor_battery'', ''sensor.kitchen_humidity_sensor'', ''sensor.kitchen_extractor_wall_button'', ''sensor.kitchen_wall_button'', ''binary_sensor.rice_cooker_power'', ''binary_sensor.plate_warmer_power'', ''binary_sensor.baby_food_cooker_power'', ''binary_sensor.washing_machine_power'', ''binary_sensor.dish_washer_power'', ''sensor.kitchen_dining_motion_sensor_battery'', ''sensor.kitchen_worktop_motion_sensor_battery'', ''binary_sensor.kitchen_table_occupancy_sensor_occupancy'', ''sensor.kitchen_table_occupancy_sensor_battery'', ''sensor.kitchen_window_battery'', ''sensor.kitchen_water_leak_sensor_battery'', ''sensor.kitchen_tado_availiabity'', ''binary_sensor.kitchen_heating_required'', ''binary_sensor.front_door'', ''binary_sensor.kitchen_dining_motion_sensor_motion'', ''binary_sensor.kitchen_worktop_motion_sensor_motion'', ''binary_sensor.kitchen_window'', ''binary_sensor.kitchen_water_leak_sensor'', ''switch.kitchen_extractor_wall_switch_1'', ''switch.kitchen_extractor_wall_switch_2'', ''switch.kitchen_extractor'', ''switch.kitchen_wall_switch_1'', ''switch.kitchen_wall_switch_2'', ''switch.kitchen_wall_switch_3'', ''switch.kitchen_floor_led'', ''switch.rice_cooker_switch'', ''switch.plate_warmer_switch'', ''switch.baby_food_cooker_switch'', ''cover.kitchen_curtain'', ''lock.front_door'', ''light.kitchen_ceiling_light'', ''light.kitchen_dining_light'', ''light.kitchen_worktop_led''] %}{% set ns = namespace() %}{% set ns.unavail_devices = '''' %}{% for device in added_device_entities %}   {% if states(device) in [''unavailable'', ''unknown'', ''none''] %}   {% set ns.unavail_devices = ns.unavail_devices + ''
+      value: '{% set added_device_entities =  [''sensor.front_door_lock_battery'', ''sensor.front_door_battery'', ''sensor.kitchen_temperature_sensor'', ''sensor.kitchen_temperature_sensor_battery'', ''sensor.kitchen_humidity_sensor'', ''sensor.kitchen_extractor_wall_button'', ''sensor.kitchen_wall_button'', ''binary_sensor.rice_cooker_power'', ''binary_sensor.plate_warmer_power'', ''binary_sensor.baby_food_cooker_power'', ''binary_sensor.washing_machine_power'', ''binary_sensor.dish_washer_power'', ''sensor.kitchen_dining_motion_sensor_battery'', ''sensor.kitchen_worktop_motion_sensor_battery'', ''binary_sensor.kitchen_table_occupancy_sensor_occupancy'', ''sensor.kitchen_table_occupancy_sensor_battery'', ''sensor.kitchen_window_battery'', ''sensor.kitchen_water_leak_sensor_battery'', ''sensor.kitchen_tado_availiabity'', ''binary_sensor.kitchen_heating_required'', ''binary_sensor.front_door'', ''binary_sensor.kitchen_dining_motion_sensor_motion'', ''binary_sensor.kitchen_worktop_motion_sensor_motion'', ''binary_sensor.kitchen_window'', ''binary_sensor.kitchen_water_leak_sensor'', ''switch.ttlock_gateway_power_switch'', ''switch.kitchen_extractor_wall_switch_1'', ''switch.kitchen_extractor_wall_switch_2'', ''switch.kitchen_extractor'', ''switch.kitchen_wall_switch_1'', ''switch.kitchen_wall_switch_2'', ''switch.kitchen_wall_switch_3'', ''switch.kitchen_floor_led'', ''switch.rice_cooker_switch'', ''switch.plate_warmer_switch'', ''switch.baby_food_cooker_switch'', ''cover.kitchen_curtain'', ''lock.front_door'', ''light.kitchen_ceiling_light'', ''light.kitchen_dining_light'', ''light.kitchen_worktop_led''] %}{% set ns = namespace() %}{% set ns.unavail_devices = '''' %}{% for device in added_device_entities %}   {% if states(device) in [''unavailable'', ''unknown'', ''none''] %}   {% set ns.unavail_devices = ns.unavail_devices + ''
 
         '' +device %} {% endif %}{% endfor %}{{ns.unavail_devices}}'
 - binary_sensor:
@@ -1993,6 +2040,7 @@ group:
     - input_number.intensity_threshold_moderate_light_outdoor_kitchen
     - sensor.master_room_light_intensity
     - sensor.x1_battery_2
+    - switch.ttlock_gateway_power_switch
     - climate.tado_smart_radiator_thermostat_va3767669760
     - binary_sensor.kitchen_heating_required
     - input_boolean.ceiling_light_control_intense_light_summer_kitchen
@@ -2009,6 +2057,7 @@ group:
     - input_boolean.curtain_control_sleep_mode_kitchen
     - automation.zr_kc_reconnect_vacuum_robot_when_unavailable_kitchen
     - automation.zr_kc_reconnect_ttlock_when_unavailable_kitchen
+    - automation.zr_kc_power_cycle_ttlock_gateway_when_all_entities_unavailable_kitchen
     - automation.zlb_kc_flex_wall_switch_on_postion_2_automatically_turn_on_the_wall_switch_back_when_turned_off_kitchen
     - automation.zh_kc_set_radiator_valve_target_temperature_based_on_external_sensor_temperature_difference_kitchen
     - automation.zl_kc_curtain_states_when_no_person_present_kitchen
