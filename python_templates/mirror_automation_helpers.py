@@ -26,7 +26,7 @@ def mirror_sensor_on_automation(
       { "service": "light.turn_on",
         "target":  {"entity_id": ceiling_lights},
         "data":    {"brightness_pct": 100,
-                    "kelvin": 6500}
+                    "color_temp_kelvin": 6500}
       }
     ]
   }

@@ -41,7 +41,7 @@ class MirrorAutomationHelpersTest(unittest.TestCase):
                     {
                         "service": "light.turn_on",
                         "target": {"entity_id": ["light.kitchen_ceiling"]},
-                        "data": {"brightness_pct": 100, "kelvin": 6500},
+                        "data": {"brightness_pct": 100, "color_temp_kelvin": 6500},
                     },
                 ],
             },

@@ -226,7 +226,7 @@ class LightActionHelpersTest(unittest.TestCase):
                         {
                             "service": "light.turn_on",
                             "entity_id": ["light.kitchen_ceiling"],
-                            "data": {"kelvin": "3000"},
+                            "data": {"color_temp_kelvin": "3000"},
                         },
                         {"delay": "00:00:02"},
                         {

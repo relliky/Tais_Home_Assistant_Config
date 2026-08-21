@@ -102,7 +102,7 @@ def reset_lights_to_white_sequence(lamps, lights_only_entity_list, continue_if):
      {"if": continue_if(lights_only_entity_list, 'color_temp', attribute='color_mode'),
        "then": {"service": "script.do_nothing"},
        "else":[
-           {"service": "light.turn_on",  "entity_id": lights_only_entity_list, "data": {"kelvin": "3000"}},
+           {"service": "light.turn_on",  "entity_id": lights_only_entity_list, "data": {"color_temp_kelvin": "3000"}},
            {"delay"  : "00:00:02"},
            {"service": "light.turn_off", "entity_id": lights_only_entity_list},
            {"delay"  : "00:00:02"},

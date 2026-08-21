@@ -746,13 +746,14 @@ def define_room_classes(RoomBase):
       ] + ([f"binary_sensor.{self.room_entity}_sofa_xiaomi_home_occupancy_sensor_occupancy"] if self.xiaomi_home_occupancy else []) \
         + ([f"binary_sensor.{self.room_entity}_sofa_occupancy_sensor_occupancy"]             if self.gateway_occupancy     else [])
   
-      self.entrance_motion_sensors = [
+      self.entrance_motion_sensors_no_door = [
         f"binary_sensor.{self.room_entity}_entrance_motion_sensor_motion",
-        f"binary_sensor.{self.room_entity}_sliding_door"
       ] + ([f"binary_sensor.{self.room_entity}_tv_xiaomi_home_occupancy_sensor_occupancy"]   if self.xiaomi_home_occupancy else []) \
         + ([f"binary_sensor.{self.room_entity}_tv_occupancy_sensor_occupancy"]               if self.gateway_occupancy     else [])
   
-      self.all_motion_sensors = self.other_motion_sensors + self.entrance_motion_sensors
+      self.all_motion_sensors = self.other_motion_sensors + self.entrance_motion_sensors_no_door
+
+      self.entrance_motion_sensors = self.entrance_motion_sensors_no_door + [f"binary_sensor.{self.room_entity}_sliding_door"]
   
       self.inside_to_outside_timeout = 2*60
       self.sleep_to_outside_timeout  = 3*60
@@ -996,10 +997,10 @@ def define_room_classes(RoomBase):
       self.add_device("en_suite_room_ceiling_light_hue", self.room_name + " Ceiling Light",    'Light',               "Generic Light")
       self.add_device("en_suite_room_bed_led_magic_home", self.room_name + " Bed LED",         'Light',               "Generic Light")
       self.add_device('va1167266816',                    self.room_name,                       'Raditor',             'Tado Homekit')
-      self.add_device('cxw_cn_blt_3_1hku51pm4ck00_ble006_battery_level_p_7_1003',
-                                                         self.room_name + " Eight Button 1 Battery",   'Battery',  'Generic Battery')
-      self.add_device('cxw_cn_blt_3_1hku3hs9sc800_ble006_battery_level_p_7_1003',
-                                                          self.room_name + " Eight Button 2 Battery",   'Battery',  'Generic Battery')
+      #self.add_device('cxw_cn_blt_3_1hku51pm4ck00_ble006_battery_level_p_7_1003',
+      #                                                   self.room_name + " Eight Button 1 Battery",   'Battery',  'Generic Battery')
+      #self.add_device('cxw_cn_blt_3_1hku3hs9sc800_ble006_battery_level_p_7_1003',
+      #                                                    self.room_name + " Eight Button 2 Battery",   'Battery',  'Generic Battery')
   
       self.add_device('linp_cn_blt_3_1oquqak3cc801_ks1bp', self.room_name +' 4 Key',                    'Button', 'Linptech KS1 4-Key Button', integration='Xiaomi Home')
       self.add_device('line_cn_1195312213_fms5s_battery_level_p_5_1003', self.room_name + ' Lock Battery', 'Battery',            'Generic Battery')
@@ -1287,7 +1288,9 @@ def define_room_classes(RoomBase):
       self.all_motion_sensors = [
         "binary_sensor.guest_toilet_entrance_motion_sensor_motion",
         "binary_sensor.guest_toilet_shower_motion_sensor_motion",
-      ]
+      ] + ([f"binary_sensor.{self.room_entity}_basin_xiaomi_home_occupancy_sensor_occupancy"] if self.xiaomi_home_occupancy else []) \
+
+      self.inside_to_outside_timeout = 1*30 # 30s timeout for Linptech ES5
   
     def get_light_entities(self):
       super().get_light_entities()
@@ -1314,9 +1317,10 @@ def define_room_classes(RoomBase):
       self.add_device('0x00158d0008d94c10',             self.room_name + ' Extractor',     'Wall Switch',        'Aqara D1 Wall Switch (With Neutral, Single Rocker)', switch_rename_dir={1: 'Guest Toilet Extractor'})
       self.add_device('54ef44e3237b',                   self.room_name + ' Shower',        'Motion Sensor',      'Mijia Motion Sensor 2')
       self.add_device('e0798dba988e',                   self.room_name + ' Entrance',      'Motion Sensor',      'Mijia Motion Sensor 2')
+      self.add_device("linp_cn_blt_3_1o9qflh9sc001_es5b",  self.room_name + ' Basin Xiaomi Home',  'Motion Sensor',      "Linptech Occupancy Sensor ES5", integration='Xiaomi Home') # xiaomi home has more accurate states than gw3
       #self.add_device('0x00158d00052b35f7',             self.room_name,                    'Motion Sensor',      'Aqara Motion and Illuminance Sensor', integration='Xiaomi Home')
   
-      self.add_device('0x04cf8cdf3c7cafdc',             self.room_name + ' Mirror Sensor', 'Light Sensor',       'Xiaomi Light Detection Sensor To Mirror Sensor')
+      #self.add_device('0x04cf8cdf3c7cafdc',             self.room_name + ' Mirror Sensor', 'Light Sensor',       'Xiaomi Light Detection Sensor To Mirror Sensor')
       self.add_device('va0781390848',                   self.room_name,                    'Raditor',            'Tado Homekit')
       self.add_device("switchbot_finger_robot",         self.room_name + " Air Refresher", 'Button',             "Generic Button")
   
