@@ -1,3 +1,7 @@
+input_boolean:
+  attempted_locking_garden_door:
+    name: Attempted Locking Garden Door
+
 script:
   notify_if_garden_lock_is_jammed:
     alias: Notify if garden lock Is Jammed
@@ -88,6 +92,18 @@ automation garden_door:
       target:
         entity_id: lock.garden_door_lock
     - action: script.notify_if_garden_lock_is_jammed
+  mode: restart
+
+- alias: D-LR Reset Attempted Locking Garden Door When Sliding Door Changes - Living Room
+  id: fdasjiogjewobnrjeioafjewaiofasdr4302fjerjafovjdsi-reset-attempted-garden-lock
+  description: ""
+  triggers:
+    - trigger: state
+      entity_id: binary_sensor.living_room_sliding_door
+  actions:
+    - action: input_boolean.turn_off
+      target:
+        entity_id: input_boolean.attempted_locking_garden_door
   mode: restart
 
 - alias: D-LR Unlock Garden Door When Confirmed Jammed - Living Room
@@ -182,29 +198,61 @@ automation garden_door:
       entity_id: binary_sensor.living_room_sliding_door
       state: "off"
       for: '00:03:00'
-    - condition: state
-      entity_id: lock.garden_door_lock
-      state: 'unlocked'
-      for: '00:03:00'
+    - condition: template
+      value_template: "{{ not is_state('lock.garden_door_lock', 'locked') }}"
   actions:
-    - parallel:
-      - action: script.flash_room_lights_when_occupied
-        data:
-          room: study
-      #- action: script.flash_room_lights_when_occupied # this is a little bit confusing for tenant if the living room light is flashing when they are in the kitchen, so only flash the room we used for now.
-      #  data:
-      #    room: kitchen
-      - action: script.flash_room_lights_when_occupied
-        data:
-          room: living_room
-      #- action: script.flash_room_lights_when_occupied
-      #  data:
-      #    room: corridor
-      - service: script.notify_alexa_speakers_and_phones
-        data:
-          tts_message: Garden door handle is not lifted up when door is closed. Please lift up the handle to lock the door.
-          notify_tai: "yes"
-          notify_ke: "yes"
+    - choose:
+      - conditions:
+        - condition: state
+          entity_id: input_boolean.attempted_locking_garden_door
+          state: "off"
+        sequence:
+          - action: lock.lock
+            target:
+              entity_id: lock.garden_door_lock
+          - action: input_boolean.turn_on
+            target:
+              entity_id: input_boolean.attempted_locking_garden_door
+          - delay: "00:00:10"
+          - condition: template
+            value_template: "{{ not is_state('lock.garden_door_lock', 'locked') }}"
+          - parallel:
+            - action: script.flash_room_lights_when_occupied
+              data:
+                room: study
+            #- action: script.flash_room_lights_when_occupied # this is a little bit confusing for tenant if the living room light is flashing when they are in the kitchen, so only flash the room we used for now.
+            #  data:
+            #    room: kitchen
+            - action: script.flash_room_lights_when_occupied
+              data:
+                room: living_room
+            #- action: script.flash_room_lights_when_occupied
+            #  data:
+            #    room: corridor
+            - service: script.notify_alexa_speakers_and_phones
+              data:
+                tts_message: Garden door handle is not lifted up when door is closed. Please lift up the handle to lock the door.
+                notify_tai: "yes"
+                notify_ke: "yes"
+      default:
+        - parallel:
+          - action: script.flash_room_lights_when_occupied
+            data:
+              room: study
+          #- action: script.flash_room_lights_when_occupied # this is a little bit confusing for tenant if the living room light is flashing when they are in the kitchen, so only flash the room we used for now.
+          #  data:
+          #    room: kitchen
+          - action: script.flash_room_lights_when_occupied
+            data:
+              room: living_room
+          #- action: script.flash_room_lights_when_occupied
+          #  data:
+          #    room: corridor
+          - service: script.notify_alexa_speakers_and_phones
+            data:
+              tts_message: Garden door handle is not lifted up when door is closed. Please lift up the handle to lock the door.
+              notify_tai: "yes"
+              notify_ke: "yes"
   mode: restart
 
 
