@@ -474,7 +474,7 @@ class RoomBaseHelpersTest(unittest.TestCase):
             )
             self.assertEqual(
                 declaration["binary_sensor"][0]["state"],
-                f"{{{{ trigger.to_state.attributes['Customized Event 5'] == {attribute_value} }}}}",
+                f"{{{{ trigger.to_state.attributes['Customized Argument 5'] == {attribute_value} }}}}",
             )
 
     def test_add_generic_binary_sensor(self):

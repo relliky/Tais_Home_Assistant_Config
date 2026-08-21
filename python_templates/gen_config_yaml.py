@@ -960,7 +960,7 @@ class RoomBase:
           self.add_event_binary_sensor(
             mac,
             name + f' Button {button_index} Single Click' + name_postfix,
-            attribute_name='Customized Event 5',
+            attribute_name='Customized Argument 5',
             attribute_value=attribute_value,
           )
 
