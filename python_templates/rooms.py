@@ -1201,6 +1201,7 @@ def define_room_classes(RoomBase):
                                                       "light.guest_room_lamp_3",
                                                       #"light.guest_room_lamp_4",
                                                       ])
+      self.add_device('event.cddz_cn_blt_3_1q11go7f90k00_cdwx8_customized_event_5_e_2_1097', self.room_name + ' 8-Key Remote', 'Button', 'Jiuhao 8-Key Remote')
       self.add_device('18c23c27fc55',       self.room_name + ' Entrance',      'Motion Sensor',      'Mijia Motion Sensor 2')
       self.add_device("linp_cn_blt_3_1o91vfk5s4402_es5b",  self.room_name + ' Bed Xiaomi Home',  'Motion Sensor',      "Linptech Occupancy Sensor ES5", integration='Xiaomi Home') # xiaomi home has more accurate states than gw3
   

@@ -858,7 +858,8 @@ class RoomBase:
          (model == "Aqara Opple switch 3 bands") or \
          (model == 'Linptech KS1 4-Key Button') or \
          (model == 'Yeelight 6 Key Remote') or \
-         (model == 'DEBROGLIE 8-Key Remote')):
+         (model == 'DEBROGLIE 8-Key Remote') or \
+         (model == 'Jiuhao 8-Key Remote')):
 
       battery_postfix = ''
       if model == 'Linptech KS1 4-Key Button':
@@ -946,23 +947,46 @@ class RoomBase:
             "action": self.get_trigger_action_list()
         }]
 
-      elif model == 'DEBROGLIE 8-Key Remote':
-        for button_index, attribute_value in enumerate([
-            285409536,
-            285409792,
-            285410048,
-            285410304,
-            285410560,
-            285410816,
-            285411072,
-            285411328,
-        ], start=1):
-          self.add_event_binary_sensor(
-            mac,
-            name + f' Button {button_index} Single Click' + name_postfix,
-            attribute_name='Customized Argument 5',
-            attribute_value=attribute_value,
-          )
+      elif model in ['DEBROGLIE 8-Key Remote', 'Jiuhao 8-Key Remote']:
+        for event_name, attribute_values in {
+            'Single Click': [
+              285409536,
+              285409792,
+              285410048,
+              285410304,
+              285410560,
+              285410816,
+              285411072,
+              285411328,
+            ],
+            'Double Click': [
+              285475072,
+              285475328,
+              285475584,
+              285475840,
+              285476096,
+              285476352,
+              285476608,
+              285476864,
+            ],
+            'Long Press': [
+              285540608,
+              285540864,
+              285541120,
+              285541376,
+              285541632,
+              285541888,
+              285542144,
+              285542400,
+            ],
+        }.items():
+          for button_index, attribute_value in enumerate(attribute_values, start=1):
+            self.add_event_binary_sensor(
+              mac,
+              name + f' Button {button_index} {event_name}' + name_postfix,
+              attribute_name='Customized Argument 5',
+              attribute_value=attribute_value,
+            )
 
       elif ((model == "MiJia Wireless Switch") or (model == "MiJia Wireless Switch 2")) and integration == 'Xiaomi Home':
 

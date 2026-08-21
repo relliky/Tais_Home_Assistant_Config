@@ -442,40 +442,70 @@ class RoomBaseHelpersTest(unittest.TestCase):
             ],
         )
 
-    def test_add_debroglie_8_key_remote(self):
-        room = self.make_device_room()
-        event_entity = "event.de1_cn_blt_3_1q0ubuebd0802_wjwx8_customized_event_5_e_2_1097"
+    def test_add_customized_argument_8_key_remotes(self):
+        event_types = {
+            "Single Click": [
+                285409536,
+                285409792,
+                285410048,
+                285410304,
+                285410560,
+                285410816,
+                285411072,
+                285411328,
+            ],
+            "Double Click": [
+                285475072,
+                285475328,
+                285475584,
+                285475840,
+                285476096,
+                285476352,
+                285476608,
+                285476864,
+            ],
+            "Long Press": [
+                285540608,
+                285540864,
+                285541120,
+                285541376,
+                285541632,
+                285541888,
+                285542144,
+                285542400,
+            ],
+        }
 
-        room.add_device(
-            event_entity,
-            "Study 8-Key Remote",
-            "",
-            "DEBROGLIE 8-Key Remote",
-        )
+        for model in ["DEBROGLIE 8-Key Remote", "Jiuhao 8-Key Remote"]:
+            with self.subTest(model=model):
+                room = self.make_device_room()
+                event_entity = "event.customized_event_5"
 
-        expected_attribute_values = [
-            285409536,
-            285409792,
-            285410048,
-            285410304,
-            285410560,
-            285410816,
-            285411072,
-            285411328,
-        ]
-        self.assertEqual(len(room.template_list), 8)
-        for button_index, (declaration, attribute_value) in enumerate(
-            zip(room.template_list, expected_attribute_values), start=1
-        ):
-            self.assertEqual(declaration["trigger"][0]["entity_id"], event_entity)
-            self.assertEqual(
-                declaration["binary_sensor"][0]["name"],
-                f"Study 8-Key Remote Button {button_index} Single Click",
-            )
-            self.assertEqual(
-                declaration["binary_sensor"][0]["state"],
-                f"{{{{ trigger.to_state.attributes['Customized Argument 5'] == {attribute_value} }}}}",
-            )
+                room.add_device(
+                    event_entity,
+                    "Test 8-Key Remote",
+                    "",
+                    model,
+                )
+
+                self.assertEqual(len(room.template_list), 24)
+                expected = [
+                    (button_index, event_name, attribute_value)
+                    for event_name, attribute_values in event_types.items()
+                    for button_index, attribute_value in enumerate(attribute_values, start=1)
+                ]
+                for declaration, (button_index, event_name, attribute_value) in zip(
+                    room.template_list, expected
+                ):
+                    self.assertEqual(declaration["trigger"][0]["entity_id"], event_entity)
+                    self.assertEqual(
+                        declaration["binary_sensor"][0]["name"],
+                        f"Test 8-Key Remote Button {button_index} {event_name}",
+                    )
+                    self.assertEqual(
+                        declaration["binary_sensor"][0]["state"],
+                        f"{{{{ trigger.to_state.attributes['Customized Argument 5'] == {attribute_value} }}}}",
+                    )
 
     def test_add_generic_binary_sensor(self):
         room = self.make_device_room()
