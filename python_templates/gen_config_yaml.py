@@ -1345,7 +1345,7 @@ class RoomBase:
             {
               "name": name + " Temperature Sensor" + name_postfix,
               "unit_of_measurement": "°C",
-              "state": '{{states.sensor["' + mac + mac_temperature_postfix + '"].state | float(22) | round(1)}}'
+              "state": '{{states.sensor["' + mac + mac_temperature_postfix + '"].state | round(1)}}'
             }
           ],
           "configured": True
@@ -1367,7 +1367,7 @@ class RoomBase:
               {
                 "name": humidity_sensor_name,
                 "unit_of_measurement": "%",
-                "state": '{{states.sensor["' + mac + mac_humidity_postfix + '"].state | float(40) | round(1)}}'
+                "state": '{{states.sensor["' + mac + mac_humidity_postfix + '"].state | round(1)}}'
               }
             ],
             "configured": True
@@ -1436,7 +1436,7 @@ class RoomBase:
             {
               "name": name + " Temperature Sensor" + name_postfix,
               "unit_of_measurement": "°C",
-              "state": '{{states.sensor["temperature_humidity_sensor_' + mac + '_temperature"].state | float(22) | round(1)}}'
+              "state": '{{states.sensor["temperature_humidity_sensor_' + mac + '_temperature"].state | round(1)}}'
             }
           ],
           "configured": True
@@ -1546,7 +1546,7 @@ class RoomBase:
             {
               "name": name + " Tado Availiabity" + name_postfix,
               "unit_of_measurement": "°C",
-              "state": '{{states("' + self.controlled_thermostat_temperature + '") | float(22) | round(1)}}'
+              "state": '{{states("' + self.controlled_thermostat_temperature + '") | round(1)}}'
             }
           ],
           "configured": True
@@ -1758,7 +1758,7 @@ class RoomBase:
                             "{%set room_target_temp   = state_attr(room_helper_entity, 'temperature')         | float %}  " + \
                             "{%set tado_cur_temp      = state_attr(tado_valve_entity,  'current_temperature') | float %}  " + \
                             "{#diff = room_target_temp - room_cur_temp = tado_target_temp_nxt - tado_cur_temp #}" + \
-                            "{% set tado_target_temp_nxt = ((room_target_temp - room_cur_temp + tado_cur_temp) * 2) | float(22) | round / 2 %} {# round to 0.5 #}" + \
+                            "{% set tado_target_temp_nxt = ((room_target_temp - room_cur_temp + tado_cur_temp) * 2) | round / 2 %} {# round to 0.5 #}" + \
                             "{%set tado_target_temp_nxt_sat = [[tado_target_temp_nxt, 25]|min,5]|max %} {# set lower and upper limit to [5,25] #}" + \
                             "{{tado_target_temp_nxt_sat}}"
                             # Debugging
