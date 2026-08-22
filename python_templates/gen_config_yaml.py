@@ -3507,7 +3507,8 @@ class RoomBase:
     ##############################################
     # Curtains
     ##############################################
-    elif entity_list in self.curtains or \
+    elif entity_list == self.curtains or \
+        entity_list in self.curtains or \
         (entity_list in [self.curtains[0]] if len(self.curtains) >= 1 else False) or \
         (entity_list in [self.curtains[1]] if len(self.curtains) >= 2 else False):
 

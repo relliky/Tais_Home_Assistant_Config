@@ -289,55 +289,15 @@ automation:
               - opening
               match: any
             then:
-              alias: Turn cover.living_room_curtain_1 cover.living_room_curtain_2 state=off
-              if:
-              - '{{ 1 == 1 }}'
-              then:
-                alias: ''
-                if:
-                - '{{ 1 == 1 }}'
-                then:
-                - service: cover.stop_cover
-                  entity_id:
-                  - cover.living_room_curtain_1
-                  - cover.living_room_curtain_2
-                - if:
-                    condition: numeric_state
-                    entity_id:
-                    - cover.living_room_curtain_1
-                    - cover.living_room_curtain_2
-                    attribute: current_position
-                    above: 95
-                  then:
-                    service: cover.close_cover
-                    entity_id:
-                    - cover.living_room_curtain_1
-                    - cover.living_room_curtain_2
+              service: cover.close_cover
+              entity_id:
+              - cover.living_room_curtain_1
+              - cover.living_room_curtain_2
             else:
-              alias: Turn cover.living_room_curtain_1 cover.living_room_curtain_2 state=on
-              if:
-              - '{{ 1 == 1 }}'
-              then:
-                alias: ''
-                if:
-                - '{{ 1 == 1 }}'
-                then:
-                - service: cover.stop_cover
-                  entity_id:
-                  - cover.living_room_curtain_1
-                  - cover.living_room_curtain_2
-                - if:
-                    condition: numeric_state
-                    entity_id:
-                    - cover.living_room_curtain_1
-                    - cover.living_room_curtain_2
-                    attribute: current_position
-                    below: 5
-                  then:
-                    service: cover.open_cover
-                    entity_id:
-                    - cover.living_room_curtain_1
-                    - cover.living_room_curtain_2
+              service: cover.open_cover
+              entity_id:
+              - cover.living_room_curtain_1
+              - cover.living_room_curtain_2
     - conditions:
         condition: trigger
         id: TOGGLE_CURTAIN_0
@@ -346,25 +306,25 @@ automation:
         if:
         - '{{ 1 == 1 }}'
         then:
+          alias: ''
           if:
-          - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
-            condition: state
-            entity_id: cover.living_room_curtain_1
-            state: 'on'
-            match: any
+          - '{{ 1 == 1 }}'
           then:
-            alias: Turn cover.living_room_curtain_1 state=off
-            if:
-            - '{{ 1 == 1 }}'
-            then:
-              service: homeassistant.turn_off
+          - service: cover.stop_cover
+            entity_id: cover.living_room_curtain_1
+          - if:
+            - alias: 'toggle all curtains together: if any of curtains is on, turn off all curtains, otherwise turn on all curtains'
+              condition: state
               entity_id: cover.living_room_curtain_1
-          else:
-            alias: Turn cover.living_room_curtain_1 state=on
-            if:
-            - '{{ 1 == 1 }}'
+              state:
+              - open
+              - opening
+              match: any
             then:
-              service: homeassistant.turn_on
+              service: cover.close_cover
+              entity_id: cover.living_room_curtain_1
+            else:
+              service: cover.open_cover
               entity_id: cover.living_room_curtain_1
     - conditions:
         condition: trigger
@@ -374,25 +334,25 @@ automation:
         if:
         - '{{ 1 == 1 }}'
         then:
+          alias: ''
           if:
-          - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
-            condition: state
-            entity_id: cover.living_room_curtain_2
-            state: 'on'
-            match: any
+          - '{{ 1 == 1 }}'
           then:
-            alias: Turn cover.living_room_curtain_2 state=off
-            if:
-            - '{{ 1 == 1 }}'
-            then:
-              service: homeassistant.turn_off
+          - service: cover.stop_cover
+            entity_id: cover.living_room_curtain_2
+          - if:
+            - alias: 'toggle all curtains together: if any of curtains is on, turn off all curtains, otherwise turn on all curtains'
+              condition: state
               entity_id: cover.living_room_curtain_2
-          else:
-            alias: Turn cover.living_room_curtain_2 state=on
-            if:
-            - '{{ 1 == 1 }}'
+              state:
+              - open
+              - opening
+              match: any
             then:
-              service: homeassistant.turn_on
+              service: cover.close_cover
+              entity_id: cover.living_room_curtain_2
+            else:
+              service: cover.open_cover
               entity_id: cover.living_room_curtain_2
     - conditions:
         condition: trigger
@@ -448,7 +408,19 @@ automation:
         if:
         - '{{ 1 == 1 }}'
         then:
-          service: script.do_nothing
+          alias: ''
+          if:
+          - '{{ 1 == 1 }}'
+          then:
+          - service: cover.stop_cover
+            entity_id: cover.living_room_curtain_1
+          - service: cover.set_cover_position
+            target:
+              entity_id:
+              - cover.living_room_curtain_1
+              - cover.living_room_curtain_2
+            data:
+              position: '{{ [[ (state_attr(''cover.living_room_curtain_1'', ''current_position'')) + 51 ,0]|max,100]|min}}'
     - conditions:
         condition: trigger
         id: DECREMENT_CURTAIN_0
@@ -457,7 +429,19 @@ automation:
         if:
         - '{{ 1 == 1 }}'
         then:
-          service: script.do_nothing
+          alias: ''
+          if:
+          - '{{ 1 == 1 }}'
+          then:
+          - service: cover.stop_cover
+            entity_id: cover.living_room_curtain_1
+          - service: cover.set_cover_position
+            target:
+              entity_id:
+              - cover.living_room_curtain_1
+              - cover.living_room_curtain_2
+            data:
+              position: '{{ [[ (state_attr(''cover.living_room_curtain_1'', ''current_position'')) + -51 ,0]|max,100]|min}}'
     - conditions:
         condition: trigger
         id: INCREMENT_CURTAIN_1
@@ -466,7 +450,19 @@ automation:
         if:
         - '{{ 1 == 1 }}'
         then:
-          service: script.do_nothing
+          alias: ''
+          if:
+          - '{{ 1 == 1 }}'
+          then:
+          - service: cover.stop_cover
+            entity_id: cover.living_room_curtain_2
+          - service: cover.set_cover_position
+            target:
+              entity_id:
+              - cover.living_room_curtain_1
+              - cover.living_room_curtain_2
+            data:
+              position: '{{ [[ (state_attr(''cover.living_room_curtain_1'', ''current_position'')) + 51 ,0]|max,100]|min}}'
     - conditions:
         condition: trigger
         id: DECREMENT_CURTAIN_1
@@ -475,7 +471,19 @@ automation:
         if:
         - '{{ 1 == 1 }}'
         then:
-          service: script.do_nothing
+          alias: ''
+          if:
+          - '{{ 1 == 1 }}'
+          then:
+          - service: cover.stop_cover
+            entity_id: cover.living_room_curtain_2
+          - service: cover.set_cover_position
+            target:
+              entity_id:
+              - cover.living_room_curtain_1
+              - cover.living_room_curtain_2
+            data:
+              position: '{{ [[ (state_attr(''cover.living_room_curtain_1'', ''current_position'')) + -51 ,0]|max,100]|min}}'
     - conditions:
         condition: trigger
         id: TOGGLE_ALL_LIGHTS
@@ -1707,9 +1715,9 @@ automation:
   trigger:
     entity_id:
     - binary_sensor.living_room_entrance_motion_sensor_motion
-    - binary_sensor.living_room_sliding_door
     - binary_sensor.living_room_tv_xiaomi_home_occupancy_sensor_occupancy
     - binary_sensor.living_room_tv_occupancy_sensor_occupancy
+    - binary_sensor.living_room_sliding_door
     platform: state
     to: 'on'
     from: 'off'
@@ -2406,55 +2414,15 @@ automation:
               - opening
               match: any
             then:
-              alias: Turn cover.living_room_curtain_1 cover.living_room_curtain_2 state=off
-              if:
-              - '{{ 1 == 1 }}'
-              then:
-                alias: ''
-                if:
-                - '{{ 1 == 1 }}'
-                then:
-                - service: cover.stop_cover
-                  entity_id:
-                  - cover.living_room_curtain_1
-                  - cover.living_room_curtain_2
-                - if:
-                    condition: numeric_state
-                    entity_id:
-                    - cover.living_room_curtain_1
-                    - cover.living_room_curtain_2
-                    attribute: current_position
-                    above: 95
-                  then:
-                    service: cover.close_cover
-                    entity_id:
-                    - cover.living_room_curtain_1
-                    - cover.living_room_curtain_2
+              service: cover.close_cover
+              entity_id:
+              - cover.living_room_curtain_1
+              - cover.living_room_curtain_2
             else:
-              alias: Turn cover.living_room_curtain_1 cover.living_room_curtain_2 state=on
-              if:
-              - '{{ 1 == 1 }}'
-              then:
-                alias: ''
-                if:
-                - '{{ 1 == 1 }}'
-                then:
-                - service: cover.stop_cover
-                  entity_id:
-                  - cover.living_room_curtain_1
-                  - cover.living_room_curtain_2
-                - if:
-                    condition: numeric_state
-                    entity_id:
-                    - cover.living_room_curtain_1
-                    - cover.living_room_curtain_2
-                    attribute: current_position
-                    below: 5
-                  then:
-                    service: cover.open_cover
-                    entity_id:
-                    - cover.living_room_curtain_1
-                    - cover.living_room_curtain_2
+              service: cover.open_cover
+              entity_id:
+              - cover.living_room_curtain_1
+              - cover.living_room_curtain_2
     - conditions:
         condition: trigger
         id: TOGGLE_CURTAIN_0
@@ -2463,25 +2431,25 @@ automation:
         if:
         - '{{ 1 == 1 }}'
         then:
+          alias: ''
           if:
-          - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
-            condition: state
-            entity_id: cover.living_room_curtain_1
-            state: 'on'
-            match: any
+          - '{{ 1 == 1 }}'
           then:
-            alias: Turn cover.living_room_curtain_1 state=off
-            if:
-            - '{{ 1 == 1 }}'
-            then:
-              service: homeassistant.turn_off
+          - service: cover.stop_cover
+            entity_id: cover.living_room_curtain_1
+          - if:
+            - alias: 'toggle all curtains together: if any of curtains is on, turn off all curtains, otherwise turn on all curtains'
+              condition: state
               entity_id: cover.living_room_curtain_1
-          else:
-            alias: Turn cover.living_room_curtain_1 state=on
-            if:
-            - '{{ 1 == 1 }}'
+              state:
+              - open
+              - opening
+              match: any
             then:
-              service: homeassistant.turn_on
+              service: cover.close_cover
+              entity_id: cover.living_room_curtain_1
+            else:
+              service: cover.open_cover
               entity_id: cover.living_room_curtain_1
     - conditions:
         condition: trigger
@@ -2491,25 +2459,25 @@ automation:
         if:
         - '{{ 1 == 1 }}'
         then:
+          alias: ''
           if:
-          - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
-            condition: state
-            entity_id: cover.living_room_curtain_2
-            state: 'on'
-            match: any
+          - '{{ 1 == 1 }}'
           then:
-            alias: Turn cover.living_room_curtain_2 state=off
-            if:
-            - '{{ 1 == 1 }}'
-            then:
-              service: homeassistant.turn_off
+          - service: cover.stop_cover
+            entity_id: cover.living_room_curtain_2
+          - if:
+            - alias: 'toggle all curtains together: if any of curtains is on, turn off all curtains, otherwise turn on all curtains'
+              condition: state
               entity_id: cover.living_room_curtain_2
-          else:
-            alias: Turn cover.living_room_curtain_2 state=on
-            if:
-            - '{{ 1 == 1 }}'
+              state:
+              - open
+              - opening
+              match: any
             then:
-              service: homeassistant.turn_on
+              service: cover.close_cover
+              entity_id: cover.living_room_curtain_2
+            else:
+              service: cover.open_cover
               entity_id: cover.living_room_curtain_2
     - conditions:
         condition: trigger
@@ -2565,7 +2533,19 @@ automation:
         if:
         - '{{ 1 == 1 }}'
         then:
-          service: script.do_nothing
+          alias: ''
+          if:
+          - '{{ 1 == 1 }}'
+          then:
+          - service: cover.stop_cover
+            entity_id: cover.living_room_curtain_1
+          - service: cover.set_cover_position
+            target:
+              entity_id:
+              - cover.living_room_curtain_1
+              - cover.living_room_curtain_2
+            data:
+              position: '{{ [[ (state_attr(''cover.living_room_curtain_1'', ''current_position'')) + 51 ,0]|max,100]|min}}'
     - conditions:
         condition: trigger
         id: DECREMENT_CURTAIN_0
@@ -2574,7 +2554,19 @@ automation:
         if:
         - '{{ 1 == 1 }}'
         then:
-          service: script.do_nothing
+          alias: ''
+          if:
+          - '{{ 1 == 1 }}'
+          then:
+          - service: cover.stop_cover
+            entity_id: cover.living_room_curtain_1
+          - service: cover.set_cover_position
+            target:
+              entity_id:
+              - cover.living_room_curtain_1
+              - cover.living_room_curtain_2
+            data:
+              position: '{{ [[ (state_attr(''cover.living_room_curtain_1'', ''current_position'')) + -51 ,0]|max,100]|min}}'
     - conditions:
         condition: trigger
         id: INCREMENT_CURTAIN_1
@@ -2583,7 +2575,19 @@ automation:
         if:
         - '{{ 1 == 1 }}'
         then:
-          service: script.do_nothing
+          alias: ''
+          if:
+          - '{{ 1 == 1 }}'
+          then:
+          - service: cover.stop_cover
+            entity_id: cover.living_room_curtain_2
+          - service: cover.set_cover_position
+            target:
+              entity_id:
+              - cover.living_room_curtain_1
+              - cover.living_room_curtain_2
+            data:
+              position: '{{ [[ (state_attr(''cover.living_room_curtain_1'', ''current_position'')) + 51 ,0]|max,100]|min}}'
     - conditions:
         condition: trigger
         id: DECREMENT_CURTAIN_1
@@ -2592,7 +2596,19 @@ automation:
         if:
         - '{{ 1 == 1 }}'
         then:
-          service: script.do_nothing
+          alias: ''
+          if:
+          - '{{ 1 == 1 }}'
+          then:
+          - service: cover.stop_cover
+            entity_id: cover.living_room_curtain_2
+          - service: cover.set_cover_position
+            target:
+              entity_id:
+              - cover.living_room_curtain_1
+              - cover.living_room_curtain_2
+            data:
+              position: '{{ [[ (state_attr(''cover.living_room_curtain_1'', ''current_position'')) + -51 ,0]|max,100]|min}}'
     - conditions:
         condition: trigger
         id: TOGGLE_ALL_LIGHTS
@@ -3780,55 +3796,15 @@ automation:
               - opening
               match: any
             then:
-              alias: Turn cover.living_room_curtain_1 cover.living_room_curtain_2 state=off
-              if:
-              - '{{ 1 == 1 }}'
-              then:
-                alias: ''
-                if:
-                - '{{ 1 == 1 }}'
-                then:
-                - service: cover.stop_cover
-                  entity_id:
-                  - cover.living_room_curtain_1
-                  - cover.living_room_curtain_2
-                - if:
-                    condition: numeric_state
-                    entity_id:
-                    - cover.living_room_curtain_1
-                    - cover.living_room_curtain_2
-                    attribute: current_position
-                    above: 95
-                  then:
-                    service: cover.close_cover
-                    entity_id:
-                    - cover.living_room_curtain_1
-                    - cover.living_room_curtain_2
+              service: cover.close_cover
+              entity_id:
+              - cover.living_room_curtain_1
+              - cover.living_room_curtain_2
             else:
-              alias: Turn cover.living_room_curtain_1 cover.living_room_curtain_2 state=on
-              if:
-              - '{{ 1 == 1 }}'
-              then:
-                alias: ''
-                if:
-                - '{{ 1 == 1 }}'
-                then:
-                - service: cover.stop_cover
-                  entity_id:
-                  - cover.living_room_curtain_1
-                  - cover.living_room_curtain_2
-                - if:
-                    condition: numeric_state
-                    entity_id:
-                    - cover.living_room_curtain_1
-                    - cover.living_room_curtain_2
-                    attribute: current_position
-                    below: 5
-                  then:
-                    service: cover.open_cover
-                    entity_id:
-                    - cover.living_room_curtain_1
-                    - cover.living_room_curtain_2
+              service: cover.open_cover
+              entity_id:
+              - cover.living_room_curtain_1
+              - cover.living_room_curtain_2
     - conditions:
         condition: trigger
         id: TOGGLE_CURTAIN_0
@@ -3837,25 +3813,25 @@ automation:
         if:
         - '{{ 1 == 1 }}'
         then:
+          alias: ''
           if:
-          - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
-            condition: state
-            entity_id: cover.living_room_curtain_1
-            state: 'on'
-            match: any
+          - '{{ 1 == 1 }}'
           then:
-            alias: Turn cover.living_room_curtain_1 state=off
-            if:
-            - '{{ 1 == 1 }}'
-            then:
-              service: homeassistant.turn_off
+          - service: cover.stop_cover
+            entity_id: cover.living_room_curtain_1
+          - if:
+            - alias: 'toggle all curtains together: if any of curtains is on, turn off all curtains, otherwise turn on all curtains'
+              condition: state
               entity_id: cover.living_room_curtain_1
-          else:
-            alias: Turn cover.living_room_curtain_1 state=on
-            if:
-            - '{{ 1 == 1 }}'
+              state:
+              - open
+              - opening
+              match: any
             then:
-              service: homeassistant.turn_on
+              service: cover.close_cover
+              entity_id: cover.living_room_curtain_1
+            else:
+              service: cover.open_cover
               entity_id: cover.living_room_curtain_1
     - conditions:
         condition: trigger
@@ -3865,25 +3841,25 @@ automation:
         if:
         - '{{ 1 == 1 }}'
         then:
+          alias: ''
           if:
-          - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
-            condition: state
-            entity_id: cover.living_room_curtain_2
-            state: 'on'
-            match: any
+          - '{{ 1 == 1 }}'
           then:
-            alias: Turn cover.living_room_curtain_2 state=off
-            if:
-            - '{{ 1 == 1 }}'
-            then:
-              service: homeassistant.turn_off
+          - service: cover.stop_cover
+            entity_id: cover.living_room_curtain_2
+          - if:
+            - alias: 'toggle all curtains together: if any of curtains is on, turn off all curtains, otherwise turn on all curtains'
+              condition: state
               entity_id: cover.living_room_curtain_2
-          else:
-            alias: Turn cover.living_room_curtain_2 state=on
-            if:
-            - '{{ 1 == 1 }}'
+              state:
+              - open
+              - opening
+              match: any
             then:
-              service: homeassistant.turn_on
+              service: cover.close_cover
+              entity_id: cover.living_room_curtain_2
+            else:
+              service: cover.open_cover
               entity_id: cover.living_room_curtain_2
     - conditions:
         condition: trigger
@@ -3939,7 +3915,19 @@ automation:
         if:
         - '{{ 1 == 1 }}'
         then:
-          service: script.do_nothing
+          alias: ''
+          if:
+          - '{{ 1 == 1 }}'
+          then:
+          - service: cover.stop_cover
+            entity_id: cover.living_room_curtain_1
+          - service: cover.set_cover_position
+            target:
+              entity_id:
+              - cover.living_room_curtain_1
+              - cover.living_room_curtain_2
+            data:
+              position: '{{ [[ (state_attr(''cover.living_room_curtain_1'', ''current_position'')) + 51 ,0]|max,100]|min}}'
     - conditions:
         condition: trigger
         id: DECREMENT_CURTAIN_0
@@ -3948,7 +3936,19 @@ automation:
         if:
         - '{{ 1 == 1 }}'
         then:
-          service: script.do_nothing
+          alias: ''
+          if:
+          - '{{ 1 == 1 }}'
+          then:
+          - service: cover.stop_cover
+            entity_id: cover.living_room_curtain_1
+          - service: cover.set_cover_position
+            target:
+              entity_id:
+              - cover.living_room_curtain_1
+              - cover.living_room_curtain_2
+            data:
+              position: '{{ [[ (state_attr(''cover.living_room_curtain_1'', ''current_position'')) + -51 ,0]|max,100]|min}}'
     - conditions:
         condition: trigger
         id: INCREMENT_CURTAIN_1
@@ -3957,7 +3957,19 @@ automation:
         if:
         - '{{ 1 == 1 }}'
         then:
-          service: script.do_nothing
+          alias: ''
+          if:
+          - '{{ 1 == 1 }}'
+          then:
+          - service: cover.stop_cover
+            entity_id: cover.living_room_curtain_2
+          - service: cover.set_cover_position
+            target:
+              entity_id:
+              - cover.living_room_curtain_1
+              - cover.living_room_curtain_2
+            data:
+              position: '{{ [[ (state_attr(''cover.living_room_curtain_1'', ''current_position'')) + 51 ,0]|max,100]|min}}'
     - conditions:
         condition: trigger
         id: DECREMENT_CURTAIN_1
@@ -3966,7 +3978,19 @@ automation:
         if:
         - '{{ 1 == 1 }}'
         then:
-          service: script.do_nothing
+          alias: ''
+          if:
+          - '{{ 1 == 1 }}'
+          then:
+          - service: cover.stop_cover
+            entity_id: cover.living_room_curtain_2
+          - service: cover.set_cover_position
+            target:
+              entity_id:
+              - cover.living_room_curtain_1
+              - cover.living_room_curtain_2
+            data:
+              position: '{{ [[ (state_attr(''cover.living_room_curtain_1'', ''current_position'')) + -51 ,0]|max,100]|min}}'
     - conditions:
         condition: trigger
         id: TOGGLE_ALL_LIGHTS
@@ -6423,7 +6447,6 @@ group:
     - binary_sensor.living_room_sofa_xiaomi_home_occupancy_sensor_occupancy
     - binary_sensor.living_room_sofa_occupancy_sensor_occupancy
     - binary_sensor.living_room_entrance_motion_sensor_motion
-    - binary_sensor.living_room_sliding_door
     - binary_sensor.living_room_tv_xiaomi_home_occupancy_sensor_occupancy
     - binary_sensor.living_room_tv_occupancy_sensor_occupancy
     - automation.zoc_lr_occupancy_update_living_room
@@ -6440,7 +6463,6 @@ group:
     - binary_sensor.living_room_sofa_xiaomi_home_occupancy_sensor_occupancy
     - binary_sensor.living_room_sofa_occupancy_sensor_occupancy
     - binary_sensor.living_room_entrance_motion_sensor_motion
-    - binary_sensor.living_room_sliding_door
     - binary_sensor.living_room_tv_xiaomi_home_occupancy_sensor_occupancy
     - binary_sensor.living_room_tv_occupancy_sensor_occupancy
   living_room_light_group:

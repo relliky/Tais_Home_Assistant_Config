@@ -224,29 +224,16 @@ automation:
         if:
         - '{{ 1 == 1 }}'
         then:
+          alias: ''
           if:
-          - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
-            condition: state
+          - '{{ 1 == 1 }}'
+          then:
+          - service: cover.stop_cover
             entity_id:
             - cover.study_blind
-            state: 'on'
-            match: any
-          then:
-            alias: Turn cover.study_blind state=off
-            if:
-            - '{{ 1 == 1 }}'
-            then:
-              service: homeassistant.turn_off
-              entity_id:
-              - cover.study_blind
-          else:
-            alias: Turn cover.study_blind state=on
-            if:
-            - '{{ 1 == 1 }}'
-            then:
-              service: homeassistant.turn_on
-              entity_id:
-              - cover.study_blind
+          - service: cover.toggle
+            entity_id:
+            - cover.study_blind
     - conditions:
         condition: trigger
         id: TOGGLE_CURTAIN_0
@@ -271,7 +258,19 @@ automation:
         if:
         - '{{ 1 == 1 }}'
         then:
-          service: script.do_nothing
+          alias: ''
+          if:
+          - '{{ 1 == 1 }}'
+          then:
+          - service: cover.stop_cover
+            entity_id:
+            - cover.study_blind
+          - service: cover.set_cover_position
+            target:
+              entity_id:
+              - cover.study_blind
+            data:
+              position: '{{ [[ (state_attr(''cover.study_blind'', ''current_position'')) + 51 ,0]|max,100]|min}}'
     - conditions:
         condition: trigger
         id: DECREMENT_CURTAINS
@@ -280,7 +279,19 @@ automation:
         if:
         - '{{ 1 == 1 }}'
         then:
-          service: script.do_nothing
+          alias: ''
+          if:
+          - '{{ 1 == 1 }}'
+          then:
+          - service: cover.stop_cover
+            entity_id:
+            - cover.study_blind
+          - service: cover.set_cover_position
+            target:
+              entity_id:
+              - cover.study_blind
+            data:
+              position: '{{ [[ (state_attr(''cover.study_blind'', ''current_position'')) + -51 ,0]|max,100]|min}}'
     - conditions:
         condition: trigger
         id: INCREMENT_CURTAIN_0
@@ -1159,17 +1170,49 @@ automation:
               if:
               - '{{ 1 == 1 }}'
               then:
-                service: homeassistant.turn_on
-                entity_id:
-                - cover.study_blind
+                alias: ''
+                if:
+                - '{{ 1 == 1 }}'
+                then:
+                - service: cover.stop_cover
+                  entity_id:
+                  - cover.study_blind
+                - if:
+                    condition: numeric_state
+                    entity_id:
+                    - cover.study_blind
+                    attribute: current_position
+                    above: 95
+                  then:
+                    service: cover.set_cover_position
+                    data:
+                      position: 100
+                    entity_id:
+                    - cover.study_blind
             else:
               alias: Turn cover.study_blind state=off
               if:
               - '{{ 1 == 1 }}'
               then:
-                service: homeassistant.turn_off
-                entity_id:
-                - cover.study_blind
+                alias: ''
+                if:
+                - '{{ 1 == 1 }}'
+                then:
+                - service: cover.stop_cover
+                  entity_id:
+                  - cover.study_blind
+                - if:
+                    condition: numeric_state
+                    entity_id:
+                    - cover.study_blind
+                    attribute: current_position
+                    above: 2
+                  then:
+                    service: cover.set_cover_position
+                    data:
+                      position: 2
+                    entity_id:
+                    - cover.study_blind
     else:
       alias: If it is moderate light outdoor
       if:
@@ -1194,17 +1237,49 @@ automation:
                 if:
                 - '{{ 1 == 1 }}'
                 then:
-                  service: homeassistant.turn_on
-                  entity_id:
-                  - cover.study_blind
+                  alias: ''
+                  if:
+                  - '{{ 1 == 1 }}'
+                  then:
+                  - service: cover.stop_cover
+                    entity_id:
+                    - cover.study_blind
+                  - if:
+                      condition: numeric_state
+                      entity_id:
+                      - cover.study_blind
+                      attribute: current_position
+                      above: 95
+                    then:
+                      service: cover.set_cover_position
+                      data:
+                        position: 100
+                      entity_id:
+                      - cover.study_blind
               else:
                 alias: Turn cover.study_blind state=off
                 if:
                 - '{{ 1 == 1 }}'
                 then:
-                  service: homeassistant.turn_off
-                  entity_id:
-                  - cover.study_blind
+                  alias: ''
+                  if:
+                  - '{{ 1 == 1 }}'
+                  then:
+                  - service: cover.stop_cover
+                    entity_id:
+                    - cover.study_blind
+                  - if:
+                      condition: numeric_state
+                      entity_id:
+                      - cover.study_blind
+                      attribute: current_position
+                      above: 2
+                    then:
+                      service: cover.set_cover_position
+                      data:
+                        position: 2
+                      entity_id:
+                      - cover.study_blind
       else:
         alias: If it is low light outdoor
         if:
@@ -1229,17 +1304,49 @@ automation:
                   if:
                   - '{{ 1 == 1 }}'
                   then:
-                    service: homeassistant.turn_on
-                    entity_id:
-                    - cover.study_blind
+                    alias: ''
+                    if:
+                    - '{{ 1 == 1 }}'
+                    then:
+                    - service: cover.stop_cover
+                      entity_id:
+                      - cover.study_blind
+                    - if:
+                        condition: numeric_state
+                        entity_id:
+                        - cover.study_blind
+                        attribute: current_position
+                        above: 95
+                      then:
+                        service: cover.set_cover_position
+                        data:
+                          position: 100
+                        entity_id:
+                        - cover.study_blind
                 else:
                   alias: Turn cover.study_blind state=off
                   if:
                   - '{{ 1 == 1 }}'
                   then:
-                    service: homeassistant.turn_off
-                    entity_id:
-                    - cover.study_blind
+                    alias: ''
+                    if:
+                    - '{{ 1 == 1 }}'
+                    then:
+                    - service: cover.stop_cover
+                      entity_id:
+                      - cover.study_blind
+                    - if:
+                        condition: numeric_state
+                        entity_id:
+                        - cover.study_blind
+                        attribute: current_position
+                        above: 2
+                      then:
+                        service: cover.set_cover_position
+                        data:
+                          position: 2
+                        entity_id:
+                        - cover.study_blind
         else:
           alias: If it is sleep mode
           if:
@@ -1262,17 +1369,49 @@ automation:
                     if:
                     - '{{ 1 == 1 }}'
                     then:
-                      service: homeassistant.turn_on
-                      entity_id:
-                      - cover.study_blind
+                      alias: ''
+                      if:
+                      - '{{ 1 == 1 }}'
+                      then:
+                      - service: cover.stop_cover
+                        entity_id:
+                        - cover.study_blind
+                      - if:
+                          condition: numeric_state
+                          entity_id:
+                          - cover.study_blind
+                          attribute: current_position
+                          above: 95
+                        then:
+                          service: cover.set_cover_position
+                          data:
+                            position: 100
+                          entity_id:
+                          - cover.study_blind
                   else:
                     alias: Turn cover.study_blind state=off
                     if:
                     - '{{ 1 == 1 }}'
                     then:
-                      service: homeassistant.turn_off
-                      entity_id:
-                      - cover.study_blind
+                      alias: ''
+                      if:
+                      - '{{ 1 == 1 }}'
+                      then:
+                      - service: cover.stop_cover
+                        entity_id:
+                        - cover.study_blind
+                      - if:
+                          condition: numeric_state
+                          entity_id:
+                          - cover.study_blind
+                          attribute: current_position
+                          above: 2
+                        then:
+                          service: cover.set_cover_position
+                          data:
+                            position: 2
+                          entity_id:
+                          - cover.study_blind
           else:
             alias: Default
             service: script.do_nothing
@@ -2148,29 +2287,16 @@ automation:
         if:
         - '{{ 1 == 1 }}'
         then:
+          alias: ''
           if:
-          - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
-            condition: state
+          - '{{ 1 == 1 }}'
+          then:
+          - service: cover.stop_cover
             entity_id:
             - cover.study_blind
-            state: 'on'
-            match: any
-          then:
-            alias: Turn cover.study_blind state=off
-            if:
-            - '{{ 1 == 1 }}'
-            then:
-              service: homeassistant.turn_off
-              entity_id:
-              - cover.study_blind
-          else:
-            alias: Turn cover.study_blind state=on
-            if:
-            - '{{ 1 == 1 }}'
-            then:
-              service: homeassistant.turn_on
-              entity_id:
-              - cover.study_blind
+          - service: cover.toggle
+            entity_id:
+            - cover.study_blind
     - conditions:
         condition: trigger
         id: TOGGLE_CURTAIN_0
@@ -2195,7 +2321,19 @@ automation:
         if:
         - '{{ 1 == 1 }}'
         then:
-          service: script.do_nothing
+          alias: ''
+          if:
+          - '{{ 1 == 1 }}'
+          then:
+          - service: cover.stop_cover
+            entity_id:
+            - cover.study_blind
+          - service: cover.set_cover_position
+            target:
+              entity_id:
+              - cover.study_blind
+            data:
+              position: '{{ [[ (state_attr(''cover.study_blind'', ''current_position'')) + 51 ,0]|max,100]|min}}'
     - conditions:
         condition: trigger
         id: DECREMENT_CURTAINS
@@ -2204,7 +2342,19 @@ automation:
         if:
         - '{{ 1 == 1 }}'
         then:
-          service: script.do_nothing
+          alias: ''
+          if:
+          - '{{ 1 == 1 }}'
+          then:
+          - service: cover.stop_cover
+            entity_id:
+            - cover.study_blind
+          - service: cover.set_cover_position
+            target:
+              entity_id:
+              - cover.study_blind
+            data:
+              position: '{{ [[ (state_attr(''cover.study_blind'', ''current_position'')) + -51 ,0]|max,100]|min}}'
     - conditions:
         condition: trigger
         id: INCREMENT_CURTAIN_0

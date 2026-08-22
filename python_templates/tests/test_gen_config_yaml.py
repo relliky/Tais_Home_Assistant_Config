@@ -208,6 +208,63 @@ class RoomBaseHelpersTest(unittest.TestCase):
             ],
         )
 
+    def make_set_room(self):
+        room = gen_config_yaml.RoomBase.__new__(gen_config_yaml.RoomBase)
+        room.room_entity = "study"
+        room.curtains = ["cover.study_blind"]
+        room.aqara_shutter_blind = True
+        room.thermostat = "climate.study"
+        room.thermostat_schedule = "switch.schedule_study_temperature"
+        room.wall_switches = ["switch.study_wall"]
+        room.media_players = []
+        room.tv_soundbars = []
+        room.tvs = []
+        room.tv_picture_mode = "input_select.study_tv_picture_mode"
+        return room
+
+    def flatten_services(self, value):
+        services = []
+        if isinstance(value, dict):
+            if "service" in value:
+                services.append(value["service"])
+            for child in value.values():
+                services.extend(self.flatten_services(child))
+        elif isinstance(value, list):
+            for child in value:
+                services.extend(self.flatten_services(child))
+        return services
+
+    def test_set_curtain_list_toggle_uses_cover_toggle(self):
+        room = self.make_set_room()
+
+        action = room.set(room.curtains, "toggle")
+        services = self.flatten_services(action)
+
+        self.assertIn("cover.stop_cover", services)
+        self.assertIn("cover.toggle", services)
+        self.assertNotIn("homeassistant.turn_on", services)
+        self.assertNotIn("homeassistant.turn_off", services)
+
+    def test_set_single_curtain_toggle_still_uses_cover_toggle(self):
+        room = self.make_set_room()
+
+        action = room.set(room.curtains[0], "toggle")
+        services = self.flatten_services(action)
+
+        self.assertIn("cover.stop_cover", services)
+        self.assertIn("cover.toggle", services)
+
+    def test_set_non_cover_toggle_still_uses_homeassistant_toggle_logic(self):
+        room = self.make_set_room()
+        switches = ["switch.study_screen_light"]
+
+        action = room.set(switches, "toggle")
+        services = self.flatten_services(action)
+
+        self.assertIn("homeassistant.turn_on", services)
+        self.assertIn("homeassistant.turn_off", services)
+        self.assertNotIn("cover.toggle", services)
+
     def make_device_room(self):
         room = gen_config_yaml.RoomBase.__new__(gen_config_yaml.RoomBase)
         room.initialize_entity_intf()

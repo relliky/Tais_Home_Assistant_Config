@@ -318,27 +318,28 @@ automation:
         if:
         - '{{ 1 == 1 }}'
         then:
+          alias: ''
           if:
-          - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
-            condition: state
+          - '{{ 1 == 1 }}'
+          then:
+          - service: cover.stop_cover
             entity_id:
             - cover.master_room_curtain
-            state: 'on'
-            match: any
-          then:
-            alias: Turn cover.master_room_curtain state=off
-            if:
-            - '{{ 1 == 1 }}'
-            then:
-              service: homeassistant.turn_off
+          - if:
+            - alias: 'toggle all curtains together: if any of curtains is on, turn off all curtains, otherwise turn on all curtains'
+              condition: state
               entity_id:
               - cover.master_room_curtain
-          else:
-            alias: Turn cover.master_room_curtain state=on
-            if:
-            - '{{ 1 == 1 }}'
+              state:
+              - open
+              - opening
+              match: any
             then:
-              service: homeassistant.turn_on
+              service: cover.close_cover
+              entity_id:
+              - cover.master_room_curtain
+            else:
+              service: cover.open_cover
               entity_id:
               - cover.master_room_curtain
     - conditions:
@@ -377,7 +378,19 @@ automation:
         if:
         - '{{ 1 == 1 }}'
         then:
-          service: script.do_nothing
+          alias: ''
+          if:
+          - '{{ 1 == 1 }}'
+          then:
+          - service: cover.stop_cover
+            entity_id:
+            - cover.master_room_curtain
+          - service: cover.set_cover_position
+            target:
+              entity_id:
+              - cover.master_room_curtain
+            data:
+              position: '{{ [[ (state_attr(''cover.master_room_curtain'', ''current_position'')) + 51 ,0]|max,100]|min}}'
     - conditions:
         condition: trigger
         id: DECREMENT_CURTAINS
@@ -386,7 +399,19 @@ automation:
         if:
         - '{{ 1 == 1 }}'
         then:
-          service: script.do_nothing
+          alias: ''
+          if:
+          - '{{ 1 == 1 }}'
+          then:
+          - service: cover.stop_cover
+            entity_id:
+            - cover.master_room_curtain
+          - service: cover.set_cover_position
+            target:
+              entity_id:
+              - cover.master_room_curtain
+            data:
+              position: '{{ [[ (state_attr(''cover.master_room_curtain'', ''current_position'')) + -51 ,0]|max,100]|min}}'
     - conditions:
         condition: trigger
         id: INCREMENT_CURTAIN_0
@@ -1606,27 +1631,28 @@ automation:
         if:
         - '{{ 1 == 1 }}'
         then:
+          alias: ''
           if:
-          - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
-            condition: state
+          - '{{ 1 == 1 }}'
+          then:
+          - service: cover.stop_cover
             entity_id:
             - cover.master_room_curtain
-            state: 'on'
-            match: any
-          then:
-            alias: Turn cover.master_room_curtain state=off
-            if:
-            - '{{ 1 == 1 }}'
-            then:
-              service: homeassistant.turn_off
+          - if:
+            - alias: 'toggle all curtains together: if any of curtains is on, turn off all curtains, otherwise turn on all curtains'
+              condition: state
               entity_id:
               - cover.master_room_curtain
-          else:
-            alias: Turn cover.master_room_curtain state=on
-            if:
-            - '{{ 1 == 1 }}'
+              state:
+              - open
+              - opening
+              match: any
             then:
-              service: homeassistant.turn_on
+              service: cover.close_cover
+              entity_id:
+              - cover.master_room_curtain
+            else:
+              service: cover.open_cover
               entity_id:
               - cover.master_room_curtain
     - conditions:
@@ -1665,7 +1691,19 @@ automation:
         if:
         - '{{ 1 == 1 }}'
         then:
-          service: script.do_nothing
+          alias: ''
+          if:
+          - '{{ 1 == 1 }}'
+          then:
+          - service: cover.stop_cover
+            entity_id:
+            - cover.master_room_curtain
+          - service: cover.set_cover_position
+            target:
+              entity_id:
+              - cover.master_room_curtain
+            data:
+              position: '{{ [[ (state_attr(''cover.master_room_curtain'', ''current_position'')) + 51 ,0]|max,100]|min}}'
     - conditions:
         condition: trigger
         id: DECREMENT_CURTAINS
@@ -1674,7 +1712,19 @@ automation:
         if:
         - '{{ 1 == 1 }}'
         then:
-          service: script.do_nothing
+          alias: ''
+          if:
+          - '{{ 1 == 1 }}'
+          then:
+          - service: cover.stop_cover
+            entity_id:
+            - cover.master_room_curtain
+          - service: cover.set_cover_position
+            target:
+              entity_id:
+              - cover.master_room_curtain
+            data:
+              position: '{{ [[ (state_attr(''cover.master_room_curtain'', ''current_position'')) + -51 ,0]|max,100]|min}}'
     - conditions:
         condition: trigger
         id: INCREMENT_CURTAIN_0
@@ -2750,17 +2800,45 @@ automation:
               if:
               - '{{ 1 == 1 }}'
               then:
-                service: homeassistant.turn_on
-                entity_id:
-                - cover.master_room_curtain
+                alias: ''
+                if:
+                - '{{ 1 == 1 }}'
+                then:
+                - service: cover.stop_cover
+                  entity_id:
+                  - cover.master_room_curtain
+                - if:
+                    condition: numeric_state
+                    entity_id:
+                    - cover.master_room_curtain
+                    attribute: current_position
+                    below: 5
+                  then:
+                    service: cover.open_cover
+                    entity_id:
+                    - cover.master_room_curtain
             else:
               alias: Turn cover.master_room_curtain state=off
               if:
               - '{{ 1 == 1 }}'
               then:
-                service: homeassistant.turn_off
-                entity_id:
-                - cover.master_room_curtain
+                alias: ''
+                if:
+                - '{{ 1 == 1 }}'
+                then:
+                - service: cover.stop_cover
+                  entity_id:
+                  - cover.master_room_curtain
+                - if:
+                    condition: numeric_state
+                    entity_id:
+                    - cover.master_room_curtain
+                    attribute: current_position
+                    above: 95
+                  then:
+                    service: cover.close_cover
+                    entity_id:
+                    - cover.master_room_curtain
     else:
       alias: If it is moderate light outdoor
       if:
@@ -2785,17 +2863,45 @@ automation:
                 if:
                 - '{{ 1 == 1 }}'
                 then:
-                  service: homeassistant.turn_on
-                  entity_id:
-                  - cover.master_room_curtain
+                  alias: ''
+                  if:
+                  - '{{ 1 == 1 }}'
+                  then:
+                  - service: cover.stop_cover
+                    entity_id:
+                    - cover.master_room_curtain
+                  - if:
+                      condition: numeric_state
+                      entity_id:
+                      - cover.master_room_curtain
+                      attribute: current_position
+                      below: 5
+                    then:
+                      service: cover.open_cover
+                      entity_id:
+                      - cover.master_room_curtain
               else:
                 alias: Turn cover.master_room_curtain state=off
                 if:
                 - '{{ 1 == 1 }}'
                 then:
-                  service: homeassistant.turn_off
-                  entity_id:
-                  - cover.master_room_curtain
+                  alias: ''
+                  if:
+                  - '{{ 1 == 1 }}'
+                  then:
+                  - service: cover.stop_cover
+                    entity_id:
+                    - cover.master_room_curtain
+                  - if:
+                      condition: numeric_state
+                      entity_id:
+                      - cover.master_room_curtain
+                      attribute: current_position
+                      above: 95
+                    then:
+                      service: cover.close_cover
+                      entity_id:
+                      - cover.master_room_curtain
       else:
         alias: If it is low light outdoor
         if:
@@ -2820,17 +2926,45 @@ automation:
                   if:
                   - '{{ 1 == 1 }}'
                   then:
-                    service: homeassistant.turn_on
-                    entity_id:
-                    - cover.master_room_curtain
+                    alias: ''
+                    if:
+                    - '{{ 1 == 1 }}'
+                    then:
+                    - service: cover.stop_cover
+                      entity_id:
+                      - cover.master_room_curtain
+                    - if:
+                        condition: numeric_state
+                        entity_id:
+                        - cover.master_room_curtain
+                        attribute: current_position
+                        below: 5
+                      then:
+                        service: cover.open_cover
+                        entity_id:
+                        - cover.master_room_curtain
                 else:
                   alias: Turn cover.master_room_curtain state=off
                   if:
                   - '{{ 1 == 1 }}'
                   then:
-                    service: homeassistant.turn_off
-                    entity_id:
-                    - cover.master_room_curtain
+                    alias: ''
+                    if:
+                    - '{{ 1 == 1 }}'
+                    then:
+                    - service: cover.stop_cover
+                      entity_id:
+                      - cover.master_room_curtain
+                    - if:
+                        condition: numeric_state
+                        entity_id:
+                        - cover.master_room_curtain
+                        attribute: current_position
+                        above: 95
+                      then:
+                        service: cover.close_cover
+                        entity_id:
+                        - cover.master_room_curtain
         else:
           alias: If it is sleep mode
           if:
@@ -2853,17 +2987,45 @@ automation:
                     if:
                     - '{{ 1 == 1 }}'
                     then:
-                      service: homeassistant.turn_on
-                      entity_id:
-                      - cover.master_room_curtain
+                      alias: ''
+                      if:
+                      - '{{ 1 == 1 }}'
+                      then:
+                      - service: cover.stop_cover
+                        entity_id:
+                        - cover.master_room_curtain
+                      - if:
+                          condition: numeric_state
+                          entity_id:
+                          - cover.master_room_curtain
+                          attribute: current_position
+                          below: 5
+                        then:
+                          service: cover.open_cover
+                          entity_id:
+                          - cover.master_room_curtain
                   else:
                     alias: Turn cover.master_room_curtain state=off
                     if:
                     - '{{ 1 == 1 }}'
                     then:
-                      service: homeassistant.turn_off
-                      entity_id:
-                      - cover.master_room_curtain
+                      alias: ''
+                      if:
+                      - '{{ 1 == 1 }}'
+                      then:
+                      - service: cover.stop_cover
+                        entity_id:
+                        - cover.master_room_curtain
+                      - if:
+                          condition: numeric_state
+                          entity_id:
+                          - cover.master_room_curtain
+                          attribute: current_position
+                          above: 95
+                        then:
+                          service: cover.close_cover
+                          entity_id:
+                          - cover.master_room_curtain
           else:
             alias: Default
             service: script.do_nothing
@@ -3677,27 +3839,28 @@ automation:
         if:
         - '{{ 1 == 1 }}'
         then:
+          alias: ''
           if:
-          - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
-            condition: state
+          - '{{ 1 == 1 }}'
+          then:
+          - service: cover.stop_cover
             entity_id:
             - cover.master_room_curtain
-            state: 'on'
-            match: any
-          then:
-            alias: Turn cover.master_room_curtain state=off
-            if:
-            - '{{ 1 == 1 }}'
-            then:
-              service: homeassistant.turn_off
+          - if:
+            - alias: 'toggle all curtains together: if any of curtains is on, turn off all curtains, otherwise turn on all curtains'
+              condition: state
               entity_id:
               - cover.master_room_curtain
-          else:
-            alias: Turn cover.master_room_curtain state=on
-            if:
-            - '{{ 1 == 1 }}'
+              state:
+              - open
+              - opening
+              match: any
             then:
-              service: homeassistant.turn_on
+              service: cover.close_cover
+              entity_id:
+              - cover.master_room_curtain
+            else:
+              service: cover.open_cover
               entity_id:
               - cover.master_room_curtain
     - conditions:
@@ -3736,7 +3899,19 @@ automation:
         if:
         - '{{ 1 == 1 }}'
         then:
-          service: script.do_nothing
+          alias: ''
+          if:
+          - '{{ 1 == 1 }}'
+          then:
+          - service: cover.stop_cover
+            entity_id:
+            - cover.master_room_curtain
+          - service: cover.set_cover_position
+            target:
+              entity_id:
+              - cover.master_room_curtain
+            data:
+              position: '{{ [[ (state_attr(''cover.master_room_curtain'', ''current_position'')) + 51 ,0]|max,100]|min}}'
     - conditions:
         condition: trigger
         id: DECREMENT_CURTAINS
@@ -3745,7 +3920,19 @@ automation:
         if:
         - '{{ 1 == 1 }}'
         then:
-          service: script.do_nothing
+          alias: ''
+          if:
+          - '{{ 1 == 1 }}'
+          then:
+          - service: cover.stop_cover
+            entity_id:
+            - cover.master_room_curtain
+          - service: cover.set_cover_position
+            target:
+              entity_id:
+              - cover.master_room_curtain
+            data:
+              position: '{{ [[ (state_attr(''cover.master_room_curtain'', ''current_position'')) + -51 ,0]|max,100]|min}}'
     - conditions:
         condition: trigger
         id: INCREMENT_CURTAIN_0
@@ -5047,27 +5234,28 @@ automation:
         if:
         - '{{ 1 == 1 }}'
         then:
+          alias: ''
           if:
-          - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
-            condition: state
+          - '{{ 1 == 1 }}'
+          then:
+          - service: cover.stop_cover
             entity_id:
             - cover.master_room_curtain
-            state: 'on'
-            match: any
-          then:
-            alias: Turn cover.master_room_curtain state=off
-            if:
-            - '{{ 1 == 1 }}'
-            then:
-              service: homeassistant.turn_off
+          - if:
+            - alias: 'toggle all curtains together: if any of curtains is on, turn off all curtains, otherwise turn on all curtains'
+              condition: state
               entity_id:
               - cover.master_room_curtain
-          else:
-            alias: Turn cover.master_room_curtain state=on
-            if:
-            - '{{ 1 == 1 }}'
+              state:
+              - open
+              - opening
+              match: any
             then:
-              service: homeassistant.turn_on
+              service: cover.close_cover
+              entity_id:
+              - cover.master_room_curtain
+            else:
+              service: cover.open_cover
               entity_id:
               - cover.master_room_curtain
     - conditions:
@@ -5106,7 +5294,19 @@ automation:
         if:
         - '{{ 1 == 1 }}'
         then:
-          service: script.do_nothing
+          alias: ''
+          if:
+          - '{{ 1 == 1 }}'
+          then:
+          - service: cover.stop_cover
+            entity_id:
+            - cover.master_room_curtain
+          - service: cover.set_cover_position
+            target:
+              entity_id:
+              - cover.master_room_curtain
+            data:
+              position: '{{ [[ (state_attr(''cover.master_room_curtain'', ''current_position'')) + 51 ,0]|max,100]|min}}'
     - conditions:
         condition: trigger
         id: DECREMENT_CURTAINS
@@ -5115,7 +5315,19 @@ automation:
         if:
         - '{{ 1 == 1 }}'
         then:
-          service: script.do_nothing
+          alias: ''
+          if:
+          - '{{ 1 == 1 }}'
+          then:
+          - service: cover.stop_cover
+            entity_id:
+            - cover.master_room_curtain
+          - service: cover.set_cover_position
+            target:
+              entity_id:
+              - cover.master_room_curtain
+            data:
+              position: '{{ [[ (state_attr(''cover.master_room_curtain'', ''current_position'')) + -51 ,0]|max,100]|min}}'
     - conditions:
         condition: trigger
         id: INCREMENT_CURTAIN_0

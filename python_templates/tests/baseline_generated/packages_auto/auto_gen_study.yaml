@@ -80,7 +80,7 @@ automation:
     - binary_sensor.study_8_key_remote_button_2_double_click
     - binary_sensor.study_8_key_remote_button_2_long_press
     to: 'on'
-    id: TOGGLE_CURTAINS
+    id: TOGGLE_CURTAIN_0
   - platform: state
     entity_id:
     - binary_sensor.study_8_key_remote_button_3_single_click
@@ -125,6 +125,24 @@ automation:
     - binary_sensor.study_8_key_remote_button_6_long_press
     to: 'on'
     id: TOGGLE_LAMP_1
+  - platform: state
+    entity_id:
+    - binary_sensor.study_8_key_remote_button_7_single_click
+    - binary_sensor.study_8_key_remote_button_7_double_click
+    to: 'on'
+    id: CYCLE_LAMP_2
+  - platform: state
+    entity_id:
+    - binary_sensor.study_8_key_remote_button_7_long_press
+    to: 'on'
+    id: TOGGLE_LAMP_2
+  - platform: state
+    entity_id:
+    - binary_sensor.study_8_key_remote_button_8_single_click
+    - binary_sensor.study_8_key_remote_button_8_double_click
+    - binary_sensor.study_8_key_remote_button_8_long_press
+    to: 'on'
+    id: TOGGLE_CURTAIN_1
   mode: queued
   action:
     choose:
@@ -224,26 +242,14 @@ automation:
         if:
         - '{{ 1 == 1 }}'
         then:
+          alias: ''
           if:
-          - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
-            condition: state
-            entity_id: cover.study_blind
-            state: 'on'
-            match: any
+          - '{{ 1 == 1 }}'
           then:
-            alias: Turn cover.study_blind state=off
-            if:
-            - '{{ 1 == 1 }}'
-            then:
-              service: homeassistant.turn_off
-              entity_id: cover.study_blind
-          else:
-            alias: Turn cover.study_blind state=on
-            if:
-            - '{{ 1 == 1 }}'
-            then:
-              service: homeassistant.turn_on
-              entity_id: cover.study_blind
+          - service: cover.stop_cover
+            entity_id: cover.study_blind
+          - service: cover.toggle
+            entity_id: cover.study_blind
     - conditions:
         condition: trigger
         id: INCREMENT_CURTAINS
@@ -294,7 +300,18 @@ automation:
         if:
         - '{{ 1 == 1 }}'
         then:
-          service: script.do_nothing
+          alias: ''
+          if:
+          - '{{ 1 == 1 }}'
+          then:
+          - service: cover.stop_cover
+            entity_id: cover.study_blind
+          - service: cover.set_cover_position
+            target:
+              entity_id:
+              - cover.study_blind
+            data:
+              position: '{{ [[ (state_attr(''cover.study_blind'', ''current_position'')) + 51 ,0]|max,100]|min}}'
     - conditions:
         condition: trigger
         id: DECREMENT_CURTAIN_0
@@ -303,7 +320,18 @@ automation:
         if:
         - '{{ 1 == 1 }}'
         then:
-          service: script.do_nothing
+          alias: ''
+          if:
+          - '{{ 1 == 1 }}'
+          then:
+          - service: cover.stop_cover
+            entity_id: cover.study_blind
+          - service: cover.set_cover_position
+            target:
+              entity_id:
+              - cover.study_blind
+            data:
+              position: '{{ [[ (state_attr(''cover.study_blind'', ''current_position'')) + -51 ,0]|max,100]|min}}'
     - conditions:
         condition: trigger
         id: TOGGLE_ALL_LIGHTS
@@ -2277,26 +2305,14 @@ automation:
         if:
         - '{{ 1 == 1 }}'
         then:
+          alias: ''
           if:
-          - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
-            condition: state
-            entity_id: cover.study_blind
-            state: 'on'
-            match: any
+          - '{{ 1 == 1 }}'
           then:
-            alias: Turn cover.study_blind state=off
-            if:
-            - '{{ 1 == 1 }}'
-            then:
-              service: homeassistant.turn_off
-              entity_id: cover.study_blind
-          else:
-            alias: Turn cover.study_blind state=on
-            if:
-            - '{{ 1 == 1 }}'
-            then:
-              service: homeassistant.turn_on
-              entity_id: cover.study_blind
+          - service: cover.stop_cover
+            entity_id: cover.study_blind
+          - service: cover.toggle
+            entity_id: cover.study_blind
     - conditions:
         condition: trigger
         id: INCREMENT_CURTAINS
@@ -2347,7 +2363,18 @@ automation:
         if:
         - '{{ 1 == 1 }}'
         then:
-          service: script.do_nothing
+          alias: ''
+          if:
+          - '{{ 1 == 1 }}'
+          then:
+          - service: cover.stop_cover
+            entity_id: cover.study_blind
+          - service: cover.set_cover_position
+            target:
+              entity_id:
+              - cover.study_blind
+            data:
+              position: '{{ [[ (state_attr(''cover.study_blind'', ''current_position'')) + 51 ,0]|max,100]|min}}'
     - conditions:
         condition: trigger
         id: DECREMENT_CURTAIN_0
@@ -2356,7 +2383,18 @@ automation:
         if:
         - '{{ 1 == 1 }}'
         then:
-          service: script.do_nothing
+          alias: ''
+          if:
+          - '{{ 1 == 1 }}'
+          then:
+          - service: cover.stop_cover
+            entity_id: cover.study_blind
+          - service: cover.set_cover_position
+            target:
+              entity_id:
+              - cover.study_blind
+            data:
+              position: '{{ [[ (state_attr(''cover.study_blind'', ''current_position'')) + -51 ,0]|max,100]|min}}'
     - conditions:
         condition: trigger
         id: TOGGLE_ALL_LIGHTS
@@ -3552,7 +3590,7 @@ template:
     state: '{% set s = states(''sensor.study_desk_button_battery_median'') %}{{ s | int if s not in [''unknown'', ''unavailable'', ''''] else ''unknown'' }}'
 - trigger:
   - platform: state
-    entity_id: event.cddz_cn_blt_3_1q11go7f90k00_cdwx8_customized_event_5_e_2_1097
+    entity_id: event.de1_cn_blt_3_1q0ubuebd0802_wjwx8_customized_event_5_e_2_1097
     not_from:
     - unknown
     - unavailable
@@ -3562,7 +3600,7 @@ template:
     auto_off: 0.2
 - trigger:
   - platform: state
-    entity_id: event.cddz_cn_blt_3_1q11go7f90k00_cdwx8_customized_event_5_e_2_1097
+    entity_id: event.de1_cn_blt_3_1q0ubuebd0802_wjwx8_customized_event_5_e_2_1097
     not_from:
     - unknown
     - unavailable
@@ -3572,7 +3610,7 @@ template:
     auto_off: 0.2
 - trigger:
   - platform: state
-    entity_id: event.cddz_cn_blt_3_1q11go7f90k00_cdwx8_customized_event_5_e_2_1097
+    entity_id: event.de1_cn_blt_3_1q0ubuebd0802_wjwx8_customized_event_5_e_2_1097
     not_from:
     - unknown
     - unavailable
@@ -3582,7 +3620,7 @@ template:
     auto_off: 0.2
 - trigger:
   - platform: state
-    entity_id: event.cddz_cn_blt_3_1q11go7f90k00_cdwx8_customized_event_5_e_2_1097
+    entity_id: event.de1_cn_blt_3_1q0ubuebd0802_wjwx8_customized_event_5_e_2_1097
     not_from:
     - unknown
     - unavailable
@@ -3592,7 +3630,7 @@ template:
     auto_off: 0.2
 - trigger:
   - platform: state
-    entity_id: event.cddz_cn_blt_3_1q11go7f90k00_cdwx8_customized_event_5_e_2_1097
+    entity_id: event.de1_cn_blt_3_1q0ubuebd0802_wjwx8_customized_event_5_e_2_1097
     not_from:
     - unknown
     - unavailable
@@ -3602,7 +3640,7 @@ template:
     auto_off: 0.2
 - trigger:
   - platform: state
-    entity_id: event.cddz_cn_blt_3_1q11go7f90k00_cdwx8_customized_event_5_e_2_1097
+    entity_id: event.de1_cn_blt_3_1q0ubuebd0802_wjwx8_customized_event_5_e_2_1097
     not_from:
     - unknown
     - unavailable
@@ -3612,7 +3650,7 @@ template:
     auto_off: 0.2
 - trigger:
   - platform: state
-    entity_id: event.cddz_cn_blt_3_1q11go7f90k00_cdwx8_customized_event_5_e_2_1097
+    entity_id: event.de1_cn_blt_3_1q0ubuebd0802_wjwx8_customized_event_5_e_2_1097
     not_from:
     - unknown
     - unavailable
@@ -3622,7 +3660,7 @@ template:
     auto_off: 0.2
 - trigger:
   - platform: state
-    entity_id: event.cddz_cn_blt_3_1q11go7f90k00_cdwx8_customized_event_5_e_2_1097
+    entity_id: event.de1_cn_blt_3_1q0ubuebd0802_wjwx8_customized_event_5_e_2_1097
     not_from:
     - unknown
     - unavailable
@@ -3632,7 +3670,7 @@ template:
     auto_off: 0.2
 - trigger:
   - platform: state
-    entity_id: event.cddz_cn_blt_3_1q11go7f90k00_cdwx8_customized_event_5_e_2_1097
+    entity_id: event.de1_cn_blt_3_1q0ubuebd0802_wjwx8_customized_event_5_e_2_1097
     not_from:
     - unknown
     - unavailable
@@ -3642,7 +3680,7 @@ template:
     auto_off: 0.2
 - trigger:
   - platform: state
-    entity_id: event.cddz_cn_blt_3_1q11go7f90k00_cdwx8_customized_event_5_e_2_1097
+    entity_id: event.de1_cn_blt_3_1q0ubuebd0802_wjwx8_customized_event_5_e_2_1097
     not_from:
     - unknown
     - unavailable
@@ -3652,7 +3690,7 @@ template:
     auto_off: 0.2
 - trigger:
   - platform: state
-    entity_id: event.cddz_cn_blt_3_1q11go7f90k00_cdwx8_customized_event_5_e_2_1097
+    entity_id: event.de1_cn_blt_3_1q0ubuebd0802_wjwx8_customized_event_5_e_2_1097
     not_from:
     - unknown
     - unavailable
@@ -3662,7 +3700,7 @@ template:
     auto_off: 0.2
 - trigger:
   - platform: state
-    entity_id: event.cddz_cn_blt_3_1q11go7f90k00_cdwx8_customized_event_5_e_2_1097
+    entity_id: event.de1_cn_blt_3_1q0ubuebd0802_wjwx8_customized_event_5_e_2_1097
     not_from:
     - unknown
     - unavailable
@@ -3672,7 +3710,7 @@ template:
     auto_off: 0.2
 - trigger:
   - platform: state
-    entity_id: event.cddz_cn_blt_3_1q11go7f90k00_cdwx8_customized_event_5_e_2_1097
+    entity_id: event.de1_cn_blt_3_1q0ubuebd0802_wjwx8_customized_event_5_e_2_1097
     not_from:
     - unknown
     - unavailable
@@ -3682,7 +3720,7 @@ template:
     auto_off: 0.2
 - trigger:
   - platform: state
-    entity_id: event.cddz_cn_blt_3_1q11go7f90k00_cdwx8_customized_event_5_e_2_1097
+    entity_id: event.de1_cn_blt_3_1q0ubuebd0802_wjwx8_customized_event_5_e_2_1097
     not_from:
     - unknown
     - unavailable
@@ -3692,7 +3730,7 @@ template:
     auto_off: 0.2
 - trigger:
   - platform: state
-    entity_id: event.cddz_cn_blt_3_1q11go7f90k00_cdwx8_customized_event_5_e_2_1097
+    entity_id: event.de1_cn_blt_3_1q0ubuebd0802_wjwx8_customized_event_5_e_2_1097
     not_from:
     - unknown
     - unavailable
@@ -3702,7 +3740,7 @@ template:
     auto_off: 0.2
 - trigger:
   - platform: state
-    entity_id: event.cddz_cn_blt_3_1q11go7f90k00_cdwx8_customized_event_5_e_2_1097
+    entity_id: event.de1_cn_blt_3_1q0ubuebd0802_wjwx8_customized_event_5_e_2_1097
     not_from:
     - unknown
     - unavailable
@@ -3712,7 +3750,7 @@ template:
     auto_off: 0.2
 - trigger:
   - platform: state
-    entity_id: event.cddz_cn_blt_3_1q11go7f90k00_cdwx8_customized_event_5_e_2_1097
+    entity_id: event.de1_cn_blt_3_1q0ubuebd0802_wjwx8_customized_event_5_e_2_1097
     not_from:
     - unknown
     - unavailable
@@ -3722,7 +3760,7 @@ template:
     auto_off: 0.2
 - trigger:
   - platform: state
-    entity_id: event.cddz_cn_blt_3_1q11go7f90k00_cdwx8_customized_event_5_e_2_1097
+    entity_id: event.de1_cn_blt_3_1q0ubuebd0802_wjwx8_customized_event_5_e_2_1097
     not_from:
     - unknown
     - unavailable
@@ -3732,7 +3770,7 @@ template:
     auto_off: 0.2
 - trigger:
   - platform: state
-    entity_id: event.cddz_cn_blt_3_1q11go7f90k00_cdwx8_customized_event_5_e_2_1097
+    entity_id: event.de1_cn_blt_3_1q0ubuebd0802_wjwx8_customized_event_5_e_2_1097
     not_from:
     - unknown
     - unavailable
@@ -3742,7 +3780,7 @@ template:
     auto_off: 0.2
 - trigger:
   - platform: state
-    entity_id: event.cddz_cn_blt_3_1q11go7f90k00_cdwx8_customized_event_5_e_2_1097
+    entity_id: event.de1_cn_blt_3_1q0ubuebd0802_wjwx8_customized_event_5_e_2_1097
     not_from:
     - unknown
     - unavailable
@@ -3752,7 +3790,7 @@ template:
     auto_off: 0.2
 - trigger:
   - platform: state
-    entity_id: event.cddz_cn_blt_3_1q11go7f90k00_cdwx8_customized_event_5_e_2_1097
+    entity_id: event.de1_cn_blt_3_1q0ubuebd0802_wjwx8_customized_event_5_e_2_1097
     not_from:
     - unknown
     - unavailable
@@ -3762,7 +3800,7 @@ template:
     auto_off: 0.2
 - trigger:
   - platform: state
-    entity_id: event.cddz_cn_blt_3_1q11go7f90k00_cdwx8_customized_event_5_e_2_1097
+    entity_id: event.de1_cn_blt_3_1q0ubuebd0802_wjwx8_customized_event_5_e_2_1097
     not_from:
     - unknown
     - unavailable
@@ -3772,7 +3810,7 @@ template:
     auto_off: 0.2
 - trigger:
   - platform: state
-    entity_id: event.cddz_cn_blt_3_1q11go7f90k00_cdwx8_customized_event_5_e_2_1097
+    entity_id: event.de1_cn_blt_3_1q0ubuebd0802_wjwx8_customized_event_5_e_2_1097
     not_from:
     - unknown
     - unavailable
@@ -3782,7 +3820,7 @@ template:
     auto_off: 0.2
 - trigger:
   - platform: state
-    entity_id: event.cddz_cn_blt_3_1q11go7f90k00_cdwx8_customized_event_5_e_2_1097
+    entity_id: event.de1_cn_blt_3_1q0ubuebd0802_wjwx8_customized_event_5_e_2_1097
     not_from:
     - unknown
     - unavailable
@@ -3845,13 +3883,13 @@ light:
   - light.ccb5d1ab63f6_light
 - platform: group
   name: Study Lamp 1
-  entities: light.e14w_1_tuya
+  entities: light.50ec50df0a79_light
 - platform: group
   name: Study Lamp 2
-  entities: light.e14w_2_tuya
+  entities: light.e14w_1_tuya
 - platform: group
   name: Study Lamp 3
-  entities: light.50ec50df0a79_light
+  entities: light.e14w_2_tuya
 group:
   study_occupancy_group:
     name: Study Occupancy Group

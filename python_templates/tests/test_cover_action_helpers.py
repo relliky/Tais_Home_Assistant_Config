@@ -108,8 +108,14 @@ class CoverActionHelpersTest(unittest.TestCase):
                         "match": "any",
                     }
                 ],
-                "then": ["set", ["cover.kitchen_curtain"], "off"],
-                "else": ["set", ["cover.kitchen_curtain"], "on"],
+                "then": {
+                    "service": "cover.close_cover",
+                    "entity_id": ["cover.kitchen_curtain"],
+                },
+                "else": {
+                    "service": "cover.open_cover",
+                    "entity_id": ["cover.kitchen_curtain"],
+                },
             },
         )
 
