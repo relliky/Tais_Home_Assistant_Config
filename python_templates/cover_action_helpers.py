@@ -46,8 +46,10 @@ def cover_toggle_action(entity_list, set_service):
         "match": 'any'
       }
     ],
-    "then": set_service(entity_list, 'off'),
-    "else": set_service(entity_list, 'on')
+    "then": {"service":  "cover.close_cover",
+             "entity_id": entity_list},
+    "else": {"service":  "cover.open_cover",
+             "entity_id": entity_list}
   }
 
 

@@ -699,7 +699,7 @@ class RoomBase:
 
   def add_device(self, mac, name, comment, model, postfix=None, integration='Xiaomi Gateway 3', flex_switch=None, power_on_threshold=None,
                  switch_rename_dir=None, light_wall_switch=True, belong_to_group=None, enable_battery=True, smooth_battery=False, smooth_power=True, delay_off_minute=0,
-                 enable_humidity_sensor=True, enable_shower_sensor=False, mdi_icon=None, device_class=None):
+                 enable_humidity_sensor=True, enable_shower_sensor=False, mdi_icon=None, device_class=None, add_remote_automation=True):
 
     # Check if inputs are legal
     group = belong_to_group
@@ -900,26 +900,27 @@ class RoomBase:
           self.add_event_binary_sensor(long_press_entity,   name + ' Button 3 Long Press'   + name_postfix, attribute_value=3)
           self.add_event_binary_sensor(long_press_entity,   name + ' Button 4 Long Press'   + name_postfix, attribute_value=4)
 
-          self.automation_list += [{
-              "alias" : "ZLB-" + self.automation_room_name + " 4-Key Button Light Control" + "-" + self.room_name,
-              "configured": self.cfg_remote_light,
-              "trigger":
-                ([{"platform": "state",  "entity_id": [f'binary_sensor.{self.getEntityFromName(name)}_button_1_single_click',
-                                                       f'binary_sensor.{self.getEntityFromName(name)}_button_1_double_click',],   "to": 'on', "id": self.CYCLE_LAMP_0           }]) + \
-                ([{"platform": "state",  "entity_id": [f'binary_sensor.{self.getEntityFromName(name)}_button_1_long_press',  ],   "to": 'on', "id": self.TOGGLE_LAMP_0          }]) + \
-                ([{"platform": "state",  "entity_id": [f'binary_sensor.{self.getEntityFromName(name)}_button_2_single_click',
-                                                       f'binary_sensor.{self.getEntityFromName(name)}_button_2_double_click',],   "to": 'on', "id": self.CYCLE_CEILING_LIGHTS   }]) + \
-                ([{"platform": "state",  "entity_id": [f'binary_sensor.{self.getEntityFromName(name)}_button_2_long_press',  ],   "to": 'on', "id": self.TOGGLE_CEILING_LIGHTS  }]) + \
-                ([{"platform": "state",  "entity_id": [f'binary_sensor.{self.getEntityFromName(name)}_button_3_single_click',
-                                                       f'binary_sensor.{self.getEntityFromName(name)}_button_3_double_click',],   "to": 'on', "id": self.CYCLE_LAMP_1           }]) + \
-                ([{"platform": "state",  "entity_id": [f'binary_sensor.{self.getEntityFromName(name)}_button_3_long_press',  ],   "to": 'on', "id": self.TOGGLE_LAMP_1          }]) + \
-                ([{"platform": "state",  "entity_id": [f'binary_sensor.{self.getEntityFromName(name)}_button_4_single_click',
-                                                       f'binary_sensor.{self.getEntityFromName(name)}_button_4_double_click',],   "to": 'on', "id": self.CYCLE_LEDS             }]) + \
-                ([{"platform": "state",  "entity_id": [f'binary_sensor.{self.getEntityFromName(name)}_button_4_long_press',  ],   "to": 'on', "id": self.TOGGLE_LEDS            }]) + \
-                ([]),
-              "mode":"queued", # this has to be queued to make sure no button press is ignored
-              "action": self.get_trigger_action_list()
-          }]
+          if add_remote_automation:
+            self.automation_list += [{
+                "alias" : "ZLB-" + self.automation_room_name + " 4-Key Button Light Control" + "-" + self.room_name,
+                "configured": self.cfg_remote_light,
+                "trigger":
+                  ([{"platform": "state",  "entity_id": [f'binary_sensor.{self.getEntityFromName(name)}_button_1_single_click',
+                                                        f'binary_sensor.{self.getEntityFromName(name)}_button_1_double_click',],   "to": 'on', "id": self.CYCLE_LAMP_0           }]) + \
+                  ([{"platform": "state",  "entity_id": [f'binary_sensor.{self.getEntityFromName(name)}_button_1_long_press',  ],   "to": 'on', "id": self.TOGGLE_LAMP_0          }]) + \
+                  ([{"platform": "state",  "entity_id": [f'binary_sensor.{self.getEntityFromName(name)}_button_2_single_click',
+                                                        f'binary_sensor.{self.getEntityFromName(name)}_button_2_double_click',],   "to": 'on', "id": self.CYCLE_CEILING_LIGHTS   }]) + \
+                  ([{"platform": "state",  "entity_id": [f'binary_sensor.{self.getEntityFromName(name)}_button_2_long_press',  ],   "to": 'on', "id": self.TOGGLE_CEILING_LIGHTS  }]) + \
+                  ([{"platform": "state",  "entity_id": [f'binary_sensor.{self.getEntityFromName(name)}_button_3_single_click',
+                                                        f'binary_sensor.{self.getEntityFromName(name)}_button_3_double_click',],   "to": 'on', "id": self.CYCLE_LAMP_1           }]) + \
+                  ([{"platform": "state",  "entity_id": [f'binary_sensor.{self.getEntityFromName(name)}_button_3_long_press',  ],   "to": 'on', "id": self.TOGGLE_LAMP_1          }]) + \
+                  ([{"platform": "state",  "entity_id": [f'binary_sensor.{self.getEntityFromName(name)}_button_4_single_click',
+                                                        f'binary_sensor.{self.getEntityFromName(name)}_button_4_double_click',],   "to": 'on', "id": self.CYCLE_LEDS             }]) + \
+                  ([{"platform": "state",  "entity_id": [f'binary_sensor.{self.getEntityFromName(name)}_button_4_long_press',  ],   "to": 'on', "id": self.TOGGLE_LEDS            }]) + \
+                  ([]),
+                "mode":"queued", # this has to be queued to make sure no button press is ignored
+                "action": self.get_trigger_action_list()
+            }]
 
       elif model == 'Yeelight 6 Key Remote':
         # no battery entity for this remote
@@ -938,32 +939,33 @@ class RoomBase:
         self.add_event_binary_sensor('event.' + mac + '_button_min',         name + ' Button 6 Long Press',   'event_type', 'long_press')
 
         # There is no Double Click but just leave placeholders in the trigger
-        self.automation_list += [{
-            "alias" : "ZLB-" + self.automation_room_name + "6 Key Button Remote" + "-" + self.room_name,
-            "configured": self.cfg_remote_light,
-            "trigger":
-              ([{"platform": "state",  "entity_id": [f'binary_sensor.{self.getEntityFromName(name)}_button_1_single_click',
-                                                     f'binary_sensor.{self.getEntityFromName(name)}_button_1_double_click' ],   "to": 'on', "id": self.CYCLE_SCENES            }]) + \
-              ([{"platform": "state",  "entity_id": [f'binary_sensor.{self.getEntityFromName(name)}_button_1_long_press',  ],   "to": 'on', "id": self.TOGGLE_ALL_LIGHTS       }]) + \
-              ([{"platform": "state",  "entity_id": [f'binary_sensor.{self.getEntityFromName(name)}_button_2_single_click',
-                                                     f'binary_sensor.{self.getEntityFromName(name)}_button_2_double_click',
-                                                     f'binary_sensor.{self.getEntityFromName(name)}_button_2_long_press',  ],   "to": 'on', "id": self.TOGGLE_CURTAINS         }]) + \
-              ([{"platform": "state",  "entity_id": [f'binary_sensor.{self.getEntityFromName(name)}_button_3_single_click',
-                                                     f'binary_sensor.{self.getEntityFromName(name)}_button_3_double_click',],   "to": 'on', "id":  self.CYCLE_CEILING_LIGHTS   }]) + \
-              ([{"platform": "state",  "entity_id": [f'binary_sensor.{self.getEntityFromName(name)}_button_3_long_press',  ],   "to": 'on', "id": self.TOGGLE_CEILING_LIGHTS   }]) + \
-              ([{"platform": "state",  "entity_id": [f'binary_sensor.{self.getEntityFromName(name)}_button_4_single_click',
-                                                     f'binary_sensor.{self.getEntityFromName(name)}_button_4_double_click',],   "to": 'on', "id":   self.CYCLE_LEDS            }]) + \
-              ([{"platform": "state",  "entity_id": [f'binary_sensor.{self.getEntityFromName(name)}_button_4_long_press',  ],   "to": 'on', "id":  self.TOGGLE_LEDS            }]) + \
-              ([{"platform": "state",  "entity_id": [f'binary_sensor.{self.getEntityFromName(name)}_button_5_single_click',
-                                                     f'binary_sensor.{self.getEntityFromName(name)}_button_5_double_click',],   "to": 'on', "id":  self.CYCLE_LAMP_0           }]) + \
-              ([{"platform": "state",  "entity_id": [f'binary_sensor.{self.getEntityFromName(name)}_button_5_long_press',  ],   "to": 'on', "id": self.TOGGLE_LAMP_0           }]) + \
-              ([{"platform": "state",  "entity_id": [f'binary_sensor.{self.getEntityFromName(name)}_button_6_single_click',
-                                                     f'binary_sensor.{self.getEntityFromName(name)}_button_6_double_click',],   "to": 'on', "id":  self.CYCLE_LAMP_1           }]) + \
-              ([{"platform": "state",  "entity_id": [f'binary_sensor.{self.getEntityFromName(name)}_button_6_long_press',  ],   "to": 'on', "id": self.TOGGLE_LAMP_1           }]) + \
-              ([]),
-            "mode":"queued", # this has to be queued to make sure no button press is ignored
-            "action": self.get_trigger_action_list()
-        }]
+        if add_remote_automation:
+          self.automation_list += [{
+              "alias" : "ZLB-" + self.automation_room_name + "6 Key Button Remote" + "-" + self.room_name,
+              "configured": self.cfg_remote_light,
+              "trigger":
+                ([{"platform": "state",  "entity_id": [f'binary_sensor.{self.getEntityFromName(name)}_button_1_single_click',
+                                                      f'binary_sensor.{self.getEntityFromName(name)}_button_1_double_click' ],   "to": 'on', "id": self.CYCLE_SCENES            }]) + \
+                ([{"platform": "state",  "entity_id": [f'binary_sensor.{self.getEntityFromName(name)}_button_1_long_press',  ],   "to": 'on', "id": self.TOGGLE_ALL_LIGHTS       }]) + \
+                ([{"platform": "state",  "entity_id": [f'binary_sensor.{self.getEntityFromName(name)}_button_2_single_click',
+                                                      f'binary_sensor.{self.getEntityFromName(name)}_button_2_double_click',
+                                                      f'binary_sensor.{self.getEntityFromName(name)}_button_2_long_press',  ],   "to": 'on', "id": self.TOGGLE_CURTAINS         }]) + \
+                ([{"platform": "state",  "entity_id": [f'binary_sensor.{self.getEntityFromName(name)}_button_3_single_click',
+                                                      f'binary_sensor.{self.getEntityFromName(name)}_button_3_double_click',],   "to": 'on', "id":  self.CYCLE_CEILING_LIGHTS   }]) + \
+                ([{"platform": "state",  "entity_id": [f'binary_sensor.{self.getEntityFromName(name)}_button_3_long_press',  ],   "to": 'on', "id": self.TOGGLE_CEILING_LIGHTS   }]) + \
+                ([{"platform": "state",  "entity_id": [f'binary_sensor.{self.getEntityFromName(name)}_button_4_single_click',
+                                                      f'binary_sensor.{self.getEntityFromName(name)}_button_4_double_click',],   "to": 'on', "id":   self.CYCLE_LEDS            }]) + \
+                ([{"platform": "state",  "entity_id": [f'binary_sensor.{self.getEntityFromName(name)}_button_4_long_press',  ],   "to": 'on', "id":  self.TOGGLE_LEDS            }]) + \
+                ([{"platform": "state",  "entity_id": [f'binary_sensor.{self.getEntityFromName(name)}_button_5_single_click',
+                                                      f'binary_sensor.{self.getEntityFromName(name)}_button_5_double_click',],   "to": 'on', "id":  self.CYCLE_LAMP_0           }]) + \
+                ([{"platform": "state",  "entity_id": [f'binary_sensor.{self.getEntityFromName(name)}_button_5_long_press',  ],   "to": 'on', "id": self.TOGGLE_LAMP_0           }]) + \
+                ([{"platform": "state",  "entity_id": [f'binary_sensor.{self.getEntityFromName(name)}_button_6_single_click',
+                                                      f'binary_sensor.{self.getEntityFromName(name)}_button_6_double_click',],   "to": 'on', "id":  self.CYCLE_LAMP_1           }]) + \
+                ([{"platform": "state",  "entity_id": [f'binary_sensor.{self.getEntityFromName(name)}_button_6_long_press',  ],   "to": 'on', "id": self.TOGGLE_LAMP_1           }]) + \
+                ([]),
+              "mode":"queued", # this has to be queued to make sure no button press is ignored
+              "action": self.get_trigger_action_list()
+          }]
 
       elif model in ['DEBROGLIE 8-Key Remote', 'Jiuhao 8-Key Remote']:
         for event_name, attribute_values in {
@@ -1000,11 +1002,45 @@ class RoomBase:
         }.items():
           for button_index, attribute_value in enumerate(attribute_values, start=1):
             self.add_event_binary_sensor(
-              mac,
+              'event.' + mac,
               name + f' Button {button_index} {event_name}' + name_postfix,
               attribute_name='Customized Argument 5',
               attribute_value=attribute_value,
             )
+
+        if add_remote_automation:
+          self.automation_list += [{
+              "alias" : "ZLB-" + self.automation_room_name + "8 Key Button Remote" + "-" + self.room_name,
+              "configured": self.cfg_remote_light,
+              "trigger":
+                ([{"platform": "state",  "entity_id": [f'binary_sensor.{self.getEntityFromName(name)}_button_1_single_click',
+                                                      f'binary_sensor.{self.getEntityFromName(name)}_button_1_double_click' ],   "to": 'on', "id": self.CYCLE_SCENES            }]) + \
+                ([{"platform": "state",  "entity_id": [f'binary_sensor.{self.getEntityFromName(name)}_button_1_long_press',  ],   "to": 'on', "id": self.TOGGLE_ALL_LIGHTS       }]) + \
+                ([{"platform": "state",  "entity_id": [f'binary_sensor.{self.getEntityFromName(name)}_button_2_single_click',
+                                                      f'binary_sensor.{self.getEntityFromName(name)}_button_2_double_click',
+                                                      f'binary_sensor.{self.getEntityFromName(name)}_button_2_long_press',  ],   "to": 'on', "id": self.TOGGLE_CURTAIN_0        }]) + \
+                ([{"platform": "state",  "entity_id": [f'binary_sensor.{self.getEntityFromName(name)}_button_3_single_click',
+                                                      f'binary_sensor.{self.getEntityFromName(name)}_button_3_double_click',],   "to": 'on', "id":  self.CYCLE_CEILING_LIGHTS   }]) + \
+                ([{"platform": "state",  "entity_id": [f'binary_sensor.{self.getEntityFromName(name)}_button_3_long_press',  ],   "to": 'on', "id": self.TOGGLE_CEILING_LIGHTS   }]) + \
+                ([{"platform": "state",  "entity_id": [f'binary_sensor.{self.getEntityFromName(name)}_button_4_single_click',
+                                                      f'binary_sensor.{self.getEntityFromName(name)}_button_4_double_click',],   "to": 'on', "id":   self.CYCLE_LEDS            }]) + \
+                ([{"platform": "state",  "entity_id": [f'binary_sensor.{self.getEntityFromName(name)}_button_4_long_press',  ],   "to": 'on', "id":  self.TOGGLE_LEDS            }]) + \
+                ([{"platform": "state",  "entity_id": [f'binary_sensor.{self.getEntityFromName(name)}_button_5_single_click',
+                                                      f'binary_sensor.{self.getEntityFromName(name)}_button_5_double_click',],   "to": 'on', "id":  self.CYCLE_LAMP_0           }]) + \
+                ([{"platform": "state",  "entity_id": [f'binary_sensor.{self.getEntityFromName(name)}_button_5_long_press',  ],   "to": 'on', "id": self.TOGGLE_LAMP_0           }]) + \
+                ([{"platform": "state",  "entity_id": [f'binary_sensor.{self.getEntityFromName(name)}_button_6_single_click',
+                                                      f'binary_sensor.{self.getEntityFromName(name)}_button_6_double_click',],   "to": 'on', "id":  self.CYCLE_LAMP_1           }]) + \
+                ([{"platform": "state",  "entity_id": [f'binary_sensor.{self.getEntityFromName(name)}_button_6_long_press',  ],   "to": 'on', "id": self.TOGGLE_LAMP_1           }]) + \
+                ([{"platform": "state",  "entity_id": [f'binary_sensor.{self.getEntityFromName(name)}_button_7_single_click',
+                                                      f'binary_sensor.{self.getEntityFromName(name)}_button_7_double_click',],   "to": 'on', "id":  self.CYCLE_LAMP_2           }]) + \
+                ([{"platform": "state",  "entity_id": [f'binary_sensor.{self.getEntityFromName(name)}_button_7_long_press',  ],   "to": 'on', "id": self.TOGGLE_LAMP_2           }]) + \
+                ([{"platform": "state",  "entity_id": [f'binary_sensor.{self.getEntityFromName(name)}_button_8_single_click',
+                                                      f'binary_sensor.{self.getEntityFromName(name)}_button_8_double_click',
+                                                      f'binary_sensor.{self.getEntityFromName(name)}_button_8_long_press',  ],   "to": 'on', "id": self.TOGGLE_CURTAIN_1        }]) + \
+                ([]),
+              "mode":"queued", # this has to be queued to make sure no button press is ignored
+              "action": self.get_trigger_action_list()
+          }]
 
       elif ((model == "MiJia Wireless Switch") or (model == "MiJia Wireless Switch 2")) and integration == 'Xiaomi Home':
 
@@ -3471,7 +3507,9 @@ class RoomBase:
     ##############################################
     # Curtains
     ##############################################
-    elif entity_list == self.curtains:
+    elif entity_list in self.curtains or \
+        (entity_list in [self.curtains[0]] if len(self.curtains) >= 1 else False) or \
+        (entity_list in [self.curtains[1]] if len(self.curtains) >= 2 else False):
 
       if state in ['increment', 'decrement']:
         action_service = cover_action_helpers.cover_position_step_action(
@@ -3528,7 +3566,7 @@ class RoomBase:
 
       # stop the curtain before any curtain actions - make sure the previous action is stopped
       action_service = self.convertToSingleService(
-                      cover_action_helpers.stop_cover_before_action(
+                        cover_action_helpers.stop_cover_before_action(
                         entity_list,
                         action_service,
                       ))
@@ -3555,7 +3593,7 @@ class RoomBase:
                           "else": self.set(entity_list, 'off')}
       elif state in ['on', 'off']:
         action_service = self.convertToSingleService(
-                        [self.set(self.thermostat,          state),
+                         [self.set(self.thermostat,          state),
                           self.set(self.thermostat_schedule, state)] + \
                           [])
                           #([] if self.room_entity != 'kitchen' else \
@@ -4131,7 +4169,7 @@ if __name__ == "__main__":
 
 
 
-print ("Done.")
+print ("Auto-gen config done.")
 
 
 #translation = translator.translate("This is a pen.")

@@ -61,6 +61,918 @@ automation:
       entity_id: switch.0x00158d00045245be_switch
   mode: queued
   id: automation.zlb_st_flex_wall_switch_on_postion_1_automatically_turn_on_the_wall_switch_back_when_turned_off_study
+- alias: ZLB-ST 8 Key Button Remote-Study
+  trigger:
+  - platform: state
+    entity_id:
+    - binary_sensor.study_8_key_remote_button_1_single_click
+    - binary_sensor.study_8_key_remote_button_1_double_click
+    to: 'on'
+    id: CYCLE_SCENES
+  - platform: state
+    entity_id:
+    - binary_sensor.study_8_key_remote_button_1_long_press
+    to: 'on'
+    id: TOGGLE_ALL_LIGHTS
+  - platform: state
+    entity_id:
+    - binary_sensor.study_8_key_remote_button_2_single_click
+    - binary_sensor.study_8_key_remote_button_2_double_click
+    - binary_sensor.study_8_key_remote_button_2_long_press
+    to: 'on'
+    id: TOGGLE_CURTAIN_0
+  - platform: state
+    entity_id:
+    - binary_sensor.study_8_key_remote_button_3_single_click
+    - binary_sensor.study_8_key_remote_button_3_double_click
+    to: 'on'
+    id: CYCLE_CEILING_LIGHTS
+  - platform: state
+    entity_id:
+    - binary_sensor.study_8_key_remote_button_3_long_press
+    to: 'on'
+    id: TOGGLE_CEILING_LIGHTS
+  - platform: state
+    entity_id:
+    - binary_sensor.study_8_key_remote_button_4_single_click
+    - binary_sensor.study_8_key_remote_button_4_double_click
+    to: 'on'
+    id: CYCLE_LEDS
+  - platform: state
+    entity_id:
+    - binary_sensor.study_8_key_remote_button_4_long_press
+    to: 'on'
+    id: TOGGLE_LEDS
+  - platform: state
+    entity_id:
+    - binary_sensor.study_8_key_remote_button_5_single_click
+    - binary_sensor.study_8_key_remote_button_5_double_click
+    to: 'on'
+    id: CYCLE_LAMP_0
+  - platform: state
+    entity_id:
+    - binary_sensor.study_8_key_remote_button_5_long_press
+    to: 'on'
+    id: TOGGLE_LAMP_0
+  - platform: state
+    entity_id:
+    - binary_sensor.study_8_key_remote_button_6_single_click
+    - binary_sensor.study_8_key_remote_button_6_double_click
+    to: 'on'
+    id: CYCLE_LAMP_1
+  - platform: state
+    entity_id:
+    - binary_sensor.study_8_key_remote_button_6_long_press
+    to: 'on'
+    id: TOGGLE_LAMP_1
+  - platform: state
+    entity_id:
+    - binary_sensor.study_8_key_remote_button_7_single_click
+    - binary_sensor.study_8_key_remote_button_7_double_click
+    to: 'on'
+    id: CYCLE_LAMP_2
+  - platform: state
+    entity_id:
+    - binary_sensor.study_8_key_remote_button_7_long_press
+    to: 'on'
+    id: TOGGLE_LAMP_2
+  - platform: state
+    entity_id:
+    - binary_sensor.study_8_key_remote_button_8_single_click
+    - binary_sensor.study_8_key_remote_button_8_double_click
+    - binary_sensor.study_8_key_remote_button_8_long_press
+    to: 'on'
+    id: TOGGLE_CURTAIN_1
+  mode: queued
+  action:
+    choose:
+    - conditions:
+        condition: trigger
+        id: CYCLE_SCENES
+      sequence:
+        choose:
+        - conditions:
+            condition: state
+            entity_id: input_select.study_scene
+            state: All Off
+          sequence:
+            service: script.call_room_scene
+            data:
+              room_scene_select: input_select.study_scene
+              scene: All White
+        - conditions:
+            condition: state
+            entity_id: input_select.study_scene
+            state: All White
+          sequence:
+            service: script.call_room_scene
+            data:
+              room_scene_select: input_select.study_scene
+              scene: Lamp LED White
+        - conditions:
+            condition: state
+            entity_id: input_select.study_scene
+            state: Lamp LED White
+          sequence:
+            service: script.call_room_scene
+            data:
+              room_scene_select: input_select.study_scene
+              scene: All Off
+        default:
+          service: script.call_room_scene
+          data:
+            room_scene_select: input_select.study_scene
+            scene: All White
+    - conditions:
+        condition: trigger
+        id: DO_NOTHING
+      sequence:
+      - service: script.do_nothing
+    - conditions:
+        condition: trigger
+        id: TOGGLE_AL_SLEEP_MODE
+      sequence:
+      - alias: Turn switch.adaptive_lighting_sleep_mode_study state=toggle
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          if:
+          - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
+            condition: state
+            entity_id: switch.adaptive_lighting_sleep_mode_study
+            state: 'on'
+            match: any
+          then:
+            alias: Turn switch.adaptive_lighting_sleep_mode_study state=off
+            if:
+            - '{{ 1 == 1 }}'
+            then:
+              service: homeassistant.turn_off
+              entity_id: switch.adaptive_lighting_sleep_mode_study
+          else:
+            alias: Turn switch.adaptive_lighting_sleep_mode_study state=on
+            if:
+            - '{{ 1 == 1 }}'
+            then:
+              service: homeassistant.turn_on
+              entity_id: switch.adaptive_lighting_sleep_mode_study
+    - conditions:
+        condition: trigger
+        id: TOGGLE_CURTAINS
+      sequence:
+      - alias: Turn cover.study_blind state=toggle
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          if:
+          - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
+            condition: state
+            entity_id:
+            - cover.study_blind
+            state: 'on'
+            match: any
+          then:
+            alias: Turn cover.study_blind state=off
+            if:
+            - '{{ 1 == 1 }}'
+            then:
+              service: homeassistant.turn_off
+              entity_id:
+              - cover.study_blind
+          else:
+            alias: Turn cover.study_blind state=on
+            if:
+            - '{{ 1 == 1 }}'
+            then:
+              service: homeassistant.turn_on
+              entity_id:
+              - cover.study_blind
+    - conditions:
+        condition: trigger
+        id: TOGGLE_CURTAIN_0
+      sequence:
+      - alias: Turn cover.study_blind state=toggle
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          alias: ''
+          if:
+          - '{{ 1 == 1 }}'
+          then:
+          - service: cover.stop_cover
+            entity_id: cover.study_blind
+          - service: cover.toggle
+            entity_id: cover.study_blind
+    - conditions:
+        condition: trigger
+        id: INCREMENT_CURTAINS
+      sequence:
+      - alias: Turn cover.study_blind state=increment
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          service: script.do_nothing
+    - conditions:
+        condition: trigger
+        id: DECREMENT_CURTAINS
+      sequence:
+      - alias: Turn cover.study_blind state=decrement
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          service: script.do_nothing
+    - conditions:
+        condition: trigger
+        id: INCREMENT_CURTAIN_0
+      sequence:
+      - alias: Turn cover.study_blind state=increment
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          alias: ''
+          if:
+          - '{{ 1 == 1 }}'
+          then:
+          - service: cover.stop_cover
+            entity_id: cover.study_blind
+          - service: cover.set_cover_position
+            target:
+              entity_id:
+              - cover.study_blind
+            data:
+              position: '{{ [[ (state_attr(''cover.study_blind'', ''current_position'')) + 51 ,0]|max,100]|min}}'
+    - conditions:
+        condition: trigger
+        id: DECREMENT_CURTAIN_0
+      sequence:
+      - alias: Turn cover.study_blind state=decrement
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          alias: ''
+          if:
+          - '{{ 1 == 1 }}'
+          then:
+          - service: cover.stop_cover
+            entity_id: cover.study_blind
+          - service: cover.set_cover_position
+            target:
+              entity_id:
+              - cover.study_blind
+            data:
+              position: '{{ [[ (state_attr(''cover.study_blind'', ''current_position'')) + -51 ,0]|max,100]|min}}'
+    - conditions:
+        condition: trigger
+        id: TOGGLE_ALL_LIGHTS
+      sequence:
+      - alias: Turn switch.study_screen_light light.study_lamp_1 light.study_lamp_2 light.study_lamp_3 light.ccb5d1ab99bd_light light.ccb5d1ab3f31_light light.ccb5d1ab63f6_light state=toggle
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          if:
+          - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
+            condition: state
+            entity_id:
+            - switch.study_screen_light
+            - light.study_lamp_1
+            - light.study_lamp_2
+            - light.study_lamp_3
+            - light.ccb5d1ab99bd_light
+            - light.ccb5d1ab3f31_light
+            - light.ccb5d1ab63f6_light
+            state: 'on'
+            match: any
+          then:
+            alias: Turn switch.study_screen_light light.study_lamp_1 light.study_lamp_2 light.study_lamp_3 light.ccb5d1ab99bd_light light.ccb5d1ab3f31_light light.ccb5d1ab63f6_light state=off
+            if:
+            - '{{ 1 == 1 }}'
+            then:
+              service: homeassistant.turn_off
+              entity_id:
+              - switch.study_screen_light
+              - light.study_lamp_1
+              - light.study_lamp_2
+              - light.study_lamp_3
+              - light.ccb5d1ab99bd_light
+              - light.ccb5d1ab3f31_light
+              - light.ccb5d1ab63f6_light
+          else:
+            alias: Turn switch.study_screen_light light.study_lamp_1 light.study_lamp_2 light.study_lamp_3 light.ccb5d1ab99bd_light light.ccb5d1ab3f31_light light.ccb5d1ab63f6_light state=on
+            if:
+            - '{{ 1 == 1 }}'
+            then:
+              service: homeassistant.turn_on
+              entity_id:
+              - switch.study_screen_light
+              - light.study_lamp_1
+              - light.study_lamp_2
+              - light.study_lamp_3
+              - light.ccb5d1ab99bd_light
+              - light.ccb5d1ab3f31_light
+              - light.ccb5d1ab63f6_light
+    - conditions:
+        condition: trigger
+        id: TOGGLE_LAMP_0
+      sequence:
+      - alias: Turn light.study_lamp_1 state=toggle
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          if:
+          - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
+            condition: state
+            entity_id: light.study_lamp_1
+            state: 'on'
+            match: any
+          then:
+            alias: Turn light.study_lamp_1 state=off
+            if:
+            - '{{ 1 == 1 }}'
+            then:
+              service: light.turn_off
+              entity_id: light.study_lamp_1
+          else:
+            alias: Turn light.study_lamp_1 state=on
+            if:
+            - '{{ 1 == 1 }}'
+            then:
+              service: light.turn_on
+              entity_id: light.study_lamp_1
+    - conditions:
+        condition: trigger
+        id: INCREMENT_LAMP_0
+      sequence:
+      - alias: Turn light.study_lamp_1 state=increment
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          if:
+          - alias: increment brightness unless it is off, set the brightness to 1 percent
+            condition: state
+            entity_id: light.study_lamp_1
+            state: 'off'
+          then:
+          - alias: Turn light.study_lamp_1 state=on light_brightness=1
+            if:
+            - '{{ 1 == 1 }}'
+            then:
+              service: light.turn_on
+              entity_id: light.study_lamp_1
+              data:
+                brightness_pct: 1
+          else:
+            service: light.turn_on
+            target:
+              entity_id: light.study_lamp_1
+            data:
+              brightness_step_pct: 34
+    - conditions:
+        condition: trigger
+        id: DECREMENT_LAMP_0
+      sequence:
+      - alias: Turn light.study_lamp_1 state=decrement
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          if:
+          - alias: increment brightness unless it is off, set the brightness to 1 percent
+            condition: state
+            entity_id: light.study_lamp_1
+            state: 'off'
+          then:
+          - alias: Turn light.study_lamp_1 state=on light_brightness=1
+            if:
+            - '{{ 1 == 1 }}'
+            then:
+              service: light.turn_on
+              entity_id: light.study_lamp_1
+              data:
+                brightness_pct: 1
+          else:
+            service: light.turn_on
+            target:
+              entity_id: light.study_lamp_1
+            data:
+              brightness_step_pct: -34
+    - conditions:
+        condition: trigger
+        id: CYCLE_LAMP_0
+      sequence:
+      - alias: Turn light.study_lamp_1 state=cycle
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          if:
+            condition: state
+            entity_id: light.study_lamp_1
+            state: 'off'
+          then:
+          - service: light.turn_on
+            entity_id: light.study_lamp_1
+            data:
+              brightness: 3
+          else:
+            service: light.turn_on
+            entity_id: light.study_lamp_1
+            data_template:
+              brightness: '{% set brightness = state_attr(''light.study_lamp_1'', ''brightness'') | int(0) %}{% if brightness == 0 or is_state(''light.study_lamp_1'', ''off'') %}3{% elif brightness <= 83 %}84{% elif brightness <= 167 %}168{% elif brightness <= 254 %}255{% else %}0{% endif %}'
+    - conditions:
+        condition: trigger
+        id: TOGGLE_LAMP_1
+      sequence:
+      - alias: Turn light.study_lamp_2 state=toggle
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          if:
+          - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
+            condition: state
+            entity_id: light.study_lamp_2
+            state: 'on'
+            match: any
+          then:
+            alias: Turn light.study_lamp_2 state=off
+            if:
+            - '{{ 1 == 1 }}'
+            then:
+              service: light.turn_off
+              entity_id: light.study_lamp_2
+          else:
+            alias: Turn light.study_lamp_2 state=on
+            if:
+            - '{{ 1 == 1 }}'
+            then:
+              service: light.turn_on
+              entity_id: light.study_lamp_2
+    - conditions:
+        condition: trigger
+        id: INCREMENT_LAMP_1
+      sequence:
+      - alias: Turn light.study_lamp_2 state=increment
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          if:
+          - alias: increment brightness unless it is off, set the brightness to 1 percent
+            condition: state
+            entity_id: light.study_lamp_2
+            state: 'off'
+          then:
+          - alias: Turn light.study_lamp_2 state=on light_brightness=1
+            if:
+            - '{{ 1 == 1 }}'
+            then:
+              service: light.turn_on
+              entity_id: light.study_lamp_2
+              data:
+                brightness_pct: 1
+          else:
+            service: light.turn_on
+            target:
+              entity_id: light.study_lamp_2
+            data:
+              brightness_step_pct: 34
+    - conditions:
+        condition: trigger
+        id: DECREMENT_LAMP_1
+      sequence:
+      - alias: Turn light.study_lamp_2 state=decrement
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          if:
+          - alias: increment brightness unless it is off, set the brightness to 1 percent
+            condition: state
+            entity_id: light.study_lamp_2
+            state: 'off'
+          then:
+          - alias: Turn light.study_lamp_2 state=on light_brightness=1
+            if:
+            - '{{ 1 == 1 }}'
+            then:
+              service: light.turn_on
+              entity_id: light.study_lamp_2
+              data:
+                brightness_pct: 1
+          else:
+            service: light.turn_on
+            target:
+              entity_id: light.study_lamp_2
+            data:
+              brightness_step_pct: -34
+    - conditions:
+        condition: trigger
+        id: CYCLE_LAMP_1
+      sequence:
+      - alias: Turn light.study_lamp_2 state=cycle
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          if:
+            condition: state
+            entity_id: light.study_lamp_2
+            state: 'off'
+          then:
+          - service: light.turn_on
+            entity_id: light.study_lamp_2
+            data:
+              brightness: 3
+          else:
+            service: light.turn_on
+            entity_id: light.study_lamp_2
+            data_template:
+              brightness: '{% set brightness = state_attr(''light.study_lamp_2'', ''brightness'') | int(0) %}{% if brightness == 0 or is_state(''light.study_lamp_2'', ''off'') %}3{% elif brightness <= 83 %}84{% elif brightness <= 167 %}168{% elif brightness <= 254 %}255{% else %}0{% endif %}'
+    - conditions:
+        condition: trigger
+        id: TOGGLE_LAMP_2
+      sequence:
+      - alias: Turn light.study_lamp_3 state=toggle
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          if:
+          - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
+            condition: state
+            entity_id: light.study_lamp_3
+            state: 'on'
+            match: any
+          then:
+            alias: Turn light.study_lamp_3 state=off
+            if:
+            - '{{ 1 == 1 }}'
+            then:
+              service: light.turn_off
+              entity_id: light.study_lamp_3
+          else:
+            alias: Turn light.study_lamp_3 state=on
+            if:
+            - '{{ 1 == 1 }}'
+            then:
+              service: light.turn_on
+              entity_id: light.study_lamp_3
+    - conditions:
+        condition: trigger
+        id: INCREMENT_LAMP_2
+      sequence:
+      - alias: Turn light.study_lamp_3 state=increment
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          if:
+          - alias: increment brightness unless it is off, set the brightness to 1 percent
+            condition: state
+            entity_id: light.study_lamp_3
+            state: 'off'
+          then:
+          - alias: Turn light.study_lamp_3 state=on light_brightness=1
+            if:
+            - '{{ 1 == 1 }}'
+            then:
+              service: light.turn_on
+              entity_id: light.study_lamp_3
+              data:
+                brightness_pct: 1
+          else:
+            service: light.turn_on
+            target:
+              entity_id: light.study_lamp_3
+            data:
+              brightness_step_pct: 34
+    - conditions:
+        condition: trigger
+        id: DECREMENT_LAMP_2
+      sequence:
+      - alias: Turn light.study_lamp_3 state=decrement
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          if:
+          - alias: increment brightness unless it is off, set the brightness to 1 percent
+            condition: state
+            entity_id: light.study_lamp_3
+            state: 'off'
+          then:
+          - alias: Turn light.study_lamp_3 state=on light_brightness=1
+            if:
+            - '{{ 1 == 1 }}'
+            then:
+              service: light.turn_on
+              entity_id: light.study_lamp_3
+              data:
+                brightness_pct: 1
+          else:
+            service: light.turn_on
+            target:
+              entity_id: light.study_lamp_3
+            data:
+              brightness_step_pct: -34
+    - conditions:
+        condition: trigger
+        id: CYCLE_LAMP_2
+      sequence:
+      - alias: Turn light.study_lamp_3 state=cycle
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          if:
+            condition: state
+            entity_id: light.study_lamp_3
+            state: 'off'
+          then:
+          - service: light.turn_on
+            entity_id: light.study_lamp_3
+            data:
+              brightness: 3
+          else:
+            service: light.turn_on
+            entity_id: light.study_lamp_3
+            data_template:
+              brightness: '{% set brightness = state_attr(''light.study_lamp_3'', ''brightness'') | int(0) %}{% if brightness == 0 or is_state(''light.study_lamp_3'', ''off'') %}3{% elif brightness <= 83 %}84{% elif brightness <= 167 %}168{% elif brightness <= 254 %}255{% else %}0{% endif %}'
+    - conditions:
+        condition: trigger
+        id: TOGGLE_CEILING_LIGHTS
+      sequence:
+      - alias: Turn light.ccb5d1ab99bd_light light.ccb5d1ab3f31_light light.ccb5d1ab63f6_light state=toggle
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          if:
+          - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
+            condition: state
+            entity_id:
+            - light.ccb5d1ab99bd_light
+            - light.ccb5d1ab3f31_light
+            - light.ccb5d1ab63f6_light
+            state: 'on'
+            match: any
+          then:
+            alias: Turn light.ccb5d1ab99bd_light light.ccb5d1ab3f31_light light.ccb5d1ab63f6_light state=off
+            if:
+            - '{{ 1 == 1 }}'
+            then:
+              service: light.turn_off
+              entity_id:
+              - light.ccb5d1ab99bd_light
+              - light.ccb5d1ab3f31_light
+              - light.ccb5d1ab63f6_light
+          else:
+            alias: Turn light.ccb5d1ab99bd_light light.ccb5d1ab3f31_light light.ccb5d1ab63f6_light state=on
+            if:
+            - '{{ 1 == 1 }}'
+            then:
+              service: light.turn_on
+              entity_id:
+              - light.ccb5d1ab99bd_light
+              - light.ccb5d1ab3f31_light
+              - light.ccb5d1ab63f6_light
+    - conditions:
+        condition: trigger
+        id: INCREMENT_CEILING_LIGHTS
+      sequence:
+      - alias: Turn light.ccb5d1ab99bd_light light.ccb5d1ab3f31_light light.ccb5d1ab63f6_light state=increment
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          if:
+          - alias: increment brightness unless it is off, set the brightness to 1 percent
+            condition: state
+            entity_id:
+            - light.ccb5d1ab99bd_light
+            - light.ccb5d1ab3f31_light
+            - light.ccb5d1ab63f6_light
+            state: 'off'
+          then:
+          - alias: Turn light.ccb5d1ab99bd_light light.ccb5d1ab3f31_light light.ccb5d1ab63f6_light state=on light_brightness=1
+            if:
+            - '{{ 1 == 1 }}'
+            then:
+              service: light.turn_on
+              entity_id:
+              - light.ccb5d1ab99bd_light
+              - light.ccb5d1ab3f31_light
+              - light.ccb5d1ab63f6_light
+              data:
+                brightness_pct: 1
+          else:
+            service: light.turn_on
+            target:
+              entity_id:
+              - light.ccb5d1ab99bd_light
+              - light.ccb5d1ab3f31_light
+              - light.ccb5d1ab63f6_light
+            data:
+              brightness_step_pct: 34
+    - conditions:
+        condition: trigger
+        id: DECREMENT_CEILING_LIGHTS
+      sequence:
+      - alias: Turn light.ccb5d1ab99bd_light light.ccb5d1ab3f31_light light.ccb5d1ab63f6_light state=decrement
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          if:
+          - alias: increment brightness unless it is off, set the brightness to 1 percent
+            condition: state
+            entity_id:
+            - light.ccb5d1ab99bd_light
+            - light.ccb5d1ab3f31_light
+            - light.ccb5d1ab63f6_light
+            state: 'off'
+          then:
+          - alias: Turn light.ccb5d1ab99bd_light light.ccb5d1ab3f31_light light.ccb5d1ab63f6_light state=on light_brightness=1
+            if:
+            - '{{ 1 == 1 }}'
+            then:
+              service: light.turn_on
+              entity_id:
+              - light.ccb5d1ab99bd_light
+              - light.ccb5d1ab3f31_light
+              - light.ccb5d1ab63f6_light
+              data:
+                brightness_pct: 1
+          else:
+            service: light.turn_on
+            target:
+              entity_id:
+              - light.ccb5d1ab99bd_light
+              - light.ccb5d1ab3f31_light
+              - light.ccb5d1ab63f6_light
+            data:
+              brightness_step_pct: -34
+    - conditions:
+        condition: trigger
+        id: CYCLE_CEILING_LIGHTS
+      sequence:
+      - alias: Turn light.ccb5d1ab99bd_light light.ccb5d1ab3f31_light light.ccb5d1ab63f6_light state=cycle
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          if:
+            condition: state
+            entity_id:
+            - light.ccb5d1ab99bd_light
+            - light.ccb5d1ab3f31_light
+            - light.ccb5d1ab63f6_light
+            state: 'off'
+          then:
+          - service: light.turn_on
+            entity_id:
+            - light.ccb5d1ab99bd_light
+            - light.ccb5d1ab3f31_light
+            - light.ccb5d1ab63f6_light
+            data:
+              brightness: 3
+          else:
+            service: light.turn_on
+            entity_id:
+            - light.ccb5d1ab99bd_light
+            - light.ccb5d1ab3f31_light
+            - light.ccb5d1ab63f6_light
+            data_template:
+              brightness: '{% set brightness = state_attr(''light.ccb5d1ab99bd_light'', ''brightness'') | int(0) %}{% if brightness == 0 or is_state(''light.ccb5d1ab99bd_light'', ''off'') %}3{% elif brightness <= 83 %}84{% elif brightness <= 167 %}168{% elif brightness <= 254 %}255{% else %}0{% endif %}'
+    - conditions:
+        condition: trigger
+        id: TOGGLE_LEDS
+      sequence:
+      - alias: Turn switch.study_screen_light state=toggle
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          if:
+          - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
+            condition: state
+            entity_id:
+            - switch.study_screen_light
+            state: 'on'
+            match: any
+          then:
+            alias: Turn switch.study_screen_light state=off
+            if:
+            - '{{ 1 == 1 }}'
+            then:
+              service: homeassistant.turn_off
+              entity_id:
+              - switch.study_screen_light
+          else:
+            alias: Turn switch.study_screen_light state=on
+            if:
+            - '{{ 1 == 1 }}'
+            then:
+              service: homeassistant.turn_on
+              entity_id:
+              - switch.study_screen_light
+    - conditions:
+        condition: trigger
+        id: CYCLE_LEDS
+      sequence:
+      - alias: Turn switch.study_screen_light state=cycle_led
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          service: script.do_nothing
+    - conditions:
+        condition: trigger
+        id: INCREMENT_LEDS
+      sequence:
+      - alias: Turn switch.study_screen_light state=increment
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          service: script.do_nothing
+    - conditions:
+        condition: trigger
+        id: DECREMENT_LEDS
+      sequence:
+      - alias: Turn switch.study_screen_light state=decrement
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          service: script.do_nothing
+    - conditions:
+        condition: trigger
+        id: TOGGLE_HEATING
+      sequence:
+      - alias: Turn heating state=toggle
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          if:
+            condition: state
+            entity_id: climate.study
+            state: 'off'
+          then:
+            alias: Turn heating state=on
+            if:
+            - '{{ 1 == 1 }}'
+            then:
+              alias: ''
+              if:
+              - '{{ 1 == 1 }}'
+              then:
+              - alias: Turn climate.study state=on
+                if:
+                - '{{ 1 == 1 }}'
+                then:
+                  service: climate.set_hvac_mode
+                  data:
+                    hvac_mode: heat
+                  entity_id: climate.study
+              - alias: Turn switch.schedule_study_temperature state=on
+                if:
+                - '{{ 1 == 1 }}'
+                then:
+                  service: homeassistant.turn_on
+                  entity_id: switch.schedule_study_temperature
+          else:
+            alias: Turn heating state=off
+            if:
+            - '{{ 1 == 1 }}'
+            then:
+              alias: ''
+              if:
+              - '{{ 1 == 1 }}'
+              then:
+              - alias: Turn climate.study state=off
+                if:
+                - '{{ 1 == 1 }}'
+                then:
+                  service: climate.set_hvac_mode
+                  data:
+                    hvac_mode: 'off'
+                  entity_id: climate.study
+              - alias: Turn switch.schedule_study_temperature state=off
+                if:
+                - '{{ 1 == 1 }}'
+                then:
+                  service: homeassistant.turn_off
+                  entity_id: switch.schedule_study_temperature
+    - conditions:
+        condition: trigger
+        id: INCREMENT_HEATING
+      sequence:
+      - alias: Turn heating state=increment
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          service: climate.set_temperature
+          target:
+            entity_id: climate.study
+          data:
+            temperature: '{{ (state_attr(''climate.study'', ''temperature'')) + 1}}'
+    - conditions:
+        condition: trigger
+        id: DECREMENT_HEATING
+      sequence:
+      - alias: Turn heating state=decrement
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          service: climate.set_temperature
+          target:
+            entity_id: climate.study
+          data:
+            temperature: '{{ (state_attr(''climate.study'', ''temperature'')) + -1}}'
+  id: automation.zlb_st_8_key_button_remote_study
 - alias: ZH-ST Set Radiator Valve Target Temperature Based on External Sensor Temperature Difference-Study
   triggers:
   - trigger: state
@@ -74,7 +986,7 @@ automation:
   - trigger: homeassistant
     event: start
   - minutes: /30
-    seconds: '41'
+    seconds: '36'
     trigger: time_pattern
   mode: single
   actions:
@@ -211,7 +1123,7 @@ automation:
   - trigger: homeassistant
     event: start
   - minutes: /10
-    seconds: '31'
+    seconds: '1'
     trigger: time_pattern
   conditions:
   - condition: state
@@ -247,49 +1159,17 @@ automation:
               if:
               - '{{ 1 == 1 }}'
               then:
-                alias: ''
-                if:
-                - '{{ 1 == 1 }}'
-                then:
-                - service: cover.stop_cover
-                  entity_id:
-                  - cover.study_blind
-                - if:
-                    condition: numeric_state
-                    entity_id:
-                    - cover.study_blind
-                    attribute: current_position
-                    above: 95
-                  then:
-                    service: cover.set_cover_position
-                    data:
-                      position: 100
-                    entity_id:
-                    - cover.study_blind
+                service: homeassistant.turn_on
+                entity_id:
+                - cover.study_blind
             else:
               alias: Turn cover.study_blind state=off
               if:
               - '{{ 1 == 1 }}'
               then:
-                alias: ''
-                if:
-                - '{{ 1 == 1 }}'
-                then:
-                - service: cover.stop_cover
-                  entity_id:
-                  - cover.study_blind
-                - if:
-                    condition: numeric_state
-                    entity_id:
-                    - cover.study_blind
-                    attribute: current_position
-                    above: 2
-                  then:
-                    service: cover.set_cover_position
-                    data:
-                      position: 2
-                    entity_id:
-                    - cover.study_blind
+                service: homeassistant.turn_off
+                entity_id:
+                - cover.study_blind
     else:
       alias: If it is moderate light outdoor
       if:
@@ -314,49 +1194,17 @@ automation:
                 if:
                 - '{{ 1 == 1 }}'
                 then:
-                  alias: ''
-                  if:
-                  - '{{ 1 == 1 }}'
-                  then:
-                  - service: cover.stop_cover
-                    entity_id:
-                    - cover.study_blind
-                  - if:
-                      condition: numeric_state
-                      entity_id:
-                      - cover.study_blind
-                      attribute: current_position
-                      above: 95
-                    then:
-                      service: cover.set_cover_position
-                      data:
-                        position: 100
-                      entity_id:
-                      - cover.study_blind
+                  service: homeassistant.turn_on
+                  entity_id:
+                  - cover.study_blind
               else:
                 alias: Turn cover.study_blind state=off
                 if:
                 - '{{ 1 == 1 }}'
                 then:
-                  alias: ''
-                  if:
-                  - '{{ 1 == 1 }}'
-                  then:
-                  - service: cover.stop_cover
-                    entity_id:
-                    - cover.study_blind
-                  - if:
-                      condition: numeric_state
-                      entity_id:
-                      - cover.study_blind
-                      attribute: current_position
-                      above: 2
-                    then:
-                      service: cover.set_cover_position
-                      data:
-                        position: 2
-                      entity_id:
-                      - cover.study_blind
+                  service: homeassistant.turn_off
+                  entity_id:
+                  - cover.study_blind
       else:
         alias: If it is low light outdoor
         if:
@@ -381,49 +1229,17 @@ automation:
                   if:
                   - '{{ 1 == 1 }}'
                   then:
-                    alias: ''
-                    if:
-                    - '{{ 1 == 1 }}'
-                    then:
-                    - service: cover.stop_cover
-                      entity_id:
-                      - cover.study_blind
-                    - if:
-                        condition: numeric_state
-                        entity_id:
-                        - cover.study_blind
-                        attribute: current_position
-                        above: 95
-                      then:
-                        service: cover.set_cover_position
-                        data:
-                          position: 100
-                        entity_id:
-                        - cover.study_blind
+                    service: homeassistant.turn_on
+                    entity_id:
+                    - cover.study_blind
                 else:
                   alias: Turn cover.study_blind state=off
                   if:
                   - '{{ 1 == 1 }}'
                   then:
-                    alias: ''
-                    if:
-                    - '{{ 1 == 1 }}'
-                    then:
-                    - service: cover.stop_cover
-                      entity_id:
-                      - cover.study_blind
-                    - if:
-                        condition: numeric_state
-                        entity_id:
-                        - cover.study_blind
-                        attribute: current_position
-                        above: 2
-                      then:
-                        service: cover.set_cover_position
-                        data:
-                          position: 2
-                        entity_id:
-                        - cover.study_blind
+                    service: homeassistant.turn_off
+                    entity_id:
+                    - cover.study_blind
         else:
           alias: If it is sleep mode
           if:
@@ -446,49 +1262,17 @@ automation:
                     if:
                     - '{{ 1 == 1 }}'
                     then:
-                      alias: ''
-                      if:
-                      - '{{ 1 == 1 }}'
-                      then:
-                      - service: cover.stop_cover
-                        entity_id:
-                        - cover.study_blind
-                      - if:
-                          condition: numeric_state
-                          entity_id:
-                          - cover.study_blind
-                          attribute: current_position
-                          above: 95
-                        then:
-                          service: cover.set_cover_position
-                          data:
-                            position: 100
-                          entity_id:
-                          - cover.study_blind
+                      service: homeassistant.turn_on
+                      entity_id:
+                      - cover.study_blind
                   else:
                     alias: Turn cover.study_blind state=off
                     if:
                     - '{{ 1 == 1 }}'
                     then:
-                      alias: ''
-                      if:
-                      - '{{ 1 == 1 }}'
-                      then:
-                      - service: cover.stop_cover
-                        entity_id:
-                        - cover.study_blind
-                      - if:
-                          condition: numeric_state
-                          entity_id:
-                          - cover.study_blind
-                          attribute: current_position
-                          above: 2
-                        then:
-                          service: cover.set_cover_position
-                          data:
-                            position: 2
-                          entity_id:
-                          - cover.study_blind
+                      service: homeassistant.turn_off
+                      entity_id:
+                      - cover.study_blind
           else:
             alias: Default
             service: script.do_nothing
@@ -857,7 +1641,7 @@ automation:
   - trigger: homeassistant
     event: start
   - minutes: /30
-    seconds: '16'
+    seconds: '42'
     trigger: time_pattern
   condition:
   - condition: state
@@ -973,7 +1757,7 @@ automation:
   - trigger: homeassistant
     event: start
   - minutes: /30
-    seconds: '8'
+    seconds: '23'
     trigger: time_pattern
   action:
   - condition: state
@@ -1364,28 +2148,11 @@ automation:
         if:
         - '{{ 1 == 1 }}'
         then:
-          alias: ''
-          if:
-          - '{{ 1 == 1 }}'
-          then:
-          - service: cover.stop_cover
-            entity_id:
-            - cover.study_blind
-          - service: cover.toggle
-            entity_id:
-            - cover.study_blind
-    - conditions:
-        condition: trigger
-        id: TOGGLE_CURTAIN_0
-      sequence:
-      - alias: Turn cover.study_blind state=toggle
-        if:
-        - '{{ 1 == 1 }}'
-        then:
           if:
           - alias: 'toggle everything all together: if any entity is on, turn off all entities, otherwise turn on all entities'
             condition: state
-            entity_id: cover.study_blind
+            entity_id:
+            - cover.study_blind
             state: 'on'
             match: any
           then:
@@ -1394,14 +2161,32 @@ automation:
             - '{{ 1 == 1 }}'
             then:
               service: homeassistant.turn_off
-              entity_id: cover.study_blind
+              entity_id:
+              - cover.study_blind
           else:
             alias: Turn cover.study_blind state=on
             if:
             - '{{ 1 == 1 }}'
             then:
               service: homeassistant.turn_on
-              entity_id: cover.study_blind
+              entity_id:
+              - cover.study_blind
+    - conditions:
+        condition: trigger
+        id: TOGGLE_CURTAIN_0
+      sequence:
+      - alias: Turn cover.study_blind state=toggle
+        if:
+        - '{{ 1 == 1 }}'
+        then:
+          alias: ''
+          if:
+          - '{{ 1 == 1 }}'
+          then:
+          - service: cover.stop_cover
+            entity_id: cover.study_blind
+          - service: cover.toggle
+            entity_id: cover.study_blind
     - conditions:
         condition: trigger
         id: INCREMENT_CURTAINS
@@ -1410,19 +2195,7 @@ automation:
         if:
         - '{{ 1 == 1 }}'
         then:
-          alias: ''
-          if:
-          - '{{ 1 == 1 }}'
-          then:
-          - service: cover.stop_cover
-            entity_id:
-            - cover.study_blind
-          - service: cover.set_cover_position
-            target:
-              entity_id:
-              - cover.study_blind
-            data:
-              position: '{{ [[ (state_attr(''cover.study_blind'', ''current_position'')) + 51 ,0]|max,100]|min}}'
+          service: script.do_nothing
     - conditions:
         condition: trigger
         id: DECREMENT_CURTAINS
@@ -1431,19 +2204,7 @@ automation:
         if:
         - '{{ 1 == 1 }}'
         then:
-          alias: ''
-          if:
-          - '{{ 1 == 1 }}'
-          then:
-          - service: cover.stop_cover
-            entity_id:
-            - cover.study_blind
-          - service: cover.set_cover_position
-            target:
-              entity_id:
-              - cover.study_blind
-            data:
-              position: '{{ [[ (state_attr(''cover.study_blind'', ''current_position'')) + -51 ,0]|max,100]|min}}'
+          service: script.do_nothing
     - conditions:
         condition: trigger
         id: INCREMENT_CURTAIN_0
@@ -1452,7 +2213,18 @@ automation:
         if:
         - '{{ 1 == 1 }}'
         then:
-          service: script.do_nothing
+          alias: ''
+          if:
+          - '{{ 1 == 1 }}'
+          then:
+          - service: cover.stop_cover
+            entity_id: cover.study_blind
+          - service: cover.set_cover_position
+            target:
+              entity_id:
+              - cover.study_blind
+            data:
+              position: '{{ [[ (state_attr(''cover.study_blind'', ''current_position'')) + 51 ,0]|max,100]|min}}'
     - conditions:
         condition: trigger
         id: DECREMENT_CURTAIN_0
@@ -1461,7 +2233,18 @@ automation:
         if:
         - '{{ 1 == 1 }}'
         then:
-          service: script.do_nothing
+          alias: ''
+          if:
+          - '{{ 1 == 1 }}'
+          then:
+          - service: cover.stop_cover
+            entity_id: cover.study_blind
+          - service: cover.set_cover_position
+            target:
+              entity_id:
+              - cover.study_blind
+            data:
+              position: '{{ [[ (state_attr(''cover.study_blind'', ''current_position'')) + -51 ,0]|max,100]|min}}'
     - conditions:
         condition: trigger
         id: TOGGLE_ALL_LIGHTS
@@ -2172,7 +2955,7 @@ automation:
   - trigger: homeassistant
     event: start
   - minutes: /3
-    seconds: '35'
+    seconds: '11'
     trigger: time_pattern
   action:
   - choose:
@@ -2368,7 +3151,7 @@ automation:
   - trigger: homeassistant
     event: start
   - minutes: /10
-    seconds: '24'
+    seconds: '36'
     trigger: time_pattern
   action:
   - choose:
@@ -2950,13 +3733,13 @@ light:
   - light.ccb5d1ab63f6_light
 - platform: group
   name: Study Lamp 1
-  entities: light.e14w_1_tuya
+  entities: light.50ec50df0a79_light
 - platform: group
   name: Study Lamp 2
-  entities: light.e14w_2_tuya
+  entities: light.e14w_1_tuya
 - platform: group
   name: Study Lamp 3
-  entities: light.50ec50df0a79_light
+  entities: light.e14w_2_tuya
 group:
   study_occupancy_group:
     name: Study Occupancy Group
@@ -3022,9 +3805,12 @@ group:
     - input_boolean.led_control_sleep_mode_study
     - input_boolean.curtain_control_sleep_mode_study
     - automation.zlb_st_flex_wall_switch_on_postion_1_automatically_turn_on_the_wall_switch_back_when_turned_off_study
+    - automation.zlb_st_8_key_button_remote_study
     - automation.zh_st_set_radiator_valve_target_temperature_based_on_external_sensor_temperature_difference_study
     - automation.zr_st_reconnect_e14w_1_when_unavailable_study
+    - automation.zr_st_reload_tuya_integration_when_e14w_1_state_does_not_update_study
     - automation.zr_st_reconnect_e14w_2_when_unavailable_study
+    - automation.zr_st_reload_tuya_integration_when_e14w_2_state_does_not_update_study
     - automation.zl_st_curtain_states_when_no_person_present_study
     - automation.zl_st_lights_on_if_entering_to_room_study
     - automation.zl_st_lights_off_if_no_person_study
