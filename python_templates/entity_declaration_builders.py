@@ -19,9 +19,34 @@ def wifi_reconnect_automation(entity_id, name, automation_room_name, room_name, 
         "entity_id": entity_id,
         "to": "unavailable",
         'for': unavailable_period,
+        "id": "entity_unavailable",
+      },
+      {
+        "trigger": "homeassistant",
+        "event": "start",
+        "id": "homeassistant_start",
       },
     ],
     "actions": [
+      {
+        "if": [
+          {
+            "condition": "trigger",
+            "id": "homeassistant_start",
+          }
+        ],
+        "then": [
+          {
+            "delay": unavailable_period,
+          }
+        ],
+      },
+      {
+        "condition": "state",
+        "entity_id": entity_id,
+        "state": "unavailable",
+        "for": unavailable_period,
+      },
       {
         "action": "unifi.reconnect_client",
         "data": {"device_id": unavailable_device_id},

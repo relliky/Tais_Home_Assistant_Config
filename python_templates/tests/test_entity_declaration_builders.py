@@ -40,8 +40,32 @@ class EntityDeclarationBuildersTest(unittest.TestCase):
         )
         self.assertEqual(automation["triggers"][0]["entity_id"], "light.test")
         self.assertEqual(automation["triggers"][0]["for"], "00:02:00")
-        self.assertEqual(automation["actions"][0]["data"], {"device_id": "abc123"})
-        self.assertEqual(automation["actions"][1], {"delay": "01:00:00"})
+        self.assertEqual(
+            automation["triggers"][1],
+            {
+                "trigger": "homeassistant",
+                "event": "start",
+                "id": "homeassistant_start",
+            },
+        )
+        self.assertEqual(
+            automation["actions"][0],
+            {
+                "if": [{"condition": "trigger", "id": "homeassistant_start"}],
+                "then": [{"delay": "00:02:00"}],
+            },
+        )
+        self.assertEqual(
+            automation["actions"][1],
+            {
+                "condition": "state",
+                "entity_id": "light.test",
+                "state": "unavailable",
+                "for": "00:02:00",
+            },
+        )
+        self.assertEqual(automation["actions"][2]["data"], {"device_id": "abc123"})
+        self.assertEqual(automation["actions"][3], {"delay": "01:00:00"})
 
     def test_power_cycle_switch_when_entities_all_unavailable(self):
         automation = entity_declaration_builders.power_cycle_switch_when_entities_all_unavailable(

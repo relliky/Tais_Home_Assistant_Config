@@ -461,7 +461,7 @@ def define_room_classes(RoomBase):
       #self.add_device('x1_battery_2',                               "Vaccum Online State",            'Vaccum Battery',      'Generic Battery')
       self.gui_ctl_entity_list += ['sensor.x1_battery_2'] # add to GUI
       self.gui_ctl_entity_list += ['switch.ttlock_gateway_power_switch'] # add to GUI
-      self.add_automation('vacuum.x1',       'Vacuum Robot',   "Wifi Device Reconnect When Unavailable", unavailable_period='00:03:00', unavailable_device_id='f666003acf32413fb68e8f56007ceaf9')
+      self.add_automation('vacuum.x1',       'Vacuum Robot',   "Wifi Device Reconnect When Unavailable", unavailable_period='00:05:00', unavailable_device_id='f666003acf32413fb68e8f56007ceaf9')
       #self.add_automation('lock.front_door', 'TTLock',         "Wifi Device Reconnect When Unavailable", unavailable_period='00:03:00', unavailable_device_id='7a2c07d362d6bb09ff3edad7ffe37d7a')
       self.add_automation(
         'lock.ttlock_front_door',
@@ -720,7 +720,7 @@ def define_room_classes(RoomBase):
       #self.add_device("living_room_ceiling_light_yeelight",   self.room_name + ' Ceiling Light','Light',              "Generic Light") # Yeelight integration
       #self.add_device("yeelink_ceil30_3a4b_light",            self.room_name + ' Ceiling Light','Light',              "Generic Light") # MiIoT Auto often disconnected
       self.add_device("yeelink_cn_436905718_ceil30_s_2_light", self.room_name + ' Ceiling Light','Light',              "Generic Light")  # Xiaomi Home integration - often disconnect when using two HA instances
-      self.add_automation('light.living_room_ceiling_light', 'Ceiling Light', "Wifi Device Reconnect When Unavailable", unavailable_period='00:02:00', unavailable_device_id='d21abe62c7f76149e534e5a63a9e772e')
+      self.add_automation('light.living_room_ceiling_light', 'Ceiling Light', "Wifi Device Reconnect When Unavailable", unavailable_period='00:05:00', unavailable_device_id='d21abe62c7f76149e534e5a63a9e772e')
 
       self.add_device('lock_ultra_f8',                     "Garden Door Lock",                'Lock',     'Generic Locks')   # Matter via Switchbot Hub - main usecase
       self.add_device('lock_ultra_28f8',                   "Garden Door Lock Bluetooth",      'Lock',     'Generic Locks')   # Bluetooth Switchbot - Only using for jammed state for auto-unlocking
@@ -1456,9 +1456,9 @@ def define_room_classes(RoomBase):
       self.add_device("50ec50df0a79_light",         self.room_name + ' Lamp 1',         'Light',              "Generic Light")
       self.add_device("e14w_1_tuya",                self.room_name + ' Lamp 2',         'Light',              "Generic Light")
       self.add_device("e14w_2_tuya",                self.room_name + ' Lamp 3',         'Light',              "Generic Light")
-      self.add_automation('light.e14w_1_tuya', 'E14W_1', "Wifi Device Reconnect When Unavailable", unavailable_period='00:02:00', unavailable_device_id='b1eb8398e1689392f398854c65d5bb37')
+      self.add_automation('light.e14w_1_tuya', 'E14W_1', "Wifi Device Reconnect When Unavailable", unavailable_period='00:05:00', unavailable_device_id='b1eb8398e1689392f398854c65d5bb37')
       self.add_automation('light.e14w_1_tuya', 'E14W_1', 'Tuya Light Reload When State Does Not Update', reload_config_entry_id='01JS6QRKXS455JGC1YW30ZC9W5')
-      self.add_automation('light.e14w_2_tuya', 'E14W_2', "Wifi Device Reconnect When Unavailable", unavailable_period='00:02:00', unavailable_device_id='0aa94946c833610ac68d26fbf53c20fe')
+      self.add_automation('light.e14w_2_tuya', 'E14W_2', "Wifi Device Reconnect When Unavailable", unavailable_period='00:05:00', unavailable_device_id='0aa94946c833610ac68d26fbf53c20fe')
       self.add_automation('light.e14w_2_tuya', 'E14W_2', 'Tuya Light Reload When State Does Not Update', reload_config_entry_id='01JS6QRKXS455JGC1YW30ZC9W5')
 
 
