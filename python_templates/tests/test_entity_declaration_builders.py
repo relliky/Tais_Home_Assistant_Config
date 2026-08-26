@@ -147,6 +147,72 @@ class EntityDeclarationBuildersTest(unittest.TestCase):
             },
         )
 
+    def test_power_cycle_switch_when_entity_state_is_bad(self):
+        automation = entity_declaration_builders.power_cycle_switch_when_entity_state_is_bad(
+            entity_id="lock.test",
+            name="Test Lock",
+            automation_room_name="TR ",
+            room_name="Test Room",
+            bad_states=["unknown", "unavailable"],
+            bad_state_period="00:20:00",
+            power_switch_entity_id="switch.gateway_power",
+            reload_config_entry_id="config-entry-123",
+        )
+
+        self.assertEqual(
+            automation["alias"],
+            "ZR-TR Power Cycle Test Lock Gateway When Lock State Is Unknown Or Unavailable-Test Room",
+        )
+        self.assertEqual(
+            automation["triggers"],
+            [
+                {
+                    "trigger": "state",
+                    "entity_id": "lock.test",
+                    "to": "unknown",
+                    "for": "00:20:00",
+                    "id": "lock_unknown",
+                },
+                {
+                    "trigger": "state",
+                    "entity_id": "lock.test",
+                    "to": "unavailable",
+                    "for": "00:20:00",
+                    "id": "lock_unavailable",
+                },
+                {
+                    "trigger": "homeassistant",
+                    "event": "start",
+                    "id": "homeassistant_start",
+                },
+            ],
+        )
+        self.assertEqual(automation["actions"][0]["then"], [{"delay": "00:20:00"}])
+        self.assertEqual(
+            automation["actions"][1],
+            {
+                "condition": "or",
+                "conditions": [
+                    {
+                        "condition": "state",
+                        "entity_id": "lock.test",
+                        "state": "unknown",
+                        "for": "00:20:00",
+                    },
+                    {
+                        "condition": "state",
+                        "entity_id": "lock.test",
+                        "state": "unavailable",
+                        "for": "00:20:00",
+                    },
+                ],
+            },
+        )
+        self.assertEqual(automation["actions"][2]["action"], "switch.turn_off")
+        self.assertEqual(automation["actions"][4]["action"], "switch.turn_on")
+        self.assertEqual(automation["actions"][6]["action"], "homeassistant.reload_config_entry")
+        self.assertEqual(automation["mode"], "single")
+
     def test_tuya_light_reload_when_state_does_not_update(self):
         automation = entity_declaration_builders.tuya_light_reload_when_state_does_not_update(
             entity_id="light.test_tuya",

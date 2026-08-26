@@ -464,10 +464,10 @@ def define_room_classes(RoomBase):
       self.add_automation('vacuum.x1',       'Vacuum Robot',   "Wifi Device Reconnect When Unavailable", unavailable_period='00:03:00', unavailable_device_id='f666003acf32413fb68e8f56007ceaf9')
       #self.add_automation('lock.front_door', 'TTLock',         "Wifi Device Reconnect When Unavailable", unavailable_period='00:03:00', unavailable_device_id='7a2c07d362d6bb09ff3edad7ffe37d7a')
       self.add_automation(
-        ['lock.ttlock_front_door', 'sensor.ttlock_front_door_battery', 'binary_sensor.front_door_passage_mode'],
+        'lock.ttlock_front_door',
         'TTLock',
-        "Power Cycle Switch When Entities All Unavailable",
-        unavailable_period='00:03:00',
+        "Power Cycle Switch When Entity State Is Unknown Or Unavailable",
+        unavailable_period='00:20:00',
         power_switch_entity_id='switch.sonoff_1001e49ade_1',
         reload_config_entry_id='01K9YNCWX93AFG4DRYG4BAE7TF'
       )

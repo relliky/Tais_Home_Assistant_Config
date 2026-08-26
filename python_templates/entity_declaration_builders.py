@@ -159,3 +159,71 @@ def power_cycle_switch_when_entities_all_unavailable(entity_ids, name, automatio
     "actions": actions,
     "mode": "single",
   }
+
+
+def power_cycle_switch_when_entity_state_is_bad(entity_id, name, automation_room_name, room_name, bad_states, bad_state_period, power_switch_entity_id, reload_config_entry_id=None, startup_delay=None):
+  startup_delay = startup_delay if startup_delay is not None else bad_state_period
+  bad_state_conditions = [
+    {
+      "condition": "state",
+      "entity_id": entity_id,
+      "state": bad_state,
+      "for": bad_state_period,
+    } for bad_state in bad_states
+  ]
+  actions = [
+    {
+      "if": [
+        {
+          "condition": "trigger",
+          "id": "homeassistant_start",
+        },
+      ],
+      "then": [
+        {"delay": startup_delay},
+      ],
+    },
+    {
+      "condition": "or",
+      "conditions": bad_state_conditions,
+    },
+    {
+      "action": "switch.turn_off",
+      "target": {"entity_id": power_switch_entity_id},
+    },
+    {"delay": "00:00:02"},
+    {
+      "action": "switch.turn_on",
+      "target": {"entity_id": power_switch_entity_id},
+    },
+  ]
+  if reload_config_entry_id:
+    actions += [
+      {"delay": "00:00:30"},
+      {
+        "action": "homeassistant.reload_config_entry",
+        "data": {"entry_id": reload_config_entry_id},
+      },
+    ]
+
+  return {
+    "alias": "ZR-" + automation_room_name + "Power Cycle " + name + " Gateway When Lock State Is Unknown Or Unavailable" + "-" + room_name,
+    "configured": True,
+    "triggers": [
+      {
+        "trigger": "state",
+        "entity_id": entity_id,
+        "to": bad_state,
+        "for": bad_state_period,
+        "id": "lock_" + bad_state,
+      } for bad_state in bad_states
+    ] + [
+      {
+        "trigger": "homeassistant",
+        "event": "start",
+        "id": "homeassistant_start",
+      },
+    ],
+    "actions": actions,
+    "mode": "single",
+  }

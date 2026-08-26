@@ -431,6 +431,19 @@ class RoomBase:
             reload_config_entry_id=reload_config_entry_id
           )
         ]
+    elif(automation_type == "Power Cycle Switch When Entity State Is Unknown Or Unavailable" ):
+        self.automation_list += [
+          entity_declaration_builders.power_cycle_switch_when_entity_state_is_bad(
+            entity_id=entity_id,
+            name=name,
+            automation_room_name=self.automation_room_name,
+            room_name=self.room_name,
+            bad_states=["unknown", "unavailable"],
+            bad_state_period=unavailable_period,
+            power_switch_entity_id=power_switch_entity_id,
+            reload_config_entry_id=reload_config_entry_id,
+          )
+        ]
     elif(automation_type == "Tuya Light Reload When State Does Not Update" ):
         expected_state_entity_id = "input_boolean." + self.getEntityFromName(name + " Expected State")
         self.input_boolean_dict |= {

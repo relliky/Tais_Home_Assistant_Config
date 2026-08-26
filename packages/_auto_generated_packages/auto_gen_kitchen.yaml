@@ -42,16 +42,18 @@ automation:
       device_id: f666003acf32413fb68e8f56007ceaf9
   - delay: 01:00:00
   id: automation.zr_kc_reconnect_vacuum_robot_when_unavailable_kitchen
-- alias: ZR-KC Power Cycle TTLock Gateway When All Entities unavailable-Kitchen
+- alias: ZR-KC Power Cycle TTLock Gateway When Lock State Is Unknown Or Unavailable-Kitchen
   triggers:
   - trigger: state
-    entity_id:
-    - lock.ttlock_front_door
-    - sensor.ttlock_front_door_battery
-    - binary_sensor.front_door_passage_mode
+    entity_id: lock.ttlock_front_door
+    to: unknown
+    for: 00:20:00
+    id: lock_unknown
+  - trigger: state
+    entity_id: lock.ttlock_front_door
     to: unavailable
-    for: 00:03:00
-    id: entities_unavailable
+    for: 00:20:00
+    id: lock_unavailable
   - trigger: homeassistant
     event: start
     id: homeassistant_start
@@ -60,19 +62,17 @@ automation:
     - condition: trigger
       id: homeassistant_start
     then:
-    - delay: 00:05:00
-  - condition: state
-    entity_id: lock.ttlock_front_door
-    state: unavailable
-    for: 00:03:00
-  - condition: state
-    entity_id: sensor.ttlock_front_door_battery
-    state: unavailable
-    for: 00:03:00
-  - condition: state
-    entity_id: binary_sensor.front_door_passage_mode
-    state: unavailable
-    for: 00:03:00
+    - delay: 00:20:00
+  - condition: or
+    conditions:
+    - condition: state
+      entity_id: lock.ttlock_front_door
+      state: unknown
+      for: 00:20:00
+    - condition: state
+      entity_id: lock.ttlock_front_door
+      state: unavailable
+      for: 00:20:00
   - action: switch.turn_off
     target:
       entity_id: switch.sonoff_1001e49ade_1
@@ -85,7 +85,7 @@ automation:
     data:
       entry_id: 01K9YNCWX93AFG4DRYG4BAE7TF
   mode: single
-  id: automation.zr_kc_power_cycle_ttlock_gateway_when_all_entities_unavailable_kitchen
+  id: automation.zr_kc_power_cycle_ttlock_gateway_when_lock_state_is_unknown_or_unavailable_kitchen
 - alias: ZLB-KC Flex Wall Switch On Postion 2- Automatically Turn on the Wall Switch Back When Turned Off -Kitchen
   trigger:
   - platform: state
@@ -2087,7 +2087,7 @@ group:
     - input_boolean.led_control_sleep_mode_kitchen
     - input_boolean.curtain_control_sleep_mode_kitchen
     - automation.zr_kc_reconnect_vacuum_robot_when_unavailable_kitchen
-    - automation.zr_kc_power_cycle_ttlock_gateway_when_all_entities_unavailable_kitchen
+    - automation.zr_kc_power_cycle_ttlock_gateway_when_lock_state_is_unknown_or_unavailable_kitchen
     - automation.zlb_kc_flex_wall_switch_on_postion_2_automatically_turn_on_the_wall_switch_back_when_turned_off_kitchen
     - automation.zr_kc_reload_tuya_integration_when_kitchen_worktop_led_state_does_not_update_kitchen
     - automation.zh_kc_set_radiator_valve_target_temperature_based_on_external_sensor_temperature_difference_kitchen
