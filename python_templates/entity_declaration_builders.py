@@ -26,6 +26,11 @@ def wifi_reconnect_automation(entity_id, name, automation_room_name, room_name, 
         "event": "start",
         "id": "homeassistant_start",
       },
+      {
+        "trigger": "time_pattern",
+        "minutes": "/30",
+        "id": "periodic_check",
+      },
     ],
     "actions": [
       {
@@ -180,6 +185,11 @@ def power_cycle_switch_when_entities_all_unavailable(entity_ids, name, automatio
         "event": "start",
         "id": "homeassistant_start",
       },
+      {
+        "trigger": "time_pattern",
+        "minutes": "/30",
+        "id": "periodic_check",
+      },
     ],
     "actions": actions,
     "mode": "single",
@@ -247,6 +257,11 @@ def power_cycle_switch_when_entity_state_is_bad(entity_id, name, automation_room
         "trigger": "homeassistant",
         "event": "start",
         "id": "homeassistant_start",
+      },
+      {
+        "trigger": "time_pattern",
+        "minutes": "/30",
+        "id": "periodic_check",
       },
     ],
     "actions": actions,

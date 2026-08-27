@@ -65,6 +65,10 @@ class EntityDeclarationBuildersTest(unittest.TestCase):
             },
         )
         self.assertEqual(automation["actions"][2]["data"], {"device_id": "abc123"})
+        self.assertEqual(
+            automation["triggers"][2],
+            {"trigger": "time_pattern", "minutes": "/30", "id": "periodic_check"},
+        )
         self.assertEqual(automation["actions"][3], {"delay": "01:00:00"})
 
     def test_power_cycle_switch_when_entities_all_unavailable(self):
@@ -99,6 +103,11 @@ class EntityDeclarationBuildersTest(unittest.TestCase):
                     "trigger": "homeassistant",
                     "event": "start",
                     "id": "homeassistant_start",
+                },
+                {
+                    "trigger": "time_pattern",
+                    "minutes": "/30",
+                    "id": "periodic_check",
                 },
             ],
         )
@@ -208,6 +217,11 @@ class EntityDeclarationBuildersTest(unittest.TestCase):
                     "trigger": "homeassistant",
                     "event": "start",
                     "id": "homeassistant_start",
+                },
+                {
+                    "trigger": "time_pattern",
+                    "minutes": "/30",
+                    "id": "periodic_check",
                 },
             ],
         )
