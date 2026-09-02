@@ -127,6 +127,59 @@ def tuya_light_reload_when_state_does_not_update(entity_id, name, automation_roo
     "mode": "restart",
   }
 
+def reload_config_entry_when_entity_unavailable(entity_id, name, automation_room_name, room_name, unavailable_period, reload_config_entry_id, startup_delay=None):
+  startup_delay = startup_delay if startup_delay is not None else unavailable_period
+  return {
+    "alias": "ZR-" + automation_room_name + "Reload " + name + " Integration When unavailable" + "-" + room_name,
+    "configured": True,
+    "triggers": [
+      {
+        "trigger": "state",
+        "entity_id": entity_id,
+        "to": "unavailable",
+        "for": unavailable_period,
+        "id": "entity_unavailable",
+      },
+      {
+        "trigger": "homeassistant",
+        "event": "start",
+        "id": "homeassistant_start",
+      },
+      {
+        "trigger": "time_pattern",
+        "minutes": "/30",
+        "id": "periodic_check",
+      },
+    ],
+    "actions": [
+      {
+        "if": [
+          {
+            "condition": "trigger",
+            "id": "homeassistant_start",
+          }
+        ],
+        "then": [
+          {
+            "delay": startup_delay,
+          }
+        ],
+      },
+      {
+        "condition": "state",
+        "entity_id": entity_id,
+        "state": "unavailable",
+        "for": unavailable_period,
+      },
+      {
+        "action": "homeassistant.reload_config_entry",
+        "data": {"entry_id": reload_config_entry_id},
+      },
+    ],
+    "mode": "single",
+  }
+
+
 def power_cycle_switch_when_entities_all_unavailable(entity_ids, name, automation_room_name, room_name, unavailable_period, power_switch_entity_id, reload_config_entry_id=None):
   actions = [
     {

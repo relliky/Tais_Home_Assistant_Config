@@ -419,6 +419,17 @@ class RoomBase:
             unavailable_device_id=unavailable_device_id
           )
         ]
+    elif(automation_type == "Reload Config Entry When Entity Unavailable" ):
+        self.automation_list += [
+          entity_declaration_builders.reload_config_entry_when_entity_unavailable(
+            entity_id=entity_id,
+            name=name,
+            automation_room_name=self.automation_room_name,
+            room_name=self.room_name,
+            unavailable_period=unavailable_period,
+            reload_config_entry_id=reload_config_entry_id
+          )
+        ]
     elif(automation_type == "Power Cycle Switch When Entities All Unavailable" ):
         self.automation_list += [
           entity_declaration_builders.power_cycle_switch_when_entities_all_unavailable(
