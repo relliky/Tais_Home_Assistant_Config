@@ -64,18 +64,19 @@ def average_temperature_sensor(sensor_1, sensor_2, sensor_out, get_name_from_ent
         "name": get_name_from_entity(sensor_out),
         "unit_of_measurement": "°C",
         "state": "" +
-            "{% if   states('"+sensor_1 +"') != 'unavailable' and states('" + sensor_2 + "') == 'unavailable' %}" +
-               "{{states('"+sensor_1 +"')}}" +
-            "{% elif states('"+sensor_1 +"') == 'unavailable' and states('" + sensor_2 + "') != 'unavailable' %}" +
-               "{{states('"+sensor_2 +"')}}" +
+            "{% set unavailable_states = ['unknown', 'unavailable', 'none', ''] %}" +
+            "{% set sensor_1_state = states('" + sensor_1 + "') %}" +
+            "{% set sensor_2_state = states('" + sensor_2 + "') %}" +
+            "{% if sensor_1_state in unavailable_states and sensor_2_state in unavailable_states %}" +
+              "unavailable" +
+            "{% elif sensor_1_state in unavailable_states %}" +
+              "{{ sensor_2_state | float | round(1) }}" +
+            "{% elif sensor_2_state in unavailable_states %}" +
+              "{{ sensor_1_state | float | round(1) }}" +
             "{% else %}" +
-              "{% set sensor_1 = states('"+sensor_1 +"') | float(22) | round(1) %}" +
-              "{% set sensor_2 = states('"+sensor_2 +"') | float(22) | round(1) %}" +
-              "{% if sensor_1 < 1.0 or sensor_2 < 1.0 or (sensor_1 + sensor_2) < 1.0 %}" +
-                 "22.0" +
-              "{% else %}" +
-                 "{{ ((sensor_1 + sensor_2) / 2) | round(1) }}" +
-              "{% endif %}" +
+              "{% set sensor_1 = sensor_1_state | float %}" +
+              "{% set sensor_2 = sensor_2_state | float %}" +
+              "{{ ((sensor_1 + sensor_2) / 2) | round(1) }}" +
             "{% endif %}"
       }
     ],

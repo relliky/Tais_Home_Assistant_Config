@@ -108,6 +108,10 @@ class SensorDeclarationBuildersTest(unittest.TestCase):
         self.assertEqual(sensor["sensor"][0]["unit_of_measurement"], "°C")
         self.assertIn("states('sensor.left')", sensor["sensor"][0]["state"])
         self.assertIn("states('sensor.right')", sensor["sensor"][0]["state"])
+        self.assertIn("unavailable_states", sensor["sensor"][0]["state"])
+        self.assertIn("unavailable", sensor["sensor"][0]["state"])
+        self.assertNotIn("float(22)", sensor["sensor"][0]["state"])
+        self.assertNotIn("22.0", sensor["sensor"][0]["state"])
         self.assertIn("{{ ((sensor_1 + sensor_2) / 2) | round(1) }}", sensor["sensor"][0]["state"])
         self.assertEqual(sensor["configured"], True)
 
