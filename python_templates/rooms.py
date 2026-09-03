@@ -482,6 +482,7 @@ def define_room_classes(RoomBase):
 
       self.add_device('smart_switch_24110804769064510803c4e7ae0ff809_power',  'Rice Cooker Power',         'Power',          'Generic Power Measurement Switch', power_on_threshold=10)
       self.add_device('smart_switch_24110804769064510803c4e7ae0ff809_outlet', 'Rice Cooker Switch',        'Switch',         'Generic Switch')
+      self.add_automation('switch.rice_cooker_switch', 'Rice Cooker Switch', 'Reload Config Entry When Entity Unavailable', unavailable_period='00:05:00', reload_config_entry_id='01K9T79D434WBDM8Z1GD8XR9VY', reload_button_entity_id='button.smart_switch_24110804769064510803c4e7ae0ff809_reload')
       self.add_device('smart_switch_24110805022128510803c4e7ae0ffcf7_power',  'Plate Warmer Power',        'Power',          'Generic Power Measurement Switch', power_on_threshold=10, smooth_power=False) # plate warmer does not need to smooth as it is always above threshold when on
       self.add_device('smart_switch_24110805022128510803c4e7ae0ffcf7_outlet', 'Plate Warmer Switch',       'Switch',         'Generic Switch')
       self.add_device('0x00158d000171756e_power',                             'Baby Food Cooker Power',    'Power',          'Generic Power Measurement Switch', power_on_threshold=5, smooth_power=False, delay_off_minute=3)

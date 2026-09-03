@@ -127,7 +127,7 @@ def tuya_light_reload_when_state_does_not_update(entity_id, name, automation_roo
     "mode": "restart",
   }
 
-def reload_config_entry_when_entity_unavailable(entity_id, name, automation_room_name, room_name, unavailable_period, reload_config_entry_id, startup_delay=None, power_switch_entity_id=None, power_restore_delay="00:00:10"):
+def reload_config_entry_when_entity_unavailable(entity_id, name, automation_room_name, room_name, unavailable_period, reload_config_entry_id, startup_delay=None, power_switch_entity_id=None, power_restore_delay="00:00:10", reload_button_entity_id=None, reload_button_delay="00:00:20"):
   startup_delay = startup_delay if startup_delay is not None else unavailable_period
   actions = [
     {
@@ -175,6 +175,9 @@ def reload_config_entry_when_entity_unavailable(entity_id, name, automation_room
           },
         ],
       },
+    ]
+  if reload_button_entity_id:
+    actions += [
       {
         "if": [
           {
@@ -185,19 +188,32 @@ def reload_config_entry_when_entity_unavailable(entity_id, name, automation_room
         ],
         "then": [
           {
-            "action": "homeassistant.reload_config_entry",
-            "data": {"entry_id": reload_config_entry_id},
+            "action": "button.press",
+            "target": {"entity_id": reload_button_entity_id},
+          },
+          {
+            "delay": reload_button_delay,
           },
         ],
       },
     ]
-  else:
-    actions += [
-      {
-        "action": "homeassistant.reload_config_entry",
-        "data": {"entry_id": reload_config_entry_id},
-      },
-    ]
+  actions += [
+    {
+      "if": [
+        {
+          "condition": "state",
+          "entity_id": entity_id,
+          "state": "unavailable",
+        }
+      ],
+      "then": [
+        {
+          "action": "homeassistant.reload_config_entry",
+          "data": {"entry_id": reload_config_entry_id},
+        },
+      ],
+    },
+  ]
 
   return {
     "alias": "ZR-" + automation_room_name + "Reload " + name + " Integration When unavailable" + "-" + room_name,

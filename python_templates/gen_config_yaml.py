@@ -407,7 +407,7 @@ class RoomBase:
         error("group_entity_type " + group_entity_type + " is not supported yet")
 
 
-  def add_automation(self, entity_id, name, automation_type, unavailable_period='00:00:30', unavailable_device_id=None, device_id=None, power_switch_entity_id=None, reload_config_entry_id=None):
+  def add_automation(self, entity_id, name, automation_type, unavailable_period='00:00:30', unavailable_device_id=None, device_id=None, power_switch_entity_id=None, reload_config_entry_id=None, reload_button_entity_id=None):
     if(automation_type == "Wifi Device Reconnect When Unavailable" ):
         self.automation_list += [
           entity_declaration_builders.wifi_reconnect_automation(
@@ -428,7 +428,8 @@ class RoomBase:
             room_name=self.room_name,
             unavailable_period=unavailable_period,
             reload_config_entry_id=reload_config_entry_id,
-            power_switch_entity_id=power_switch_entity_id
+            power_switch_entity_id=power_switch_entity_id,
+            reload_button_entity_id=reload_button_entity_id
           )
         ]
     elif(automation_type == "Power Cycle Switch When Entities All Unavailable" ):

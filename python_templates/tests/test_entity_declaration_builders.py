@@ -120,8 +120,19 @@ class EntityDeclarationBuildersTest(unittest.TestCase):
         self.assertEqual(
             automation["actions"][2],
             {
-                "action": "homeassistant.reload_config_entry",
-                "data": {"entry_id": "config-entry-123"},
+                "if": [
+                    {
+                        "condition": "state",
+                        "entity_id": "light.test",
+                        "state": "unavailable",
+                    }
+                ],
+                "then": [
+                    {
+                        "action": "homeassistant.reload_config_entry",
+                        "data": {"entry_id": "config-entry-123"},
+                    },
+                ],
             },
         )
 
@@ -177,6 +188,46 @@ class EntityDeclarationBuildersTest(unittest.TestCase):
                     },
                 ],
             },
+        )
+
+    def test_reload_config_entry_when_entity_unavailable_can_press_reload_button_first(self):
+        automation = entity_declaration_builders.reload_config_entry_when_entity_unavailable(
+            entity_id="switch.test",
+            name="Test Switch",
+            automation_room_name="TR ",
+            room_name="Test Room",
+            unavailable_period="00:05:00",
+            reload_config_entry_id="config-entry-123",
+            reload_button_entity_id="button.test_reload",
+        )
+
+        self.assertEqual(
+            automation["actions"][2],
+            {
+                "if": [
+                    {
+                        "condition": "state",
+                        "entity_id": "switch.test",
+                        "state": "unavailable",
+                    }
+                ],
+                "then": [
+                    {
+                        "action": "button.press",
+                        "target": {"entity_id": "button.test_reload"},
+                    },
+                    {"delay": "00:00:20"},
+                ],
+            },
+        )
+        self.assertEqual(
+            automation["actions"][3]["then"],
+            [
+                {
+                    "action": "homeassistant.reload_config_entry",
+                    "data": {"entry_id": "config-entry-123"},
+                },
+            ],
         )
 
     def test_power_cycle_switch_when_entities_all_unavailable(self):
