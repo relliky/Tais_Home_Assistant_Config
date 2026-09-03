@@ -1460,7 +1460,7 @@ def define_room_classes(RoomBase):
       self.add_automation('light.e14w_1_tuya', 'E14W_1', 'Tuya Light Reload When State Does Not Update', reload_config_entry_id='01JS6QRKXS455JGC1YW30ZC9W5')
       self.add_automation('light.e14w_2_tuya', 'E14W_2', "Wifi Device Reconnect When Unavailable", unavailable_period='00:05:00', unavailable_device_id='0aa94946c833610ac68d26fbf53c20fe')
       self.add_automation('light.e14w_2_tuya', 'E14W_2', 'Tuya Light Reload When State Does Not Update', reload_config_entry_id='01JS6QRKXS455JGC1YW30ZC9W5')
-      self.add_automation('light.study_ceiling_light', 'Study Ceiling Light', 'Reload Config Entry When Entity Unavailable', unavailable_period='00:10:00', reload_config_entry_id='6d680a2b57694b4cfecb3c571afe7d7c')
+      self.add_automation('light.study_ceiling_light', 'Study Ceiling Light', 'Reload Config Entry When Entity Unavailable', unavailable_period='00:10:00', reload_config_entry_id='6d680a2b57694b4cfecb3c571afe7d7c', power_switch_entity_id='switch.study_wall_switch')
 
 
 

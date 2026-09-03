@@ -427,7 +427,8 @@ class RoomBase:
             automation_room_name=self.automation_room_name,
             room_name=self.room_name,
             unavailable_period=unavailable_period,
-            reload_config_entry_id=reload_config_entry_id
+            reload_config_entry_id=reload_config_entry_id,
+            power_switch_entity_id=power_switch_entity_id
           )
         ]
     elif(automation_type == "Power Cycle Switch When Entities All Unavailable" ):

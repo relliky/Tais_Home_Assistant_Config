@@ -125,6 +125,60 @@ class EntityDeclarationBuildersTest(unittest.TestCase):
             },
         )
 
+    def test_reload_config_entry_when_entity_unavailable_can_restore_power_first(self):
+        automation = entity_declaration_builders.reload_config_entry_when_entity_unavailable(
+            entity_id="light.test",
+            name="Test Light",
+            automation_room_name="TR ",
+            room_name="Test Room",
+            unavailable_period="00:10:00",
+            reload_config_entry_id="config-entry-123",
+            power_switch_entity_id="switch.test_wall_switch",
+        )
+
+        self.assertEqual(
+            automation["actions"][2],
+            {
+                "if": [
+                    {
+                        "condition": "not",
+                        "conditions": [
+                            {
+                                "condition": "state",
+                                "entity_id": "switch.test_wall_switch",
+                                "state": "on",
+                            }
+                        ],
+                    }
+                ],
+                "then": [
+                    {
+                        "action": "switch.turn_on",
+                        "target": {"entity_id": "switch.test_wall_switch"},
+                    },
+                    {"delay": "00:00:10"},
+                ],
+            },
+        )
+        self.assertEqual(
+            automation["actions"][3],
+            {
+                "if": [
+                    {
+                        "condition": "state",
+                        "entity_id": "light.test",
+                        "state": "unavailable",
+                    }
+                ],
+                "then": [
+                    {
+                        "action": "homeassistant.reload_config_entry",
+                        "data": {"entry_id": "config-entry-123"},
+                    },
+                ],
+            },
+        )
+
     def test_power_cycle_switch_when_entities_all_unavailable(self):
         automation = entity_declaration_builders.power_cycle_switch_when_entities_all_unavailable(
             entity_ids=["lock.test", "sensor.test_battery", "binary_sensor.test_mode"],
