@@ -117,16 +117,24 @@ def navigation_room_title_card(
     motion_group,
     motion_postfix,
     template_card,
+    summary_entity=None,
 ):
+  secondary = (
+    "{{ states('" + summary_entity + "') }}"
+    if summary_entity is not None else
+    navigation_room_secondary_text(
+      temperature_sensor,
+      motion_group,
+      motion_postfix,
+    )
+  )
+
   return template_card(
     icon=room_icon,
     icon_color="blue",
     primary=room_name,
-    secondary=navigation_room_secondary_text(
-      temperature_sensor,
-      motion_group,
-      motion_postfix,
-    ),
+    secondary=secondary,
+    tap_entity=summary_entity,
     tap_action='navigate',
   )
 

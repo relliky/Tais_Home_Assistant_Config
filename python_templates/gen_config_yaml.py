@@ -141,6 +141,7 @@ class RoomBase:
     self.get_unavailable_entity()
     self.get_battery_entity()
     self.get_automation_declarations()
+    self.add_dashboard_summary_sensor()
 
     # Populate interface variables into a database for dump out
     self.implement_entity_intf()
@@ -994,6 +995,8 @@ class RoomBase:
           }]
 
       elif model in ['DEBROGLIE 8-Key Remote', 'Jiuhao 8-Key Remote']:
+        event_entity = mac if mac.startswith('event.') else 'event.' + mac
+
         for event_name, attribute_values in {
             'Single Click': [
               285409536,
@@ -1028,7 +1031,7 @@ class RoomBase:
         }.items():
           for button_index, attribute_value in enumerate(attribute_values, start=1):
             self.add_event_binary_sensor(
-              'event.' + mac,
+              event_entity,
               name + f' Button {button_index} {event_name}' + name_postfix,
               attribute_name='Customized Argument 5',
               attribute_value=attribute_value,
@@ -3879,6 +3882,39 @@ class RoomBase:
 
 
 
+  def getNavigationRoomSummaryEntity(self):
+    if self.dashboard_type in [None, 'mobile'] and self.room_entity == 'living_room':
+      return 'sensor.' + self.room_entity + '_dashboard_summary'
+    return None
+
+  def add_dashboard_summary_sensor(self):
+    if self.room_entity != 'living_room':
+      return
+
+    self.template_list += [
+      {
+        "sensor": [
+          {
+            "name": self.room_name + " Dashboard Summary",
+            "state": (
+              "{% set unavailable_states = ['unknown', 'unavailable', 'none', ''] %}"
+              "{% set temp = states('" + self.temperature_sensor + "') %}"
+              "{% if temp not in unavailable_states %}{{ temp }}°C {% endif %}"
+              "{% set motion = '" + self.motion_group + "' %}"
+              "{% if is_state(motion, 'on') %}🙋🏻{% else %}🦶🏻{% endif %} "
+              "{{ ((as_timestamp(now()) - as_timestamp(states[motion].last_changed)) | int) | timestamp_custom('%H:%M', false) }}"
+            ),
+            "attributes": {
+              "temperature": "{{ states('" + self.temperature_sensor + "') }}",
+              "motion_state": "{{ states('" + self.motion_group + "') }}",
+              "motion_last_changed": "{{ states['" + self.motion_group + "'].last_changed }}"
+            }
+          }
+        ],
+        "configured": True
+      }
+    ]
+
   def getDashboardSettings(self):
     settings = dashboard_settings.default_dashboard_settings()
     self.dashboard_default_root = settings["dashboard_default_root"]
@@ -3933,6 +3969,7 @@ class RoomBase:
       self.motion_group,
       self.getPostfix(self.motion_group),
       self.getTemplateCard,
+      summary_entity=self.getNavigationRoomSummaryEntity(),
     )
 
   def getNavigationStatusCards(self):

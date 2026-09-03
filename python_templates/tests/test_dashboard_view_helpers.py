@@ -211,6 +211,24 @@ class DashboardViewHelpersTest(unittest.TestCase):
             ),
         )
 
+    def test_navigation_room_title_card_can_use_summary_entity(self):
+        def template_card(**kwargs):
+            return kwargs
+
+        card = dashboard_view_helpers.navigation_room_title_card(
+            "mdi:sofa",
+            "Living Room",
+            "sensor.living_room_temperature",
+            "group.living_room_motion",
+            "living_room_motion",
+            template_card,
+            summary_entity="sensor.living_room_dashboard_summary",
+        )
+
+        self.assertEqual(card["tap_entity"], "sensor.living_room_dashboard_summary")
+        self.assertEqual(card["secondary"], "{{ states('sensor.living_room_dashboard_summary') }}")
+        self.assertNotIn("now()", card["secondary"])
+
     def test_unavailable_status_card(self):
         def template_card(**kwargs):
             return kwargs

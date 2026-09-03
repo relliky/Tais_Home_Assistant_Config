@@ -93,6 +93,8 @@ class RoomBaseHelpersTest(unittest.TestCase):
         room.dashboard_view_path = "lovelace/kitchen"
         room.getTemplateCard = lambda **kwargs: kwargs
         room.getPostfix = lambda motion_group: "kitchen_motion"
+        room.dashboard_type = "mobile"
+        room.room_entity = "kitchen"
         room.getCardModColor = lambda color: {"card_mod": {"style": color}}
         return room
 
@@ -109,6 +111,44 @@ class RoomBaseHelpersTest(unittest.TestCase):
             card["cards"][1]["cards"][0]["condition_entity"],
             "binary_sensor.kitchen_unavailable",
         )
+
+    def test_add_dashboard_summary_sensor_only_adds_living_room_sensor(self):
+        room = gen_config_yaml.RoomBase.__new__(gen_config_yaml.RoomBase)
+        room.room_entity = "living_room"
+        room.room_name = "Living Room"
+        room.temperature_sensor = "sensor.living_room_temperature_sensor"
+        room.motion_group = "group.living_room_motion_group"
+        room.template_list = []
+
+        room.add_dashboard_summary_sensor()
+
+        self.assertEqual(len(room.template_list), 1)
+        sensor = room.template_list[0]["sensor"][0]
+        self.assertEqual(sensor["name"], "Living Room Dashboard Summary")
+        self.assertIn("sensor.living_room_temperature_sensor", sensor["state"])
+        self.assertIn("group.living_room_motion_group", sensor["state"])
+        self.assertIn("now()", sensor["state"])
+
+    def test_living_room_mobile_navigation_uses_dashboard_summary_sensor(self):
+        room = self.make_navigation_room()
+        room.room_name = "Living Room"
+        room.room_entity = "living_room"
+
+        card = room.getNavigationRoomTitleCard()
+
+        self.assertEqual(card["tap_entity"], "sensor.living_room_dashboard_summary")
+        self.assertEqual(card["secondary"], "{{ states('sensor.living_room_dashboard_summary') }}")
+
+    def test_default_dashboard_type_living_room_navigation_uses_dashboard_summary_sensor(self):
+        room = self.make_navigation_room()
+        room.room_name = "Living Room"
+        room.room_entity = "living_room"
+        room.dashboard_type = None
+
+        card = room.getNavigationRoomTitleCard()
+
+        self.assertEqual(card["tap_entity"], "sensor.living_room_dashboard_summary")
+        self.assertEqual(card["secondary"], "{{ states('sensor.living_room_dashboard_summary') }}")
 
     def test_get_button_navigation_room_card(self):
         room = self.make_navigation_room()
@@ -543,6 +583,7 @@ class RoomBaseHelpersTest(unittest.TestCase):
                     "Test 8-Key Remote",
                     "",
                     model,
+                    add_remote_automation=False,
                 )
 
                 self.assertEqual(len(room.template_list), 24)
