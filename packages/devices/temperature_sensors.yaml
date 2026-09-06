@@ -133,3 +133,77 @@ template:
 #        state: >
 #          {{ states('sensor.temperature_humidity_sensor_2ab7_temperature') | float | round(1) }}#
 
+automation:
+  - alias: ZR-SYS Reload Tado Integrations When Tado Offline-System
+    id: automation.zr_sys_reload_tado_integrations_when_tado_offline_system
+    mode: single
+    triggers:
+      - trigger: state
+        entity_id: climate.tado_smart_radiator_thermostat_va2282557696
+        to: unavailable
+        for: "00:10:00"
+        id: tado_climate_unavailable
+      - trigger: state
+        entity_id: device_tracker.tado
+        to: not_home
+        for: "00:10:00"
+        id: tado_bridge_not_home
+      - trigger: homeassistant
+        event: start
+        id: homeassistant_start
+      - trigger: time_pattern
+        minutes: /30
+        id: periodic_check
+    actions:
+      - if:
+          - condition: trigger
+            id: homeassistant_start
+        then:
+          - delay: "00:10:00"
+      - condition: or
+        conditions:
+          - condition: state
+            entity_id: climate.tado_smart_radiator_thermostat_va2282557696
+            state: unavailable
+            for: "00:10:00"
+          - condition: state
+            entity_id: device_tracker.tado
+            state: not_home
+            for: "00:10:00"
+      - action: homeassistant.reload_config_entry
+        data:
+          entry_id: 01K16M4Z3RTWK4FTWZNA8BDG0F
+      - delay: "00:00:20"
+      - action: homeassistant.reload_config_entry
+        data:
+          entry_id: 01KBXMBN461ZEDGV0ZCN2GEGSN
+      - delay: "00:01:00"
+      - if:
+          - condition: state
+            entity_id: climate.tado_smart_radiator_thermostat_va2282557696
+            state: unavailable
+        then:
+          - action: unifi.reconnect_client
+            data:
+              device_id: 914e187b52b888e5b52d38c158b2d122
+          - delay: "00:02:00"
+          - action: homeassistant.reload_config_entry
+            data:
+              entry_id: 01K16M4Z3RTWK4FTWZNA8BDG0F
+          - delay: "00:00:20"
+          - action: homeassistant.reload_config_entry
+            data:
+              entry_id: 01KBXMBN461ZEDGV0ZCN2GEGSN
+      - if:
+          - condition: state
+            entity_id: device_tracker.tado
+            state: not_home
+          - condition: state
+            entity_id: climate.tado_smart_radiator_thermostat_va2282557696
+            state: unavailable
+        then:
+          - service: script.notify_alexa_speakers_and_phones
+            data:
+              tts_message: "Tado bridge is offline after automatic recovery. Please check the Tado bridge power and network cable."
+              notify_tai: "yes"
+
