@@ -462,7 +462,6 @@ def define_room_classes(RoomBase):
       self.gui_ctl_entity_list += ['sensor.x1_battery_2'] # add to GUI
       self.gui_ctl_entity_list += ['switch.ttlock_gateway_power_switch'] # add to GUI
       self.add_automation('vacuum.x1',       'Vacuum Robot',   "Wifi Device Reconnect When Unavailable", unavailable_period='00:05:00', unavailable_device_id='f666003acf32413fb68e8f56007ceaf9')
-      #self.add_automation('lock.front_door', 'TTLock',         "Wifi Device Reconnect When Unavailable", unavailable_period='00:03:00', unavailable_device_id='7a2c07d362d6bb09ff3edad7ffe37d7a')
       self.add_automation(
         'lock.ttlock_front_door',
         'TTLock',
@@ -485,8 +484,8 @@ def define_room_classes(RoomBase):
       self.add_automation('switch.rice_cooker_switch', 'Rice Cooker Switch', 'Reload Config Entry When Entity Unavailable', unavailable_period='00:05:00', reload_config_entry_id='01K9T79D434WBDM8Z1GD8XR9VY', reload_button_entity_id='button.smart_switch_24110804769064510803c4e7ae0ff809_reload')
       self.add_device('smart_switch_24110805022128510803c4e7ae0ffcf7_power',  'Plate Warmer Power',        'Power',          'Generic Power Measurement Switch', power_on_threshold=10, smooth_power=False) # plate warmer does not need to smooth as it is always above threshold when on
       self.add_device('smart_switch_24110805022128510803c4e7ae0ffcf7_outlet', 'Plate Warmer Switch',       'Switch',         'Generic Switch')
-      self.add_device('0x00158d000171756e_power',                             'Baby Food Cooker Power',    'Power',          'Generic Power Measurement Switch', power_on_threshold=5, smooth_power=False, delay_off_minute=3)
-      self.add_device('0x00158d000171756e_plug',                              'Baby Food Cooker Switch',   'Switch',         'Generic Switch')
+      #self.add_device('0x00158d000171756e_power',                             'Baby Food Cooker Power',    'Power',          'Generic Power Measurement Switch', power_on_threshold=5, smooth_power=False, delay_off_minute=3)
+      #self.add_device('0x00158d000171756e_plug',                              'Baby Food Cooker Switch',   'Switch',         'Generic Switch')
       self.add_device('smart_plug_20030678930061251h3448e1e91852b1_power',    'Washing Machine Power',     'Power',          'Generic Power Measurement Switch', power_on_threshold=10)
       self.add_device('smart_plug_20030602740631251h3448e1e918560a_power',    'Dish Washer Power',         'Power',          'Generic Power Measurement Switch', power_on_threshold=5)
 
@@ -502,6 +501,7 @@ def define_room_classes(RoomBase):
       #self.add_device("kitchen_dining_light_yeelight",              self.room_name + " Dining Light", 'Light',              "Generic Light") # Yeelight - go offline when device is roaming to another AP
       #self.add_device("kitchen_tv_led_magic_home",                  self.room_name + " TV LED",       'Light',              "Generic Light")
       self.add_device("kitchen_worktop_led_tuya",                   self.room_name + " Worktop LED",  'Light',              "Generic Light")
+      self.add_automation('light.kitchen_worktop_led_tuya', 'Kitchen Worktop LED', "Wifi Device Reconnect When Unavailable", unavailable_period='00:05:00', unavailable_device_id='5d4612008415ae1ea9e70f675983e72e')
       self.add_automation('light.kitchen_worktop_led_tuya', 'Kitchen Worktop LED', 'Tuya Light Reload When State Does Not Update', reload_config_entry_id='01JS6QRKXS455JGC1YW30ZC9W5')
       #self.add_device("18c23c2caa33_water_leak",                    self.room_name + " Water Sensor", 'Water Sensor',       "Generic Binary Sensor")
 
