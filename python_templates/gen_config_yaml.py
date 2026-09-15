@@ -1840,7 +1840,7 @@ class RoomBase:
     elif model == "Generic Battery":
     ###################################################################################################
 
-      self.add_battery_sensor(mac, name+name_postfix, smooth_battery=True)
+      self.add_battery_sensor(mac, name+name_postfix, smooth_battery=smooth_battery)
 
     ###################################################################################################
     # Model not found, throw an error
@@ -1875,6 +1875,7 @@ class RoomBase:
           name,
           self.getEntityFromName,
           self.getNameFromEntity,
+          smooth_battery=smooth_battery,
         )
         self.sensor_list += declarations["sensor_list_additions"]
         self.template_list += declarations["template_list_additions"]

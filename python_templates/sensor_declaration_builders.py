@@ -22,23 +22,26 @@ def event_binary_sensor(entity_id, name, attribute_name='Button Type', attribute
   }
 
 
-def battery_sensor_declarations(mac, name, get_entity_from_name, get_name_from_entity):
+def battery_sensor_declarations(mac, name, get_entity_from_name, get_name_from_entity, smooth_battery=True):
   raw_sensor = "sensor." + mac + ""
   entity_postfix = get_entity_from_name(name)
   median_sensor = "sensor." + entity_postfix + "_median"
+  source_sensor = median_sensor if smooth_battery else raw_sensor
+
+  sensor_list_additions = []
+  if smooth_battery:
+    sensor_list_additions.append({
+      "name": get_name_from_entity(median_sensor),
+      "platform": "statistics",
+      "entity_id": raw_sensor,
+      "precision": 0,
+      "state_characteristic": "median",
+      "max_age": {"hours": 24},
+      "configured": True
+    })
 
   return {
-    "sensor_list_additions": [
-      {
-        "name": get_name_from_entity(median_sensor),
-        "platform": "statistics",
-        "entity_id": raw_sensor,
-        "precision": 0,
-        "state_characteristic": "median",
-        "max_age": {"hours": 24},
-        "configured": True
-      }
-    ],
+    "sensor_list_additions": sensor_list_additions,
     "template_list_additions": [
       {
         "sensor": [
@@ -47,7 +50,7 @@ def battery_sensor_declarations(mac, name, get_entity_from_name, get_name_from_e
             "unit_of_measurement": "%",
             "device_class": "battery",
             "state_class": "measurement",
-            "state": "{% set s = states('" + median_sensor + "') %}" +
+            "state": "{% set s = states('" + source_sensor + "') %}" +
                      "{{ s | int if s not in ['unknown', 'unavailable', ''] else 'unknown' }}"
           }
         ],
