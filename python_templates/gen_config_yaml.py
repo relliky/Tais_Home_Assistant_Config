@@ -872,7 +872,7 @@ class RoomBase:
         }
       ]
 
-      self.add_battery_sensor(mac + mac_battery_postfix, name + " Battery" + name_postfix)
+      self.add_battery_sensor(mac + mac_battery_postfix, name + " Battery" + name_postfix, enable_battery=enable_battery)
 
     elif((model == "Inverted Binary Sensor")):
 
