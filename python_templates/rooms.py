@@ -456,7 +456,7 @@ def define_room_classes(RoomBase):
       self.add_device('ttlock_front_door',              "Front Door",                'Lock',     'Generic Locks')
       self.add_device('ttlock_front_door_battery',      "Front Door Lock Battery",   'Battery',  'Generic Battery')
       self.add_device('e4aaec80bc25',                   "Front Door",                'Door',     'Mijia2 Contact', enable_battery=False)
-      self.add_device('e4aaec80bc25_battery',           "Kitchen Front Door Battery", 'Battery',  'Generic Battery')
+      self.add_device('e4aaec80bc25_battery',           "Front Door Contact Battery", 'Battery',  'Generic Battery')
       self.add_device('front_door_battery',             "Ring Doorbell Battery",     'Battery',  'Generic Battery', smooth_battery=False)
       self.add_device('sonoff_1001e49ade_1',            "TTlock Gateway Power Switch", 'Switch',  'Generic Switch')
 
