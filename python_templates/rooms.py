@@ -445,6 +445,7 @@ def define_room_classes(RoomBase):
         f"binary_sensor.{self.room_entity}_worktop_motion_sensor_motion",
         f"binary_sensor.{self.room_entity}_dining_motion_sensor_motion",
         f"binary_sensor.{self.room_entity}_dining_table_motion_sensor_motion",
+        f"binary_sensor.{self.room_entity}_worktop_sensor_occupancy_sensor_occupancy",
       ] + ([f"binary_sensor.{self.room_entity}_table_xiaomi_home_occupancy_sensor_occupancy"] if self.xiaomi_home_occupancy else []) \
         + ([f"binary_sensor.{self.room_entity}_table_occupancy_sensor_occupancy"]             if self.gateway_occupancy     else [])
 
@@ -494,6 +495,7 @@ def define_room_classes(RoomBase):
       self.add_device('0x00158d00057acaac',                 self.room_name + ' Dining',             'Motion Sensor', 'Aqara Motion and Illuminance Sensor')
       self.add_device('0x00158d0004660308',                 self.room_name + ' Worktop',            'Motion Sensor', 'Aqara Motion and Illuminance Sensor')
       self.add_device("a4c1387f7df0",                       self.room_name + ' Table',              'Motion Sensor', "Linptech Occupancy Sensor ES3")
+      self.add_device("linp_cn_blt_3_1keg2q6k4cg00_es2",     self.room_name + ' Worktop Sensor',     'Motion Sensor', "Linptech Occupancy Sensor ES3", integration='Xiaomi Home')
       #self.add_device("a4c1381a4361",                       self.room_name + ' Table',        'Motion Sensor',      "Linptech Occupancy Sensor ES3")
       #self.add_device("linp_cn_blt_3_1kdf7mlc8k400_es2",   self.room_name + ' Table Xiaomi Home',      'Motion Sensor',      "Linptech Occupancy Sensor ES3", integration='Xiaomi Home') # xiaomi home has more accurate states than gw3
       self.add_device("e4aaec4500e4",                       self.room_name + " Window",             'Window',        "Mijia2 Contact")
