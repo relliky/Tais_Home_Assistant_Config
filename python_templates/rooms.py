@@ -695,7 +695,7 @@ def define_room_classes(RoomBase):
       self.add_average_temperature_sensor(sensor_1=  'sensor.living_room_temperature_sensor_1',
                                           sensor_2=  'sensor.living_room_temperature_sensor_2',
                                           sensor_out='sensor.living_room_temperature_sensor')
-      self.add_device('0x00158d0008d8ead8',                 self.room_name,                    'Wall Switch',        'Aqara D1 Wall Switch (With Neutral, Single Rocker)', flex_switch=True)
+      self.add_device('0x00158d0008d8ead8',                 self.room_name,                    'Wall Switch',        'Aqara D1 Wall Switch (With Neutral, Single Rocker)')
       self.add_device("0x54ef441000452fd8",                 self.room_name + ' Curtain',       'Curtain',            "Aqara B1 curtain motor",    postfix='1')
       self.add_device("0x54ef4410001f409c",                 self.room_name + ' Curtain',       'Curtain',            "Aqara B1 curtain motor",    postfix='2')
       self.add_device('0x04cf8cdf3c7b560f',                 self.room_name + ' East Side',     'Light Sensor',       'Xiaomi Light Detection Sensor')
