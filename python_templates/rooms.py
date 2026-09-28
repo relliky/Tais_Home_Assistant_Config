@@ -1201,7 +1201,7 @@ def define_room_classes(RoomBase):
       self.add_device('0x00158d00047b69d2',               self.room_name,                    'Wall Switch',        'Aqara D1 Wall Switch (With Neutral, Single Rocker)')#, flex_switch=True)
       self.add_device("lemesh_cn_1005553423_wy0c09_s_2",  self.room_name + " Ceiling Light", 'Light',              "Generic Light")
       self.add_device("50ec50dd67be_light",               self.room_name + " Lamp 1",        'Light',              "Generic Light")
-      self.add_device("hue_ambiance_lamp_2",              self.room_name + " Lamp 2",        'Light',              "Generic Light")
+      self.add_device("hue_ambiance_lamp_3",              self.room_name + " Lamp 2",        'Light',              "Generic Light")
       self.add_device("50ec50ded70f_light",               self.room_name + " Lamp 3",        'Light',              "Generic Light")
       #self.add_device("yeelink_cn_1040743458_mbulb3_s_2", self.room_name + " Lamp 4",        'Light',              "Generic Light")
       self.add_device('18c23c27fc55',                                                  self.room_name + ' Entrance',         'Motion Sensor',  'Mijia Motion Sensor 2')
