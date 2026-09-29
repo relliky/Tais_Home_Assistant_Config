@@ -44,14 +44,20 @@ def battery_sensor_declarations(mac, name, get_entity_from_name, get_name_from_e
     "sensor_list_additions": sensor_list_additions,
     "template_list_additions": [
       {
+        "trigger": [
+          {
+            "platform": "state",
+            "entity_id": source_sensor,
+            "not_to": ["unknown", "unavailable", ""]
+          }
+        ],
         "sensor": [
           {
             "name": name,
             "unit_of_measurement": "%",
             "device_class": "battery",
             "state_class": "measurement",
-            "state": "{% set s = states('" + source_sensor + "') %}" +
-                     "{{ s | int if s not in ['unknown', 'unavailable', ''] else 'unknown' }}"
+            "state": "{{ trigger.to_state.state | int }}"
           }
         ],
         "configured": True

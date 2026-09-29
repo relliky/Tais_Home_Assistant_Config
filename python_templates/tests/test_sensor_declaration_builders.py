@@ -85,14 +85,25 @@ class SensorDeclarationBuildersTest(unittest.TestCase):
             ],
         )
         self.assertEqual(
-            declarations["template_list_additions"][0]["sensor"][0],
+            declarations["template_list_additions"][0],
             {
-                "name": "Battery Device",
-                "unit_of_measurement": "%",
-                "device_class": "battery",
-                "state_class": "measurement",
-                "state": "{% set s = states('sensor.battery_device_median') %}"
-                         "{{ s | int if s not in ['unknown', 'unavailable', ''] else 'unknown' }}",
+                "trigger": [
+                    {
+                        "platform": "state",
+                        "entity_id": "sensor.battery_device_median",
+                        "not_to": ["unknown", "unavailable", ""],
+                    },
+                ],
+                "sensor": [
+                    {
+                        "name": "Battery Device",
+                        "unit_of_measurement": "%",
+                        "device_class": "battery",
+                        "state_class": "measurement",
+                        "state": "{{ trigger.to_state.state | int }}",
+                    },
+                ],
+                "configured": True,
             },
         )
 
