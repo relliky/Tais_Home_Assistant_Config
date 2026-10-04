@@ -1310,7 +1310,8 @@ def define_room_classes(RoomBase):
 
       # Adaptive lighting
       self.al_light_list[0]["lights"] += self.ceiling_lights
-      self.al_light_list[0]["sleep_brightness"]  = 10
+      self.al_light_list[0]["sleep_brightness"]  = 1
+      self.al_light_list[0]["sleep_color_temp"]   = 2500
       self.al_light_list[0]["min_brightness"]    = 100   # This toilet is too dark, make it as bright as possible
 
 
