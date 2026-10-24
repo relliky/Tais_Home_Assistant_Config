@@ -527,6 +527,95 @@ class RoomBase:
     )
 
 
+
+  def add_priority_failover_light(self, name, entities):
+    if len(entities) < 1:
+      raise ValueError("A priority failover light needs at least one source entity")
+
+    selector_expression = "'none'"
+    for entity in reversed(entities):
+      selector_expression = "'" + entity + "' if has_value('" + entity + "') else " + selector_expression
+    selector = "{% set entity = " + selector_expression + " %}"
+
+    def routed_action(action, data=None):
+      choices = []
+      for entity in entities:
+        step = {
+          "action": action,
+          "target": {"entity_id": entity},
+        }
+        if data:
+          step["data"] = data.copy()
+        choices.append({
+          "conditions": [{
+            "condition": "template",
+            "value_template": "{{ has_value('" + entity + "') }}",
+          }],
+          "sequence": [step],
+        })
+      return [{"choose": choices}]
+
+    self.template_list += [
+      {
+        "light": [
+          {
+            "name": name,
+            "unique_id": self.getEntityFromName(name) + "_priority_failover",
+            "default_entity_id": "light." + self.getEntityFromName(name),
+            "availability": "{{ " + " or ".join(
+              "has_value('" + entity + "')" for entity in entities
+            ) + " }}",
+            "state": selector + "{{ states(entity) if entity != 'none' else 'unavailable' }}",
+            "level": selector + "{{ state_attr(entity, 'brightness') | int(0) if entity != 'none' else 0 }}",
+            "temperature": (
+              selector +
+              "{% set kelvin = state_attr(entity, 'color_temp_kelvin') if entity != 'none' else none %}"
+              "{% if entity != 'none' and state_attr(entity, 'color_temp') is not none %}"
+              "{{ state_attr(entity, 'color_temp') }}"
+              "{% elif kelvin is not none and kelvin | float(0) > 0 %}"
+              "{{ (1000000 / (kelvin | float)) | int }}"
+              "{% else %}{{ none }}{% endif %}"
+            ),
+            "min_mireds": (
+              selector +
+              "{% set kelvin = state_attr(entity, 'max_color_temp_kelvin') if entity != 'none' else none %}"
+              "{{ (1000000 / (kelvin | float)) | int if kelvin is not none and kelvin | float(0) > 0 else 153 }}"
+            ),
+            "max_mireds": (
+              selector +
+              "{% set kelvin = state_attr(entity, 'min_color_temp_kelvin') if entity != 'none' else none %}"
+              "{{ (1000000 / (kelvin | float)) | int if kelvin is not none and kelvin | float(0) > 0 else 370 }}"
+            ),
+            "effect": selector + "{{ state_attr(entity, 'effect') if entity != 'none' else none }}",
+            "effect_list": selector + "{{ (state_attr(entity, 'effect_list') or []) if entity != 'none' else [] }}",
+            "supports_transition": selector + "{{ entity == '" + entities[-1] + "' }}",
+            "turn_on": routed_action("light.turn_on", {
+              "transition": "{{ transition | default(0) }}",
+            }),
+            "turn_off": routed_action("light.turn_off", {
+              "transition": "{{ transition | default(0) }}",
+            }),
+            "set_level": routed_action("light.turn_on", {
+              "brightness": "{{ brightness }}",
+              "transition": "{{ transition | default(0) }}",
+            }),
+            "set_temperature": routed_action("light.turn_on", {
+              "color_temp_kelvin": "{{ color_temp_kelvin }}",
+              "brightness": "{{ brightness | default(omit) }}",
+              "transition": "{{ transition | default(0) }}",
+            }),
+            "set_effect": routed_action("light.turn_on", {
+              "effect": "{{ effect }}",
+              "brightness": "{{ brightness | default(omit) }}",
+              "transition": "{{ transition | default(0) }}",
+            }),
+          }
+        ],
+        "configured": True,
+      }
+    ]
+
+
   def add_cover_group(self, name, cover_entity):
     self.add_platform_group(self.cover_list, name, cover_entity)
 

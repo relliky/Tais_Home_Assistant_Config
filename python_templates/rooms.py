@@ -47,8 +47,14 @@ def define_room_classes(RoomBase):
       self.add_device("0x00158d00054deda4",                self.room_name + " Stair",               'Motion Sensor',      "Aqara Motion and Illuminance Sensor")
       self.add_device("0x00158d00054a6f3a",                self.room_name + " Drawer",              'Motion Sensor',      "Aqara Motion and Illuminance Sensor")
       #self.add_device('50ec50df3056',                      self.room_name + " Bed Ceiling Light",   'Light',              'Mijia BLE Lights')
-      self.add_device("yeelight_ceiling13_0x1c649afe", self.room_name + " Bed Ceiling Light",'Light',        "Generic Light") # Yeelight
-      #self.add_device("yeelink_ceiling13_40f4_light", self.room_name + " Bed Ceiling Light",'Light',        "Generic Light") # MiIOT Auto
+      self.add_priority_failover_light(
+        self.room_name + " Bed Ceiling Light",
+        [
+          "light.yeelink_cn_476355326_ceiling13_s_2_light",  # Xiaomi Home (preferred)
+          "light.yeelink_ceiling13_40f4_light",              # Xiaomi MiOT
+          "light.yeelight_ceiling13_0x1c649afe",             # Yeelight
+        ],
+      )
 
       #self.add_device("master_room_drawer_ceiling_light_xiaomi",self.room_name + " Drawer Ceiling Light",'Light',        "Generic Light") # MiIOT Auto
       self.add_device("yeelink_cn_442976373_ceiling13_s_2_light",self.room_name + " Drawer Ceiling Light",'Light',        "Generic Light") # Xiaomi Home

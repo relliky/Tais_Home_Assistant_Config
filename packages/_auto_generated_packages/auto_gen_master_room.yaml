@@ -7536,36 +7536,244 @@ template:
 
       '
     device_class: occupancy
-- sensor:
+- trigger:
+  - platform: state
+    entity_id: sensor.master_room_bed_xiaomi_home_occupancy_sensor_battery_median
+    not_to:
+    - unknown
+    - unavailable
+    - ''
+  sensor:
   - name: Master Room Bed Xiaomi Home Occupancy Sensor Battery
     unit_of_measurement: '%'
     device_class: battery
     state_class: measurement
-    state: '{% set s = states(''sensor.master_room_bed_xiaomi_home_occupancy_sensor_battery_median'') %}{{ s | int if s not in [''unknown'', ''unavailable'', ''''] else ''unknown'' }}'
-- sensor:
+    state: '{{ trigger.to_state.state | int }}'
+- trigger:
+  - platform: state
+    entity_id: sensor.master_room_tv_motion_sensor_battery_median
+    not_to:
+    - unknown
+    - unavailable
+    - ''
+  sensor:
   - name: Master Room TV Motion Sensor Battery
     unit_of_measurement: '%'
     device_class: battery
     state_class: measurement
-    state: '{% set s = states(''sensor.master_room_tv_motion_sensor_battery_median'') %}{{ s | int if s not in [''unknown'', ''unavailable'', ''''] else ''unknown'' }}'
-- sensor:
+    state: '{{ trigger.to_state.state | int }}'
+- trigger:
+  - platform: state
+    entity_id: sensor.master_room_entrance_motion_sensor_battery_median
+    not_to:
+    - unknown
+    - unavailable
+    - ''
+  sensor:
   - name: Master Room Entrance Motion Sensor Battery
     unit_of_measurement: '%'
     device_class: battery
     state_class: measurement
-    state: '{% set s = states(''sensor.master_room_entrance_motion_sensor_battery_median'') %}{{ s | int if s not in [''unknown'', ''unavailable'', ''''] else ''unknown'' }}'
-- sensor:
+    state: '{{ trigger.to_state.state | int }}'
+- trigger:
+  - platform: state
+    entity_id: sensor.master_room_stair_motion_sensor_battery_median
+    not_to:
+    - unknown
+    - unavailable
+    - ''
+  sensor:
   - name: Master Room Stair Motion Sensor Battery
     unit_of_measurement: '%'
     device_class: battery
     state_class: measurement
-    state: '{% set s = states(''sensor.master_room_stair_motion_sensor_battery_median'') %}{{ s | int if s not in [''unknown'', ''unavailable'', ''''] else ''unknown'' }}'
-- sensor:
+    state: '{{ trigger.to_state.state | int }}'
+- trigger:
+  - platform: state
+    entity_id: sensor.master_room_drawer_motion_sensor_battery_median
+    not_to:
+    - unknown
+    - unavailable
+    - ''
+  sensor:
   - name: Master Room Drawer Motion Sensor Battery
     unit_of_measurement: '%'
     device_class: battery
     state_class: measurement
-    state: '{% set s = states(''sensor.master_room_drawer_motion_sensor_battery_median'') %}{{ s | int if s not in [''unknown'', ''unavailable'', ''''] else ''unknown'' }}'
+    state: '{{ trigger.to_state.state | int }}'
+- light:
+  - name: Master Room Bed Ceiling Light
+    unique_id: master_room_bed_ceiling_light_priority_failover
+    default_entity_id: light.master_room_bed_ceiling_light
+    availability: '{{ has_value(''light.yeelink_cn_476355326_ceiling13_s_2_light'') or has_value(''light.yeelink_ceiling13_40f4_light'') or has_value(''light.yeelight_ceiling13_0x1c649afe'') }}'
+    state: '{% set entity = ''light.yeelink_cn_476355326_ceiling13_s_2_light'' if has_value(''light.yeelink_cn_476355326_ceiling13_s_2_light'') else ''light.yeelink_ceiling13_40f4_light'' if has_value(''light.yeelink_ceiling13_40f4_light'') else ''light.yeelight_ceiling13_0x1c649afe'' if has_value(''light.yeelight_ceiling13_0x1c649afe'') else ''none'' %}{{ states(entity) if entity != ''none'' else ''unavailable'' }}'
+    level: '{% set entity = ''light.yeelink_cn_476355326_ceiling13_s_2_light'' if has_value(''light.yeelink_cn_476355326_ceiling13_s_2_light'') else ''light.yeelink_ceiling13_40f4_light'' if has_value(''light.yeelink_ceiling13_40f4_light'') else ''light.yeelight_ceiling13_0x1c649afe'' if has_value(''light.yeelight_ceiling13_0x1c649afe'') else ''none'' %}{{ state_attr(entity, ''brightness'') | int(0) if entity != ''none'' else 0 }}'
+    temperature: '{% set entity = ''light.yeelink_cn_476355326_ceiling13_s_2_light'' if has_value(''light.yeelink_cn_476355326_ceiling13_s_2_light'') else ''light.yeelink_ceiling13_40f4_light'' if has_value(''light.yeelink_ceiling13_40f4_light'') else ''light.yeelight_ceiling13_0x1c649afe'' if has_value(''light.yeelight_ceiling13_0x1c649afe'') else ''none'' %}{% set kelvin = state_attr(entity, ''color_temp_kelvin'') if entity != ''none'' else none %}{% if entity != ''none'' and state_attr(entity, ''color_temp'') is not none %}{{ state_attr(entity, ''color_temp'') }}{% elif kelvin is not none and kelvin | float(0) > 0 %}{{ (1000000 / (kelvin | float)) | int }}{% else %}{{ none }}{% endif %}'
+    min_mireds: '{% set entity = ''light.yeelink_cn_476355326_ceiling13_s_2_light'' if has_value(''light.yeelink_cn_476355326_ceiling13_s_2_light'') else ''light.yeelink_ceiling13_40f4_light'' if has_value(''light.yeelink_ceiling13_40f4_light'') else ''light.yeelight_ceiling13_0x1c649afe'' if has_value(''light.yeelight_ceiling13_0x1c649afe'') else ''none'' %}{% set kelvin = state_attr(entity, ''max_color_temp_kelvin'') if entity != ''none'' else none %}{{ (1000000 / (kelvin | float)) | int if kelvin is not none and kelvin | float(0) > 0 else 153 }}'
+    max_mireds: '{% set entity = ''light.yeelink_cn_476355326_ceiling13_s_2_light'' if has_value(''light.yeelink_cn_476355326_ceiling13_s_2_light'') else ''light.yeelink_ceiling13_40f4_light'' if has_value(''light.yeelink_ceiling13_40f4_light'') else ''light.yeelight_ceiling13_0x1c649afe'' if has_value(''light.yeelight_ceiling13_0x1c649afe'') else ''none'' %}{% set kelvin = state_attr(entity, ''min_color_temp_kelvin'') if entity != ''none'' else none %}{{ (1000000 / (kelvin | float)) | int if kelvin is not none and kelvin | float(0) > 0 else 370 }}'
+    effect: '{% set entity = ''light.yeelink_cn_476355326_ceiling13_s_2_light'' if has_value(''light.yeelink_cn_476355326_ceiling13_s_2_light'') else ''light.yeelink_ceiling13_40f4_light'' if has_value(''light.yeelink_ceiling13_40f4_light'') else ''light.yeelight_ceiling13_0x1c649afe'' if has_value(''light.yeelight_ceiling13_0x1c649afe'') else ''none'' %}{{ state_attr(entity, ''effect'') if entity != ''none'' else none }}'
+    effect_list: '{% set entity = ''light.yeelink_cn_476355326_ceiling13_s_2_light'' if has_value(''light.yeelink_cn_476355326_ceiling13_s_2_light'') else ''light.yeelink_ceiling13_40f4_light'' if has_value(''light.yeelink_ceiling13_40f4_light'') else ''light.yeelight_ceiling13_0x1c649afe'' if has_value(''light.yeelight_ceiling13_0x1c649afe'') else ''none'' %}{{ (state_attr(entity, ''effect_list'') or []) if entity != ''none'' else [] }}'
+    supports_transition: '{% set entity = ''light.yeelink_cn_476355326_ceiling13_s_2_light'' if has_value(''light.yeelink_cn_476355326_ceiling13_s_2_light'') else ''light.yeelink_ceiling13_40f4_light'' if has_value(''light.yeelink_ceiling13_40f4_light'') else ''light.yeelight_ceiling13_0x1c649afe'' if has_value(''light.yeelight_ceiling13_0x1c649afe'') else ''none'' %}{{ entity == ''light.yeelight_ceiling13_0x1c649afe'' }}'
+    turn_on:
+    - choose:
+      - conditions:
+        - condition: template
+          value_template: '{{ has_value(''light.yeelink_cn_476355326_ceiling13_s_2_light'') }}'
+        sequence:
+        - action: light.turn_on
+          target:
+            entity_id: light.yeelink_cn_476355326_ceiling13_s_2_light
+          data:
+            transition: '{{ transition | default(0) }}'
+      - conditions:
+        - condition: template
+          value_template: '{{ has_value(''light.yeelink_ceiling13_40f4_light'') }}'
+        sequence:
+        - action: light.turn_on
+          target:
+            entity_id: light.yeelink_ceiling13_40f4_light
+          data:
+            transition: '{{ transition | default(0) }}'
+      - conditions:
+        - condition: template
+          value_template: '{{ has_value(''light.yeelight_ceiling13_0x1c649afe'') }}'
+        sequence:
+        - action: light.turn_on
+          target:
+            entity_id: light.yeelight_ceiling13_0x1c649afe
+          data:
+            transition: '{{ transition | default(0) }}'
+    turn_off:
+    - choose:
+      - conditions:
+        - condition: template
+          value_template: '{{ has_value(''light.yeelink_cn_476355326_ceiling13_s_2_light'') }}'
+        sequence:
+        - action: light.turn_off
+          target:
+            entity_id: light.yeelink_cn_476355326_ceiling13_s_2_light
+          data:
+            transition: '{{ transition | default(0) }}'
+      - conditions:
+        - condition: template
+          value_template: '{{ has_value(''light.yeelink_ceiling13_40f4_light'') }}'
+        sequence:
+        - action: light.turn_off
+          target:
+            entity_id: light.yeelink_ceiling13_40f4_light
+          data:
+            transition: '{{ transition | default(0) }}'
+      - conditions:
+        - condition: template
+          value_template: '{{ has_value(''light.yeelight_ceiling13_0x1c649afe'') }}'
+        sequence:
+        - action: light.turn_off
+          target:
+            entity_id: light.yeelight_ceiling13_0x1c649afe
+          data:
+            transition: '{{ transition | default(0) }}'
+    set_level:
+    - choose:
+      - conditions:
+        - condition: template
+          value_template: '{{ has_value(''light.yeelink_cn_476355326_ceiling13_s_2_light'') }}'
+        sequence:
+        - action: light.turn_on
+          target:
+            entity_id: light.yeelink_cn_476355326_ceiling13_s_2_light
+          data:
+            brightness: '{{ brightness }}'
+            transition: '{{ transition | default(0) }}'
+      - conditions:
+        - condition: template
+          value_template: '{{ has_value(''light.yeelink_ceiling13_40f4_light'') }}'
+        sequence:
+        - action: light.turn_on
+          target:
+            entity_id: light.yeelink_ceiling13_40f4_light
+          data:
+            brightness: '{{ brightness }}'
+            transition: '{{ transition | default(0) }}'
+      - conditions:
+        - condition: template
+          value_template: '{{ has_value(''light.yeelight_ceiling13_0x1c649afe'') }}'
+        sequence:
+        - action: light.turn_on
+          target:
+            entity_id: light.yeelight_ceiling13_0x1c649afe
+          data:
+            brightness: '{{ brightness }}'
+            transition: '{{ transition | default(0) }}'
+    set_temperature:
+    - choose:
+      - conditions:
+        - condition: template
+          value_template: '{{ has_value(''light.yeelink_cn_476355326_ceiling13_s_2_light'') }}'
+        sequence:
+        - action: light.turn_on
+          target:
+            entity_id: light.yeelink_cn_476355326_ceiling13_s_2_light
+          data:
+            color_temp_kelvin: '{{ color_temp_kelvin }}'
+            brightness: '{{ brightness | default(omit) }}'
+            transition: '{{ transition | default(0) }}'
+      - conditions:
+        - condition: template
+          value_template: '{{ has_value(''light.yeelink_ceiling13_40f4_light'') }}'
+        sequence:
+        - action: light.turn_on
+          target:
+            entity_id: light.yeelink_ceiling13_40f4_light
+          data:
+            color_temp_kelvin: '{{ color_temp_kelvin }}'
+            brightness: '{{ brightness | default(omit) }}'
+            transition: '{{ transition | default(0) }}'
+      - conditions:
+        - condition: template
+          value_template: '{{ has_value(''light.yeelight_ceiling13_0x1c649afe'') }}'
+        sequence:
+        - action: light.turn_on
+          target:
+            entity_id: light.yeelight_ceiling13_0x1c649afe
+          data:
+            color_temp_kelvin: '{{ color_temp_kelvin }}'
+            brightness: '{{ brightness | default(omit) }}'
+            transition: '{{ transition | default(0) }}'
+    set_effect:
+    - choose:
+      - conditions:
+        - condition: template
+          value_template: '{{ has_value(''light.yeelink_cn_476355326_ceiling13_s_2_light'') }}'
+        sequence:
+        - action: light.turn_on
+          target:
+            entity_id: light.yeelink_cn_476355326_ceiling13_s_2_light
+          data:
+            effect: '{{ effect }}'
+            brightness: '{{ brightness | default(omit) }}'
+            transition: '{{ transition | default(0) }}'
+      - conditions:
+        - condition: template
+          value_template: '{{ has_value(''light.yeelink_ceiling13_40f4_light'') }}'
+        sequence:
+        - action: light.turn_on
+          target:
+            entity_id: light.yeelink_ceiling13_40f4_light
+          data:
+            effect: '{{ effect }}'
+            brightness: '{{ brightness | default(omit) }}'
+            transition: '{{ transition | default(0) }}'
+      - conditions:
+        - condition: template
+          value_template: '{{ has_value(''light.yeelight_ceiling13_0x1c649afe'') }}'
+        sequence:
+        - action: light.turn_on
+          target:
+            entity_id: light.yeelight_ceiling13_0x1c649afe
+          data:
+            effect: '{{ effect }}'
+            brightness: '{{ brightness | default(omit) }}'
+            transition: '{{ transition | default(0) }}'
 - sensor:
   - name: Master Room Wall Button
     state: '{{states.sensor["0x04cf8cdf3c7ad638_action"].state}}'
@@ -7956,9 +8164,9 @@ template:
     auto_off: 0.2
 - binary_sensor:
   - name: Master Room Unavailable Entities
-    state: '{% set added_device_entities =  [''sensor.master_room_temperature_sensor_new_1'', ''sensor.master_room_temperature_sensor_new_1_battery'', ''sensor.master_room_humidity_sensor_new_1'', ''sensor.master_room_temperature_sensor_new_2'', ''sensor.master_room_temperature_sensor_new_2_battery'', ''sensor.master_room_humidity_sensor_new_2'', ''sensor.master_room_average_temperature_sensor'', ''binary_sensor.master_room_corridor_occupancy_sensor_occupancy'', ''sensor.master_room_corridor_occupancy_sensor_battery'', ''binary_sensor.master_room_corridor_xiaomi_home_occupancy_sensor_occupancy'', ''sensor.master_room_corridor_xiaomi_home_occupancy_sensor_battery'', ''binary_sensor.master_room_bed_xiaomi_home_occupancy_sensor_occupancy'', ''sensor.master_room_bed_xiaomi_home_occupancy_sensor_battery'', ''sensor.master_room_tv_motion_sensor_battery'', ''sensor.master_room_entrance_motion_sensor_battery'', ''sensor.master_room_stair_motion_sensor_battery'', ''sensor.master_room_drawer_motion_sensor_battery'', ''sensor.master_room_wall_button'', ''sensor.master_room_entrance_wall_button'', ''sensor.master_room_west_side_light_sensor'', ''sensor.master_room_west_side_light_sensor_battery'', ''sensor.master_room_light_intensity'', ''sensor.master_room_tado_availiabity'', ''binary_sensor.master_room_heating_required'', ''binary_sensor.master_room_6_key_button_1_single_click'', ''binary_sensor.master_room_6_key_button_2_single_click'', ''binary_sensor.master_room_6_key_button_3_single_click'', ''binary_sensor.master_room_6_key_button_4_single_click'', ''binary_sensor.master_room_6_key_button_5_single_click'', ''binary_sensor.master_room_6_key_button_6_single_click'', ''binary_sensor.master_room_6_key_button_1_long_press'', ''binary_sensor.master_room_6_key_button_2_long_press'', ''binary_sensor.master_room_6_key_button_3_long_press'', ''binary_sensor.master_room_6_key_button_4_long_press'', ''binary_sensor.master_room_6_key_button_5_long_press'', ''binary_sensor.master_room_6_key_button_6_long_press'', ''binary_sensor.master_room_8_key_remote_button_1_single_click'', ''binary_sensor.master_room_8_key_remote_button_2_single_click'', ''binary_sensor.master_room_8_key_remote_button_3_single_click'', ''binary_sensor.master_room_8_key_remote_button_4_single_click'', ''binary_sensor.master_room_8_key_remote_button_5_single_click'', ''binary_sensor.master_room_8_key_remote_button_6_single_click'', ''binary_sensor.master_room_8_key_remote_button_7_single_click'', ''binary_sensor.master_room_8_key_remote_button_8_single_click'', ''binary_sensor.master_room_8_key_remote_button_1_double_click'', ''binary_sensor.master_room_8_key_remote_button_2_double_click'', ''binary_sensor.master_room_8_key_remote_button_3_double_click'', ''binary_sensor.master_room_8_key_remote_button_4_double_click'', ''binary_sensor.master_room_8_key_remote_button_5_double_click'', ''binary_sensor.master_room_8_key_remote_button_6_double_click'', ''binary_sensor.master_room_8_key_remote_button_7_double_click'', ''binary_sensor.master_room_8_key_remote_button_8_double_click'', ''binary_sensor.master_room_8_key_remote_button_1_long_press'', ''binary_sensor.master_room_8_key_remote_button_2_long_press'', ''binary_sensor.master_room_8_key_remote_button_3_long_press'', ''binary_sensor.master_room_8_key_remote_button_4_long_press'', ''binary_sensor.master_room_8_key_remote_button_5_long_press'', ''binary_sensor.master_room_8_key_remote_button_6_long_press'', ''binary_sensor.master_room_8_key_remote_button_7_long_press'', ''binary_sensor.master_room_8_key_remote_button_8_long_press'', ''binary_sensor.master_room_tv_motion_sensor_motion'', ''binary_sensor.master_room_entrance_motion_sensor_motion'', ''binary_sensor.master_room_stair_motion_sensor_motion'', ''binary_sensor.master_room_drawer_motion_sensor_motion'', ''switch.master_room_wall_switch_1'', ''switch.master_room_wall_switch_2'', ''switch.master_room_wall_switch_3'', ''switch.master_room_balcony_wall_light'', ''switch.master_room_entrance_wall_switch'', ''switch.alpha_zero_g_mode'', ''switch.alpha_tv_mode'', ''switch.alpha_reading_mode'', ''switch.alpha_sleep_mode'', ''switch.alpha_head_up'', ''switch.alpha_foot_up'', ''switch.alpha_head_down'', ''switch.alpha_foot_down'', ''switch.beta_zero_g_mode'', ''switch.beta_tv_mode'', ''switch.beta_reading_mode'', ''switch.beta_sleep_mode'', ''switch.beta_head_up'', ''switch.beta_foot_up'', ''switch.beta_head_down'', ''switch.beta_foot_down'', ''cover.master_room_curtain'', ''light.master_room_lamp'', ''light.master_room_ceiling_light'', ''light.master_room_bed_ceiling_light'', ''light.master_room_drawer_ceiling_light'', ''light.master_room_lamp_1'', ''light.master_room_lamp_2'', ''light.master_room_tv_led'', ''light.master_room_entrance_light''] %}{% set ns = namespace() %}{% set ns.num_unavail_devices = 0 %}{% for device in added_device_entities %}   {% if states(device) in [''unavailable'', ''unknown'', ''none''] %}      {% set ns.num_unavail_devices = ns.num_unavail_devices + 1 %}   {% endif %}{% endfor %}{% if ns.num_unavail_devices > 0%}  on  {% else %}  off {% endif %}'
+    state: '{% set added_device_entities =  [''sensor.master_room_temperature_sensor_new_1'', ''sensor.master_room_temperature_sensor_new_1_battery'', ''sensor.master_room_humidity_sensor_new_1'', ''sensor.master_room_temperature_sensor_new_2'', ''sensor.master_room_temperature_sensor_new_2_battery'', ''sensor.master_room_humidity_sensor_new_2'', ''sensor.master_room_average_temperature_sensor'', ''binary_sensor.master_room_corridor_occupancy_sensor_occupancy'', ''sensor.master_room_corridor_occupancy_sensor_battery'', ''binary_sensor.master_room_corridor_xiaomi_home_occupancy_sensor_occupancy'', ''sensor.master_room_corridor_xiaomi_home_occupancy_sensor_battery'', ''binary_sensor.master_room_bed_xiaomi_home_occupancy_sensor_occupancy'', ''sensor.master_room_bed_xiaomi_home_occupancy_sensor_battery'', ''sensor.master_room_tv_motion_sensor_battery'', ''sensor.master_room_entrance_motion_sensor_battery'', ''sensor.master_room_stair_motion_sensor_battery'', ''sensor.master_room_drawer_motion_sensor_battery'', ''light.master_room_bed_ceiling_light'', ''sensor.master_room_wall_button'', ''sensor.master_room_entrance_wall_button'', ''sensor.master_room_west_side_light_sensor'', ''sensor.master_room_west_side_light_sensor_battery'', ''sensor.master_room_light_intensity'', ''sensor.master_room_tado_availiabity'', ''binary_sensor.master_room_heating_required'', ''binary_sensor.master_room_6_key_button_1_single_click'', ''binary_sensor.master_room_6_key_button_2_single_click'', ''binary_sensor.master_room_6_key_button_3_single_click'', ''binary_sensor.master_room_6_key_button_4_single_click'', ''binary_sensor.master_room_6_key_button_5_single_click'', ''binary_sensor.master_room_6_key_button_6_single_click'', ''binary_sensor.master_room_6_key_button_1_long_press'', ''binary_sensor.master_room_6_key_button_2_long_press'', ''binary_sensor.master_room_6_key_button_3_long_press'', ''binary_sensor.master_room_6_key_button_4_long_press'', ''binary_sensor.master_room_6_key_button_5_long_press'', ''binary_sensor.master_room_6_key_button_6_long_press'', ''binary_sensor.master_room_8_key_remote_button_1_single_click'', ''binary_sensor.master_room_8_key_remote_button_2_single_click'', ''binary_sensor.master_room_8_key_remote_button_3_single_click'', ''binary_sensor.master_room_8_key_remote_button_4_single_click'', ''binary_sensor.master_room_8_key_remote_button_5_single_click'', ''binary_sensor.master_room_8_key_remote_button_6_single_click'', ''binary_sensor.master_room_8_key_remote_button_7_single_click'', ''binary_sensor.master_room_8_key_remote_button_8_single_click'', ''binary_sensor.master_room_8_key_remote_button_1_double_click'', ''binary_sensor.master_room_8_key_remote_button_2_double_click'', ''binary_sensor.master_room_8_key_remote_button_3_double_click'', ''binary_sensor.master_room_8_key_remote_button_4_double_click'', ''binary_sensor.master_room_8_key_remote_button_5_double_click'', ''binary_sensor.master_room_8_key_remote_button_6_double_click'', ''binary_sensor.master_room_8_key_remote_button_7_double_click'', ''binary_sensor.master_room_8_key_remote_button_8_double_click'', ''binary_sensor.master_room_8_key_remote_button_1_long_press'', ''binary_sensor.master_room_8_key_remote_button_2_long_press'', ''binary_sensor.master_room_8_key_remote_button_3_long_press'', ''binary_sensor.master_room_8_key_remote_button_4_long_press'', ''binary_sensor.master_room_8_key_remote_button_5_long_press'', ''binary_sensor.master_room_8_key_remote_button_6_long_press'', ''binary_sensor.master_room_8_key_remote_button_7_long_press'', ''binary_sensor.master_room_8_key_remote_button_8_long_press'', ''binary_sensor.master_room_tv_motion_sensor_motion'', ''binary_sensor.master_room_entrance_motion_sensor_motion'', ''binary_sensor.master_room_stair_motion_sensor_motion'', ''binary_sensor.master_room_drawer_motion_sensor_motion'', ''switch.master_room_wall_switch_1'', ''switch.master_room_wall_switch_2'', ''switch.master_room_wall_switch_3'', ''switch.master_room_balcony_wall_light'', ''switch.master_room_entrance_wall_switch'', ''switch.alpha_zero_g_mode'', ''switch.alpha_tv_mode'', ''switch.alpha_reading_mode'', ''switch.alpha_sleep_mode'', ''switch.alpha_head_up'', ''switch.alpha_foot_up'', ''switch.alpha_head_down'', ''switch.alpha_foot_down'', ''switch.beta_zero_g_mode'', ''switch.beta_tv_mode'', ''switch.beta_reading_mode'', ''switch.beta_sleep_mode'', ''switch.beta_head_up'', ''switch.beta_foot_up'', ''switch.beta_head_down'', ''switch.beta_foot_down'', ''cover.master_room_curtain'', ''light.master_room_lamp'', ''light.master_room_ceiling_light'', ''light.master_room_drawer_ceiling_light'', ''light.master_room_lamp_1'', ''light.master_room_lamp_2'', ''light.master_room_tv_led'', ''light.master_room_entrance_light''] %}{% set ns = namespace() %}{% set ns.num_unavail_devices = 0 %}{% for device in added_device_entities %}   {% if states(device) in [''unavailable'', ''unknown'', ''none''] %}      {% set ns.num_unavail_devices = ns.num_unavail_devices + 1 %}   {% endif %}{% endfor %}{% if ns.num_unavail_devices > 0%}  on  {% else %}  off {% endif %}'
     attributes:
-      value: '{% set added_device_entities =  [''sensor.master_room_temperature_sensor_new_1'', ''sensor.master_room_temperature_sensor_new_1_battery'', ''sensor.master_room_humidity_sensor_new_1'', ''sensor.master_room_temperature_sensor_new_2'', ''sensor.master_room_temperature_sensor_new_2_battery'', ''sensor.master_room_humidity_sensor_new_2'', ''sensor.master_room_average_temperature_sensor'', ''binary_sensor.master_room_corridor_occupancy_sensor_occupancy'', ''sensor.master_room_corridor_occupancy_sensor_battery'', ''binary_sensor.master_room_corridor_xiaomi_home_occupancy_sensor_occupancy'', ''sensor.master_room_corridor_xiaomi_home_occupancy_sensor_battery'', ''binary_sensor.master_room_bed_xiaomi_home_occupancy_sensor_occupancy'', ''sensor.master_room_bed_xiaomi_home_occupancy_sensor_battery'', ''sensor.master_room_tv_motion_sensor_battery'', ''sensor.master_room_entrance_motion_sensor_battery'', ''sensor.master_room_stair_motion_sensor_battery'', ''sensor.master_room_drawer_motion_sensor_battery'', ''sensor.master_room_wall_button'', ''sensor.master_room_entrance_wall_button'', ''sensor.master_room_west_side_light_sensor'', ''sensor.master_room_west_side_light_sensor_battery'', ''sensor.master_room_light_intensity'', ''sensor.master_room_tado_availiabity'', ''binary_sensor.master_room_heating_required'', ''binary_sensor.master_room_6_key_button_1_single_click'', ''binary_sensor.master_room_6_key_button_2_single_click'', ''binary_sensor.master_room_6_key_button_3_single_click'', ''binary_sensor.master_room_6_key_button_4_single_click'', ''binary_sensor.master_room_6_key_button_5_single_click'', ''binary_sensor.master_room_6_key_button_6_single_click'', ''binary_sensor.master_room_6_key_button_1_long_press'', ''binary_sensor.master_room_6_key_button_2_long_press'', ''binary_sensor.master_room_6_key_button_3_long_press'', ''binary_sensor.master_room_6_key_button_4_long_press'', ''binary_sensor.master_room_6_key_button_5_long_press'', ''binary_sensor.master_room_6_key_button_6_long_press'', ''binary_sensor.master_room_8_key_remote_button_1_single_click'', ''binary_sensor.master_room_8_key_remote_button_2_single_click'', ''binary_sensor.master_room_8_key_remote_button_3_single_click'', ''binary_sensor.master_room_8_key_remote_button_4_single_click'', ''binary_sensor.master_room_8_key_remote_button_5_single_click'', ''binary_sensor.master_room_8_key_remote_button_6_single_click'', ''binary_sensor.master_room_8_key_remote_button_7_single_click'', ''binary_sensor.master_room_8_key_remote_button_8_single_click'', ''binary_sensor.master_room_8_key_remote_button_1_double_click'', ''binary_sensor.master_room_8_key_remote_button_2_double_click'', ''binary_sensor.master_room_8_key_remote_button_3_double_click'', ''binary_sensor.master_room_8_key_remote_button_4_double_click'', ''binary_sensor.master_room_8_key_remote_button_5_double_click'', ''binary_sensor.master_room_8_key_remote_button_6_double_click'', ''binary_sensor.master_room_8_key_remote_button_7_double_click'', ''binary_sensor.master_room_8_key_remote_button_8_double_click'', ''binary_sensor.master_room_8_key_remote_button_1_long_press'', ''binary_sensor.master_room_8_key_remote_button_2_long_press'', ''binary_sensor.master_room_8_key_remote_button_3_long_press'', ''binary_sensor.master_room_8_key_remote_button_4_long_press'', ''binary_sensor.master_room_8_key_remote_button_5_long_press'', ''binary_sensor.master_room_8_key_remote_button_6_long_press'', ''binary_sensor.master_room_8_key_remote_button_7_long_press'', ''binary_sensor.master_room_8_key_remote_button_8_long_press'', ''binary_sensor.master_room_tv_motion_sensor_motion'', ''binary_sensor.master_room_entrance_motion_sensor_motion'', ''binary_sensor.master_room_stair_motion_sensor_motion'', ''binary_sensor.master_room_drawer_motion_sensor_motion'', ''switch.master_room_wall_switch_1'', ''switch.master_room_wall_switch_2'', ''switch.master_room_wall_switch_3'', ''switch.master_room_balcony_wall_light'', ''switch.master_room_entrance_wall_switch'', ''switch.alpha_zero_g_mode'', ''switch.alpha_tv_mode'', ''switch.alpha_reading_mode'', ''switch.alpha_sleep_mode'', ''switch.alpha_head_up'', ''switch.alpha_foot_up'', ''switch.alpha_head_down'', ''switch.alpha_foot_down'', ''switch.beta_zero_g_mode'', ''switch.beta_tv_mode'', ''switch.beta_reading_mode'', ''switch.beta_sleep_mode'', ''switch.beta_head_up'', ''switch.beta_foot_up'', ''switch.beta_head_down'', ''switch.beta_foot_down'', ''cover.master_room_curtain'', ''light.master_room_lamp'', ''light.master_room_ceiling_light'', ''light.master_room_bed_ceiling_light'', ''light.master_room_drawer_ceiling_light'', ''light.master_room_lamp_1'', ''light.master_room_lamp_2'', ''light.master_room_tv_led'', ''light.master_room_entrance_light''] %}{% set ns = namespace() %}{% set ns.unavail_devices = '''' %}{% for device in added_device_entities %}   {% if states(device) in [''unavailable'', ''unknown'', ''none''] %}   {% set ns.unavail_devices = ns.unavail_devices + ''
+      value: '{% set added_device_entities =  [''sensor.master_room_temperature_sensor_new_1'', ''sensor.master_room_temperature_sensor_new_1_battery'', ''sensor.master_room_humidity_sensor_new_1'', ''sensor.master_room_temperature_sensor_new_2'', ''sensor.master_room_temperature_sensor_new_2_battery'', ''sensor.master_room_humidity_sensor_new_2'', ''sensor.master_room_average_temperature_sensor'', ''binary_sensor.master_room_corridor_occupancy_sensor_occupancy'', ''sensor.master_room_corridor_occupancy_sensor_battery'', ''binary_sensor.master_room_corridor_xiaomi_home_occupancy_sensor_occupancy'', ''sensor.master_room_corridor_xiaomi_home_occupancy_sensor_battery'', ''binary_sensor.master_room_bed_xiaomi_home_occupancy_sensor_occupancy'', ''sensor.master_room_bed_xiaomi_home_occupancy_sensor_battery'', ''sensor.master_room_tv_motion_sensor_battery'', ''sensor.master_room_entrance_motion_sensor_battery'', ''sensor.master_room_stair_motion_sensor_battery'', ''sensor.master_room_drawer_motion_sensor_battery'', ''light.master_room_bed_ceiling_light'', ''sensor.master_room_wall_button'', ''sensor.master_room_entrance_wall_button'', ''sensor.master_room_west_side_light_sensor'', ''sensor.master_room_west_side_light_sensor_battery'', ''sensor.master_room_light_intensity'', ''sensor.master_room_tado_availiabity'', ''binary_sensor.master_room_heating_required'', ''binary_sensor.master_room_6_key_button_1_single_click'', ''binary_sensor.master_room_6_key_button_2_single_click'', ''binary_sensor.master_room_6_key_button_3_single_click'', ''binary_sensor.master_room_6_key_button_4_single_click'', ''binary_sensor.master_room_6_key_button_5_single_click'', ''binary_sensor.master_room_6_key_button_6_single_click'', ''binary_sensor.master_room_6_key_button_1_long_press'', ''binary_sensor.master_room_6_key_button_2_long_press'', ''binary_sensor.master_room_6_key_button_3_long_press'', ''binary_sensor.master_room_6_key_button_4_long_press'', ''binary_sensor.master_room_6_key_button_5_long_press'', ''binary_sensor.master_room_6_key_button_6_long_press'', ''binary_sensor.master_room_8_key_remote_button_1_single_click'', ''binary_sensor.master_room_8_key_remote_button_2_single_click'', ''binary_sensor.master_room_8_key_remote_button_3_single_click'', ''binary_sensor.master_room_8_key_remote_button_4_single_click'', ''binary_sensor.master_room_8_key_remote_button_5_single_click'', ''binary_sensor.master_room_8_key_remote_button_6_single_click'', ''binary_sensor.master_room_8_key_remote_button_7_single_click'', ''binary_sensor.master_room_8_key_remote_button_8_single_click'', ''binary_sensor.master_room_8_key_remote_button_1_double_click'', ''binary_sensor.master_room_8_key_remote_button_2_double_click'', ''binary_sensor.master_room_8_key_remote_button_3_double_click'', ''binary_sensor.master_room_8_key_remote_button_4_double_click'', ''binary_sensor.master_room_8_key_remote_button_5_double_click'', ''binary_sensor.master_room_8_key_remote_button_6_double_click'', ''binary_sensor.master_room_8_key_remote_button_7_double_click'', ''binary_sensor.master_room_8_key_remote_button_8_double_click'', ''binary_sensor.master_room_8_key_remote_button_1_long_press'', ''binary_sensor.master_room_8_key_remote_button_2_long_press'', ''binary_sensor.master_room_8_key_remote_button_3_long_press'', ''binary_sensor.master_room_8_key_remote_button_4_long_press'', ''binary_sensor.master_room_8_key_remote_button_5_long_press'', ''binary_sensor.master_room_8_key_remote_button_6_long_press'', ''binary_sensor.master_room_8_key_remote_button_7_long_press'', ''binary_sensor.master_room_8_key_remote_button_8_long_press'', ''binary_sensor.master_room_tv_motion_sensor_motion'', ''binary_sensor.master_room_entrance_motion_sensor_motion'', ''binary_sensor.master_room_stair_motion_sensor_motion'', ''binary_sensor.master_room_drawer_motion_sensor_motion'', ''switch.master_room_wall_switch_1'', ''switch.master_room_wall_switch_2'', ''switch.master_room_wall_switch_3'', ''switch.master_room_balcony_wall_light'', ''switch.master_room_entrance_wall_switch'', ''switch.alpha_zero_g_mode'', ''switch.alpha_tv_mode'', ''switch.alpha_reading_mode'', ''switch.alpha_sleep_mode'', ''switch.alpha_head_up'', ''switch.alpha_foot_up'', ''switch.alpha_head_down'', ''switch.alpha_foot_down'', ''switch.beta_zero_g_mode'', ''switch.beta_tv_mode'', ''switch.beta_reading_mode'', ''switch.beta_sleep_mode'', ''switch.beta_head_up'', ''switch.beta_foot_up'', ''switch.beta_head_down'', ''switch.beta_foot_down'', ''cover.master_room_curtain'', ''light.master_room_lamp'', ''light.master_room_ceiling_light'', ''light.master_room_drawer_ceiling_light'', ''light.master_room_lamp_1'', ''light.master_room_lamp_2'', ''light.master_room_tv_led'', ''light.master_room_entrance_light''] %}{% set ns = namespace() %}{% set ns.unavail_devices = '''' %}{% for device in added_device_entities %}   {% if states(device) in [''unavailable'', ''unknown'', ''none''] %}   {% set ns.unavail_devices = ns.unavail_devices + ''
 
         '' +device %} {% endif %}{% endfor %}{{ns.unavail_devices}}'
 - binary_sensor:
@@ -7994,9 +8202,6 @@ light:
   entities:
   - light.master_room_bed_ceiling_light
   - light.master_room_drawer_ceiling_light
-- platform: group
-  name: Master Room Bed Ceiling Light
-  entities: light.yeelight_ceiling13_0x1c649afe
 - platform: group
   name: Master Room Drawer Ceiling Light
   entities: light.yeelink_cn_442976373_ceiling13_s_2_light
